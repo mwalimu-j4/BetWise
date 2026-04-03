@@ -1,4 +1,14 @@
-import { Download, Edit, Eye, Filter, Lock, Plus, Search, SlidersHorizontal, Unlock } from "lucide-react";
+import {
+  Download,
+  Edit,
+  Eye,
+  Filter,
+  Lock,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Unlock,
+} from "lucide-react";
 import { userStats, users } from "../../data/mock-data";
 import {
   AdminButton,
@@ -7,11 +17,15 @@ import {
   StatusBadge,
   SummaryCard,
   TableShell,
+  adminCompactActionsClassName,
+  adminTableCellClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 export default function Users() {
   return (
-    <div className="admin-panel">
+    <div className="space-y-6">
       <AdminSectionHeader
         title="User Management"
         subtitle="48,291 registered accounts"
@@ -29,7 +43,7 @@ export default function Users() {
         }
       />
 
-      <div className="admin-grid admin-grid--stats-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {userStats.map((stat) => (
           <SummaryCard
             key={stat.label}
@@ -41,12 +55,15 @@ export default function Users() {
       </div>
 
       <AdminCard>
-        <div className="admin-table-toolbar">
-          <div className="admin-input-shell">
-            <Search size={14} className="admin-text-muted" />
-            <input placeholder="Search users..." />
+        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-[280px] flex-1 items-center gap-2 rounded-xl border border-admin-border bg-admin-surface px-3 py-2.5">
+            <Search size={14} className="text-admin-text-muted" />
+            <input
+              className="w-full border-0 bg-transparent text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"
+              placeholder="Search users..."
+            />
           </div>
-          <div className="admin-inline-group">
+          <div className="flex flex-wrap items-center gap-3">
             <AdminButton variant="ghost">
               <Filter size={13} />
               KYC Status
@@ -59,7 +76,7 @@ export default function Users() {
         </div>
 
         <TableShell>
-          <table className="admin-table">
+          <table className={adminTableClassName}>
             <thead>
               <tr>
                 {[
@@ -74,36 +91,49 @@ export default function Users() {
                   "Status",
                   "Actions",
                 ].map((heading) => (
-                  <th key={heading}>{heading}</th>
+                  <th className={adminTableHeadCellClassName} key={heading}>
+                    {heading}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user.id}>
-                  <td className="admin-text-blue admin-text-strong admin-text-xs">
+                <tr
+                  className="even:bg-[rgba(22,29,53,0.5)]"
+                  key={user.id}
+                >
+                  <td
+                    className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
+                  >
                     {user.id}
                   </td>
-                  <td className="admin-text-primary admin-text-strong">
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
+                  >
                     {user.name}
                   </td>
-                  <td>{user.email}</td>
-                  <td className="admin-text-accent admin-text-strong">
+                  <td className={adminTableCellClassName}>{user.email}</td>
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-accent`}
+                  >
                     {user.balance}
                   </td>
-                  <td>{user.totalBets}</td>
-                  <td>{Math.round((user.won / user.totalBets) * 100)}%</td>
-                  <td>
+                  <td className={adminTableCellClassName}>{user.totalBets}</td>
+                  <td className={adminTableCellClassName}>
+                    {Math.round((user.won / user.totalBets) * 100)}%
+                  </td>
+                  <td className={adminTableCellClassName}>
                     <StatusBadge status={user.kyc} />
                   </td>
-                  <td>
+                  <td className={adminTableCellClassName}>
                     <StatusBadge status={user.risk} />
                   </td>
-                  <td>
+                  <td className={adminTableCellClassName}>
                     <StatusBadge status={user.status} />
                   </td>
-                  <td>
-                    <div className="admin-inline-group admin-inline-group--tight">
+                  <td className={adminTableCellClassName}>
+                    <div className={adminCompactActionsClassName}>
                       <AdminButton size="sm" variant="ghost">
                         <Eye size={11} />
                       </AdminButton>

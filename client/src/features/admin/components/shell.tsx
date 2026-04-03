@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { Bell, Menu, Search, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { adminNavigation } from "../config/navigation";
-
-const joinClasses = (...classes: Array<string | false | null | undefined>) =>
-  classes.filter(Boolean).join(" ");
 
 export default function AdminShell() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -15,28 +13,43 @@ export default function AdminShell() {
   });
 
   return (
-    <div className="admin-dashboard">
+    <div className="min-h-dvh bg-admin-bg text-admin-text-primary lg:flex [font-family:'DM_Sans',var(--font-sans)]">
       <aside
-        className={joinClasses(
-          "admin-sidebar",
-          !sidebarOpen && "is-collapsed",
+        className={cn(
+          "flex w-full flex-col overflow-hidden border-b border-admin-border bg-admin-card",
+          "bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent_140px)]",
+          "transition-[width,min-width] duration-300 lg:sticky lg:top-0 lg:h-dvh lg:border-b-0 lg:border-r",
+          sidebarOpen
+            ? "lg:w-[252px] lg:min-w-[252px]"
+            : "lg:w-[78px] lg:min-w-[78px]",
         )}
       >
-        <div className="admin-sidebar__brand">
-          <div className="admin-sidebar__logo-mark">
+        <div
+          className={cn(
+            "flex min-h-16 items-center gap-3 border-b border-admin-border px-4 py-4",
+            !sidebarOpen && "lg:justify-center",
+          )}
+        >
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[linear-gradient(135deg,var(--admin-accent),#00b37a)]">
             <Zap size={16} color="#000" />
           </div>
           {sidebarOpen ? (
             <div>
-              <p className="admin-sidebar__brand-name">BettCenic</p>
-              <p className="admin-sidebar__brand-label">Admin Panel</p>
+              <p className="text-sm font-bold tracking-[0.03em] text-admin-text-primary">
+                BettCenic
+              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
+                Admin Panel
+              </p>
             </div>
           ) : null}
         </div>
 
-        <div className="admin-sidebar__nav admin-scroll">
+        <div className="app-scrollbar flex-1 overflow-y-auto px-3 py-4">
           {sidebarOpen ? (
-            <p className="admin-sidebar__nav-heading">Navigation</p>
+            <p className="px-2.5 pb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-admin-text-muted">
+              Navigation
+            </p>
           ) : null}
           {adminNavigation.map((item) => {
             const Icon = item.icon;
@@ -45,27 +58,43 @@ export default function AdminShell() {
 
             return (
               <Link
-                className={joinClasses(
-                  "admin-nav-item",
-                  isActive && "is-active",
+                className={cn(
+                  "mb-1.5 flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-left text-admin-text-secondary transition",
+                  sidebarOpen ? "justify-start" : "justify-center px-0 lg:px-0",
+                  isActive
+                    ? "border-[rgba(0,229,160,0.22)] bg-admin-accent-dim text-admin-accent shadow-[inset_0_0_0_1px_rgba(0,229,160,0.05)]"
+                    : "border-transparent hover:bg-white/3 hover:text-admin-text-primary",
                 )}
                 key={item.id}
                 title={item.label}
                 to={item.to}
               >
                 <Icon size={18} />
-                {sidebarOpen ? <span>{item.label}</span> : null}
+                {sidebarOpen ? (
+                  <span className={cn("text-sm", isActive && "font-semibold")}>
+                    {item.label}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
         </div>
 
-        <div className="admin-sidebar__profile">
-          <div className="admin-avatar">SA</div>
+        <div
+          className={cn(
+            "flex items-center gap-3 border-t border-admin-border px-4 py-4",
+            !sidebarOpen && "lg:justify-center",
+          )}
+        >
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,var(--admin-purple),var(--admin-blue))] text-[11px] font-bold text-white">
+            SA
+          </div>
           {sidebarOpen ? (
-            <div className="admin-sidebar__profile-copy">
-              <p className="admin-sidebar__profile-name">Super Admin</p>
-              <p className="admin-sidebar__profile-email">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-admin-text-primary">
+                Super Admin
+              </p>
+              <p className="truncate text-[11px] text-admin-text-muted">
                 admin@betforge.io
               </p>
             </div>
@@ -73,22 +102,28 @@ export default function AdminShell() {
         </div>
       </aside>
 
-      <div className="admin-main">
-        <header className="admin-topbar">
-          <div className="admin-topbar__leading">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-admin-bg">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,229,160,0.06),transparent_28%),linear-gradient(180deg,rgba(22,29,53,0.7),#0a0e1a_180px)]"
+        />
+
+        <header className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-admin-border bg-[rgba(10,14,26,0.86)] px-4 py-4 backdrop-blur-[18px] sm:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <button
               aria-label="Toggle sidebar"
               aria-expanded={sidebarOpen}
-              className="admin-icon-trigger"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-admin-border bg-white/2 text-admin-text-secondary transition hover:bg-white/4 hover:text-admin-text-primary"
               onClick={() => setSidebarOpen((current) => !current)}
               type="button"
             >
               <Menu size={18} />
             </button>
 
-            <div className="admin-search">
-              <Search size={14} className="admin-text-muted" />
+            <div className="flex h-11 w-full max-w-[560px] flex-1 items-center gap-2 rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.88)] px-3">
+              <Search size={14} className="text-admin-text-muted" />
               <input
+                className="w-full min-w-0 border-0 bg-transparent text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search users, bets, events..."
                 value={searchQuery}
@@ -96,31 +131,33 @@ export default function AdminShell() {
             </div>
           </div>
 
-          <div className="admin-topbar__actions">
-            <div className="admin-live-pill">
-              <span className="admin-live-pill__dot" />
+          <div className="ml-auto flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-admin-accent-dim px-3 py-1.5 text-[11px] font-semibold text-admin-accent">
+              <span className="animate-admin-pulse h-1.5 w-1.5 rounded-full bg-admin-accent" />
               <span>LIVE</span>
             </div>
 
             <button
               aria-label="View notifications"
-              className="admin-icon-trigger admin-icon-trigger--notification"
+              className="relative grid h-10 w-10 place-items-center rounded-xl border border-admin-border bg-white/2 text-admin-text-secondary transition hover:bg-white/4 hover:text-admin-text-primary"
               onClick={() => setNotifications(0)}
               type="button"
             >
               <Bell size={18} />
               {notifications > 0 ? (
-                <span className="admin-notification-badge">
+                <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-admin-red text-[8px] font-bold text-white">
                   {notifications}
                 </span>
               ) : null}
             </button>
 
-            <div className="admin-avatar">SA</div>
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-[linear-gradient(135deg,var(--admin-purple),var(--admin-blue))] text-[11px] font-bold text-white">
+              SA
+            </div>
           </div>
         </header>
 
-        <main className="admin-content admin-scroll">
+        <main className="app-scrollbar relative flex-1 overflow-auto p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

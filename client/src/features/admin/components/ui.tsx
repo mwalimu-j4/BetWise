@@ -17,6 +17,7 @@ import {
   UserX,
   XCircle,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   revenueTrend,
   sportDistribution,
@@ -24,10 +25,50 @@ import {
   type AdminTone,
 } from "../data/mock-data";
 
-const joinClasses = (...classes: Array<string | false | null | undefined>) =>
-  classes.filter(Boolean).join(" ");
-
 const toneToColor = (tone: AdminTone) => `var(--admin-${tone})`;
+
+const toneTextClasses: Record<AdminTone, string> = {
+  accent: "text-admin-accent",
+  blue: "text-admin-blue",
+  gold: "text-admin-gold",
+  red: "text-admin-red",
+  purple: "text-admin-purple",
+  muted: "text-admin-text-muted",
+  live: "text-admin-live",
+};
+
+const toneSoftClasses: Record<AdminTone, string> = {
+  accent: "bg-admin-accent-dim text-admin-accent",
+  blue: "bg-admin-blue-dim text-admin-blue",
+  gold: "bg-admin-gold-dim text-admin-gold",
+  red: "bg-admin-red-dim text-admin-red",
+  purple: "bg-admin-purple-dim text-admin-purple",
+  muted: "bg-[rgba(61,75,110,0.18)] text-admin-text-muted",
+  live: "bg-admin-live-dim text-admin-live",
+};
+
+const toneGlowClasses: Record<AdminTone, string> = {
+  accent:
+    "bg-[radial-gradient(circle_at_80%_20%,rgba(0,229,160,0.12),transparent_70%)]",
+  blue: "bg-[radial-gradient(circle_at_80%_20%,rgba(61,142,248,0.12),transparent_70%)]",
+  gold: "bg-[radial-gradient(circle_at_80%_20%,rgba(245,166,35,0.12),transparent_70%)]",
+  red: "bg-[radial-gradient(circle_at_80%_20%,rgba(255,77,106,0.12),transparent_70%)]",
+  purple:
+    "bg-[radial-gradient(circle_at_80%_20%,rgba(155,89,245,0.12),transparent_70%)]",
+  muted:
+    "bg-[radial-gradient(circle_at_80%_20%,rgba(61,75,110,0.16),transparent_70%)]",
+  live: "bg-[radial-gradient(circle_at_80%_20%,rgba(255,107,53,0.16),transparent_70%)]",
+};
+
+const solidToneClasses: Record<AdminTone, string> = {
+  accent: "bg-admin-accent text-black",
+  blue: "bg-admin-blue text-black",
+  gold: "bg-admin-gold text-black",
+  red: "bg-admin-red text-black",
+  purple: "bg-admin-purple text-black",
+  muted: "bg-admin-text-muted text-black",
+  live: "bg-admin-live text-black",
+};
 
 const statusConfig: Record<
   AdminBadgeStatus,
@@ -49,12 +90,24 @@ const statusConfig: Record<
   low: { tone: "blue", icon: CheckCircle },
 };
 
-interface AdminButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   tone?: AdminTone;
   variant?: "solid" | "ghost";
   size?: "md" | "sm";
   className?: string;
+}
+
+export const adminTableClassName = "min-w-[760px] w-full border-collapse";
+export const adminTableHeadCellClassName =
+  "border-b border-admin-border px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted";
+export const adminTableCellClassName =
+  "border-b border-admin-border px-3 py-2.5 text-sm text-admin-text-secondary";
+export const adminCompactActionsClassName =
+  "flex flex-wrap items-center gap-1";
+export const adminFilterRowClassName = "flex flex-wrap gap-3";
+
+export function adminToneTextClass(tone: AdminTone) {
+  return toneTextClasses[tone];
 }
 
 export function AdminCard({
@@ -68,9 +121,11 @@ export function AdminCard({
 }) {
   return (
     <section
-      className={joinClasses(
-        "admin-card",
-        interactive && "admin-card--interactive",
+      className={cn(
+        "relative rounded-2xl border border-admin-border bg-admin-card p-5 text-admin-text-primary shadow-[0_12px_40px_rgba(0,0,0,0.18)]",
+        "bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_120px)]",
+        interactive &&
+          "transition duration-200 hover:-translate-y-0.5 hover:border-admin-border-strong",
         className,
       )}
     >
@@ -90,13 +145,15 @@ export function AdminButton({
   return (
     <button
       {...props}
-      className={joinClasses(
-        "admin-button",
-        `admin-button--${variant}`,
-        `admin-button--${size}`,
+      className={cn(
+        "inline-flex items-center justify-center gap-1.5 rounded-xl border text-sm font-medium transition",
+        "disabled:pointer-events-none disabled:opacity-50",
+        size === "md" ? "h-9 px-3.5" : "h-8 px-2.5 text-[11px]",
+        variant === "solid"
+          ? cn(solidToneClasses[tone], "border-transparent hover:opacity-95")
+          : "border-admin-border bg-transparent text-admin-text-secondary hover:bg-white/4 hover:text-admin-text-primary",
         className,
       )}
-      data-tone={tone}
       type={type}
     />
   );
@@ -112,12 +169,12 @@ export function AdminSectionHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="admin-section-header">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="admin-page-title">{title}</h1>
-        <p className="admin-page-subtitle">{subtitle}</p>
+        <h1 className="text-2xl font-bold text-admin-text-primary">{title}</h1>
+        <p className="mt-1 text-sm text-admin-text-muted">{subtitle}</p>
       </div>
-      {actions ? <div className="admin-inline-group">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
     </div>
   );
 }
@@ -132,12 +189,14 @@ export function AdminCardHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="admin-card-heading">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="admin-card-title">{title}</p>
-        {subtitle ? <p className="admin-card-subtitle">{subtitle}</p> : null}
+        <p className="text-base font-semibold text-admin-text-primary">{title}</p>
+        {subtitle ? (
+          <p className="mt-1 text-xs text-admin-text-muted">{subtitle}</p>
+        ) : null}
       </div>
-      {actions ? <div className="admin-inline-group">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
     </div>
   );
 }
@@ -158,18 +217,38 @@ export function MetricCard({
   icon: LucideIcon;
 }) {
   return (
-    <AdminCard className="admin-card--metric" interactive>
-      <div className="admin-card__glow" data-tone={tone} />
-      <div className="admin-metric-card">
+    <AdminCard className="overflow-hidden" interactive>
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-tr-2xl",
+          toneGlowClasses[tone],
+        )}
+      />
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="admin-kpi-label">{label}</p>
-          <p className="admin-kpi-value">{value}</p>
-          <span className="admin-change" data-direction={up ? "up" : "down"}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
+            {label}
+          </p>
+          <p className="mt-1.5 text-[1.65rem] font-bold text-admin-text-primary">
+            {value}
+          </p>
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 text-xs font-semibold",
+              up ? "text-admin-accent" : "text-admin-red",
+            )}
+          >
             {up ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
             {change}
           </span>
         </div>
-        <div className="admin-card__icon" data-tone={tone}>
+        <div
+          className={cn(
+            "grid h-10 w-10 shrink-0 place-items-center rounded-xl",
+            toneSoftClasses[tone],
+          )}
+        >
           <Icon size={18} />
         </div>
       </div>
@@ -187,11 +266,11 @@ export function SummaryCard({
   tone: AdminTone;
 }) {
   return (
-    <AdminCard className="admin-summary-card">
-      <p className="admin-summary-card__value" data-tone={tone}>
+    <AdminCard className="text-center">
+      <p className={cn("text-[1.45rem] font-bold", toneTextClasses[tone])}>
         {value}
       </p>
-      <p className="admin-summary-card__label">{label}</p>
+      <p className="mt-1 text-xs text-admin-text-muted">{label}</p>
     </AdminCard>
   );
 }
@@ -200,7 +279,12 @@ export function StatusBadge({ status }: { status: AdminBadgeStatus }) {
   const { tone, icon: Icon } = statusConfig[status];
 
   return (
-    <span className="admin-status-badge" data-tone={tone}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold capitalize tracking-[0.03em]",
+        toneSoftClasses[tone],
+      )}
+    >
       <Icon size={10} />
       {status}
     </span>
@@ -215,30 +299,35 @@ export function InlinePill({
   tone: AdminTone;
 }) {
   return (
-    <span className="admin-inline-pill" data-tone={tone}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-bold tracking-[0.03em]",
+        toneSoftClasses[tone],
+      )}
+    >
       {label}
     </span>
   );
 }
 
 export function TableShell({ children }: { children: ReactNode }) {
-  return <div className="admin-table-shell">{children}</div>;
+  return <div className="overflow-x-auto">{children}</div>;
 }
 
 export function MiniChart() {
   return (
-    <div className="admin-mini-chart">
+    <div className="mt-3 flex h-12 items-end gap-1">
       {revenueTrend.map((bar) => (
-        <div className="admin-mini-chart__group" key={bar.day}>
+        <div className="flex flex-1 flex-col items-center gap-0.5" key={bar.day}>
           <div
-            className="admin-mini-chart__bar admin-mini-chart__bar--volume"
+            className="w-full rounded-[3px] bg-admin-accent-dim"
             style={{ height: `${bar.bets * 0.44}px` }}
           />
           <div
-            className="admin-mini-chart__bar admin-mini-chart__bar--revenue"
+            className="w-full rounded-[3px] bg-admin-accent opacity-85"
             style={{ height: `${bar.revenue * 0.44}px` }}
           />
-          <span className="admin-mini-chart__label">{bar.day}</span>
+          <span className="text-[9px] text-admin-text-muted">{bar.day}</span>
         </div>
       ))}
     </div>
@@ -268,8 +357,8 @@ export function DonutChart() {
   );
 
   return (
-    <div className="admin-donut">
-      <svg className="admin-donut__chart" viewBox="0 0 90 90">
+    <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+      <svg className="h-[90px] w-[90px]" viewBox="0 0 90 90">
         <circle
           cx={45}
           cy={45}
@@ -300,22 +389,24 @@ export function DonutChart() {
         <text
           x={45}
           y={49}
-          className="admin-donut__label"
+          className="fill-admin-text-primary text-[11px] font-semibold"
           textAnchor="middle"
         >
           Bets
         </text>
       </svg>
 
-      <div className="admin-donut__legend">
+      <div className="flex flex-1 flex-col gap-2">
         {sportDistribution.map((segment) => (
-          <div className="admin-donut__legend-row" key={segment.sport}>
+          <div className="flex items-center gap-2" key={segment.sport}>
             <span
-              className="admin-donut__legend-dot"
+              className="h-2 w-2 shrink-0 rounded-full"
               style={{ background: toneToColor(segment.tone) }}
             />
-            <span className="admin-text-secondary">{segment.sport}</span>
-            <span className="admin-text-primary admin-text-strong">
+            <span className="text-sm text-admin-text-secondary">
+              {segment.sport}
+            </span>
+            <span className="ml-auto font-semibold text-admin-text-primary">
               {segment.percentage}%
             </span>
           </div>

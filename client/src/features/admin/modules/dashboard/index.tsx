@@ -1,8 +1,5 @@
 import { Download, Eye, Filter, Flag } from "lucide-react";
-import {
-  dashboardMetrics,
-  recentBets,
-} from "../../data/mock-data";
+import { dashboardMetrics, recentBets } from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
@@ -13,38 +10,39 @@ import {
   MiniChart,
   StatusBadge,
   TableShell,
+  adminCompactActionsClassName,
+  adminTableCellClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 export default function Dashboard() {
   return (
-    <div className="admin-panel">
+    <div className="space-y-6">
       <AdminSectionHeader
         title="Overview"
         subtitle="Friday, April 3, 2026 - Live Platform Snapshot"
       />
 
-      <div className="admin-grid admin-grid--kpi">
+      <div className="grid gap-4 xl:grid-cols-3">
         {dashboardMetrics.map((metric) => (
           <MetricCard key={metric.label} {...metric} />
         ))}
       </div>
 
-      <div className="admin-grid admin-grid--dashboard-charts">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <AdminCard>
           <AdminCardHeader
             title="Revenue & Bet Volume"
             subtitle="Last 7 days"
             actions={
-              <div className="admin-legend">
-                <span className="admin-legend__item">
-                  <span className="admin-legend__swatch" data-tone="accent" />
+              <div className="flex flex-wrap gap-3 text-xs text-admin-text-secondary">
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-[2px] bg-admin-accent" />
                   Revenue
                 </span>
-                <span className="admin-legend__item">
-                  <span
-                    className="admin-legend__swatch admin-legend__swatch--dim"
-                    data-tone="accent"
-                  />
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-[2px] bg-admin-accent-dim" />
                   Volume
                 </span>
               </div>
@@ -81,7 +79,7 @@ export default function Dashboard() {
         />
 
         <TableShell>
-          <table className="admin-table">
+          <table className={adminTableClassName}>
             <thead>
               <tr>
                 {[
@@ -96,36 +94,55 @@ export default function Dashboard() {
                   "Time",
                   "Action",
                 ].map((heading) => (
-                  <th key={heading}>{heading}</th>
+                  <th className={adminTableHeadCellClassName} key={heading}>
+                    {heading}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {recentBets.map((bet) => (
-                <tr key={bet.id}>
-                  <td className="admin-text-blue admin-text-strong admin-text-xs">
+                <tr
+                  className="even:bg-[rgba(22,29,53,0.5)]"
+                  key={bet.id}
+                >
+                  <td
+                    className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
+                  >
                     {bet.id}
                   </td>
-                  <td className="admin-text-primary admin-text-strong">
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
+                  >
                     {bet.user}
                   </td>
-                  <td>{bet.sport}</td>
-                  <td className="admin-truncate-cell">{bet.event}</td>
-                  <td>{bet.market}</td>
-                  <td className="admin-text-gold admin-text-strong">
+                  <td className={adminTableCellClassName}>{bet.sport}</td>
+                  <td
+                    className={`${adminTableCellClassName} max-w-[160px] truncate`}
+                  >
+                    {bet.event}
+                  </td>
+                  <td className={adminTableCellClassName}>{bet.market}</td>
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-gold`}
+                  >
                     {bet.odds}
                   </td>
-                  <td className="admin-text-primary admin-text-strong">
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
+                  >
                     {bet.stake}
                   </td>
-                  <td>
+                  <td className={adminTableCellClassName}>
                     <StatusBadge status={bet.status} />
                   </td>
-                  <td className="admin-text-muted admin-text-xs">
+                  <td
+                    className={`${adminTableCellClassName} text-xs text-admin-text-muted`}
+                  >
                     {bet.time}
                   </td>
-                  <td>
-                    <div className="admin-inline-group admin-inline-group--tight">
+                  <td className={adminTableCellClassName}>
+                    <div className={adminCompactActionsClassName}>
                       <AdminButton size="sm" variant="ghost">
                         <Eye size={11} />
                       </AdminButton>

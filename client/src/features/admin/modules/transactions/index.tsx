@@ -8,11 +8,15 @@ import {
   StatusBadge,
   SummaryCard,
   TableShell,
+  adminCompactActionsClassName,
+  adminTableCellClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 export default function Transactions() {
   return (
-    <div className="admin-panel">
+    <div className="space-y-6">
       <AdminSectionHeader
         title="Transactions"
         subtitle="Deposits, withdrawals, and payment review"
@@ -24,7 +28,7 @@ export default function Transactions() {
         }
       />
 
-      <div className="admin-grid admin-grid--stats-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {transactionStats.map((stat) => (
           <SummaryCard
             key={stat.label}
@@ -37,7 +41,7 @@ export default function Transactions() {
 
       <AdminCard>
         <TableShell>
-          <table className="admin-table">
+          <table className={adminTableClassName}>
             <thead>
               <tr>
                 {[
@@ -50,43 +54,56 @@ export default function Transactions() {
                   "Time",
                   "Actions",
                 ].map((heading) => (
-                  <th key={heading}>{heading}</th>
+                  <th className={adminTableHeadCellClassName} key={heading}>
+                    {heading}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {transactions.map((transaction) => (
-                <tr key={transaction.id}>
-                  <td className="admin-text-blue admin-text-strong admin-text-xs">
+                <tr
+                  className="even:bg-[rgba(22,29,53,0.5)]"
+                  key={transaction.id}
+                >
+                  <td
+                    className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
+                  >
                     {transaction.id}
                   </td>
-                  <td className="admin-text-primary admin-text-strong">
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
+                  >
                     {transaction.user}
                   </td>
-                  <td>
+                  <td className={adminTableCellClassName}>
                     <InlinePill
                       label={transaction.type}
                       tone={transaction.type === "deposit" ? "accent" : "red"}
                     />
                   </td>
-                  <td>{transaction.method}</td>
+                  <td className={adminTableCellClassName}>
+                    {transaction.method}
+                  </td>
                   <td
-                    className={
+                    className={`${adminTableCellClassName} font-semibold ${
                       transaction.amount.startsWith("+")
-                        ? "admin-text-accent admin-text-strong"
-                        : "admin-text-red admin-text-strong"
-                    }
+                        ? "text-admin-accent"
+                        : "text-admin-red"
+                    }`}
                   >
                     {transaction.amount}
                   </td>
-                  <td>
+                  <td className={adminTableCellClassName}>
                     <StatusBadge status={transaction.status} />
                   </td>
-                  <td className="admin-text-muted admin-text-xs">
+                  <td
+                    className={`${adminTableCellClassName} text-xs text-admin-text-muted`}
+                  >
                     {transaction.time}
                   </td>
-                  <td>
-                    <div className="admin-inline-group admin-inline-group--tight">
+                  <td className={adminTableCellClassName}>
+                    <div className={adminCompactActionsClassName}>
                       <AdminButton size="sm" variant="ghost">
                         <Eye size={11} />
                       </AdminButton>

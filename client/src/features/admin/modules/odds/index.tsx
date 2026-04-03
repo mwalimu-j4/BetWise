@@ -7,11 +7,15 @@ import {
   InlinePill,
   StatusBadge,
   TableShell,
+  adminCompactActionsClassName,
+  adminTableCellClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 export default function Odds() {
   return (
-    <div className="admin-panel">
+    <div className="space-y-6">
       <AdminSectionHeader
         title="Odds Control"
         subtitle="Manage markets, odds, and margins"
@@ -31,7 +35,7 @@ export default function Odds() {
 
       <AdminCard>
         <TableShell>
-          <table className="admin-table">
+          <table className={adminTableClassName}>
             <thead>
               <tr>
                 {[
@@ -47,41 +51,56 @@ export default function Odds() {
                   "Status",
                   "Actions",
                 ].map((heading) => (
-                  <th key={heading}>{heading}</th>
+                  <th className={adminTableHeadCellClassName} key={heading}>
+                    {heading}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {oddsRows.map((row) => (
-                <tr key={`${row.event}-${row.market}`}>
-                  <td className="admin-text-primary admin-text-strong admin-truncate-cell">
+                <tr
+                  className="even:bg-[rgba(22,29,53,0.5)]"
+                  key={`${row.event}-${row.market}`}
+                >
+                  <td
+                    className={`${adminTableCellClassName} max-w-[160px] truncate font-semibold text-admin-text-primary`}
+                  >
                     {row.event}
                   </td>
-                  <td>{row.market}</td>
-                  <td className="admin-text-primary">{row.selectionOne}</td>
-                  <td>
+                  <td className={adminTableCellClassName}>{row.market}</td>
+                  <td className={`${adminTableCellClassName} text-admin-text-primary`}>
+                    {row.selectionOne}
+                  </td>
+                  <td className={adminTableCellClassName}>
                     <InlinePill label={row.oddsOne} tone="accent" />
                   </td>
-                  <td>{row.selectionTwo || "-"}</td>
-                  <td>
+                  <td className={adminTableCellClassName}>
+                    {row.selectionTwo || "-"}
+                  </td>
+                  <td className={adminTableCellClassName}>
                     {row.oddsTwo ? (
                       <InlinePill label={row.oddsTwo} tone="accent" />
                     ) : (
                       "-"
                     )}
                   </td>
-                  <td className="admin-text-primary">{row.selectionThree}</td>
-                  <td>
+                  <td className={`${adminTableCellClassName} text-admin-text-primary`}>
+                    {row.selectionThree}
+                  </td>
+                  <td className={adminTableCellClassName}>
                     <InlinePill label={row.oddsThree} tone="accent" />
                   </td>
-                  <td className="admin-text-gold admin-text-strong">
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-gold`}
+                  >
                     {row.margin}
                   </td>
-                  <td>
+                  <td className={adminTableCellClassName}>
                     <StatusBadge status={row.status} />
                   </td>
-                  <td>
-                    <div className="admin-inline-group admin-inline-group--tight">
+                  <td className={adminTableCellClassName}>
+                    <div className={adminCompactActionsClassName}>
                       <AdminButton size="sm" variant="ghost">
                         <Edit size={11} />
                       </AdminButton>

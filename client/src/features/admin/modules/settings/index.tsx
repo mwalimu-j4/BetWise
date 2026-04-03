@@ -9,20 +9,25 @@ import {
 
 export default function Settings() {
   return (
-    <div className="admin-panel">
+    <div className="space-y-6">
       <AdminSectionHeader
         title="Platform Settings"
         subtitle="System configuration and admin preferences"
       />
 
-      <div className="admin-grid admin-grid--double">
+      <div className="grid gap-4 xl:grid-cols-2">
         {settingsGroups.map((section) => (
           <AdminCard key={section.title}>
             <AdminCardHeader title={section.title} />
-            <div className="admin-setting-list">
+            <div className="mt-4 space-y-3">
               {section.items.map((item) => (
-                <div className="admin-setting-row" key={item}>
-                  <span className="admin-text-secondary">{item}</span>
+                <div
+                  className="flex items-center justify-between gap-3 border-b border-admin-border py-2 last:border-b-0"
+                  key={item}
+                >
+                  <span className="text-sm text-admin-text-secondary">
+                    {item}
+                  </span>
                   <AdminButton size="sm" variant="ghost">
                     <Edit size={10} />
                     Edit

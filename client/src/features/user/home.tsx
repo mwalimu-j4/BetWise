@@ -1,27 +1,37 @@
 export default function Home() {
   return (
-    <section className="user-panel animate-lift-in">
-      <div className="user-section-header">
+    <section className="animate-lift-in rounded-3xl border border-admin-border bg-admin-card p-6 shadow-[0_16px_48px_rgba(0,0,0,0.2)]">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="user-page-title">BetCenic is live</h1>
-          <p className="user-page-subtitle">
+          <h1 className="text-2xl font-bold text-admin-text-primary">
+            BetCenic is live
+          </h1>
+          <p className="mt-1.5 text-sm text-admin-text-muted">
             Real-time odds, quick deposits, and a wallet-first flow.
           </p>
         </div>
       </div>
 
-      <div className="user-grid user-grid--summary">
-        <article className="user-card" data-tone="accent">
-          <p className="user-kpi-label">Available Balance</p>
-          <p className="user-kpi-value">KES 0.00</p>
+      <div className="grid gap-3 md:grid-cols-3">
+        <article className="rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.45)] p-4">
+          <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
+            Available Balance
+          </p>
+          <p className="mt-2 text-2xl font-bold text-admin-accent">KES 0.00</p>
         </article>
-        <article className="user-card" data-tone="blue">
-          <p className="user-kpi-label">Open Bets</p>
-          <p className="user-kpi-value">0</p>
+        <article className="rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.45)] p-4">
+          <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
+            Open Bets
+          </p>
+          <p className="mt-2 text-2xl font-bold text-admin-blue">0</p>
         </article>
-        <article className="user-card" data-tone="gold">
-          <p className="user-kpi-label">Today's Activity</p>
-          <p className="user-kpi-value">No activity</p>
+        <article className="rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.45)] p-4">
+          <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
+            Today&apos;s Activity
+          </p>
+          <p className="mt-2 text-2xl font-bold text-admin-gold">
+            No activity
+          </p>
         </article>
       </div>
     </section>

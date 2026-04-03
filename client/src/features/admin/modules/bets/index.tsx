@@ -7,6 +7,11 @@ import {
   StatusBadge,
   SummaryCard,
   TableShell,
+  adminCompactActionsClassName,
+  adminFilterRowClassName,
+  adminTableCellClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 const calculatePotentialWin = (stake: string, odds: string) => {
@@ -18,7 +23,7 @@ const calculatePotentialWin = (stake: string, odds: string) => {
 
 export default function Bets() {
   return (
-    <div className="admin-panel">
+    <div className="space-y-6">
       <AdminSectionHeader
         title="Bet Management"
         subtitle="All bets, settlements, and void management"
@@ -36,7 +41,7 @@ export default function Bets() {
         }
       />
 
-      <div className="admin-grid admin-grid--stats-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {betStats.map((stat) => (
           <SummaryCard
             key={stat.label}
@@ -47,7 +52,7 @@ export default function Bets() {
         ))}
       </div>
 
-      <div className="admin-filter-row">
+      <div className={adminFilterRowClassName}>
         {betFilters.map((filter) => (
           <AdminButton
             key={filter}
@@ -60,7 +65,7 @@ export default function Bets() {
 
       <AdminCard>
         <TableShell>
-          <table className="admin-table">
+          <table className={adminTableClassName}>
             <thead>
               <tr>
                 {[
@@ -76,39 +81,60 @@ export default function Bets() {
                   "Time",
                   "Actions",
                 ].map((heading) => (
-                  <th key={heading}>{heading}</th>
+                  <th className={adminTableHeadCellClassName} key={heading}>
+                    {heading}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {recentBets.map((bet) => (
-                <tr key={`${bet.id}-management`}>
-                  <td className="admin-text-blue admin-text-strong admin-text-xs">
+                <tr
+                  className="even:bg-[rgba(22,29,53,0.5)]"
+                  key={`${bet.id}-management`}
+                >
+                  <td
+                    className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
+                  >
                     {bet.id}
                   </td>
-                  <td className="admin-text-primary admin-text-strong">
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
+                  >
                     {bet.user}
                   </td>
-                  <td>{bet.sport}</td>
-                  <td className="admin-truncate-cell">{bet.event}</td>
-                  <td>{bet.market}</td>
-                  <td className="admin-text-gold admin-text-strong">
+                  <td className={adminTableCellClassName}>{bet.sport}</td>
+                  <td
+                    className={`${adminTableCellClassName} max-w-[160px] truncate`}
+                  >
+                    {bet.event}
+                  </td>
+                  <td className={adminTableCellClassName}>{bet.market}</td>
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-gold`}
+                  >
                     {bet.odds}
                   </td>
-                  <td className="admin-text-primary admin-text-strong">
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
+                  >
                     {bet.stake}
                   </td>
-                  <td className="admin-text-accent admin-text-strong">
+                  <td
+                    className={`${adminTableCellClassName} font-semibold text-admin-accent`}
+                  >
                     {calculatePotentialWin(bet.stake, bet.odds)}
                   </td>
-                  <td>
+                  <td className={adminTableCellClassName}>
                     <StatusBadge status={bet.status} />
                   </td>
-                  <td className="admin-text-muted admin-text-xs">
+                  <td
+                    className={`${adminTableCellClassName} text-xs text-admin-text-muted`}
+                  >
                     {bet.time}
                   </td>
-                  <td>
-                    <div className="admin-inline-group admin-inline-group--tight">
+                  <td className={adminTableCellClassName}>
+                    <div className={adminCompactActionsClassName}>
                       <AdminButton size="sm" variant="ghost">
                         <Eye size={11} />
                       </AdminButton>
