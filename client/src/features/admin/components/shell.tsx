@@ -28,7 +28,7 @@ export default function AdminShell() {
           </div>
           {sidebarOpen ? (
             <div>
-              <p className="admin-sidebar__brand-name">BetForge</p>
+              <p className="admin-sidebar__brand-name">BettCenic</p>
               <p className="admin-sidebar__brand-label">Admin Panel</p>
             </div>
           ) : null}

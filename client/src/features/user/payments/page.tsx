@@ -56,38 +56,38 @@ export default function Payments() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-8 sm:px-0">
-      <section className="overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-lg transition-all">
-        <div className="flex items-center justify-between border-b bg-muted/30 p-6 sm:p-8">
+    <div className="user-payments-shell animate-lift-in">
+      <section className="user-payments-card">
+        <div className="user-payments-card__header">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Deposit</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h1 className="user-page-title">Deposit</h1>
+            <p className="user-page-subtitle">
               Pay securely via STK Push.
             </p>
           </div>
 
-          <div className="inline-flex shrink-0 items-center gap-2 rounded-full border bg-background px-3 py-1.5 shadow-sm">
+          <div className="user-inline-pill">
             <img
               src="/images/mpesa/logo.png"
               alt="M-Pesa"
               className="h-5 w-auto object-contain"
             />
-            <span className="text-xs font-bold tracking-wide text-emerald-600">
+            <span className="user-inline-pill__text">
               M-PESA
             </span>
           </div>
         </div>
 
-        <div className="p-6 sm:p-8">
-          <form className="grid gap-6" onSubmit={handleSubmit}>
-            <div className="grid gap-2 text-sm font-medium">
-              <label htmlFor="phone" className="text-foreground">
+        <div className="user-payments-card__body">
+          <form className="user-form-grid" onSubmit={handleSubmit}>
+            <div className="user-field">
+              <label htmlFor="phone" className="user-field__label">
                 M-Pesa Phone Number
               </label>
-              <div className="flex w-full items-center overflow-hidden rounded-lg border bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+              <div className="user-input-shell">
                 <input
                   id="phone"
-                  className="h-11 w-full bg-transparent px-4 text-sm outline-none placeholder:text-muted-foreground"
+                  className="user-input"
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
                   placeholder="2547XXXXXXXX"
@@ -96,22 +96,22 @@ export default function Payments() {
               </div>
             </div>
 
-            <div className="grid gap-2 text-sm font-medium">
-              <div className="flex items-center justify-between">
-                <label htmlFor="amount" className="text-foreground">
+            <div className="user-field">
+              <div className="user-field__header">
+                <label htmlFor="amount" className="user-field__label">
                   Amount
                 </label>
-                <span className="text-xs text-muted-foreground">
+                <span className="user-field__hint">
                   Min: 1 | Max: 250,000
                 </span>
               </div>
-              <div className="flex w-full items-center overflow-hidden rounded-lg border bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                <span className="flex h-11 select-none items-center border-r bg-muted/50 px-4 text-xs font-bold text-muted-foreground">
+              <div className="user-input-shell user-input-shell--with-prefix">
+                <span className="user-input-prefix">
                   KSH
                 </span>
                 <input
                   id="amount"
-                  className="h-11 w-full bg-transparent px-4 text-sm outline-none placeholder:text-muted-foreground"
+                  className="user-input"
                   value={amount}
                   type="number"
                   min={1}
@@ -125,18 +125,18 @@ export default function Payments() {
             <Button
               type="submit"
               disabled={!isFormValid || isSubmitting}
-              className="mt-2 h-12 w-full text-base font-semibold shadow-sm transition-all"
+              className="user-submit-button"
             >
               {isSubmitting ? "Initiating Payment..." : "Deposit Now"}
             </Button>
           </form>
 
           {response ? (
-            <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 text-sm text-emerald-900 shadow-sm">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 rounded-full bg-emerald-200/50 p-1">
+            <div className="user-response-card">
+              <div className="user-response-card__inner">
+                <div className="user-response-card__check">
                   <svg
-                    className="h-4 w-4 text-emerald-600"
+                    className="h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -149,17 +149,17 @@ export default function Payments() {
                     />
                   </svg>
                 </div>
-                <div className="grid gap-1">
-                  <p className="font-semibold text-emerald-800">
+                <div className="user-response-card__copy">
+                  <p className="user-response-card__title">
                     {response.message}
                   </p>
                   {response.customerMessage ? (
-                    <p className="text-emerald-700/90">
+                    <p className="user-response-card__message">
                       {response.customerMessage}
                     </p>
                   ) : null}
                   {response.checkoutRequestId ? (
-                    <p className="mt-2 break-all rounded border border-emerald-200/50 bg-white/60 p-2 text-xs font-mono text-emerald-800">
+                    <p className="user-response-card__id">
                       ID: {response.checkoutRequestId}
                     </p>
                   ) : null}

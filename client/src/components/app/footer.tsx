@@ -5,52 +5,52 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-10 border-t bg-card/70">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+    <footer className="user-footer">
+      <div className="user-footer__inner">
         <div>
-          <h3 className="text-base font-semibold tracking-tight">BetCenic</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <h3 className="user-footer__title">BetCenic</h3>
+          <p className="user-footer__copy">
             Smart betting with fast M-Pesa deposits and a secure wallet
             experience.
           </p>
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold">Quick Links</h4>
-          <nav className="mt-3 grid gap-2 text-sm text-muted-foreground">
-            <Link to="/user" className="hover:text-foreground">
+          <h4 className="user-footer__heading">Quick Links</h4>
+          <nav className="user-footer__nav">
+            <Link to="/user" className="user-footer__link">
               Home
             </Link>
-            <Link to="/user/payments" className="hover:text-foreground">
+            <Link to="/user/payments" className="user-footer__link">
               Deposit
             </Link>
-            <Link to="/user/login" className="hover:text-foreground">
+            <Link to="/user/login" className="user-footer__link">
               Login
             </Link>
           </nav>
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold">Why BetCenic</h4>
-          <ul className="mt-3 grid gap-3 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2">
-              <Smartphone className="h-4 w-4 text-emerald-600" />
+          <h4 className="user-footer__heading">Why BetCenic</h4>
+          <ul className="user-footer__list">
+            <li>
+              <Smartphone className="h-4 w-4" />
               Mobile-first experience
             </li>
-            <li className="flex items-center gap-2">
-              <Wallet className="h-4 w-4 text-emerald-600" />
+            <li>
+              <Wallet className="h-4 w-4" />
               Instant wallet top-ups
             </li>
-            <li className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+            <li>
+              <ShieldCheck className="h-4 w-4" />
               Secure payment flow
             </li>
           </ul>
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold">Contact</h4>
-          <div className="mt-3 space-y-2 text-sm text-muted-foreground">
+          <h4 className="user-footer__heading">Contact</h4>
+          <div className="user-footer__contact">
             <p>support@betcenic.com</p>
             <p>+254 700 000 000</p>
             <p>Nairobi, Kenya</p>
@@ -58,8 +58,8 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 text-xs text-muted-foreground sm:px-6">
+      <div className="user-footer__bottom-shell">
+        <div className="user-footer__bottom">
           <p>© {year} BetCenic. All rights reserved.</p>
           <p>Play responsibly. 18+</p>
         </div>

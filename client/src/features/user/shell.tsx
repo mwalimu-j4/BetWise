@@ -4,9 +4,11 @@ import Navbar from "@/components/app/navbar";
 
 export default function UserShell() {
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-900">
+    <main className="user-app">
+      <div className="user-app__glow user-app__glow--left" />
+      <div className="user-app__glow user-app__glow--right" />
       <Navbar />
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6">
+      <div className="user-main-shell">
         <Outlet />
       </div>
       <Footer />

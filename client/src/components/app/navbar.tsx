@@ -1,21 +1,19 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
+  Activity,
   Bell,
-  Moon,
-  Sun,
-  User,
   ChevronDown,
-  LayoutDashboard,
+  PlusCircle,
+  Search,
   Wallet,
+  Zap,
   ArrowDownToLine,
   ArrowUpFromLine,
   Settings,
   History,
   BarChart3,
   LogOut,
-  PlusCircle,
-  Balloon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,118 +29,96 @@ import {
 } from "../ui/dropdown-menu";
 
 export default function Navbar() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [notifications] = useState(3);
 
-  // Mock balance
   const balance = "KES 0.00";
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-8">
-        {/* Left: Logo & Brand */}
-        <div className="flex items-center gap-8">
-          <Link
-            to="/user"
-            className="flex items-center gap-2 transition-opacity hover:opacity-80"
-          >
-            <Balloon className="h-7 w-7 text-emerald-500" />
-            <span className="text-xl font-bold tracking-tight text-primary">
-              BETTCENIC
+    <nav className="user-navbar">
+      <div className="user-navbar__inner">
+        <div className="user-brand-group">
+          <Link to="/user" className="user-brand-link">
+            <span className="user-brand-mark">
+              <Zap size={16} color="#000" />
+            </span>
+            <span className="user-brand-copy">
+              <span className="user-brand-name">BettCenic</span>
+              <span className="user-brand-label">User Panel</span>
             </span>
           </Link>
 
-          {/* Main Navigation (Desktop) */}
-          <div className="hidden md:flex items-center gap-1">
-            <Button asChild variant="ghost" className="text-sm font-medium">
-              <Link to="/user">Home</Link>
-            </Button>
-            <Button asChild variant="ghost" className="text-sm font-medium">
-              <Link to="/user/payments">Payments</Link>
-            </Button>
-            <Button asChild variant="ghost" className="text-sm font-medium">
-              <Link to="/admin">Admin</Link>
-            </Button>
+          <div className="user-nav-links">
+            <Link to="/user" className="user-nav-link">
+              Home
+            </Link>
+            <Link to="/user/payments" className="user-nav-link">
+              Payments
+            </Link>
           </div>
         </div>
 
-        {/* Right: Actions & Profile */}
-        <div className="flex items-center gap-3 md:gap-5">
-          {/* Balance & Quick Deposit */}
-          <div className="hidden sm:flex items-center rounded-md border bg-muted/50 p-1">
-            <div className="flex items-center px-3 py-1">
-              <span className="text-xs text-muted-foreground mr-2">
-                Balance:
-              </span>
-              <span className="text-sm font-bold">{balance}</span>
+        <div className="user-navbar__actions">
+          <div className="user-search-pill">
+            <Search size={14} className="user-text-muted" />
+            <span className="user-text-muted">
+              Search matches, odds, teams...
+            </span>
+          </div>
+
+          <div className="user-balance-pill" data-tone="accent">
+            <Wallet size={14} />
+            <div>
+              <p className="user-balance-pill__label">Balance</p>
+              <p className="user-balance-pill__value">{balance}</p>
             </div>
-            <Button
-              size="sm"
-              className="h-7 px-3 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              <PlusCircle className="h-3.5 w-3.5" />
-              Deposit
+            <Button className="user-deposit-button" asChild>
+              <Link to="/user/payments">
+                <PlusCircle size={14} />
+                Deposit
+              </Link>
             </Button>
           </div>
 
-          {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full h-9 w-9"
-            onClick={() => setIsDarkMode(!isDarkMode)}
+          <button
+            aria-label="Notifications"
+            className="admin-icon-trigger admin-icon-trigger--notification"
+            type="button"
           >
-            {isDarkMode ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </Button>
+            <Bell size={18} />
+            {notifications > 0 ? (
+              <span className="admin-notification-badge">{notifications}</span>
+            ) : null}
+          </button>
 
-          {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative rounded-full h-9 w-9"
-          >
-            <Bell className="h-4 w-4" />
-            <Badge className="absolute top-1 right-1.5 h-2 w-2 rounded-full p-0 bg-red-500 border border-background" />
-          </Button>
+          <Badge className="user-live-badge" variant="secondary">
+            <Activity size={12} />
+            LIVE
+          </Badge>
 
-          {/* Account Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="gap-2 rounded-full pl-3 pr-2 h-9 border-muted-foreground/20"
-              >
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium hidden md:inline-block">
-                  Account
-                </span>
-                <ChevronDown className="h-3 w-3 text-muted-foreground" />
+              <Button variant="outline" className="user-account-trigger">
+                <span>Account</span>
+                <ChevronDown className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent className="w-56" align="end" forceMount>
-              {/* Mobile Balance View (Shows only on small screens) */}
+              {/* Mobile Balance View */}
               <div className="sm:hidden p-3 border-b mb-1">
                 <p className="text-xs text-muted-foreground mb-1">
                   Current Balance
                 </p>
                 <p className="text-lg font-bold text-emerald-600">{balance}</p>
-                <Button className="w-full mt-2 h-8 gap-1 bg-emerald-600 hover:bg-emerald-700">
-                  <PlusCircle className="h-3.5 w-3.5" /> Deposit
+                <Button
+                  className="w-full mt-2 h-8 gap-1 bg-emerald-600 hover:bg-emerald-700"
+                  asChild
+                >
+                  <Link to="/user/payments">
+                    <PlusCircle className="h-3.5 w-3.5" /> Deposit
+                  </Link>
                 </Button>
               </div>
-
-              <DropdownMenuGroup>
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link to="/admin">
-                    <LayoutDashboard className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>Dashboard</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
 
@@ -150,9 +126,11 @@ export default function Navbar() {
                 Finance
               </DropdownMenuLabel>
               <DropdownMenuGroup>
-                <DropdownMenuItem className="cursor-pointer">
-                  <ArrowDownToLine className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>Deposit</span>
+                <DropdownMenuItem className="cursor-pointer" asChild>
+                  <Link to="/user/payments">
+                    <ArrowDownToLine className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>Deposit</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
                   <ArrowUpFromLine className="mr-2 h-4 w-4 text-muted-foreground" />
