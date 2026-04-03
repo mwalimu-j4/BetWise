@@ -140,10 +140,10 @@ export default function Navbar() {
                 ) : null}
               </button>
             </DialogTrigger>
-            <DialogContent className="border-admin-border">
+            <DialogContent className="border-admin-border bg-[rgba(10,14,26,0.98)] text-admin-text-primary">
               <DialogHeader>
-                <DialogTitle>Notifications</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-admin-text-primary">Notifications</DialogTitle>
+                <DialogDescription className="text-admin-text-muted">
                   You have {notifications} new notification
                   {notifications !== 1 ? "s" : ""}
                 </DialogDescription>
@@ -153,17 +153,21 @@ export default function Navbar() {
                   {mockNotifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className="rounded-lg border border-admin-border bg-admin-card-hover p-3 transition hover:bg-white/5"
+                      className="group rounded-lg border border-admin-border bg-[rgba(22,29,53,0.6)] p-3 transition hover:bg-admin-accent-dim hover:border-admin-accent/30 cursor-pointer"
                     >
-                      <p className="text-sm font-semibold text-admin-text-primary">
-                        {notification.title}
-                      </p>
-                      <p className="text-xs text-admin-text-muted">
-                        {notification.message}
-                      </p>
-                      <p className="text-[10px] text-admin-text-muted mt-1">
-                        {notification.time}
-                      </p>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-admin-text-primary group-hover:text-admin-accent transition">
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-admin-text-muted mt-1">
+                            {notification.message}
+                          </p>
+                          <p className="text-[10px] text-admin-text-muted mt-1.5">
+                            {notification.time}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
