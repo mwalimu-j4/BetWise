@@ -37,7 +37,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Users() {
   const [selectedUser, setSelectedUser] = useState<(typeof users)[0] | null>(
-    null
+    null,
   );
   const [confirmAction, setConfirmAction] = useState<{
     type: "lock" | "unlock";
@@ -99,10 +99,7 @@ export default function Users() {
                     </select>
                   </div>
                   <div className="flex gap-2 pt-4">
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                    >
+                    <Button variant="outline" className="flex-1">
                       Cancel
                     </Button>
                     <Button className="flex-1 bg-admin-accent text-black hover:bg-[#00d492]">
@@ -275,7 +272,7 @@ export default function Users() {
                                     {Math.round(
                                       (selectedUser.won /
                                         selectedUser.totalBets) *
-                                        100
+                                        100,
                                     )}
                                     %
                                   </p>
@@ -301,9 +298,7 @@ export default function Users() {
                         <Edit size={11} />
                       </AdminButton>
                       <Dialog
-                        open={
-                          confirmAction?.userId === user.id
-                        }
+                        open={confirmAction?.userId === user.id}
                         onOpenChange={(open) => {
                           if (!open) setConfirmAction(null);
                         }}
@@ -315,9 +310,7 @@ export default function Users() {
                             onClick={() =>
                               setConfirmAction({
                                 type:
-                                  user.status === "active"
-                                    ? "lock"
-                                    : "unlock",
+                                  user.status === "active" ? "lock" : "unlock",
                                 userId: user.id,
                                 userName: user.name,
                               })
@@ -341,8 +334,7 @@ export default function Users() {
                               Are you sure you want to
                               {confirmAction?.type === "lock"
                                 ? " lock"
-                                : " unlock"}
-                              {" "}
+                                : " unlock"}{" "}
                               {confirmAction?.userName}
                               's account?
                             </DialogDescription>
