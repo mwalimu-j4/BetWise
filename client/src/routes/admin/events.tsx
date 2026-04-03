@@ -4,5 +4,7 @@ import { adminRoute } from "./route";
 export const adminEventsRoute = createRoute({
   getParentRoute: () => adminRoute,
   path: "/events",
-  component: lazyRouteComponent(() => import("@/features/admin/modules/events")),
+  component: lazyRouteComponent(
+    () => import("@/features/admin/modules/events"),
+  ),
 });

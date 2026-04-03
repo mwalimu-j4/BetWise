@@ -159,7 +159,11 @@ h4 {
   flex: 1;
   flex-direction: column;
   background:
-    radial-gradient(circle at top left, rgba(0, 229, 160, 0.06), transparent 28%),
+    radial-gradient(
+      circle at top left,
+      rgba(0, 229, 160, 0.06),
+      transparent 28%
+    ),
     linear-gradient(180deg, rgba(22, 29, 53, 0.7), var(--admin-bg) 180px);
 }
 
