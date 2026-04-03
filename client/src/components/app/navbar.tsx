@@ -65,17 +65,6 @@ export default function Navbar() {
             >
               Home
             </Link>
-            <Link
-              to="/user/payments"
-              className={cn(
-                "rounded-xl border px-3 py-2 text-sm font-medium transition",
-                pathname.startsWith("/user/payments")
-                  ? "border-admin-accent/20 bg-admin-accent-dim text-admin-accent"
-                  : "border-transparent text-admin-text-secondary hover:border-admin-border hover:bg-white/3 hover:text-admin-text-primary",
-              )}
-            >
-              Payments
-            </Link>
           </div>
         </div>
 
@@ -101,7 +90,7 @@ export default function Navbar() {
               className="h-8 rounded-lg bg-admin-accent px-3 text-black hover:bg-[#00d492]"
               asChild
             >
-              <Link to="/user/payments">
+              <Link to="/user/payments/deposit">
                 <PlusCircle size={14} />
                 Deposit
               </Link>
@@ -144,7 +133,7 @@ export default function Navbar() {
                   className="mt-2 h-7 w-full gap-1 bg-emerald-600 text-xs hover:bg-emerald-700"
                   asChild
                 >
-                  <Link to="/user/payments">
+                  <Link to="/user/payments/deposit">
                     <PlusCircle className="h-3 w-3" /> Deposit
                   </Link>
                 </Button>
@@ -157,7 +146,7 @@ export default function Navbar() {
               </DropdownMenuLabel>
               <DropdownMenuGroup>
                 <DropdownMenuItem className="cursor-pointer py-1.5" asChild>
-                  <Link to="/user/payments">
+                  <Link to="/user/payments/deposit">
                     <ArrowDownToLine className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                     <span>Deposit</span>
                   </Link>
@@ -169,9 +158,9 @@ export default function Navbar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer py-1.5" asChild>
-                  <Link to="/user/payments">
+                  <Link to="/user/payments/history">
                     <Wallet className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                    <span>My Wallet</span>
+                    <span>Transaction History</span>
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
@@ -190,12 +179,6 @@ export default function Navbar() {
                   <Link to="/user/payments/history">
                     <History className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                     <span>Transaction History</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer py-1.5" asChild>
-                  <Link to="/user/payments/statements">
-                    <BarChart3 className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                    <span>Statements</span>
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
