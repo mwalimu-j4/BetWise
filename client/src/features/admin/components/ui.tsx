@@ -316,25 +316,142 @@ export function TableShell({ children }: { children: ReactNode }) {
 }
 
 export function MiniChart() {
+  const width = 680;
+  const height = 180;
+  const padding = 40;
+  const chartWidth = width - padding * 2;
+  const chartHeight = height - padding * 2;
+
+  const maxValue = Math.max(...revenueTrend.map((d) => Math.max(d.revenue, d.bets)));
+  const xStep = chartWidth / (revenueTrend.length - 1);
+
+  const getRevenuePoint = (index: number, value: number) => ({
+    x: padding + index * xStep,
+    y: padding + chartHeight - (value / maxValue) * chartHeight,
+  });
+
+  const getBetsPoint = (index: number, value: number) => ({
+    x: padding + index * xStep,
+    y: padding + chartHeight - (value / maxValue) * chartHeight,
+  });
+
+  const revenuePath = revenueTrend
+    .map((d, i) => {
+      const point = getRevenuePoint(i, d.revenue);
+      return `${point.x},${point.y}`;
+    })
+    .join(" L ");
+
+  const betsPath = revenueTrend
+    .map((d, i) => {
+      const point = getBetsPoint(i, d.bets);
+      return `${point.x},${point.y}`;
+    })
+    .join(" L ");
+
   return (
-    <div className="mt-3 flex h-12 items-end gap-1">
-      {revenueTrend.map((bar) => (
-        <div
-          className="flex flex-1 flex-col items-center gap-0.5"
-          key={bar.day}
-        >
-          <div
-            className="w-full rounded-[3px] bg-admin-accent-dim"
-            style={{ height: `${bar.bets * 0.44}px` }}
-          />
-          <div
-            className="w-full rounded-[3px] bg-admin-accent opacity-85"
-            style={{ height: `${bar.revenue * 0.44}px` }}
-          />
-          <span className="text-[9px] text-admin-text-muted">{bar.day}</span>
-        </div>
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      className="mt-3 w-full"
+      style={{ minHeight: "180px" }}
+    >
+      {/* Grid lines */}
+      {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
+        <line
+          key={`grid-${ratio}`}
+          x1={padding}
+          y1={padding + chartHeight * (1 - ratio)}
+          x2={width - padding}
+          y2={padding + chartHeight * (1 - ratio)}
+          stroke="rgba(255,255,255,0.05)"
+          strokeWidth="1"
+        />
       ))}
-    </div>
+
+      {/* Revenue line */}
+      <polyline
+        points={revenuePath}
+        fill="none"
+        stroke="var(--admin-accent)"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Bets line */}
+      <polyline
+        points={betsPath}
+        fill="none"
+        stroke="var(--admin-accent-dim)"
+        strokeWidth="2.5"
+        strokeDasharray="5,5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Data points for Revenue */}
+      {revenueTrend.map((d, i) => {
+        const point = getRevenuePoint(i, d.revenue);
+        return (
+          <circle
+            key={`revenue-point-${i}`}
+            cx={point.x}
+            cy={point.y}
+            r="3.5"
+            fill="var(--admin-accent)"
+            opacity="0.8"
+          />
+        );
+      })}
+
+      {/* Data points for Bets */}
+      {revenueTrend.map((d, i) => {
+        const point = getBetsPoint(i, d.bets);
+        return (
+          <circle
+            key={`bets-point-${i}`}
+            cx={point.x}
+            cy={point.y}
+            r="3.5"
+            fill="var(--admin-accent-dim)"
+            opacity="0.8"
+          />
+        );
+      })}
+
+      {/* X axis labels */}
+      {revenueTrend.map((d, i) => (
+        <text
+          key={`label-${i}`}
+          x={padding + i * xStep}
+          y={height - 10}
+          textAnchor="middle"
+          className="text-[11px] fill-admin-text-muted"
+        >
+          {d.day}
+        </text>
+      ))}
+
+      {/* Y axis */}
+      <line
+        x1={padding}
+        y1={padding}
+        x2={padding}
+        y2={padding + chartHeight}
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth="1"
+      />
+
+      {/* X axis */}
+      <line
+        x1={padding}
+        y1={padding + chartHeight}
+        x2={width - padding}
+        y2={padding + chartHeight}
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth="1"
+      />
+    </svg>
   );
 }
 
