@@ -69,7 +69,9 @@ function PaymentsPage() {
   return (
     <section className="rounded-xl border bg-card p-6 text-card-foreground shadow-sm sm:p-8">
       <h1 className="text-2xl font-bold tracking-tight">Deposit</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Pay with M-Pesa STK Push.</p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Pay with M-Pesa STK Push.
+      </p>
 
       <div className="mt-5 inline-flex items-center gap-3 rounded-lg border bg-secondary/50 px-4 py-3">
         <img
