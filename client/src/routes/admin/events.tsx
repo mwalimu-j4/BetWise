@@ -1,9 +1,10 @@
-import { createRoute } from "@tanstack/react-router";
-import Events from "@/features/admin/modules/events";
+import { createRoute, lazyRouteComponent } from "@tanstack/react-router";
 import { adminRoute } from "./route";
 
 export const adminEventsRoute = createRoute({
   getParentRoute: () => adminRoute,
   path: "/events",
-  component: Events,
+  component: lazyRouteComponent(
+    () => import("@/features/admin/modules/events"),
+  ),
 });
