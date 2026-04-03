@@ -497,7 +497,8 @@ export const riskAlerts: AdminRiskAlert[] = [
     id: 4,
     type: "medium",
     user: "System",
-    message: "Exposure limit approaching for Man City vs Arsenal ($84k / $100k)",
+    message:
+      "Exposure limit approaching for Man City vs Arsenal ($84k / $100k)",
     time: "3h ago",
   },
   {
@@ -713,5 +714,3 @@ export const betFilters = [
   "Flagged",
   "Voided",
 ] as const;
-
-

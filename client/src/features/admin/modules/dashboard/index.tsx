@@ -38,11 +38,17 @@ export default function Dashboard() {
             actions={
               <div className="flex flex-wrap gap-3 text-xs text-admin-text-secondary">
                 <span className="inline-flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-[2px]" style={{ backgroundColor: "#00e5a0" }} />
+                  <span
+                    className="inline-block h-2 w-2 rounded-[2px]"
+                    style={{ backgroundColor: "#00e5a0" }}
+                  />
                   Profit
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-[2px]" style={{ backgroundColor: "#00b37a" }} />
+                  <span
+                    className="inline-block h-2 w-2 rounded-[2px]"
+                    style={{ backgroundColor: "#00b37a" }}
+                  />
                   Loss
                 </span>
               </div>
