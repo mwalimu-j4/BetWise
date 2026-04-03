@@ -47,7 +47,7 @@ export default function Dashboard() {
                 <span className="inline-flex items-center gap-2">
                   <span
                     className="inline-block h-2 w-2 rounded-[2px]"
-                    style={{ backgroundColor: "#00b37a" }}
+                    style={{ backgroundColor: "#ef5350" }}
                   />
                   Loss
                 </span>
