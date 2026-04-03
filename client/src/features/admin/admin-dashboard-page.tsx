@@ -1,20 +1,4 @@
-import { useMemo, useState } from "react";
-import {
-  BarChart3,
-  Bell,
-  ChevronRight,
-  Crown,
-  DollarSign,
-  Plus,
-  Search,
-  Shield,
-  TrendingUp,
-  Users,
-  Wallet,
-  Activity,
-  Settings,
-  Menu,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -48,8 +32,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import {
+  Activity,
+  BarChart3,
+  Bell,
+  ChevronRight,
+  Crown,
+  DollarSign,
+  Plus,
+  Search,
+  Settings,
+  Shield,
+  Users,
+  Wallet
+} from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type SectionKey = "overview" | "users" | "markets" | "finance" | "settings";
