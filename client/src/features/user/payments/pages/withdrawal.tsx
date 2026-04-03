@@ -2,13 +2,14 @@ import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   formatDateTime,
   formatMoney,
   transactions,
   walletSummary,
 } from "../data";
+
+const quickAmounts = [100, 500, 1000, 2500, 5000, 10000];
 
 export default function PaymentsWithdrawalPage() {
   const [amount, setAmount] = useState("500");
@@ -46,14 +47,16 @@ export default function PaymentsWithdrawalPage() {
   return (
     <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
       <article className="rounded-2xl border border-admin-border bg-admin-card p-5">
-        <h2 className="text-lg font-bold text-admin-text-primary">
-          Withdraw Funds
-        </h2>
-        <p className="mt-1 text-sm text-admin-text-muted">
-          Move your winnings to mobile money or bank.
-        </p>
+        <div className="mb-5 border-b border-admin-border pb-4">
+          <h2 className="text-lg font-bold text-admin-text-primary">
+            Withdraw Funds
+          </h2>
+          <p className="mt-1 text-sm text-admin-text-muted">
+            Transfer your winnings to mobile money or bank account.
+          </p>
+        </div>
 
-        <div className="mt-4 rounded-xl border border-admin-border bg-[rgba(22,29,53,0.45)] p-3">
+        <div className="mb-4 rounded-xl border border-admin-border bg-[rgba(22,29,53,0.45)] p-3">
           <p className="text-[11px] uppercase tracking-[0.08em] text-admin-text-muted">
             Available for withdrawal
           </p>
@@ -62,7 +65,7 @@ export default function PaymentsWithdrawalPage() {
           </p>
         </div>
 
-        <form className="mt-4 grid gap-4" onSubmit={onSubmit}>
+        <form className="grid gap-4" onSubmit={onSubmit}>
           <div className="grid gap-2">
             <label
               htmlFor="withdraw-amount"
@@ -70,15 +73,34 @@ export default function PaymentsWithdrawalPage() {
             >
               Amount
             </label>
-            <Input
-              id="withdraw-amount"
-              type="number"
-              min={100}
-              max={walletSummary.balance}
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              className="h-11 rounded-xl border-admin-border bg-[rgba(22,29,53,0.65)] text-admin-text-primary placeholder:text-admin-text-muted"
-            />
+            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-[rgba(22,29,53,0.65)] transition focus-within:border-[rgba(0,229,160,0.35)] focus-within:shadow-[0_0_0_3px_rgba(0,229,160,0.12)]">
+              <span className="flex h-11 items-center border-r border-admin-border px-3 text-[11px] font-bold text-admin-text-muted">
+                KES
+              </span>
+              <input
+                id="withdraw-amount"
+                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"
+                type="number"
+                min={100}
+                max={walletSummary.balance}
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {quickAmounts.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className="rounded-lg border border-admin-border bg-[rgba(10,14,26,0.7)] px-2.5 py-1 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent/30 hover:text-admin-text-primary"
+                  onClick={() => setAmount(String(option))}
+                >
+                  {formatMoney(option)}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid gap-2">
@@ -86,47 +108,61 @@ export default function PaymentsWithdrawalPage() {
               htmlFor="withdraw-account"
               className="text-sm font-semibold text-admin-text-primary"
             >
-              Destination account
+              Destination Account
             </label>
-            <Input
+            <input
               id="withdraw-account"
+              className="h-11 w-full rounded-xl border border-admin-border bg-[rgba(22,29,53,0.65)] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-[rgba(0,229,160,0.35)] focus:shadow-[0_0_0_3px_rgba(0,229,160,0.12)]"
               value={account}
               onChange={(event) => setAccount(event.target.value)}
-              className="h-11 rounded-xl border-admin-border bg-[rgba(22,29,53,0.65)] text-admin-text-primary placeholder:text-admin-text-muted"
+              placeholder="Phone number or bank account"
             />
           </div>
 
           <Button
             type="submit"
-            className="h-11 rounded-xl bg-admin-accent text-black hover:bg-[#00d492]"
+            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-black hover:bg-[#00d492]"
             disabled={!canWithdraw || isSubmitting}
           >
-            {isSubmitting ? "Submitting..." : "Request withdrawal"}
+            {isSubmitting ? "Submitting..." : "Request Withdrawal"}
           </Button>
         </form>
       </article>
 
       <article className="rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.5)] p-5">
         <h3 className="text-sm font-semibold text-admin-text-primary">
-          Recent Withdrawal Requests
+          Recent Requests
         </h3>
         <div className="mt-3 grid gap-2">
-          {recentWithdrawals.map((entry) => (
-            <div
-              key={entry.id}
-              className="rounded-lg border border-admin-border bg-[rgba(8,11,20,0.6)] p-3"
-            >
-              <p className="text-sm font-semibold text-admin-text-primary">
-                {formatMoney(entry.amount)}
-              </p>
-              <p className="text-xs text-admin-text-muted">
-                {entry.status.toUpperCase()} • {formatDateTime(entry.createdAt)}
-              </p>
-              <p className="mt-1 text-xs text-admin-text-secondary">
-                Ref: {entry.reference}
+          {recentWithdrawals.length > 0 ? (
+            recentWithdrawals.map((entry) => (
+              <div
+                key={entry.id}
+                className="rounded-lg border border-admin-border bg-[rgba(8,11,20,0.6)] p-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-admin-text-primary">
+                    {formatMoney(entry.amount)}
+                  </p>
+                  <span className="inline-flex items-center rounded-full border border-admin-border bg-[rgba(22,29,53,0.45)] px-2 py-0.5 text-[10px] font-medium uppercase text-admin-text-muted">
+                    {entry.status}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-admin-text-secondary">
+                  {formatDateTime(entry.createdAt)}
+                </p>
+                <p className="mt-1 text-[10px] text-admin-text-muted">
+                  Ref: {entry.reference}
+                </p>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-lg border border-admin-border bg-[rgba(8,11,20,0.6)] p-3">
+              <p className="text-sm text-admin-text-muted">
+                No withdrawal requests yet.
               </p>
             </div>
-          ))}
+          )}
         </div>
       </article>
     </section>
