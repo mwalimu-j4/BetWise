@@ -20,6 +20,15 @@ import {
   type AdminBadgeStatus,
   type AdminTone,
 } from "../data/mock-data";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const toneToColor = (tone: AdminTone) => `var(--admin-${tone})`;
 
