@@ -10,8 +10,6 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Settings,
-  History,
-  BarChart3,
   LogOut,
 } from "lucide-react";
 
@@ -23,7 +21,6 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
@@ -65,17 +62,6 @@ export default function Navbar() {
             >
               Home
             </Link>
-            <Link
-              to="/user/payments"
-              className={cn(
-                "rounded-xl border px-3 py-2 text-sm font-medium transition",
-                pathname.startsWith("/user/payments")
-                  ? "border-admin-accent/20 bg-admin-accent-dim text-admin-accent"
-                  : "border-transparent text-admin-text-secondary hover:border-admin-border hover:bg-white/3 hover:text-admin-text-primary",
-              )}
-            >
-              Payments
-            </Link>
           </div>
         </div>
 
@@ -101,7 +87,7 @@ export default function Navbar() {
               className="h-8 rounded-lg bg-admin-accent px-3 text-black hover:bg-[#00d492]"
               asChild
             >
-              <Link to="/user/payments">
+              <Link to="/user/payments/deposit">
                 <PlusCircle size={14} />
                 Deposit
               </Link>
@@ -132,70 +118,86 @@ export default function Navbar() {
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent className="w-52" align="end" forceMount>
-              <div className="mb-1 border-b p-2 sm:hidden">
-                <p className="mb-0.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+            <DropdownMenuContent
+              className="w-56 border-admin-border bg-[rgba(10,14,26,0.98)] text-admin-text-primary p-1"
+              align="end"
+              forceMount
+            >
+              <div className="mb-2 rounded-lg border border-admin-border bg-[rgba(22,29,53,0.4)] p-2 sm:hidden">
+                <p className="mb-0.5 text-[10px] uppercase tracking-wider text-admin-text-muted">
                   Current Balance
                 </p>
-                <p className="text-base font-bold text-emerald-600">
+                <p className="text-base font-bold text-admin-accent">
                   {balance}
                 </p>
                 <Button
-                  className="mt-2 h-7 w-full gap-1 bg-emerald-600 text-xs hover:bg-emerald-700"
+                  className="mt-2 h-7 w-full gap-1 bg-admin-accent text-xs font-semibold text-black hover:bg-[#00d492]"
                   asChild
                 >
-                  <Link to="/user/payments">
+                  <Link to="/user/payments/deposit">
                     <PlusCircle className="h-3 w-3" /> Deposit
                   </Link>
                 </Button>
               </div>
 
-              <DropdownMenuSeparator className="sm:hidden" />
+              <div className="py-1">
+                <DropdownMenuLabel className="px-3 py-2 text-[10px] uppercase tracking-wider text-admin-text-muted font-semibold">
+                  Finance
+                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    className="mx-1 px-3 py-2 rounded-lg cursor-pointer text-sm transition hover:bg-admin-accent-dim hover:text-admin-accent group"
+                    asChild
+                  >
+                    <Link
+                      to="/user/payments/deposit"
+                      className="flex items-center gap-2 no-underline"
+                    >
+                      <ArrowDownToLine className="h-4 w-4 text-admin-text-muted group-hover:text-admin-accent" />
+                      <span>Deposit</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="mx-1 px-3 py-2 rounded-lg cursor-pointer text-sm transition hover:bg-admin-accent-dim hover:text-admin-accent group"
+                    asChild
+                  >
+                    <Link
+                      to="/user/payments/withdrawal"
+                      className="flex items-center gap-2 no-underline"
+                    >
+                      <ArrowUpFromLine className="h-4 w-4 text-admin-text-muted group-hover:text-admin-accent" />
+                      <span>Withdrawal</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="mx-1 px-3 py-2 rounded-lg cursor-pointer text-sm transition hover:bg-admin-accent-dim hover:text-admin-accent group"
+                    asChild
+                  >
+                    <Link
+                      to="/user/payments/history"
+                      className="flex items-center gap-2 no-underline"
+                    >
+                      <Wallet className="h-4 w-4 text-admin-text-muted group-hover:text-admin-accent" />
+                      <span>Transaction History</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </div>
 
-              <DropdownMenuLabel className="py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
-                Finance
-              </DropdownMenuLabel>
-              <DropdownMenuGroup>
-                <DropdownMenuItem className="cursor-pointer py-1.5" asChild>
-                  <Link to="/user/payments">
-                    <ArrowDownToLine className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                    <span>Deposit</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer py-1.5">
-                  <ArrowUpFromLine className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  <span>Withdrawal</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer py-1.5">
-                  <Wallet className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  <span>My Wallet</span>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
+              <div className="py-1">
+                <DropdownMenuLabel className="px-3 py-2 text-[10px] uppercase tracking-wider text-admin-text-muted font-semibold">
+                  Settings
+                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem className="mx-1 px-3 py-2 rounded-lg cursor-pointer text-sm transition hover:bg-admin-accent-dim hover:text-admin-accent group">
+                    <Settings className="mr-2 h-4 w-4 text-admin-text-muted group-hover:text-admin-accent" />
+                    <span>My Profile</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </div>
 
-              <DropdownMenuSeparator />
-
-              <DropdownMenuLabel className="py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
-                Activity
-              </DropdownMenuLabel>
-              <DropdownMenuGroup>
-                <DropdownMenuItem className="cursor-pointer py-1.5">
-                  <Settings className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  <span>My Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer py-1.5">
-                  <History className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  <span>My Bets</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer py-1.5">
-                  <BarChart3 className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  <span>My Results</span>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem className="cursor-pointer py-1.5 text-red-600 focus:bg-red-100 focus:text-red-600 dark:focus:bg-red-900/30">
-                <LogOut className="mr-2 h-3.5 w-3.5" />
+              <DropdownMenuItem className="mx-1 mt-1 px-3 py-2 rounded-lg cursor-pointer text-sm text-red-500 transition hover:bg-red-500/15 hover:text-red-400 group">
+                <LogOut className="mr-2 h-4 w-4 text-red-500 group-hover:text-red-400" />
                 <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
