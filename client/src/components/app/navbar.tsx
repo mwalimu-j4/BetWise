@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Bell,
   Moon,
@@ -26,7 +26,7 @@ export default function Navbar() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Mock balance
-  const balance = "KES 0.00";
+  const balance = "KES 0.00"
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

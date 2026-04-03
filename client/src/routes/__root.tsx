@@ -21,6 +21,9 @@ function RootLayout() {
               <Link to="/register" className="hover:text-zinc-900">
                 Register
               </Link>
+              <Link to="/payments" className="hover:text-zinc-900">
+                Payments
+              </Link>
             </nav>
           </header>
           <Outlet />
