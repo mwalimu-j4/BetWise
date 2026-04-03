@@ -1,4 +1,5 @@
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { ArrowDownToLine, ArrowUpFromLine, Clock3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
