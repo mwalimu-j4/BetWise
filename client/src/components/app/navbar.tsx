@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  Activity,
   Bell,
   ChevronDown,
   PlusCircle,
@@ -17,7 +16,6 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "../ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,82 +88,84 @@ export default function Navbar() {
             ) : null}
           </button>
 
-          <Badge className="user-live-badge" variant="secondary">
-            <Activity size={12} />
-            LIVE
-          </Badge>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="user-account-trigger">
+              <Button
+                variant="outline"
+                className="user-account-trigger h-9 px-3"
+              >
                 <span>Account</span>
-                <ChevronDown className="h-3 w-3" />
+                <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-70" />
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              {/* Mobile Balance View */}
-              <div className="sm:hidden p-3 border-b mb-1">
-                <p className="text-xs text-muted-foreground mb-1">
+            {/* Tightened width to w-52 */}
+            <DropdownMenuContent
+              className="user-dropdown-content w-52"
+              align="end"
+              forceMount
+            >
+              {/* Mobile Balance View: Tighter padding and text sizes */}
+              <div className="user-dropdown-mobile-balance">
+                <p className="text-[11px] text-muted-foreground mb-0.5 uppercase tracking-wider">
                   Current Balance
                 </p>
-                <p className="text-lg font-bold text-emerald-600">{balance}</p>
-                <Button
-                  className="w-full mt-2 h-8 gap-1 bg-emerald-600 hover:bg-emerald-700"
-                  asChild
-                >
+                <p className="text-base font-bold text-emerald-600">
+                  {balance}
+                </p>
+                <Button className="user-dropdown-mobile-deposit" asChild>
                   <Link to="/user/payments">
-                    <PlusCircle className="h-3.5 w-3.5" /> Deposit
+                    <PlusCircle className="h-3 w-3" /> Deposit
                   </Link>
                 </Button>
               </div>
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+              <DropdownMenuLabel className="text-[11px] text-muted-foreground uppercase tracking-wider py-1.5">
                 Finance
               </DropdownMenuLabel>
               <DropdownMenuGroup>
-                <DropdownMenuItem className="cursor-pointer" asChild>
+                <DropdownMenuItem className="cursor-pointer py-1.5" asChild>
                   <Link to="/user/payments">
-                    <ArrowDownToLine className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <ArrowDownToLine className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                     <span>Deposit</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <ArrowUpFromLine className="mr-2 h-4 w-4 text-muted-foreground" />
+                <DropdownMenuItem className="cursor-pointer py-1.5">
+                  <ArrowUpFromLine className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                   <span>Withdrawal</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Wallet className="mr-2 h-4 w-4 text-muted-foreground" />
+                <DropdownMenuItem className="cursor-pointer py-1.5">
+                  <Wallet className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                   <span>My Wallet</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+              <DropdownMenuLabel className="text-[11px] text-muted-foreground uppercase tracking-wider py-1.5">
                 Activity
               </DropdownMenuLabel>
               <DropdownMenuGroup>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
+                <DropdownMenuItem className="cursor-pointer py-1.5">
+                  <Settings className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                   <span>My Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <History className="mr-2 h-4 w-4 text-muted-foreground" />
+                <DropdownMenuItem className="cursor-pointer py-1.5">
+                  <History className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                   <span>My Bets</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <BarChart3 className="mr-2 h-4 w-4 text-muted-foreground" />
+                <DropdownMenuItem className="cursor-pointer py-1.5">
+                  <BarChart3 className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                   <span>My Results</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-100 dark:focus:bg-red-900/30">
-                <LogOut className="mr-2 h-4 w-4" />
+              <DropdownMenuItem className="cursor-pointer py-1.5 text-red-600 focus:text-red-600 focus:bg-red-100 dark:focus:bg-red-900/30">
+                <LogOut className="mr-2 h-3.5 w-3.5" />
                 <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
