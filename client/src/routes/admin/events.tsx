@@ -1,5 +1,5 @@
 import { createRoute } from "@tanstack/react-router";
-import Events from "@/features/admin/pages/events";
+import Events from "@/features/admin/modules/events";
 import { adminRoute } from "./route";
 
 export const adminEventsRoute = createRoute({

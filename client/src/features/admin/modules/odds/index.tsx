@@ -1,5 +1,5 @@
 import { Edit, Lock, Plus, RefreshCw, Unlock } from "lucide-react";
-import { oddsRows } from "../data/mock-data";
+import { oddsRows } from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
@@ -7,7 +7,7 @@ import {
   InlinePill,
   StatusBadge,
   TableShell,
-} from "../components/ui";
+} from "../../components/ui";
 
 export default function Odds() {
   return (

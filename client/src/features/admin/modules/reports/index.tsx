@@ -1,10 +1,10 @@
 import { Download, Eye } from "lucide-react";
-import { reports } from "../data/mock-data";
+import { reports } from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
   AdminSectionHeader,
-} from "../components/ui";
+} from "../../components/ui";
 
 export default function Reports() {
   return (

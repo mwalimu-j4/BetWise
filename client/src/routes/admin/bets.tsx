@@ -1,5 +1,5 @@
 import { createRoute } from "@tanstack/react-router";
-import Bets from "@/features/admin/pages/bets";
+import Bets from "@/features/admin/modules/bets";
 import { adminRoute } from "./route";
 
 export const adminBetsRoute = createRoute({

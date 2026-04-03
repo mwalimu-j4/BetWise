@@ -1,5 +1,5 @@
 import { Download, Edit, Eye, Filter, Lock, Plus, Search, SlidersHorizontal, Unlock } from "lucide-react";
-import { userStats, users } from "../data/mock-data";
+import { userStats, users } from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
@@ -7,7 +7,7 @@ import {
   StatusBadge,
   SummaryCard,
   TableShell,
-} from "../components/ui";
+} from "../../components/ui";
 
 export default function Users() {
   return (

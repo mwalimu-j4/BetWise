@@ -1,11 +1,11 @@
 import { Edit } from "lucide-react";
-import { settingsGroups } from "../data/mock-data";
+import { settingsGroups } from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
   AdminCardHeader,
   AdminSectionHeader,
-} from "../components/ui";
+} from "../../components/ui";
 
 export default function Settings() {
   return (

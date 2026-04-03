@@ -1,5 +1,5 @@
 import { createRoute } from "@tanstack/react-router";
-import Reports from "@/features/admin/pages/reports";
+import Reports from "@/features/admin/modules/reports";
 import { adminRoute } from "./route";
 
 export const adminReportsRoute = createRoute({

@@ -4,14 +4,14 @@ import {
   exposureLimits,
   riskAlerts,
   riskControls,
-} from "../data/mock-data";
+} from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
   AdminCardHeader,
   AdminSectionHeader,
   StatusBadge,
-} from "../components/ui";
+} from "../../components/ui";
 
 export default function Risk() {
   return (

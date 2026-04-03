@@ -1,11 +1,11 @@
 import { Edit, Eye, Plus, XCircle } from "lucide-react";
-import { eventFilters, events } from "../data/mock-data";
+import { eventFilters, events } from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
   AdminSectionHeader,
   StatusBadge,
-} from "../components/ui";
+} from "../../components/ui";
 
 export default function Events() {
   return (

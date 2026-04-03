@@ -1,5 +1,5 @@
 import { CheckCircle, Download, Eye, XCircle } from "lucide-react";
-import { transactionStats, transactions } from "../data/mock-data";
+import { transactionStats, transactions } from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
@@ -8,7 +8,7 @@ import {
   StatusBadge,
   SummaryCard,
   TableShell,
-} from "../components/ui";
+} from "../../components/ui";
 
 export default function Transactions() {
   return (

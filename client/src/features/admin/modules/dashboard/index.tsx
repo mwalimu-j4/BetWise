@@ -1,64 +1,85 @@
-import { Download, Eye, RefreshCw, XCircle } from "lucide-react";
-import { betFilters, betStats, recentBets } from "../data/mock-data";
+import { Download, Eye, Filter, Flag } from "lucide-react";
+import {
+  dashboardMetrics,
+  recentBets,
+} from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
+  AdminCardHeader,
   AdminSectionHeader,
+  DonutChart,
+  MetricCard,
+  MiniChart,
   StatusBadge,
-  SummaryCard,
   TableShell,
-} from "../components/ui";
+} from "../../components/ui";
 
-const calculatePotentialWin = (stake: string, odds: string) => {
-  const parsedStake = Number(stake.replace("$", "").replace(",", ""));
-  const parsedOdds = Number(odds);
-
-  return `$${Math.round(parsedStake * parsedOdds).toLocaleString()}`;
-};
-
-export default function Bets() {
+export default function Dashboard() {
   return (
     <div className="admin-panel">
       <AdminSectionHeader
-        title="Bet Management"
-        subtitle="All bets, settlements, and void management"
-        actions={
-          <>
-            <AdminButton variant="ghost">
-              <RefreshCw size={13} />
-              Refresh
-            </AdminButton>
-            <AdminButton variant="ghost">
-              <Download size={13} />
-              Export
-            </AdminButton>
-          </>
-        }
+        title="Overview"
+        subtitle="Friday, April 3, 2026 - Live Platform Snapshot"
       />
 
-      <div className="admin-grid admin-grid--stats-5">
-        {betStats.map((stat) => (
-          <SummaryCard
-            key={stat.label}
-            label={stat.label}
-            tone={stat.tone}
-            value={stat.value}
-          />
+      <div className="admin-grid admin-grid--kpi">
+        {dashboardMetrics.map((metric) => (
+          <MetricCard key={metric.label} {...metric} />
         ))}
       </div>
 
-      <div className="admin-filter-row">
-        {betFilters.map((filter) => (
-          <AdminButton
-            key={filter}
-            variant={filter === "All Bets" ? "solid" : "ghost"}
-          >
-            {filter}
-          </AdminButton>
-        ))}
+      <div className="admin-grid admin-grid--dashboard-charts">
+        <AdminCard>
+          <AdminCardHeader
+            title="Revenue & Bet Volume"
+            subtitle="Last 7 days"
+            actions={
+              <div className="admin-legend">
+                <span className="admin-legend__item">
+                  <span className="admin-legend__swatch" data-tone="accent" />
+                  Revenue
+                </span>
+                <span className="admin-legend__item">
+                  <span
+                    className="admin-legend__swatch admin-legend__swatch--dim"
+                    data-tone="accent"
+                  />
+                  Volume
+                </span>
+              </div>
+            }
+          />
+          <MiniChart />
+        </AdminCard>
+
+        <AdminCard>
+          <AdminCardHeader
+            title="Sport Distribution"
+            subtitle="By bet count"
+          />
+          <DonutChart />
+        </AdminCard>
       </div>
 
       <AdminCard>
+        <AdminCardHeader
+          title="Recent Bets"
+          subtitle="Live feed - auto-updating"
+          actions={
+            <>
+              <AdminButton variant="ghost">
+                <Filter size={13} />
+                Filter
+              </AdminButton>
+              <AdminButton variant="ghost">
+                <Download size={13} />
+                Export
+              </AdminButton>
+            </>
+          }
+        />
+
         <TableShell>
           <table className="admin-table">
             <thead>
@@ -71,10 +92,9 @@ export default function Bets() {
                   "Market",
                   "Odds",
                   "Stake",
-                  "Potential Win",
                   "Status",
                   "Time",
-                  "Actions",
+                  "Action",
                 ].map((heading) => (
                   <th key={heading}>{heading}</th>
                 ))}
@@ -82,7 +102,7 @@ export default function Bets() {
             </thead>
             <tbody>
               {recentBets.map((bet) => (
-                <tr key={`${bet.id}-management`}>
+                <tr key={bet.id}>
                   <td className="admin-text-blue admin-text-strong admin-text-xs">
                     {bet.id}
                   </td>
@@ -98,9 +118,6 @@ export default function Bets() {
                   <td className="admin-text-primary admin-text-strong">
                     {bet.stake}
                   </td>
-                  <td className="admin-text-accent admin-text-strong">
-                    {calculatePotentialWin(bet.stake, bet.odds)}
-                  </td>
                   <td>
                     <StatusBadge status={bet.status} />
                   </td>
@@ -113,7 +130,7 @@ export default function Bets() {
                         <Eye size={11} />
                       </AdminButton>
                       <AdminButton size="sm" variant="ghost">
-                        <XCircle size={11} />
+                        <Flag size={11} />
                       </AdminButton>
                     </div>
                   </td>

@@ -1,9 +1,9 @@
 import { createRoute } from "@tanstack/react-router";
-import Odds from "@/features/admin/pages/odds";
+import Risk from "@/features/admin/modules/risk";
 import { adminRoute } from "./route";
 
-export const adminOddsRoute = createRoute({
+export const adminRiskRoute = createRoute({
   getParentRoute: () => adminRoute,
-  path: "/odds",
-  component: Odds,
+  path: "/risk",
+  component: Risk,
 });

@@ -50,6 +50,7 @@ export default function AdminShell() {
                   isActive && "is-active",
                 )}
                 key={item.id}
+                title={item.label}
                 to={item.to}
               >
                 <Icon size={18} />
@@ -74,22 +75,25 @@ export default function AdminShell() {
 
       <div className="admin-main">
         <header className="admin-topbar">
-          <button
-            aria-label="Toggle sidebar"
-            className="admin-icon-trigger"
-            onClick={() => setSidebarOpen((current) => !current)}
-            type="button"
-          >
-            <Menu size={18} />
-          </button>
+          <div className="admin-topbar__leading">
+            <button
+              aria-label="Toggle sidebar"
+              aria-expanded={sidebarOpen}
+              className="admin-icon-trigger"
+              onClick={() => setSidebarOpen((current) => !current)}
+              type="button"
+            >
+              <Menu size={18} />
+            </button>
 
-          <div className="admin-search">
-            <Search size={14} className="admin-text-muted" />
-            <input
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search users, bets, events..."
-              value={searchQuery}
-            />
+            <div className="admin-search">
+              <Search size={14} className="admin-text-muted" />
+              <input
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search users, bets, events..."
+                value={searchQuery}
+              />
+            </div>
           </div>
 
           <div className="admin-topbar__actions">
