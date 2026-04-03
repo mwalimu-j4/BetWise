@@ -4,5 +4,5 @@ import { userRoute } from "./route";
 export const userPaymentsRoute = createRoute({
   getParentRoute: () => userRoute,
   path: "/payments",
-  component: lazyRouteComponent(() => import("@/features/user/payments/page")),
+  component: lazyRouteComponent(() => import("@/features/user/payments")),
 });

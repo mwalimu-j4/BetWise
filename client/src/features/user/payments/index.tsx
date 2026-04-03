@@ -56,7 +56,7 @@ export default function Payments() {
   }
 
   return (
-    <div className="animate-lift-in max-w-[680px]">
+    <div className="animate-lift-in max-w-[680px] ">
       <section className="rounded-3xl border border-admin-border bg-admin-card p-6 shadow-[0_16px_48px_rgba(0,0,0,0.2)]">
         <div className="flex flex-col gap-4 border-b border-admin-border pb-4 sm:flex-row sm:items-start sm:justify-between">
           <div>

@@ -13,7 +13,7 @@ export default function AdminShell() {
   });
 
   return (
-    <div className="min-h-dvh bg-admin-bg text-admin-text-primary lg:flex [font-family:'DM_Sans',var(--font-sans)]">
+    <div className="min-h-dvh bg-admin-bg font-admin text-admin-text-primary lg:flex">
       <aside
         className={cn(
           "flex w-full flex-col overflow-hidden border-b border-admin-border bg-admin-card",
