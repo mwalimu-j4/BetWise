@@ -10,7 +10,7 @@ export default function AdminSidebar() {
 
       <nav className="space-y-2">
         <Link
-          to="/admin/"
+          to="/admin"
           className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition"
         >
           <LayoutDashboard size={20} />
