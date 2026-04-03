@@ -9,7 +9,7 @@ import {
   TableShell,
 } from "../components/ui";
 
-export default function OddsPage() {
+export default function Odds() {
   return (
     <div className="admin-panel">
       <AdminSectionHeader

@@ -10,7 +10,7 @@ import {
   TableShell,
 } from "../components/ui";
 
-export default function TransactionsPage() {
+export default function Transactions() {
   return (
     <div className="admin-panel">
       <AdminSectionHeader

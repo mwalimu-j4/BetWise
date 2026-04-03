@@ -2,7 +2,7 @@ import { Outlet } from "@tanstack/react-router";
 import Footer from "@/components/app/footer";
 import Navbar from "@/components/app/navbar";
 
-export default function UserLayout() {
+export default function UserShell() {
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-900">
       <Navbar />

@@ -16,7 +16,7 @@ const calculatePotentialWin = (stake: string, odds: string) => {
   return `$${Math.round(parsedStake * parsedOdds).toLocaleString()}`;
 };
 
-export default function BetsPage() {
+export default function Bets() {
   return (
     <div className="admin-panel">
       <AdminSectionHeader

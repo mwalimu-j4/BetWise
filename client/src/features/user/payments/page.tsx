@@ -11,7 +11,7 @@ type StkPushResponse = {
   customerMessage?: string;
 };
 
-export default function PaymentsPage() {
+export default function Payments() {
   const [phone, setPhone] = useState("254712345678");
   const [amount, setAmount] = useState("100");
   const [isSubmitting, setIsSubmitting] = useState(false);

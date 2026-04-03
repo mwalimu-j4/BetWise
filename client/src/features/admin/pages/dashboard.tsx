@@ -15,7 +15,7 @@ import {
   TableShell,
 } from "../components/ui";
 
-export default function DashboardPage() {
+export default function Dashboard() {
   return (
     <div className="admin-panel">
       <AdminSectionHeader

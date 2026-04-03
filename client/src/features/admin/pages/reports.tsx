@@ -6,7 +6,7 @@ import {
   AdminSectionHeader,
 } from "../components/ui";
 
-export default function ReportsPage() {
+export default function Reports() {
   return (
     <div className="admin-panel">
       <AdminSectionHeader

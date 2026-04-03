@@ -13,7 +13,7 @@ import {
   StatusBadge,
 } from "../components/ui";
 
-export default function RiskPage() {
+export default function Risk() {
   return (
     <div className="admin-panel">
       <AdminSectionHeader

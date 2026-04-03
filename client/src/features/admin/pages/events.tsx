@@ -7,7 +7,7 @@ import {
   StatusBadge,
 } from "../components/ui";
 
-export default function EventsPage() {
+export default function Events() {
   return (
     <div className="admin-panel">
       <AdminSectionHeader

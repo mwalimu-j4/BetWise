@@ -1,16 +1,12 @@
-import { useState, type ReactNode } from "react";
-import { Link, useLocation } from "@tanstack/react-router";
+import { useState } from "react";
+import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { Bell, Menu, Search, Zap } from "lucide-react";
 import { adminNavigation } from "../config/navigation";
 
 const joinClasses = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
 
-export default function AdminLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function AdminShell() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications, setNotifications] = useState(7);
@@ -120,7 +116,9 @@ export default function AdminLayout({
           </div>
         </header>
 
-        <main className="admin-content admin-scroll">{children}</main>
+        <main className="admin-content admin-scroll">
+          <Outlet />
+        </main>
       </div>
     </div>
   );
