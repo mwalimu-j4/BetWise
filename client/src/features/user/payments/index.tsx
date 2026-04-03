@@ -1,9 +1,5 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import {
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Clock3,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Clock3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const paymentPages = [
