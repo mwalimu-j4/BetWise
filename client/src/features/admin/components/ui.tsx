@@ -322,7 +322,9 @@ export function MiniChart() {
   const chartWidth = width - padding * 2;
   const chartHeight = height - padding * 2;
 
-  const maxValue = Math.max(...revenueTrend.map((d) => Math.max(d.revenue, d.bets)));
+  const maxValue = Math.max(
+    ...revenueTrend.map((d) => Math.max(d.revenue, d.bets)),
+  );
   const xStep = chartWidth / (revenueTrend.length - 1);
 
   const getRevenuePoint = (index: number, value: number) => ({
@@ -355,6 +357,16 @@ export function MiniChart() {
       className="mt-3 w-full"
       style={{ minHeight: "180px" }}
     >
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+          <feMerge>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
       {/* Grid lines */}
       {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
         <line
@@ -363,30 +375,32 @@ export function MiniChart() {
           y1={padding + chartHeight * (1 - ratio)}
           x2={width - padding}
           y2={padding + chartHeight * (1 - ratio)}
-          stroke="rgba(255,255,255,0.05)"
+          stroke="rgba(255,255,255,0.08)"
           strokeWidth="1"
         />
       ))}
 
-      {/* Revenue line */}
+      {/* Revenue line - bright solid color */}
       <polyline
         points={revenuePath}
         fill="none"
-        stroke="var(--admin-accent)"
-        strokeWidth="2.5"
+        stroke="#00e5a0"
+        strokeWidth="4"
         strokeLinecap="round"
         strokeLinejoin="round"
+        filter="url(#glow)"
       />
 
-      {/* Bets line */}
+      {/* Bets line - dashed with bright color */}
       <polyline
         points={betsPath}
         fill="none"
-        stroke="var(--admin-accent-dim)"
-        strokeWidth="2.5"
-        strokeDasharray="5,5"
+        stroke="#00b37a"
+        strokeWidth="4"
+        strokeDasharray="8,4"
         strokeLinecap="round"
         strokeLinejoin="round"
+        filter="url(#glow)"
       />
 
       {/* Data points for Revenue */}
@@ -397,9 +411,9 @@ export function MiniChart() {
             key={`revenue-point-${i}`}
             cx={point.x}
             cy={point.y}
-            r="3.5"
-            fill="var(--admin-accent)"
-            opacity="0.8"
+            r="4.5"
+            fill="#00e5a0"
+            opacity="1"
           />
         );
       })}
@@ -412,9 +426,9 @@ export function MiniChart() {
             key={`bets-point-${i}`}
             cx={point.x}
             cy={point.y}
-            r="3.5"
-            fill="var(--admin-accent-dim)"
-            opacity="0.8"
+            r="4.5"
+            fill="#00b37a"
+            opacity="1"
           />
         );
       })}
