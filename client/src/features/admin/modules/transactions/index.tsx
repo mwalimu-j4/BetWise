@@ -120,17 +120,155 @@ export default function Transactions() {
                   </td>
                   <td className={adminTableCellClassName}>
                     <div className={adminCompactActionsClassName}>
-                      <AdminButton size="sm" variant="ghost">
-                        <Eye size={11} />
-                      </AdminButton>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <AdminButton
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setSelectedTxn(transaction)}
+                          >
+                            <Eye size={11} />
+                          </AdminButton>
+                        </DialogTrigger>
+                        <DialogContent className="border-admin-border bg-admin-card">
+                          <DialogHeader>
+                            <DialogTitle>Transaction Details</DialogTitle>
+                            <DialogDescription>
+                              View full transaction information
+                            </DialogDescription>
+                          </DialogHeader>
+                          {selectedTxn && (
+                            <ScrollArea className="h-[300px] w-full pr-4">
+                              <div className="space-y-4">
+                                <div>
+                                  <p className="text-xs text-admin-text-muted">
+                                    TXN ID
+                                  </p>
+                                  <p className="text-sm font-semibold text-admin-blue">
+                                    {selectedTxn.id}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-admin-text-muted">
+                                    USER
+                                  </p>
+                                  <p className="text-sm text-admin-text-primary">
+                                    {selectedTxn.user}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-admin-text-muted">
+                                    TYPE
+                                  </p>
+                                  <InlinePill
+                                    label={selectedTxn.type}
+                                    tone={selectedTxn.type === "deposit" ? "accent" : "red"}
+                                  />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-admin-text-muted">
+                                    METHOD
+                                  </p>
+                                  <p className="text-sm text-admin-text-primary">
+                                    {selectedTxn.method}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-admin-text-muted">
+                                    AMOUNT
+                                  </p>
+                                  <p
+                                    className={`text-sm font-semibold ${
+                                      selectedTxn.amount.startsWith("+")
+                                        ? "text-admin-accent"
+                                        : "text-admin-red"
+                                    }`}
+                                  >
+                                    {selectedTxn.amount}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-admin-text-muted">
+                                    STATUS
+                                  </p>
+                                  <StatusBadge status={selectedTxn.status} />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-admin-text-muted">
+                                    TIME
+                                  </p>
+                                  <p className="text-sm text-admin-text-primary">
+                                    {selectedTxn.time}
+                                  </p>
+                                </div>
+                              </div>
+                            </ScrollArea>
+                          )}
+                        </DialogContent>
+                      </Dialog>
                       {transaction.status === "pending" ? (
                         <>
-                          <AdminButton size="sm" variant="ghost">
-                            <CheckCircle size={11} />
-                          </AdminButton>
-                          <AdminButton size="sm" variant="ghost">
-                            <XCircle size={11} />
-                          </AdminButton>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <AdminButton size="sm" variant="ghost">
+                                <CheckCircle size={11} />
+                              </AdminButton>
+                            </DialogTrigger>
+                            <DialogContent className="border-admin-border bg-admin-card">
+                              <DialogHeader>
+                                <DialogTitle>Approve Transaction</DialogTitle>
+                                <DialogDescription>
+                                  Confirm approval of this transaction
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="flex gap-2 pt-4">
+                                <Button variant="outline" className="flex-1">
+                                  Cancel
+                                </Button>
+                                <Button className="flex-1 bg-admin-accent text-black hover:bg-[#00d492]">
+                                  Approve
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <AdminButton size="sm" variant="ghost">
+                                <XCircle size={11} />
+                              </AdminButton>
+                            </DialogTrigger>
+                            <DialogContent className="border-admin-border bg-admin-card">
+                              <DialogHeader>
+                                <DialogTitle>Reject Transaction</DialogTitle>
+                                <DialogDescription>
+                                  This will refund the user and mark as rejected
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div>
+                                <label className="text-sm font-semibold text-admin-text-primary">
+                                  Reason
+                                </label>
+                                <Input
+                                  placeholder="E.g., Fraud detected, Invalid account"
+                                  value={rejectReason}
+                                  onChange={(e) => setRejectReason(e.target.value)}
+                                  className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
+                                />
+                              </div>
+                              <div className="flex gap-2 pt-4">
+                                <Button
+                                  variant="outline"
+                                  className="flex-1"
+                                  onClick={() => setRejectReason("")}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button className="flex-1 bg-admin-red hover:bg-red-600 text-white">
+                                  Reject
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </>
                       ) : null}
                     </div>
