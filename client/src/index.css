@@ -117,7 +117,9 @@ h4 {
 
 .admin-dashboard {
   display: flex;
+  height: 100dvh;
   min-height: 100dvh;
+  overflow: hidden;
   background: var(--admin-bg);
   color: var(--admin-text-primary);
   font-family: "DM Sans", "Segoe UI", sans-serif;
@@ -152,6 +154,8 @@ h4 {
 .admin-main {
   display: flex;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   flex: 1;
   flex-direction: column;
   background:
@@ -160,7 +164,10 @@ h4 {
 }
 
 .admin-sidebar {
+  position: sticky;
+  top: 0;
   display: flex;
+  height: 100dvh;
   width: 252px;
   min-width: 252px;
   flex-direction: column;
@@ -1120,12 +1127,21 @@ h4 {
 @media (max-width: 960px) {
   .admin-dashboard {
     flex-direction: column;
+    height: auto;
+    overflow: visible;
   }
 
   .admin-sidebar,
   .admin-sidebar.is-collapsed {
+    position: static;
+    top: auto;
+    height: auto;
     width: 100%;
     min-width: 0;
+  }
+
+  .admin-main {
+    overflow: visible;
   }
 
   .admin-topbar {

@@ -1,9 +1,8 @@
-import { createRoute } from "@tanstack/react-router";
-import Payments from "@/features/user/payments/page";
+import { createRoute, lazyRouteComponent } from "@tanstack/react-router";
 import { userRoute } from "./route";
 
 export const userPaymentsRoute = createRoute({
   getParentRoute: () => userRoute,
   path: "/payments",
-  component: Payments,
+  component: lazyRouteComponent(() => import("@/features/user/payments/page")),
 });
