@@ -349,22 +349,22 @@ export function MiniChart() {
         />
         <Line
           type="monotone"
-          dataKey="revenue"
+          dataKey="profit"
           stroke="#00e5a0"
           strokeWidth={3}
           dot={{ fill: "#00e5a0", r: 5 }}
           activeDot={{ r: 6 }}
-          name="Revenue"
+          name="Profit"
         />
         <Line
           type="monotone"
-          dataKey="bets"
+          dataKey="loss"
           stroke="#00b37a"
           strokeWidth={3}
           strokeDasharray="8 4"
           dot={{ fill: "#00b37a", r: 5 }}
           activeDot={{ r: 6 }}
-          name="Volume"
+          name="Loss"
         />
       </LineChart>
     </ResponsiveContainer>

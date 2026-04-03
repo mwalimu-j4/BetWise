@@ -33,17 +33,17 @@ export default function Dashboard() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <AdminCard>
           <AdminCardHeader
-            title="Revenue & Bet Volume"
+            title="Profit & Loss"
             subtitle="Last 7 days"
             actions={
               <div className="flex flex-wrap gap-3 text-xs text-admin-text-secondary">
                 <span className="inline-flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-[2px] bg-admin-accent" />
-                  Revenue
+                  <span className="inline-block h-2 w-2 rounded-[2px]" style={{ backgroundColor: "#00e5a0" }} />
+                  Profit
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <span className="inline-block h-2 w-2 rounded-[2px] bg-admin-accent-dim" />
-                  Volume
+                  <span className="inline-block h-2 w-2 rounded-[2px]" style={{ backgroundColor: "#00b37a" }} />
+                  Loss
                 </span>
               </div>
             }

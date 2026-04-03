@@ -121,8 +121,8 @@ export interface AdminOddsRow {
 
 export interface AdminChartBar {
   day: string;
-  revenue: number;
-  bets: number;
+  profit: number;
+  loss: number;
 }
 
 export interface AdminSportShare {
@@ -561,13 +561,13 @@ export const oddsRows: AdminOddsRow[] = [
 ];
 
 export const revenueTrend: AdminChartBar[] = [
-  { day: "Mon", revenue: 68, bets: 52 },
-  { day: "Tue", revenue: 82, bets: 71 },
-  { day: "Wed", revenue: 55, bets: 44 },
-  { day: "Thu", revenue: 91, bets: 88 },
-  { day: "Fri", revenue: 74, bets: 65 },
-  { day: "Sat", revenue: 100, bets: 94 },
-  { day: "Sun", revenue: 88, bets: 81 },
+  { day: "Mon", profit: 68, loss: 52 },
+  { day: "Tue", profit: 82, loss: 71 },
+  { day: "Wed", profit: 55, loss: 44 },
+  { day: "Thu", profit: 91, loss: 88 },
+  { day: "Fri", profit: 74, loss: 65 },
+  { day: "Sat", profit: 100, loss: 94 },
+  { day: "Sun", profit: 88, loss: 81 },
 ];
 
 export const sportDistribution: AdminSportShare[] = [
