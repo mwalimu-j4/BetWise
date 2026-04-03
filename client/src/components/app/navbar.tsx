@@ -162,13 +162,17 @@ export default function Navbar() {
                     <span>Deposit</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer py-1.5">
-                  <ArrowUpFromLine className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  <span>Withdrawal</span>
+                <DropdownMenuItem className="cursor-pointer py-1.5" asChild>
+                  <Link to="/user/payments/withdrawal">
+                    <ArrowUpFromLine className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                    <span>Withdrawal</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer py-1.5">
-                  <Wallet className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  <span>My Wallet</span>
+                <DropdownMenuItem className="cursor-pointer py-1.5" asChild>
+                  <Link to="/user/payments">
+                    <Wallet className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                    <span>My Wallet</span>
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
@@ -182,13 +186,17 @@ export default function Navbar() {
                   <Settings className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
                   <span>My Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer py-1.5">
-                  <History className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  <span>My Bets</span>
+                <DropdownMenuItem className="cursor-pointer py-1.5" asChild>
+                  <Link to="/user/payments/history">
+                    <History className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                    <span>Transaction History</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer py-1.5">
-                  <BarChart3 className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-                  <span>My Results</span>
+                <DropdownMenuItem className="cursor-pointer py-1.5" asChild>
+                  <Link to="/user/payments/statements">
+                    <BarChart3 className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                    <span>Statements</span>
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
