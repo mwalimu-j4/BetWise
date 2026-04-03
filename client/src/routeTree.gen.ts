@@ -16,6 +16,15 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UserRegisterRouteImport } from './routes/user/register'
 import { Route as UserPaymentsRouteImport } from './routes/user/payments'
 import { Route as UserLoginRouteImport } from './routes/user/login'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminTransactionsRouteImport } from './routes/admin/transactions'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminRiskRouteImport } from './routes/admin/risk'
+import { Route as AdminReportsRouteImport } from './routes/admin/reports'
+import { Route as AdminOddsRouteImport } from './routes/admin/odds'
+import { Route as AdminEventsRouteImport } from './routes/admin/events'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminBetsRouteImport } from './routes/admin/bets'
 
 const UserRouteRoute = UserRouteRouteImport.update({
   id: '/user',
@@ -52,10 +61,64 @@ const UserLoginRoute = UserLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => UserRouteRoute,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminTransactionsRoute = AdminTransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRiskRoute = AdminRiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminOddsRoute = AdminOddsRouteImport.update({
+  id: '/odds',
+  path: '/odds',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminEventsRoute = AdminEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminBetsRoute = AdminBetsRouteImport.update({
+  id: '/bets',
+  path: '/bets',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/user': typeof UserRouteRouteWithChildren
+  '/admin/bets': typeof AdminBetsRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/events': typeof AdminEventsRoute
+  '/admin/odds': typeof AdminOddsRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/risk': typeof AdminRiskRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/transactions': typeof AdminTransactionsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/user/login': typeof UserLoginRoute
   '/user/payments': typeof UserPaymentsRoute
   '/user/register': typeof UserRegisterRoute
@@ -63,6 +126,15 @@ export interface FileRoutesByFullPath {
   '/user/': typeof UserIndexRoute
 }
 export interface FileRoutesByTo {
+  '/admin/bets': typeof AdminBetsRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/events': typeof AdminEventsRoute
+  '/admin/odds': typeof AdminOddsRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/risk': typeof AdminRiskRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/transactions': typeof AdminTransactionsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/user/login': typeof UserLoginRoute
   '/user/payments': typeof UserPaymentsRoute
   '/user/register': typeof UserRegisterRoute
@@ -73,6 +145,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/admin': typeof AdminRouteRouteWithChildren
   '/user': typeof UserRouteRouteWithChildren
+  '/admin/bets': typeof AdminBetsRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/events': typeof AdminEventsRoute
+  '/admin/odds': typeof AdminOddsRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/risk': typeof AdminRiskRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/transactions': typeof AdminTransactionsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/user/login': typeof UserLoginRoute
   '/user/payments': typeof UserPaymentsRoute
   '/user/register': typeof UserRegisterRoute
@@ -84,17 +165,49 @@ export interface FileRouteTypes {
   fullPaths:
     | '/admin'
     | '/user'
+    | '/admin/bets'
+    | '/admin/dashboard'
+    | '/admin/events'
+    | '/admin/odds'
+    | '/admin/reports'
+    | '/admin/risk'
+    | '/admin/settings'
+    | '/admin/transactions'
+    | '/admin/users'
     | '/user/login'
     | '/user/payments'
     | '/user/register'
     | '/admin/'
     | '/user/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/user/login' | '/user/payments' | '/user/register' | '/admin' | '/user'
+  to:
+    | '/admin/bets'
+    | '/admin/dashboard'
+    | '/admin/events'
+    | '/admin/odds'
+    | '/admin/reports'
+    | '/admin/risk'
+    | '/admin/settings'
+    | '/admin/transactions'
+    | '/admin/users'
+    | '/user/login'
+    | '/user/payments'
+    | '/user/register'
+    | '/admin'
+    | '/user'
   id:
     | '__root__'
     | '/admin'
     | '/user'
+    | '/admin/bets'
+    | '/admin/dashboard'
+    | '/admin/events'
+    | '/admin/odds'
+    | '/admin/reports'
+    | '/admin/risk'
+    | '/admin/settings'
+    | '/admin/transactions'
+    | '/admin/users'
     | '/user/login'
     | '/user/payments'
     | '/user/register'
@@ -158,14 +271,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserLoginRouteImport
       parentRoute: typeof UserRouteRoute
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/transactions': {
+      id: '/admin/transactions'
+      path: '/transactions'
+      fullPath: '/admin/transactions'
+      preLoaderRoute: typeof AdminTransactionsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/risk': {
+      id: '/admin/risk'
+      path: '/risk'
+      fullPath: '/admin/risk'
+      preLoaderRoute: typeof AdminRiskRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/odds': {
+      id: '/admin/odds'
+      path: '/odds'
+      fullPath: '/admin/odds'
+      preLoaderRoute: typeof AdminOddsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/events': {
+      id: '/admin/events'
+      path: '/events'
+      fullPath: '/admin/events'
+      preLoaderRoute: typeof AdminEventsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/bets': {
+      id: '/admin/bets'
+      path: '/bets'
+      fullPath: '/admin/bets'
+      preLoaderRoute: typeof AdminBetsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
   }
 }
 
 interface AdminRouteRouteChildren {
+  AdminBetsRoute: typeof AdminBetsRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminEventsRoute: typeof AdminEventsRoute
+  AdminOddsRoute: typeof AdminOddsRoute
+  AdminReportsRoute: typeof AdminReportsRoute
+  AdminRiskRoute: typeof AdminRiskRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTransactionsRoute: typeof AdminTransactionsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminBetsRoute: AdminBetsRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminEventsRoute: AdminEventsRoute,
+  AdminOddsRoute: AdminOddsRoute,
+  AdminReportsRoute: AdminReportsRoute,
+  AdminRiskRoute: AdminRiskRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminTransactionsRoute: AdminTransactionsRoute,
+  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

@@ -1025,23 +1025,43 @@ h4 {
 }
 
 .admin-card__glow[data-tone="accent"] {
-  background: radial-gradient(circle at 80% 20%, rgba(0, 229, 160, 0.12), transparent 70%);
+  background: radial-gradient(
+    circle at 80% 20%,
+    rgba(0, 229, 160, 0.12),
+    transparent 70%
+  );
 }
 
 .admin-card__glow[data-tone="blue"] {
-  background: radial-gradient(circle at 80% 20%, rgba(61, 142, 248, 0.12), transparent 70%);
+  background: radial-gradient(
+    circle at 80% 20%,
+    rgba(61, 142, 248, 0.12),
+    transparent 70%
+  );
 }
 
 .admin-card__glow[data-tone="gold"] {
-  background: radial-gradient(circle at 80% 20%, rgba(245, 166, 35, 0.12), transparent 70%);
+  background: radial-gradient(
+    circle at 80% 20%,
+    rgba(245, 166, 35, 0.12),
+    transparent 70%
+  );
 }
 
 .admin-card__glow[data-tone="red"] {
-  background: radial-gradient(circle at 80% 20%, rgba(255, 77, 106, 0.12), transparent 70%);
+  background: radial-gradient(
+    circle at 80% 20%,
+    rgba(255, 77, 106, 0.12),
+    transparent 70%
+  );
 }
 
 .admin-card__glow[data-tone="purple"] {
-  background: radial-gradient(circle at 80% 20%, rgba(155, 89, 245, 0.12), transparent 70%);
+  background: radial-gradient(
+    circle at 80% 20%,
+    rgba(155, 89, 245, 0.12),
+    transparent 70%
+  );
 }
 
 @media (max-width: 1280px) {
