@@ -1,7 +1,7 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 import AdminSidebar from "@/components/app/admin-sidebar";
 
-export const Route = createFileRoute("/admin/__layout")({
+export const Route = createFileRoute("/(admin)/__layout")({
   component: AdminLayout,
 });
 

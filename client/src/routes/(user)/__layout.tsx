@@ -2,7 +2,7 @@ import { Outlet, createFileRoute } from "@tanstack/react-router";
 import Navbar from "@/components/app/navbar";
 import Footer from "@/components/app/footer";
 
-export const Route = createFileRoute("/user/__layout")({
+export const Route = createFileRoute("/(user)/__layout")({
   component: UserLayout,
 });
 
