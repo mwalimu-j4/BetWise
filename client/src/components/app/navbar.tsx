@@ -43,9 +43,24 @@ export default function Navbar() {
   const balance = "KES 0.00";
 
   const mockNotifications = [
-    { id: 1, title: "Bet Won!", message: "Your bet on Team A was successful", time: "2 min ago" },
-    { id: 2, title: "Deposit Confirmed", message: "KES 5,000 has been added to your account", time: "1 hour ago" },
-    { id: 3, title: "Event Updated", message: "Match starting in 30 minutes", time: "3 hours ago" },
+    {
+      id: 1,
+      title: "Bet Won!",
+      message: "Your bet on Team A was successful",
+      time: "2 min ago",
+    },
+    {
+      id: 2,
+      title: "Deposit Confirmed",
+      message: "KES 5,000 has been added to your account",
+      time: "1 hour ago",
+    },
+    {
+      id: 3,
+      title: "Event Updated",
+      message: "Match starting in 30 minutes",
+      time: "3 hours ago",
+    },
   ];
 
   return (
@@ -129,7 +144,8 @@ export default function Navbar() {
               <DialogHeader>
                 <DialogTitle>Notifications</DialogTitle>
                 <DialogDescription>
-                  You have {notifications} new notification{notifications !== 1 ? "s" : ""}
+                  You have {notifications} new notification
+                  {notifications !== 1 ? "s" : ""}
                 </DialogDescription>
               </DialogHeader>
               <ScrollArea className="h-[300px] w-full pr-4">

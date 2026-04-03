@@ -23,13 +23,48 @@ export default function AdminShell() {
   });
 
   const mockNotifications = [
-    { id: 1, title: "New Bet Placed", message: "User placed a bet of KES 1,000", time: "5 min ago" },
-    { id: 2, title: "Event Started", message: "Match between Team A and Team B started", time: "15 min ago" },
-    { id: 3, title: "Withdrawal Request", message: "User requested withdrawal of KES 5,000", time: "1 hour ago" },
-    { id: 4, title: "Risk Alert", message: "One event has high exposure", time: "2 hours ago" },
-    { id: 5, title: "New User", message: "New user registered successfully", time: "3 hours ago" },
-    { id: 6, title: "Transaction", message: "Deposit of KES 2,000 confirmed", time: "4 hours ago" },
-    { id: 7, title: "System Update", message: "Odds updated for all events", time: "5 hours ago" },
+    {
+      id: 1,
+      title: "New Bet Placed",
+      message: "User placed a bet of KES 1,000",
+      time: "5 min ago",
+    },
+    {
+      id: 2,
+      title: "Event Started",
+      message: "Match between Team A and Team B started",
+      time: "15 min ago",
+    },
+    {
+      id: 3,
+      title: "Withdrawal Request",
+      message: "User requested withdrawal of KES 5,000",
+      time: "1 hour ago",
+    },
+    {
+      id: 4,
+      title: "Risk Alert",
+      message: "One event has high exposure",
+      time: "2 hours ago",
+    },
+    {
+      id: 5,
+      title: "New User",
+      message: "New user registered successfully",
+      time: "3 hours ago",
+    },
+    {
+      id: 6,
+      title: "Transaction",
+      message: "Deposit of KES 2,000 confirmed",
+      time: "4 hours ago",
+    },
+    {
+      id: 7,
+      title: "System Update",
+      message: "Odds updated for all events",
+      time: "5 hours ago",
+    },
   ];
 
   return (
@@ -157,7 +192,10 @@ export default function AdminShell() {
               <span>LIVE</span>
             </div>
 
-            <Dialog open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+            <Dialog
+              open={notificationsOpen}
+              onOpenChange={setNotificationsOpen}
+            >
               <DialogTrigger asChild>
                 <button
                   aria-label="View notifications"
@@ -176,7 +214,8 @@ export default function AdminShell() {
                 <DialogHeader>
                   <DialogTitle>Notifications</DialogTitle>
                   <DialogDescription>
-                    You have {notifications} new notification{notifications !== 1 ? "s" : ""}
+                    You have {notifications} new notification
+                    {notifications !== 1 ? "s" : ""}
                   </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className="h-[300px] w-full pr-4">
