@@ -43,39 +43,33 @@ function normalizePhoneNumber(phone: string) {
 }
 
 function getMpesaConfig() {
-  const env = process.env.MPESA_ENV === "live" ? "live" : "sandbox";
-  const consumerKey = process.env.MPESA_CONSUMER_KEY ?? process.env.CONSUMER_KEY;
-  const consumerSecret =
-    process.env.MPESA_CONSUMER_SECRET ?? process.env.CONSUMER_SECRET;
-  const shortcode =
-    process.env.MPESA_SHORTCODE ??
-    process.env.BUSINESS_SHORTCODE ??
-    process.env.SHORTCODE;
-  const passkey = process.env.MPESA_PASSKEY ?? process.env.PASSKEY;
-  const callbackUrl = process.env.MPESA_CALLBACK_URL ?? process.env.CALLBACK_URL;
+  const env = process.env.MPESA_ENV?.toLowerCase() === "live" ? "live" : "sandbox";
+  const consumerKey = process.env.MPESA_CONSUMER_KEY;
+  const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
+  const shortcode = process.env.MPESA_SHORTCODE;
+  const passkey = process.env.MPESA_PASSKEY;
+  const callbackUrl = process.env.MPESA_CALLBACK_URL;
 
   const missingVars: string[] = [];
 
   if (!consumerKey) {
-    missingVars.push("MPESA_CONSUMER_KEY (or CONSUMER_KEY)");
+    missingVars.push("MPESA_CONSUMER_KEY");
   }
 
   if (!consumerSecret) {
-    missingVars.push("MPESA_CONSUMER_SECRET (or CONSUMER_SECRET)");
+    missingVars.push("MPESA_CONSUMER_SECRET");
   }
 
   if (!shortcode) {
-    missingVars.push(
-      "MPESA_SHORTCODE (or BUSINESS_SHORTCODE / SHORTCODE)",
-    );
+    missingVars.push("MPESA_SHORTCODE ");
   }
 
   if (!passkey) {
-    missingVars.push("MPESA_PASSKEY (or PASSKEY)");
+    missingVars.push("MPESA_PASSKEY");
   }
 
   if (!callbackUrl) {
-    missingVars.push("MPESA_CALLBACK_URL (or CALLBACK_URL)");
+    missingVars.push("MPESA_CALLBACK_URL ");
   }
 
   if (missingVars.length > 0) {
