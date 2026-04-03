@@ -162,7 +162,11 @@ export default function Transactions() {
                                   </p>
                                   <InlinePill
                                     label={selectedTxn.type}
-                                    tone={selectedTxn.type === "deposit" ? "accent" : "red"}
+                                    tone={
+                                      selectedTxn.type === "deposit"
+                                        ? "accent"
+                                        : "red"
+                                    }
                                   />
                                 </div>
                                 <div>
@@ -251,7 +255,9 @@ export default function Transactions() {
                                 <Input
                                   placeholder="E.g., Fraud detected, Invalid account"
                                   value={rejectReason}
-                                  onChange={(e) => setRejectReason(e.target.value)}
+                                  onChange={(e) =>
+                                    setRejectReason(e.target.value)
+                                  }
                                   className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
                                 />
                               </div>
