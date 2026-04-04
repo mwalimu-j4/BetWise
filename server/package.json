@@ -10,13 +10,16 @@
     "dev": "nodemon",
     "prebuild": "pnpm prisma:ensure-client",
     "build": "tsc",
+    "build:render": "pnpm run build",
     "prestart": "pnpm prisma:ensure-client",
     "start": "node dist/server.js",
+    "start:render": "pnpm run db:deploy && pnpm run start",
     "lint": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:ensure-client": "node scripts/ensurePrismaClient.cjs",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
+    "db:deploy": "pnpm prisma:generate && prisma migrate deploy && prisma db seed",
     "prisma:dikie": "prisma generate && prisma migrate dev && pnpm dev"
   },
   "prisma": {
