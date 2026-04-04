@@ -168,8 +168,3 @@ export default function PaymentsWithdrawalPage() {
     </section>
   );
 }
-
-
-
-
-

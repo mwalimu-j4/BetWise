@@ -7,7 +7,11 @@ type SearchResult = {
   name: string;
   league: string;
   odds: string;
-  to: "/user" | "/user/payments" | "/user/payments/deposit" | "/user/payments/history";
+  to:
+    | "/user"
+    | "/user/payments"
+    | "/user/payments/deposit"
+    | "/user/payments/history";
 };
 
 const searchData: SearchResult[] = [

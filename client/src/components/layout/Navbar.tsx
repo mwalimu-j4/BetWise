@@ -30,10 +30,25 @@ const tickerItems = [
 
 const navLinks: NavRoute[] = [
   { label: "Home", icon: "#", to: "/user" },
-  { label: "Live", icon: "o", to: "/user/payments/deposit", badge: { text: "24", tone: "red" } },
+  {
+    label: "Live",
+    icon: "o",
+    to: "/user/payments/deposit",
+    badge: { text: "24", tone: "red" },
+  },
   { label: "Upcoming", icon: "*", to: "/user/payments" },
-  { label: "Jackpot", icon: "$", to: "/user/coming-soon?feature=jackpot", badge: { text: "4.2M", tone: "gold" } },
-  { label: "Promotions", icon: "+", to: "/user/coming-soon?feature=promotions", badge: { text: "New", tone: "green" } },
+  {
+    label: "Jackpot",
+    icon: "$",
+    to: "/user/coming-soon?feature=jackpot",
+    badge: { text: "4.2M", tone: "gold" },
+  },
+  {
+    label: "Promotions",
+    icon: "+",
+    to: "/user/coming-soon?feature=promotions",
+    badge: { text: "New", tone: "green" },
+  },
   { label: "Results", icon: "=", to: "/user/payments/history" },
   { label: "Casino", icon: "@", to: "/user/coming-soon?feature=casino" },
   { label: "My Bets", icon: "[]", to: "/user/payments" },
@@ -63,7 +78,11 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const lastPathRef = useRef(location.pathname);
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
-  const initials = (session.data?.user?.name || session.data?.user?.email || "U")
+  const initials = (
+    session.data?.user?.name ||
+    session.data?.user?.email ||
+    "U"
+  )
     .split(" ")
     .map((part) => part.charAt(0).toUpperCase())
     .slice(0, 2)
@@ -111,7 +130,9 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             {tickerLoop.map((item, index) => (
               <div key={`${item.label}-${index}`} className="bc-ticker-item">
                 <span>{item.label}</span>
-                <span className={item.up ? "is-up" : "is-down"}>{item.up ? "▲" : "▼"} {item.odds}</span>
+                <span className={item.up ? "is-up" : "is-down"}>
+                  {item.up ? "▲" : "▼"} {item.odds}
+                </span>
                 <span className="bc-ticker-sep" aria-hidden="true" />
               </div>
             ))}
@@ -120,13 +141,23 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       </div>
 
       <div className="bc-main-row">
-        <button type="button" className="bc-hamburger" aria-label="Open sidebar" onClick={onToggleSidebar}>
+        <button
+          type="button"
+          className="bc-hamburger"
+          aria-label="Open sidebar"
+          onClick={onToggleSidebar}
+        >
           <Menu size={18} />
         </button>
 
         <Link to="/user" className="bc-logo" aria-label="BettCenic home">
-          <span className="bc-logo-icon" aria-hidden="true">*</span>
-          <span className="bc-logo-text"><span className="is-white">BETT</span><span className="is-gold">CENIC</span></span>
+          <span className="bc-logo-icon" aria-hidden="true">
+            *
+          </span>
+          <span className="bc-logo-text">
+            <span className="is-white">BETT</span>
+            <span className="is-gold">CENIC</span>
+          </span>
         </Link>
 
         <div className="bc-main-search">
@@ -147,9 +178,15 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                   }
                 }}
               >
-                <span className="bc-link-icon" aria-hidden="true">{item.icon}</span>
+                <span className="bc-link-icon" aria-hidden="true">
+                  {item.icon}
+                </span>
                 <span className="bc-link-label">{item.label}</span>
-                {item.badge ? <span className={`bc-badge ${item.badge.tone}`}>{item.badge.text}</span> : null}
+                {item.badge ? (
+                  <span className={`bc-badge ${item.badge.tone}`}>
+                    {item.badge.text}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
@@ -158,7 +195,9 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         <div className="bc-actions">
           <div className="bc-balance" aria-label="Balance">
             <span className="bc-balance-label">BALANCE</span>
-            <span className="bc-balance-value">{formatMoney(walletSummary.balance)}</span>
+            <span className="bc-balance-value">
+              {formatMoney(walletSummary.balance)}
+            </span>
           </div>
 
           <div className="bc-notify">
@@ -173,10 +212,18 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             <span className="bc-notify-dot" aria-hidden="true" />
             {notificationsOpen ? (
               <div className="bc-notify-dropdown" role="menu">
-                <button type="button" className="bc-notify-item" onClick={() => setNotificationsOpen(false)}>
+                <button
+                  type="button"
+                  className="bc-notify-item"
+                  onClick={() => setNotificationsOpen(false)}
+                >
                   Odds update available
                 </button>
-                <button type="button" className="bc-notify-item" onClick={() => setNotificationsOpen(false)}>
+                <button
+                  type="button"
+                  className="bc-notify-item"
+                  onClick={() => setNotificationsOpen(false)}
+                >
                   Withdrawal status changed
                 </button>
               </div>
@@ -192,18 +239,31 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             >
               <span className="bc-trigger-avatar">
                 {session.data?.user?.image ? (
-                  <img src={session.data.user.image} alt="Account" className="bc-account-avatar-img" />
+                  <img
+                    src={session.data.user.image}
+                    alt="Account"
+                    className="bc-account-avatar-img"
+                  />
                 ) : (
                   initials || <UserRound size={14} />
                 )}
               </span>
               <span className="bc-account-label">Account</span>
-              <span className="bc-account-chevron" aria-hidden="true">v</span>
+              <span className="bc-account-chevron" aria-hidden="true">
+                v
+              </span>
             </button>
-            <AccountDropdown open={accountOpen} onClose={() => setAccountOpen(false)} />
+            <AccountDropdown
+              open={accountOpen}
+              onClose={() => setAccountOpen(false)}
+            />
           </div>
 
-          <Link to="/user/payments/deposit" className="bc-deposit-btn" aria-label="Deposit funds">
+          <Link
+            to="/user/payments/deposit"
+            className="bc-deposit-btn"
+            aria-label="Deposit funds"
+          >
             <Plus size={14} />
             <span className="bc-deposit-text">Deposit</span>
           </Link>
@@ -213,10 +273,15 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       <div className="bc-leagues">
         {leagues.map((league, index) => (
           <div key={league} className="bc-league-wrap">
-            <button type="button" className={`bc-league ${index === 0 ? "is-active" : ""}`}>
+            <button
+              type="button"
+              className={`bc-league ${index === 0 ? "is-active" : ""}`}
+            >
               {league}
             </button>
-            {index < leagues.length - 1 ? <span className="bc-league-sep" aria-hidden="true" /> : null}
+            {index < leagues.length - 1 ? (
+              <span className="bc-league-sep" aria-hidden="true" />
+            ) : null}
           </div>
         ))}
       </div>

@@ -69,7 +69,9 @@ export default function Odds() {
                     {row.event}
                   </td>
                   <td className={adminTableCellClassName}>{row.market}</td>
-                  <td className={`${adminTableCellClassName} text-admin-text-primary`}>
+                  <td
+                    className={`${adminTableCellClassName} text-admin-text-primary`}
+                  >
                     {row.selectionOne}
                   </td>
                   <td className={adminTableCellClassName}>
@@ -85,7 +87,9 @@ export default function Odds() {
                       "-"
                     )}
                   </td>
-                  <td className={`${adminTableCellClassName} text-admin-text-primary`}>
+                  <td
+                    className={`${adminTableCellClassName} text-admin-text-primary`}
+                  >
                     {row.selectionThree}
                   </td>
                   <td className={adminTableCellClassName}>
@@ -122,5 +126,3 @@ export default function Odds() {
     </div>
   );
 }
-
-
