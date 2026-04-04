@@ -7,6 +7,32 @@ import { useAuth } from "@/context/AuthContext";
 
 const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
 
+function resolveRedirectPath(
+  redirect: string | undefined,
+  role: "ADMIN" | "USER",
+) {
+  const defaultPath = role === "ADMIN" ? "/admin/dashboard" : "/user";
+
+  if (!redirect || !redirect.startsWith("/")) {
+    return defaultPath;
+  }
+
+  if (
+    redirect.startsWith("/login") ||
+    redirect.startsWith("/register") ||
+    redirect.startsWith("/forgot-password") ||
+    redirect.startsWith("/reset-password")
+  ) {
+    return defaultPath;
+  }
+
+  if (redirect.startsWith("/admin") && role !== "ADMIN") {
+    return "/user";
+  }
+
+  return redirect;
+}
+
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -30,15 +56,15 @@ export default function Login() {
     setErrorMessage("");
 
     try {
-      await login({
+      const loggedInUser = await login({
         phone,
         password,
       });
 
-      const redirectTo =
-        search.redirect && search.redirect.startsWith("/")
-          ? search.redirect
-          : "/user";
+      const redirectTo = resolveRedirectPath(
+        search.redirect,
+        loggedInUser.role,
+      );
       void navigate({ to: redirectTo as never });
     } catch {
       setErrorMessage("Invalid credentials");

@@ -20,18 +20,6 @@ import {
   type AdminBadgeStatus,
   type AdminTone,
 } from "../data/mock-data";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 
 const toneToColor = (tone: AdminTone) => `var(--admin-${tone})`;
 
@@ -335,49 +323,58 @@ export function TableShell({ children }: { children: ReactNode }) {
 }
 
 export function MiniChart() {
+  const values = revenueTrend.flatMap((item) => [item.profit, item.loss]);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = Math.max(max - min, 1);
+  const xStep = 100 / Math.max(revenueTrend.length - 1, 1);
+
+  const buildPath = (key: "profit" | "loss") =>
+    revenueTrend
+      .map((item, index) => {
+        const x = index * xStep;
+        const normalized = ((item[key] - min) / range) * 100;
+        const y = 100 - normalized;
+        return `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
+      })
+      .join(" ");
+
   return (
-    <ResponsiveContainer width="100%" height={250}>
-      <LineChart
-        data={revenueTrend}
-        margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-        <XAxis
-          dataKey="day"
-          stroke="rgba(255,255,255,0.5)"
-          style={{ fontSize: "12px" }}
-        />
-        <YAxis stroke="rgba(255,255,255,0.5)" style={{ fontSize: "12px" }} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "rgba(10,14,26,0.95)",
-            border: "1px solid rgba(0,229,160,0.2)",
-            borderRadius: "8px",
-          }}
-          labelStyle={{ color: "#00e5a0" }}
-          itemStyle={{ color: "#00e5a0" }}
-        />
-        <Line
-          type="monotone"
-          dataKey="profit"
-          stroke="#00e5a0"
-          strokeWidth={3}
-          dot={{ fill: "#00e5a0", r: 5 }}
-          activeDot={{ r: 6 }}
-          name="Profit"
-        />
-        <Line
-          type="monotone"
-          dataKey="loss"
-          stroke="#ff9800"
-          strokeWidth={3}
-          strokeDasharray="8 4"
-          dot={{ fill: "#ff9800", r: 5 }}
-          activeDot={{ r: 6 }}
-          name="Loss"
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="space-y-3">
+      <div className="relative h-[250px] w-full rounded-xl border border-admin-border bg-admin-surface/30 p-2">
+        <svg
+          className="h-full w-full"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <path
+            d={buildPath("profit")}
+            fill="none"
+            stroke="#00e5a0"
+            strokeWidth="1.6"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d={buildPath("loss")}
+            fill="none"
+            stroke="#ff9800"
+            strokeWidth="1.6"
+            strokeDasharray="4 3"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+      </div>
+      <div className="flex flex-wrap gap-2 text-[11px] text-admin-text-muted">
+        {revenueTrend.map((item) => (
+          <span
+            key={item.day}
+            className="rounded bg-admin-surface/50 px-2 py-1"
+          >
+            {item.day}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -464,79 +461,116 @@ export function DonutChart() {
 }
 
 export function FinancialTrendChart({ data }: { data: any[] }) {
+  const values = data.flatMap((item) => [item.stake, item.ggr, item.ngr]);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = Math.max(max - min, 1);
+  const xStep = 100 / Math.max(data.length - 1, 1);
+
+  const buildPath = (key: "stake" | "ggr" | "ngr") =>
+    data
+      .map((item, index) => {
+        const x = index * xStep;
+        const normalized = ((item[key] - min) / range) * 100;
+        const y = 100 - normalized;
+        return `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
+      })
+      .join(" ");
+
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-        <XAxis
-          dataKey="day"
-          stroke="rgba(255,255,255,0.5)"
-          style={{ fontSize: "12px" }}
-        />
-        <YAxis stroke="rgba(255,255,255,0.5)" style={{ fontSize: "12px" }} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "rgba(10,14,26,0.95)",
-            border: "1px solid rgba(0,229,160,0.2)",
-            borderRadius: "8px",
-          }}
-          labelStyle={{ color: "#00e5a0" }}
-          itemStyle={{ color: "#00e5a0" }}
-        />
-        <Legend />
-        <Line
-          type="monotone"
-          dataKey="stake"
-          stroke="#00e5a0"
-          strokeWidth={2}
-          dot={false}
-          name="Stake ($)"
-        />
-        <Line
-          type="monotone"
-          dataKey="ggr"
-          stroke="#ff9800"
-          strokeWidth={2}
-          dot={false}
-          name="GGR ($)"
-        />
-        <Line
-          type="monotone"
-          dataKey="ngr"
-          stroke="#5e5ce6"
-          strokeWidth={2}
-          dot={false}
-          name="NGR ($)"
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="space-y-3">
+      <div className="relative h-[300px] w-full rounded-xl border border-admin-border bg-admin-surface/30 p-2">
+        <svg
+          className="h-full w-full"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <path
+            d={buildPath("stake")}
+            fill="none"
+            stroke="#00e5a0"
+            strokeWidth="1.2"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d={buildPath("ggr")}
+            fill="none"
+            stroke="#ff9800"
+            strokeWidth="1.2"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d={buildPath("ngr")}
+            fill="none"
+            stroke="#5e5ce6"
+            strokeWidth="1.2"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+      </div>
+      <div className="flex flex-wrap gap-3 text-xs text-admin-text-secondary">
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-admin-accent" />
+          Stake
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-admin-gold" />
+          GGR
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-admin-purple" />
+          NGR
+        </span>
+      </div>
+    </div>
   );
 }
 
 export function DepositWithdrawalChart({ data }: { data: any[] }) {
+  const maxValue = Math.max(
+    ...data.flatMap((item) => [item.deposits, item.withdrawals]),
+    1,
+  );
+
   return (
-    <ResponsiveContainer width="100%" height={250}>
-      <BarChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-        <XAxis
-          dataKey="period"
-          stroke="rgba(255,255,255,0.5)"
-          style={{ fontSize: "12px" }}
-        />
-        <YAxis stroke="rgba(255,255,255,0.5)" style={{ fontSize: "12px" }} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "rgba(10,14,26,0.95)",
-            border: "1px solid rgba(0,229,160,0.2)",
-            borderRadius: "8px",
-          }}
-          labelStyle={{ color: "#00e5a0" }}
-        />
-        <Legend />
-        <Bar dataKey="deposits" fill="#00e5a0" name="Deposits" />
-        <Bar dataKey="withdrawals" fill="#ff9800" name="Withdrawals" />
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="space-y-3">
+      <div className="grid gap-2">
+        {data.map((item: any) => (
+          <div
+            key={item.period}
+            className="space-y-1 rounded-lg border border-admin-border bg-admin-surface/30 p-2.5"
+          >
+            <div className="text-xs text-admin-text-muted">{item.period}</div>
+            <div className="h-2 overflow-hidden rounded bg-admin-surface">
+              <div
+                className="h-full bg-admin-accent"
+                style={{
+                  width: `${Math.max((item.deposits / maxValue) * 100, 2)}%`,
+                }}
+              />
+            </div>
+            <div className="h-2 overflow-hidden rounded bg-admin-surface">
+              <div
+                className="h-full bg-admin-gold"
+                style={{
+                  width: `${Math.max((item.withdrawals / maxValue) * 100, 2)}%`,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-3 text-xs text-admin-text-secondary">
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-admin-accent" />
+          Deposits
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-admin-gold" />
+          Withdrawals
+        </span>
+      </div>
+    </div>
   );
 }
 

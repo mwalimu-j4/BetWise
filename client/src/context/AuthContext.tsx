@@ -47,8 +47,8 @@ type AuthContextValue = {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (payload: LoginPayload) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  login: (payload: LoginPayload) => Promise<AuthUser>;
+  register: (payload: RegisterPayload) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<string | null>;
 };
@@ -108,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (payload: LoginPayload) => {
       const { data } = await api.post<AuthResponse>("/auth/login", payload);
       updateSession(data);
+      return data.user;
     },
     [updateSession],
   );
@@ -116,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (payload: RegisterPayload) => {
       const { data } = await api.post<AuthResponse>("/auth/register", payload);
       updateSession(data);
+      return data.user;
     },
     [updateSession],
   );
