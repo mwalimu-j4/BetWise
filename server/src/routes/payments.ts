@@ -174,8 +174,7 @@ async function createWithdrawalNotifications(args: {
   let userMessage = "";
   let adminTitle = "";
   let adminMessage = "";
-  let notificationType: "WITHDRAWAL_SUCCESS" | "WITHDRAWAL_FAILED" | "SYSTEM" =
-    "SYSTEM";
+  let notificationType: "SYSTEM" = "SYSTEM";
 
   if (args.status === "PENDING") {
     userTitle = "Withdrawal Request Submitted";
@@ -188,19 +187,19 @@ async function createWithdrawalNotifications(args: {
     userMessage = `Your withdrawal of KES ${args.amount.toLocaleString()} has been processed to ${args.phone}. Fee charged: KES ${args.fee.toLocaleString()}. New balance: KES ${args.balance.toLocaleString()}.`;
     adminTitle = "Withdrawal Completed";
     adminMessage = `Withdrawal of KES ${args.amount.toLocaleString()} to ${userIdentifier} (${args.phone}) completed successfully.`;
-    notificationType = "WITHDRAWAL_SUCCESS";
+    notificationType = "SYSTEM";
   } else if (args.status === "FAILED") {
     userTitle = "Withdrawal Failed";
     userMessage = `Your withdrawal request for KES ${args.amount.toLocaleString()} failed.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""} Your balance remains unchanged at KES ${args.balance.toLocaleString()}.`;
     adminTitle = "Withdrawal Failed";
     adminMessage = `Withdrawal of KES ${args.amount.toLocaleString()} for ${userIdentifier} to ${args.phone} failed.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
-    notificationType = "WITHDRAWAL_FAILED";
+    notificationType = "SYSTEM";
   } else if (args.status === "REJECTED") {
     userTitle = "Withdrawal Request Rejected";
     userMessage = `Your withdrawal request for KES ${args.amount.toLocaleString()} has been rejected.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""} Your balance remains KES ${args.balance.toLocaleString()}.`;
     adminTitle = "Withdrawal Rejected";
     adminMessage = `Withdrawal request of KES ${args.amount.toLocaleString()} for ${userIdentifier} to ${args.phone} was rejected.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
-    notificationType = "WITHDRAWAL_FAILED";
+    notificationType = "SYSTEM";
   }
 
   const createdAtIso = new Date().toISOString();

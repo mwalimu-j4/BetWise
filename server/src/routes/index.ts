@@ -6,6 +6,8 @@ import { authRouter } from "./auth.routes";
 import { healthRouter } from "./health";
 import { notificationRouter } from "./notifications";
 import { paymentRouter } from "./payments";
+import { userBetsRouter } from "./user/bets";
+import { userEventsRouter } from "./user/events";
 
 const apiRouter = Router();
 
@@ -16,5 +18,7 @@ apiRouter.use(notificationRouter);
 apiRouter.use(eventsAdminRouter);
 apiRouter.use(betsAdminRouter);
 apiRouter.use(oddsAdminRouter);
+apiRouter.use(userEventsRouter);
+apiRouter.use(userBetsRouter);
 
 export { apiRouter };
