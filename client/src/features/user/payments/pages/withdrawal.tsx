@@ -2,12 +2,8 @@ import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  formatDateTime,
-  formatMoney,
-  transactions,
-  walletSummary,
-} from "../data";
+import { formatDateTime, formatMoney } from "../data";
+import { useWalletSummary } from "../wallet";
 
 const quickAmounts = [100, 500, 1000, 2500, 5000, 10000];
 
@@ -15,13 +11,14 @@ export default function PaymentsWithdrawalPage() {
   const [amount, setAmount] = useState("500");
   const [account, setAccount] = useState("+254 712 345 678");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: walletData } = useWalletSummary();
 
   const canWithdraw = useMemo(() => {
     const numeric = Number(amount);
-    return numeric >= 100 && numeric <= walletSummary.balance;
-  }, [amount]);
+    return numeric >= 100 && numeric <= (walletData?.wallet.balance ?? 0);
+  }, [amount, walletData?.wallet.balance]);
 
-  const recentWithdrawals = transactions
+  const recentWithdrawals = (walletData?.transactions ?? [])
     .filter((item) => item.type === "withdrawal")
     .slice(0, 4);
 
@@ -56,12 +53,12 @@ export default function PaymentsWithdrawalPage() {
           </p>
         </div>
 
-        <div className="mb-4 rounded-xl border border-admin-border bg-[var(--color-bg-elevated)] p-3">
+        <div className="mb-4 rounded-xl border border-admin-border bg-admin-surface p-3">
           <p className="text-[11px] uppercase tracking-[0.08em] text-admin-text-muted">
             Available for withdrawal
           </p>
           <p className="mt-1 text-2xl font-bold text-admin-accent">
-            {formatMoney(walletSummary.balance)}
+            {formatMoney(walletData?.wallet.balance ?? 0)}
           </p>
         </div>
 
@@ -73,7 +70,7 @@ export default function PaymentsWithdrawalPage() {
             >
               Amount
             </label>
-            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-[var(--color-bg-elevated)] transition focus-within:border-[var(--color-border-focus)] focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]">
+            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-admin-surface transition focus-within:border-admin-accent focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]">
               <span className="flex h-11 items-center border-r border-admin-border px-3 text-[11px] font-bold text-admin-text-muted">
                 KES
               </span>
@@ -82,7 +79,7 @@ export default function PaymentsWithdrawalPage() {
                 className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"
                 type="number"
                 min={100}
-                max={walletSummary.balance}
+                max={walletData?.wallet.balance ?? 0}
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
                 placeholder="0.00"
@@ -94,7 +91,7 @@ export default function PaymentsWithdrawalPage() {
                 <button
                   key={option}
                   type="button"
-                  className="rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 py-1 text-xs font-medium text-admin-text-secondary transition hover:border-[var(--color-border-accent)] hover:text-admin-text-primary"
+                  className="rounded-lg border border-admin-border bg-admin-surface px-2.5 py-1 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent hover:text-admin-text-primary"
                   onClick={() => setAmount(String(option))}
                 >
                   {formatMoney(option)}
@@ -112,7 +109,7 @@ export default function PaymentsWithdrawalPage() {
             </label>
             <input
               id="withdraw-account"
-              className="h-11 w-full rounded-xl border border-admin-border bg-[var(--color-bg-elevated)] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-[var(--color-border-focus)] focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
+              className="h-11 w-full rounded-xl border border-admin-border bg-admin-surface px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-admin-accent focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
               value={account}
               onChange={(event) => setAccount(event.target.value)}
               placeholder="Phone number or bank account"
@@ -121,7 +118,7 @@ export default function PaymentsWithdrawalPage() {
 
           <Button
             type="submit"
-            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-[var(--color-text-dark)] hover:bg-[var(--color-accent-dark)]"
+            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-black hover:opacity-90"
             disabled={!canWithdraw || isSubmitting}
           >
             {isSubmitting ? "Submitting..." : "Request Withdrawal"}
@@ -129,7 +126,7 @@ export default function PaymentsWithdrawalPage() {
         </form>
       </article>
 
-      <article className="rounded-2xl border border-admin-border bg-[var(--color-bg-elevated)] p-5">
+      <article className="rounded-2xl border border-admin-border bg-admin-surface p-5">
         <h3 className="text-sm font-semibold text-admin-text-primary">
           Recent Requests
         </h3>
@@ -138,13 +135,13 @@ export default function PaymentsWithdrawalPage() {
             recentWithdrawals.map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-lg border border-admin-border bg-[var(--color-bg-surface)] p-3"
+                className="rounded-lg border border-admin-border bg-admin-card p-3"
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-semibold text-admin-text-primary">
                     {formatMoney(entry.amount)}
                   </p>
-                  <span className="inline-flex items-center rounded-full border border-admin-border bg-[var(--color-bg-elevated)] px-2 py-0.5 text-[10px] font-medium uppercase text-admin-text-muted">
+                  <span className="inline-flex items-center rounded-full border border-admin-border bg-admin-surface px-2 py-0.5 text-[10px] font-medium uppercase text-admin-text-muted">
                     {entry.status}
                   </span>
                 </div>
@@ -157,7 +154,7 @@ export default function PaymentsWithdrawalPage() {
               </div>
             ))
           ) : (
-            <div className="rounded-lg border border-admin-border bg-[var(--color-bg-surface)] p-3">
+            <div className="rounded-lg border border-admin-border bg-admin-card p-3">
               <p className="text-sm text-admin-text-muted">
                 No withdrawal requests yet.
               </p>

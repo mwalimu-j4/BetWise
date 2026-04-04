@@ -3,7 +3,8 @@ import { Bell, Menu, Plus, Wallet } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "@/components/search/SearchBar";
 import { useAuth } from "@/context/AuthContext";
-import { formatMoney, walletSummary } from "@/features/user/payments/data";
+import { formatMoney } from "@/features/user/payments/data";
+import { useWalletSummary } from "@/features/user/payments/wallet";
 
 type NavbarProps = {
   onToggleSidebar: () => void;
@@ -71,6 +72,7 @@ const leagues = [
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
+  const { data: walletData } = useWalletSummary();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const lastPathRef = useRef(location.pathname);
 
@@ -173,7 +175,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             <div className="bc-balance-content">
               <span className="bc-balance-label">BALANCE</span>
               <span className="bc-balance-value">
-                {formatMoney(walletSummary.balance)}
+                {walletData ? formatMoney(walletData.wallet.balance) : "KES --"}
               </span>
             </div>
           </div>
