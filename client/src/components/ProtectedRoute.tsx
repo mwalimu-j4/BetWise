@@ -15,7 +15,16 @@ export default function ProtectedRoute({
   const location = useLocation();
   const navigate = useNavigate();
 
+  const adminToken =
+    typeof window !== "undefined" ? localStorage.getItem("bettcenic_token") : null;
+  const hasAdminJwt = Boolean(adminToken);
+  const adminRoute = requireRole === "ADMIN";
+
   useEffect(() => {
+    if (adminRoute && hasAdminJwt) {
+      return;
+    }
+
     if (isLoading) return;
 
     if (!isAuthenticated) {
@@ -32,6 +41,8 @@ export default function ProtectedRoute({
       void navigate({ to: "/user" });
     }
   }, [
+    adminRoute,
+    hasAdminJwt,
     isAuthenticated,
     isLoading,
     location.pathname,
@@ -40,6 +51,10 @@ export default function ProtectedRoute({
     requireRole,
     user?.role,
   ]);
+
+  if (adminRoute && hasAdminJwt) {
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return (

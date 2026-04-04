@@ -1,0 +1,9 @@
+{
+  "name": "betwise-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build:render": "pnpm --dir server install --frozen-lockfile && pnpm --dir server run build:render",
+    "start:render": "pnpm --dir server run start:render"
+  }
+}

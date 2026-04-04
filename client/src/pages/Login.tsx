@@ -1,31 +1,25 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import api from "@/api/axios";
+import api from "../api/axios";
+import { useAdminAuth } from "../context/AdminAuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAdminAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem("bettcenic_token");
-    if (token) {
-      void navigate({ to: "/admin/dashboard" });
-    }
-  }, [navigate]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     try {
       setLoading(true);
       const { data } = await api.post("/api/admin/login", { email, password });
-      localStorage.setItem("bettcenic_token", data.token);
-      localStorage.setItem("bettcenic_admin", JSON.stringify(data.admin));
+      login(data.token, data.admin);
       toast.success("Welcome back");
-      void navigate({ to: "/admin/dashboard" });
+      navigate("/admin/dashboard");
     } catch (error: any) {
       toast.error(error?.response?.data?.message ?? "Login failed");
     } finally {
@@ -35,7 +29,10 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0f1923] px-4">
-      <form onSubmit={onSubmit} className="w-full max-w-md rounded-2xl border border-[#2a3f55] bg-[#1e2d3d] p-8 shadow-2xl">
+      <form
+        onSubmit={onSubmit}
+        className="w-full max-w-md rounded-2xl border border-[#2a3f55] bg-[#1e2d3d] p-8 shadow-2xl"
+      >
         <h1 className="text-3xl font-extrabold text-white">BettCenic</h1>
         <p className="mb-6 text-sm text-[#8fa3b1]">Admin Panel</p>
 
@@ -51,7 +48,9 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-[#8fa3b1]">Password</label>
+            <label className="mb-1 block text-sm text-[#8fa3b1]">
+              Password
+            </label>
             <input
               type="password"
               required

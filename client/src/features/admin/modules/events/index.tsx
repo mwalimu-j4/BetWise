@@ -1,331 +1,241 @@
-import { useState } from "react";
-import { Edit, Eye, Plus, XCircle } from "lucide-react";
-import { eventFilters, events } from "../../data/mock-data";
-import {
-  AdminButton,
-  AdminCard,
-  AdminSectionHeader,
-  StatusBadge,
-  adminFilterRowClassName,
-} from "../../components/ui";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import toast from "react-hot-toast";
+import { getEvents, toggleEvent, updateEventConfig } from "@/api/events";
 
-export default function Events() {
-  const [selectedEvent, setSelectedEvent] = useState<(typeof events)[0] | null>(
-    null,
-  );
-  const [closeReason, setCloseReason] = useState("");
+export default function EventsModule() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [league, setLeague] = useState("");
+  const [status, setStatus] = useState("");
+  const [configEvent, setConfigEvent] = useState<any | null>(null);
+  const [houseMargin, setHouseMargin] = useState(0);
+  const [markets, setMarkets] = useState<string[]>(["h2h"]);
+
+  const leagues = useMemo(() => {
+    return Array.from(new Set(events.map((item) => item.league_name).filter(Boolean)));
+  }, [events]);
+
+  async function loadData() {
+    try {
+      setLoading(true);
+      const data = await getEvents({ page, limit, search, league, status });
+      setEvents(data.data ?? []);
+      setTotalPages(data.totalPages ?? 1);
+    } catch {
+      toast.error("Failed to fetch events");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadData();
+  }, [page, limit, search, league, status]);
+
+  async function onToggle(eventId: string) {
+    try {
+      await toggleEvent(eventId);
+      toast.success("Event status updated");
+      await loadData();
+    } catch {
+      toast.error("Failed to toggle event");
+    }
+  }
+
+  async function saveConfig() {
+    if (!configEvent) return;
+    try {
+      await updateEventConfig(configEvent.event_id, {
+        house_margin: houseMargin,
+        markets_enabled: markets,
+      });
+      toast.success("Configuration saved");
+      setConfigEvent(null);
+      await loadData();
+    } catch {
+      toast.error("Failed to save config");
+    }
+  }
+
   return (
-    <div className="space-y-6">
-      <AdminSectionHeader
-        title="Events & Sports"
-        subtitle="Manage live and upcoming events"
-        actions={
-          <Dialog>
-            <DialogTrigger asChild>
-              <AdminButton>
-                <Plus size={13} />
-                Add Event
-              </AdminButton>
-            </DialogTrigger>
-            <DialogContent className="border-admin-border bg-admin-card">
-              <DialogHeader>
-                <DialogTitle>Add New Event</DialogTitle>
-                <DialogDescription>
-                  Create a new sporting event
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-semibold text-admin-text-primary">
-                    Home Team
-                  </label>
-                  <Input
-                    placeholder="Team A"
-                    className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-admin-text-primary">
-                    Away Team
-                  </label>
-                  <Input
-                    placeholder="Team B"
-                    className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-admin-text-primary">
-                    League
-                  </label>
-                  <select className="mt-1 w-full rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-admin-text-primary">
-                    <option>Premier League</option>
-                    <option>La Liga</option>
-                    <option>Serie A</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-admin-text-primary">
-                    Date & Time
-                  </label>
-                  <Input
-                    type="datetime-local"
-                    className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
-                  />
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button variant="outline" className="flex-1">
-                    Cancel
-                  </Button>
-                  <Button className="flex-1 bg-admin-accent text-black hover:bg-[#00d492]">
-                    Create Event
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        }
-      />
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-white">Events Management</h1>
 
-      <div className={adminFilterRowClassName}>
-        {eventFilters.map((filter) => (
-          <AdminButton
-            key={filter}
-            variant={filter === "All" ? "solid" : "ghost"}
-          >
-            {filter}
-          </AdminButton>
-        ))}
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
+        <input
+          value={search}
+          onChange={(e) => {
+            setPage(1);
+            setSearch(e.target.value);
+          }}
+          placeholder="Search by match"
+          className="rounded-lg border border-[#2a3f55] bg-[#1a2634] px-3 py-2 text-white"
+        />
+        <select
+          value={league}
+          onChange={(e) => {
+            setPage(1);
+            setLeague(e.target.value);
+          }}
+          className="rounded-lg border border-[#2a3f55] bg-[#1a2634] px-3 py-2 text-white"
+        >
+          <option value="">All leagues</option>
+          {leagues.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+        <select
+          value={status}
+          onChange={(e) => {
+            setPage(1);
+            setStatus(e.target.value);
+          }}
+          className="rounded-lg border border-[#2a3f55] bg-[#1a2634] px-3 py-2 text-white"
+        >
+          <option value="">All statuses</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="live">Live</option>
+          <option value="finished">Finished</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <button
+          type="button"
+          onClick={() => void loadData()}
+          className="rounded-lg bg-[#f5a623] px-4 py-2 font-semibold text-[#0f1923]"
+        >
+          Refresh
+        </button>
       </div>
 
-      <div className="space-y-3">
-        {events.map((event) => (
-          <AdminCard
-            className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
-            key={event.id}
-          >
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              {event.status === "live" ? (
-                <span className="animate-admin-pulse h-2 w-2 shrink-0 rounded-full bg-admin-live shadow-[0_0_6px_var(--admin-live)]" />
-              ) : null}
-              <div>
-                <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <StatusBadge status={event.status} />
-                  <span className="text-[11px] text-admin-text-muted">
-                    {event.league}
-                  </span>
-                  <span className="text-[11px] text-admin-text-muted">-</span>
-                  <span className="text-[11px] text-admin-text-muted">
-                    {event.date}
-                  </span>
-                </div>
-                <p className="text-base font-semibold text-admin-text-primary">
-                  {event.home} <span className="text-admin-text-muted">vs</span>{" "}
-                  {event.away}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 text-center lg:min-w-[276px]">
-              <div>
-                <p className="text-xl font-bold text-admin-blue">
-                  {event.markets}
-                </p>
-                <p className="text-[11px] text-admin-text-muted">Markets</p>
-              </div>
-              <div>
-                <p className="text-xl font-bold text-admin-gold">
-                  {event.totalBets.toLocaleString()}
-                </p>
-                <p className="text-[11px] text-admin-text-muted">Bets</p>
-              </div>
-              <div>
-                <p className="text-xl font-bold text-admin-red">
-                  {event.exposure}
-                </p>
-                <p className="text-[11px] text-admin-text-muted">Exposure</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-1">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <AdminButton
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setSelectedEvent(event)}
-                  >
-                    <Eye size={13} />
-                  </AdminButton>
-                </DialogTrigger>
-                <DialogContent className="border-admin-border bg-admin-card">
-                  <DialogHeader>
-                    <DialogTitle>Event Details</DialogTitle>
-                    <DialogDescription>
-                      View event information and markets
-                    </DialogDescription>
-                  </DialogHeader>
-                  {selectedEvent && (
-                    <ScrollArea className="h-[400px] w-full pr-4">
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-xs text-admin-text-muted">
-                            EVENT ID
-                          </p>
-                          <p className="text-sm font-semibold">
-                            {selectedEvent.id}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-admin-text-muted">MATCH</p>
-                          <p className="text-sm font-semibold text-admin-text-primary">
-                            {selectedEvent.home} vs {selectedEvent.away}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-admin-text-muted">
-                            LEAGUE
-                          </p>
-                          <p className="text-sm text-admin-text-primary">
-                            {selectedEvent.league}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-admin-text-muted">DATE</p>
-                          <p className="text-sm text-admin-text-primary">
-                            {selectedEvent.date}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-admin-text-muted">
-                            STATUS
-                          </p>
-                          <StatusBadge status={selectedEvent.status} />
-                        </div>
-                        <div>
-                          <p className="text-xs text-admin-text-muted">
-                            MARKETS
-                          </p>
-                          <p className="text-sm font-semibold text-admin-blue">
-                            {selectedEvent.markets}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-admin-text-muted">
-                            TOTAL BETS
-                          </p>
-                          <p className="text-sm font-semibold text-admin-gold">
-                            {selectedEvent.totalBets.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-admin-text-muted">
-                            EXPOSURE
-                          </p>
-                          <p className="text-sm font-semibold text-admin-red">
-                            {selectedEvent.exposure}
-                          </p>
-                        </div>
-                      </div>
-                    </ScrollArea>
-                  )}
-                </DialogContent>
-              </Dialog>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <AdminButton size="sm" variant="ghost">
-                    <Edit size={13} />
-                  </AdminButton>
-                </DialogTrigger>
-                <DialogContent className="border-admin-border bg-admin-card">
-                  <DialogHeader>
-                    <DialogTitle>Edit Event</DialogTitle>
-                    <DialogDescription>
-                      Update event details and odds
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-semibold text-admin-text-primary">
-                        Home Team
-                      </label>
-                      <Input
-                        defaultValue={selectedEvent?.home}
-                        className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-admin-text-primary">
-                        Away Team
-                      </label>
-                      <Input
-                        defaultValue={selectedEvent?.away}
-                        className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
-                      />
-                    </div>
-                    <div className="flex gap-2 pt-4">
-                      <Button variant="outline" className="flex-1">
-                        Cancel
-                      </Button>
-                      <Button className="flex-1 bg-admin-accent text-black hover:bg-[#00d492]">
-                        Save Changes
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <AdminButton size="sm" variant="ghost">
-                    <XCircle size={13} />
-                  </AdminButton>
-                </DialogTrigger>
-                <DialogContent className="border-admin-border bg-admin-card">
-                  <DialogHeader>
-                    <DialogTitle>Close Event</DialogTitle>
-                    <DialogDescription>
-                      This will close all markets and cancel pending bets
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div>
-                    <label className="text-sm font-semibold text-admin-text-primary">
-                      Reason
-                    </label>
-                    <Input
-                      placeholder="E.g., Event postponed, Match cancelled"
-                      value={closeReason}
-                      onChange={(e) => setCloseReason(e.target.value)}
-                      className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-4">
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => setCloseReason("")}
+      <div className="overflow-x-auto rounded-xl border border-[#2a3f55] bg-[#1e2d3d]">
+        <table className="min-w-full text-sm">
+          <thead className="bg-[#1a2634] text-left text-[#8fa3b1]">
+            <tr>
+              <th className="px-4 py-3">Match</th>
+              <th className="px-4 py-3">League</th>
+              <th className="px-4 py-3">Date/Time</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Active</th>
+              <th className="px-4 py-3">Margin</th>
+              <th className="px-4 py-3">Markets</th>
+              <th className="px-4 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td className="px-4 py-6 text-[#8fa3b1]" colSpan={8}>
+                  Loading events...
+                </td>
+              </tr>
+            ) : (
+              events.map((event) => (
+                <tr key={event.event_id} className="border-t border-[#2a3f55] text-white hover:bg-[#1a2634]/60">
+                  <td className="px-4 py-3">
+                    <button
+                      className="font-semibold hover:text-[#f5a623]"
+                      onClick={() => void navigate({ to: "/admin/events/$eventId", params: { eventId: event.event_id } })}
                     >
-                      Cancel
-                    </Button>
-                    <Button className="flex-1 bg-admin-red hover:bg-red-600 text-white">
-                      Close Event
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </AdminCard>
-        ))}
+                      {event.home_team} vs {event.away_team}
+                    </button>
+                  </td>
+                  <td className="px-4 py-3">{event.league_name || "-"}</td>
+                  <td className="px-4 py-3">{event.commence_time ? new Date(event.commence_time).toLocaleString() : "-"}</td>
+                  <td className="px-4 py-3">{event.status}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => void onToggle(event.event_id)}
+                      className={`relative h-6 w-11 rounded-full ${event.is_active ? "bg-[#00c853]" : "bg-slate-600"}`}
+                    >
+                      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${event.is_active ? "left-5" : "left-0.5"}`} />
+                    </button>
+                  </td>
+                  <td className="px-4 py-3">{Number(event.house_margin).toFixed(2)}%</td>
+                  <td className="px-4 py-3">{(event.markets_enabled ?? []).join(", ")}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => {
+                        setConfigEvent(event);
+                        setHouseMargin(Number(event.house_margin ?? 0));
+                        setMarkets(event.markets_enabled ?? ["h2h"]);
+                      }}
+                      className="rounded-md border border-[#2a3f55] px-3 py-1 text-xs text-[#f5a623]"
+                    >
+                      Configure
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
+
+      <div className="flex items-center justify-between text-sm text-[#8fa3b1]">
+        <p>Page {page} of {totalPages}</p>
+        <div className="flex gap-2">
+          <button disabled={page <= 1} onClick={() => setPage((current) => current - 1)} className="rounded border border-[#2a3f55] px-3 py-1 disabled:opacity-40">
+            Prev
+          </button>
+          <button disabled={page >= totalPages} onClick={() => setPage((current) => current + 1)} className="rounded border border-[#2a3f55] px-3 py-1 disabled:opacity-40">
+            Next
+          </button>
+        </div>
+      </div>
+
+      {configEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-xl rounded-xl border border-[#2a3f55] bg-[#1e2d3d] p-6">
+            <h2 className="text-xl font-semibold text-white">Configure Fixture</h2>
+            <p className="mb-4 text-sm text-[#8fa3b1]">
+              {configEvent.home_team} vs {configEvent.away_team}
+            </p>
+            <label className="text-sm text-[#8fa3b1]">House Margin (%)</label>
+            <input
+              type="number"
+              min={0}
+              max={20}
+              value={houseMargin}
+              onChange={(e) => setHouseMargin(Number(e.target.value))}
+              className="mt-1 w-full rounded-lg border border-[#2a3f55] bg-[#0f1923] px-3 py-2 text-white"
+            />
+            <div className="mt-4 space-y-2 text-sm text-[#8fa3b1]">
+              {["h2h", "spreads", "totals"].map((market) => (
+                <label key={market} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={markets.includes(market)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setMarkets((current) => Array.from(new Set([...current, market])));
+                      } else {
+                        setMarkets((current) => current.filter((item) => item !== market));
+                      }
+                    }}
+                  />
+                  {market}
+                </label>
+              ))}
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button onClick={() => setConfigEvent(null)} className="rounded border border-[#2a3f55] px-3 py-2 text-white">
+                Cancel
+              </button>
+              <button onClick={() => void saveConfig()} className="rounded bg-[#f5a623] px-3 py-2 font-semibold text-[#0f1923]">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

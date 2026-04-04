@@ -7,13 +7,28 @@ import { errorHandler } from "./errorHandler";
 import morgan from "morgan";
 
 const app = express();
-const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
+const allowedOrigins = new Set([
+  process.env.FRONTEND_URL ?? "http://localhost:5173",
+  "http://localhost:3000",
+  "https://betwise-95cj.onrender.com",
+  "https://bet-wise1.vercel.app",
+  ...(process.env.CORS_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+]);
 
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: frontendUrl,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error("CORS origin not allowed"));
+    },
     credentials: true,
   }),
 );

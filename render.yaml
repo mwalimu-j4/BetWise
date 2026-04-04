@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: betwise-api
+    runtime: node
+    rootDir: server
+    buildCommand: pnpm install --frozen-lockfile
+    startCommand: pnpm run start:bettcenic
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
