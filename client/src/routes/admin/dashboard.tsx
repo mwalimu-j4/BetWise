@@ -8,3 +8,5 @@ export const adminDashboardRoute = createRoute({
     () => import("@/features/admin/modules/dashboard"),
   ),
 });
+
+

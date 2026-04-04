@@ -5,7 +5,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-admin-border bg-[rgba(10,14,26,0.75)]">
+    <footer className="border-t border-admin-border bg-[rgba(15,76,117,0.75)]">
       <div className="mx-auto grid w-[min(1120px,calc(100%-2rem))] gap-6 py-7 sm:grid-cols-2 xl:grid-cols-4">
         <div>
           <h3 className="text-lg font-bold text-admin-text-primary">BetCenic</h3>
@@ -82,3 +82,5 @@ export default function Footer() {
     </footer>
   );
 }
+
+

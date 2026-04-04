@@ -6,3 +6,5 @@ export const userRoute = createRoute({
   path: "/user",
   component: lazyRouteComponent(() => import("@/features/user/shell")),
 });
+
+

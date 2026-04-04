@@ -1,21 +1,62 @@
 import { Outlet } from "@tanstack/react-router";
+import { useState } from "react";
 import Footer from "@/components/app/footer";
 import Navbar from "@/components/app/navbar";
+import Sidebar from "@/components/app/sidebar";
 
 export default function UserShell() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  function handleSidebarToggle() {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setMobileSidebarOpen((prev) => !prev);
+      return;
+    }
+
+    setSidebarCollapsed((prev) => !prev);
+  }
+
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#070a14] text-admin-text-primary">
-      <div className="pointer-events-none absolute -left-20 -top-28 h-[340px] w-[340px] rounded-full bg-[rgba(0,229,160,0.22)] opacity-45 blur-[56px]" />
-      <div className="pointer-events-none absolute -right-20 -top-28 h-[340px] w-[340px] rounded-full bg-[rgba(61,142,248,0.22)] opacity-45 blur-[56px]" />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(0,229,160,0.08),transparent_34%),radial-gradient(circle_at_88%_10%,rgba(61,142,248,0.08),transparent_35%),linear-gradient(180deg,#0c1120,#070a14_55%)]"
-      />
-      <Navbar />
-      <div className="relative z-10 mx-auto flex w-[min(1120px,calc(100%-2rem))] flex-col gap-5 py-6">
-        <Outlet />
+    <main className="min-h-screen bg-background text-foreground">
+      <div className="flex h-screen overflow-hidden">
+        <div className="hidden lg:block">
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            onCollapseToggle={handleSidebarToggle}
+          />
+        </div>
+
+        {mobileSidebarOpen ? (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-primary/45"
+              onClick={() => setMobileSidebarOpen(false)}
+              aria-label="Close sidebar"
+            />
+            <div className="relative z-10 h-full w-[300px]">
+              <Sidebar
+                collapsed={false}
+                onCollapseToggle={() => setMobileSidebarOpen(false)}
+                onNavigate={() => setMobileSidebarOpen(false)}
+              />
+            </div>
+          </div>
+        ) : null}
+
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <Navbar onSidebarToggle={handleSidebarToggle} />
+          <div className="flex-1 overflow-y-auto bg-background">
+            <div className="mx-auto w-full max-w-[1280px] p-4 sm:p-6">
+              <Outlet />
+            </div>
+            <Footer />
+          </div>
+        </div>
       </div>
-      <Footer />
     </main>
   );
 }
+
+

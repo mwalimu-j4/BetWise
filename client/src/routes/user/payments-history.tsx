@@ -8,3 +8,5 @@ export const userPaymentsHistoryRoute = createRoute({
     () => import("@/features/user/payments/pages/history"),
   ),
 });
+
+

@@ -8,3 +8,5 @@ export const adminSettingsRoute = createRoute({
     () => import("@/features/admin/modules/settings"),
   ),
 });
+
+

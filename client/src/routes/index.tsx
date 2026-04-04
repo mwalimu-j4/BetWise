@@ -8,3 +8,5 @@ export const indexRoute = createRoute({
     throw redirect({ to: "/user" });
   },
 });
+
+

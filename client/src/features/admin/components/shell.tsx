@@ -85,8 +85,8 @@ export default function AdminShell() {
             !sidebarOpen && "lg:justify-center",
           )}
         >
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[linear-gradient(135deg,var(--admin-accent),#00b37a)]">
-            <Zap size={16} color="#000" />
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[linear-gradient(135deg,var(--admin-accent),#3282b8)]">
+            <Zap size={16} color="#1b1b1b" />
           </div>
           {sidebarOpen ? (
             <div>
@@ -117,7 +117,7 @@ export default function AdminShell() {
                   "mb-1.5 flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-left text-admin-text-secondary transition",
                   sidebarOpen ? "justify-start" : "justify-center px-0 lg:px-0",
                   isActive
-                    ? "border-[rgba(0,229,160,0.22)] bg-admin-accent-dim text-admin-accent shadow-[inset_0_0_0_1px_rgba(0,229,160,0.05)]"
+                    ? "border-[rgba(249,168,38,0.22)] bg-admin-accent-dim text-admin-accent shadow-[inset_0_0_0_1px_rgba(249,168,38,0.05)]"
                     : "border-transparent hover:bg-white/3 hover:text-admin-text-primary",
                 )}
                 key={item.id}
@@ -160,10 +160,10 @@ export default function AdminShell() {
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-admin-bg">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,229,160,0.06),transparent_28%),linear-gradient(180deg,rgba(22,29,53,0.7),#0a0e1a_180px)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,168,38,0.06),transparent_28%),linear-gradient(180deg,rgba(15,76,117,0.7),#0f4c75_180px)]"
         />
 
-        <header className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-admin-border bg-[rgba(10,14,26,0.86)] px-4 py-4 backdrop-blur-[18px] sm:px-6">
+        <header className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-admin-border bg-[rgba(15,76,117,0.86)] px-4 py-4 backdrop-blur-[18px] sm:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <button
               aria-label="Toggle sidebar"
@@ -175,7 +175,7 @@ export default function AdminShell() {
               <Menu size={18} />
             </button>
 
-            <div className="flex h-11 w-full max-w-[560px] flex-1 items-center gap-2 rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.88)] px-3">
+            <div className="flex h-11 w-full max-w-[560px] flex-1 items-center gap-2 rounded-2xl border border-admin-border bg-[rgba(15,76,117,0.88)] px-3">
               <Search size={14} className="text-admin-text-muted" />
               <input
                 className="w-full min-w-0 border-0 bg-transparent text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"

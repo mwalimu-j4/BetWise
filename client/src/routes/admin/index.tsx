@@ -8,3 +8,5 @@ export const adminIndexRoute = createRoute({
     throw redirect({ to: "/admin/dashboard" });
   },
 });
+
+

@@ -8,3 +8,5 @@ export const adminRoute = createRoute({
     () => import("@/features/admin/components/shell"),
   ),
 });
+
+

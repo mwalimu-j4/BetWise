@@ -6,3 +6,5 @@ export const adminBetsRoute = createRoute({
   path: "/bets",
   component: lazyRouteComponent(() => import("@/features/admin/modules/bets")),
 });
+
+

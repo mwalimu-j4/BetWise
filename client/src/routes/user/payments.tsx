@@ -6,3 +6,5 @@ export const userPaymentsRoute = createRoute({
   path: "/payments",
   component: lazyRouteComponent(() => import("@/features/user/payments")),
 });
+
+

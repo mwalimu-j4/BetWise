@@ -8,3 +8,5 @@ export const adminTransactionsRoute = createRoute({
     () => import("@/features/admin/modules/transactions"),
   ),
 });
+
+

@@ -70,7 +70,7 @@ export default function PaymentsHistoryPage() {
               placeholder="Search by ID, reference, or channel"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="h-10 rounded-xl border border-admin-border bg-[rgba(22,29,53,0.65)] pl-9 text-admin-text-primary placeholder:text-admin-text-muted focus:border-admin-accent/35 focus:shadow-[0_0_0_3px_rgba(0,229,160,0.12)] focus:outline-none transition"
+              className="h-10 rounded-xl border border-admin-border bg-[rgba(15,76,117,0.65)] pl-9 text-admin-text-primary placeholder:text-admin-text-muted focus:border-admin-accent/35 focus:shadow-[0_0_0_3px_rgba(249,168,38,0.12)] focus:outline-none transition"
             />
           </div>
 
@@ -80,13 +80,13 @@ export default function PaymentsHistoryPage() {
               setTypeFilter(value as "all" | TransactionType)
             }
           >
-            <SelectTrigger className="h-10 w-full rounded-xl border border-admin-border bg-[rgba(22,29,53,0.65)] text-admin-text-primary font-medium hover:border-admin-accent/35 focus:border-admin-accent/35 focus:shadow-[0_0_0_3px_rgba(0,229,160,0.12)] focus:outline-none transition">
+            <SelectTrigger className="h-10 w-full rounded-xl border border-admin-border bg-[rgba(15,76,117,0.65)] text-admin-text-primary font-medium hover:border-admin-accent/35 focus:border-admin-accent/35 focus:shadow-[0_0_0_3px_rgba(249,168,38,0.12)] focus:outline-none transition">
               <SelectValue
                 placeholder="All types"
                 className="text-admin-text-primary"
               />
             </SelectTrigger>
-            <SelectContent className="border-admin-border bg-[rgba(10,14,26,0.98)] text-admin-text-primary">
+            <SelectContent className="border-admin-border bg-[rgba(15,76,117,0.98)] text-admin-text-primary">
               <SelectItem value="all" className="hover:bg-admin-accent-dim">
                 All types
               </SelectItem>
@@ -123,13 +123,13 @@ export default function PaymentsHistoryPage() {
               setStatusFilter(value as "all" | TransactionStatus)
             }
           >
-            <SelectTrigger className="h-10 w-full rounded-xl border border-admin-border bg-[rgba(22,29,53,0.65)] text-admin-text-primary font-medium hover:border-admin-accent/35 focus:border-admin-accent/35 focus:shadow-[0_0_0_3px_rgba(0,229,160,0.12)] focus:outline-none transition">
+            <SelectTrigger className="h-10 w-full rounded-xl border border-admin-border bg-[rgba(15,76,117,0.65)] text-admin-text-primary font-medium hover:border-admin-accent/35 focus:border-admin-accent/35 focus:shadow-[0_0_0_3px_rgba(249,168,38,0.12)] focus:outline-none transition">
               <SelectValue
                 placeholder="All statuses"
                 className="text-admin-text-primary"
               />
             </SelectTrigger>
-            <SelectContent className="border-admin-border bg-[rgba(10,14,26,0.98)] text-admin-text-primary">
+            <SelectContent className="border-admin-border bg-[rgba(15,76,117,0.98)] text-admin-text-primary">
               <SelectItem value="all" className="hover:bg-admin-accent-dim">
                 All statuses
               </SelectItem>
@@ -157,7 +157,7 @@ export default function PaymentsHistoryPage() {
       </article>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <article className="rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.45)] p-3">
+        <article className="rounded-2xl border border-admin-border bg-[rgba(15,76,117,0.45)] p-3">
           <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
             Records
           </p>
@@ -165,7 +165,7 @@ export default function PaymentsHistoryPage() {
             {filtered.length}
           </p>
         </article>
-        <article className="rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.45)] p-3">
+        <article className="rounded-2xl border border-admin-border bg-[rgba(15,76,117,0.45)] p-3">
           <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
             Total Incoming
           </p>
@@ -173,7 +173,7 @@ export default function PaymentsHistoryPage() {
             {formatMoney(totalIn)}
           </p>
         </article>
-        <article className="rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.45)] p-3">
+        <article className="rounded-2xl border border-admin-border bg-[rgba(15,76,117,0.45)] p-3">
           <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
             Total Outgoing
           </p>
@@ -234,3 +234,5 @@ export default function PaymentsHistoryPage() {
     </section>
   );
 }
+
+

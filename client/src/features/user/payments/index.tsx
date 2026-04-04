@@ -37,7 +37,7 @@ export default function PaymentsModule() {
   return (
     <section className="animate-lift-in grid gap-4 xl:grid-cols-[240px_1fr]">
       <aside className="h-fit rounded-3xl border border-admin-border bg-admin-card p-3 xl:sticky xl:top-[95px]">
-        <div className="mb-3 rounded-2xl border border-admin-border bg-[rgba(22,29,53,0.45)] p-3">
+        <div className="mb-3 rounded-2xl border border-admin-border bg-[rgba(15,76,117,0.45)] p-3">
           <h1 className="text-base font-semibold text-admin-text-primary">
             Payments Center
           </h1>
@@ -69,9 +69,11 @@ export default function PaymentsModule() {
         </nav>
       </aside>
 
-      <div className="rounded-3xl border border-admin-border bg-[rgba(10,14,26,0.52)] p-4 sm:p-5">
+      <div className="rounded-3xl border border-admin-border bg-[rgba(15,76,117,0.52)] p-4 sm:p-5">
         <Outlet />
       </div>
     </section>
   );
 }
+
+

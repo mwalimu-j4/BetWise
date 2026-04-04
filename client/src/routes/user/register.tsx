@@ -6,3 +6,5 @@ export const userRegisterRoute = createRoute({
   path: "/register",
   component: lazyRouteComponent(() => import("@/features/auth/pages/register")),
 });
+
+

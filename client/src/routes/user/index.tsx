@@ -6,3 +6,5 @@ export const userIndexRoute = createRoute({
   path: "/",
   component: lazyRouteComponent(() => import("@/features/user/home")),
 });
+
+

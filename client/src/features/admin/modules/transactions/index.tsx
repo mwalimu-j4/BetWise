@@ -63,7 +63,7 @@ export default function Transactions() {
             <tbody>
               {transactions.map((transaction) => (
                 <tr
-                  className="even:bg-[rgba(22,29,53,0.5)]"
+                  className="even:bg-[rgba(15,76,117,0.5)]"
                   key={transaction.id}
                 >
                   <td
@@ -128,3 +128,5 @@ export default function Transactions() {
     </div>
   );
 }
+
+

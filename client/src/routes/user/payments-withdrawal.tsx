@@ -8,3 +8,5 @@ export const userPaymentsWithdrawalRoute = createRoute({
     () => import("@/features/user/payments/pages/withdrawal"),
   ),
 });
+
+

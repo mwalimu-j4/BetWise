@@ -6,3 +6,5 @@ export const adminRiskRoute = createRoute({
   path: "/risk",
   component: lazyRouteComponent(() => import("@/features/admin/modules/risk")),
 });
+
+

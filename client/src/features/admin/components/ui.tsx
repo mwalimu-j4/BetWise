@@ -49,8 +49,8 @@ const toneSoftClasses: Record<AdminTone, string> = {
 
 const toneGlowClasses: Record<AdminTone, string> = {
   accent:
-    "bg-[radial-gradient(circle_at_80%_20%,rgba(0,229,160,0.12),transparent_70%)]",
-  blue: "bg-[radial-gradient(circle_at_80%_20%,rgba(61,142,248,0.12),transparent_70%)]",
+    "bg-[radial-gradient(circle_at_80%_20%,rgba(249,168,38,0.12),transparent_70%)]",
+  blue: "bg-[radial-gradient(circle_at_80%_20%,rgba(50,130,184,0.12),transparent_70%)]",
   gold: "bg-[radial-gradient(circle_at_80%_20%,rgba(245,166,35,0.12),transparent_70%)]",
   red: "bg-[radial-gradient(circle_at_80%_20%,rgba(255,77,106,0.12),transparent_70%)]",
   purple:
@@ -415,3 +415,5 @@ export function DonutChart() {
     </div>
   );
 }
+
+

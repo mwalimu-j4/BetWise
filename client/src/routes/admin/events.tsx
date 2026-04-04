@@ -8,3 +8,5 @@ export const adminEventsRoute = createRoute({
     () => import("@/features/admin/modules/events"),
   ),
 });
+
+
