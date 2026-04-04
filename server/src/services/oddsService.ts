@@ -30,7 +30,24 @@ export async function fetchAndSaveOdds(): Promise<void> {
       continue;
     }
 
-    const events = (await result.value.json()) as Array<{
+    if (!result.value.ok) {
+      console.warn(`[Odds] Request failed with status ${result.value.status}.`);
+      continue;
+    }
+
+    const payload = (await result.value.json()) as unknown;
+    if (!Array.isArray(payload)) {
+      const message =
+        typeof payload === "object" && payload !== null && "message" in payload
+          ? String(
+              (payload as { message?: unknown }).message ?? "unknown error",
+            )
+          : "unknown error";
+      console.warn(`[Odds] Unexpected payload shape: ${message}`);
+      continue;
+    }
+
+    const events = payload as Array<{
       id: string;
       sport_title: string;
       sport_key: string;
