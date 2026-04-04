@@ -593,7 +593,12 @@ export function GeoLocationCard({
           <p className="font-semibold text-admin-text-primary">{country}</p>
           <p className="text-xs text-admin-text-muted">{region}</p>
         </div>
-        <div className={cn("rounded-lg px-2 py-1 text-xs font-bold", toneSoftClasses[tone])}>
+        <div
+          className={cn(
+            "rounded-lg px-2 py-1 text-xs font-bold",
+            toneSoftClasses[tone],
+          )}
+        >
           {percentage.toFixed(1)}%
         </div>
       </div>
@@ -640,7 +645,12 @@ export function DeviceCard({
     <AdminCard className="space-y-3">
       <div className="flex items-start justify-between">
         <p className="font-semibold text-admin-text-primary">{device}</p>
-        <div className={cn("rounded-lg px-2 py-1 text-xs font-bold", toneSoftClasses[tone])}>
+        <div
+          className={cn(
+            "rounded-lg px-2 py-1 text-xs font-bold",
+            toneSoftClasses[tone],
+          )}
+        >
           {percentage.toFixed(1)}%
         </div>
       </div>
