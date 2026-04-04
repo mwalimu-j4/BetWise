@@ -11,15 +11,28 @@ function findPnPmPrismaDir() {
   if (!fs.existsSync(pnpmDir)) return null;
 
   const entries = fs.readdirSync(pnpmDir, { withFileTypes: true });
-  const match = entries
+  const matches = entries
     .filter((entry) => entry.isDirectory())
-    .find((entry) => entry.name.startsWith("@prisma+client@"));
+    .filter((entry) => entry.name.startsWith("@prisma+client@"));
 
-  if (!match) return null;
+  // Sort by version, preferring v6 first
+  matches.sort((a, b) => {
+    const aIsV6 = a.name.startsWith("@prisma+client@6.");
+    const bIsV6 = b.name.startsWith("@prisma+client@6.");
+    if (aIsV6 && !bIsV6) return -1;
+    if (!aIsV6 && bIsV6) return 1;
+    return b.name.localeCompare(a.name); // newer versions first
+  });
 
-  const target = path.join(pnpmDir, match.name, "node_modules", ".prisma");
+  // Check each candidate for the .prisma directory
+  for (const candidate of matches) {
+    const target = path.join(pnpmDir, candidate.name, "node_modules", ".prisma");
+    if (fs.existsSync(target)) {
+      return target;
+    }
+  }
 
-  return fs.existsSync(target) ? target : null;
+  return null;
 }
 
 function ensurePrismaLink() {

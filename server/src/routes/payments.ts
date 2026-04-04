@@ -2,6 +2,17 @@ import { Router } from "express";
 import { authenticate } from "../middleware/authenticate";
 import { prisma } from "../lib/prisma";
 import { emitNotificationUpdate, emitWalletUpdate } from "../lib/socket";
+import {
+  handleMpesaCallback,
+  getWalletSummary,
+  initiateStk,
+  checkDepositStatus,
+  createWithdrawalRequest,
+  listWithdrawals,
+  listAdminWithdrawals,
+  approveWithdrawal,
+  rejectWithdrawal,
+} from "../controllers/payments.controller";
 
 type WalletTransactionStatus = "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
 type WalletTransactionType =
