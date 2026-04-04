@@ -4,7 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "@/components/search/SearchBar";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "@/features/user/payments/data";
-import { useAppNotifications, useMarkAllNotificationsRead } from "@/features/notifications/notifications";
+import {
+  useAppNotifications,
+  useMarkAllNotificationsRead,
+} from "@/features/notifications/notifications";
 import { useWalletSummary } from "@/features/user/payments/wallet";
 
 type NavbarProps = {
@@ -217,7 +220,8 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                       className="bc-notify-item"
                       onClick={() => setNotificationsOpen(false)}
                     >
-                      <strong>{notification.title}:</strong> {notification.message}
+                      <strong>{notification.title}:</strong>{" "}
+                      {notification.message}
                     </button>
                   ))
                 ) : (

@@ -67,7 +67,21 @@ export type WalletStreamEvent = {
   amount: number;
 };
 
+export type NotificationStreamEvent = {
+  notificationId?: string;
+  audience: "USER" | "ADMIN";
+  type: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" | "SYSTEM";
+  title: string;
+  message: string;
+  transactionId?: string | null;
+  amount?: number | null;
+  balance?: number | null;
+  mpesaCode?: string | null;
+  createdAt: string;
+};
+
 export const walletUpdateBrowserEvent = "wallet:update-event";
+export const notificationUpdateBrowserEvent = "notification:update-event";
 
 export const walletSummaryQueryKey = ["wallet-summary"] as const;
 
@@ -154,10 +168,27 @@ export function useWalletRealtime() {
       void queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
     };
 
+    const handleNotificationUpdate = (payload: NotificationStreamEvent) => {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent<NotificationStreamEvent>(
+            notificationUpdateBrowserEvent,
+            {
+              detail: payload,
+            },
+          ),
+        );
+      }
+
+      void queryClient.invalidateQueries({ queryKey: ["app-notifications"] });
+    };
+
     socket.on("wallet:update", handleWalletUpdate);
+    socket.on("notification:update", handleNotificationUpdate);
 
     return () => {
       socket.off("wallet:update", handleWalletUpdate);
+      socket.off("notification:update", handleNotificationUpdate);
       socket.disconnect();
       if (socketRef.current === socket) {
         socketRef.current = null;

@@ -3,15 +3,25 @@ import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { Bell, Menu, Search, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import {
+  useAppNotifications,
+  useMarkAllNotificationsRead,
+} from "@/features/notifications/notifications";
+import { useWalletRealtime } from "@/features/user/payments/wallet";
 import { adminNavigation } from "../config/navigation";
 
 export default function AdminShell() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [notifications, setNotifications] = useState(7);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  useWalletRealtime();
+  const { data: notificationData } = useAppNotifications(10);
+  const markAllNotificationsRead = useMarkAllNotificationsRead();
   const pathname = useLocation({
     select: (location) => location.pathname,
   });
+  const notifications = notificationData?.notifications ?? [];
+  const unreadCount = notificationData?.unreadCount ?? 0;
 
   return (
     <ProtectedRoute requireRole="ADMIN">
@@ -143,19 +153,66 @@ export default function AdminShell() {
                 <span>LIVE</span>
               </div>
 
-              <button
-                type="button"
-                aria-label="View notifications"
-                className="relative grid h-10 w-10 place-items-center rounded-xl border border-admin-border bg-[var(--color-bg-hover)] text-admin-text-secondary transition hover:bg-[var(--color-bg-hover)] hover:text-admin-text-primary"
-                onClick={() => setNotifications(0)}
-              >
-                <Bell size={18} />
-                {notifications > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-admin-red text-[8px] font-bold text-white">
-                    {notifications}
-                  </span>
-                )}
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  aria-label="View notifications"
+                  className="relative grid h-10 w-10 place-items-center rounded-xl border border-admin-border bg-[var(--color-bg-hover)] text-admin-text-secondary transition hover:bg-[var(--color-bg-hover)] hover:text-admin-text-primary"
+                  onClick={() => {
+                    setNotificationsOpen((prev) => {
+                      const next = !prev;
+                      if (next && unreadCount > 0) {
+                        void markAllNotificationsRead();
+                      }
+
+                      return next;
+                    });
+                  }}
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-admin-red text-[8px] font-bold text-white">
+                      {Math.min(unreadCount, 99)}
+                    </span>
+                  )}
+                </button>
+
+                {notificationsOpen ? (
+                  <div className="absolute right-0 top-12 z-20 w-[360px] overflow-hidden rounded-2xl border border-admin-border bg-[var(--color-bg-secondary)] shadow-[0_16px_44px_rgba(0,0,0,0.35)]">
+                    <div className="border-b border-admin-border px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
+                        Admin Notifications
+                      </p>
+                    </div>
+                    <div className="app-scrollbar max-h-[360px] overflow-y-auto">
+                      {notifications.length > 0 ? (
+                        notifications.map((notification) => (
+                          <button
+                            key={notification.id}
+                            type="button"
+                            onClick={() => setNotificationsOpen(false)}
+                            className="w-full border-b border-admin-border/70 px-4 py-3 text-left transition hover:bg-[var(--color-bg-hover)]"
+                          >
+                            <p className="text-sm font-semibold text-admin-text-primary">
+                              {notification.title}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-admin-text-secondary">
+                              {notification.message}
+                            </p>
+                            <p className="mt-1 text-[11px] text-admin-text-muted">
+                              {new Date(notification.createdAt).toLocaleString()}
+                            </p>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="px-4 py-4 text-sm text-admin-text-muted">
+                          No admin notifications yet.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
 
               <div className="grid h-8 w-8 place-items-center rounded-full bg-[linear-gradient(135deg,var(--admin-purple),var(--admin-blue))] text-[11px] font-bold text-white">
                 SA

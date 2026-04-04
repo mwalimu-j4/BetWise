@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { authenticate } from "../middleware/authenticate";
 import { prisma } from "../lib/prisma";
-import { emitWalletUpdate } from "../lib/socket";
+import { emitNotificationUpdate, emitWalletUpdate } from "../lib/socket";
 
 type WalletTransactionStatus = "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
 type WalletTransactionType =
@@ -36,6 +36,111 @@ function emitWalletEvent(event: PaymentEvent) {
     balance: event.balance,
     amount: event.amount,
   });
+}
+
+async function createDepositNotifications(args: {
+  userId: string;
+  transactionId: string;
+  amount: number;
+  balance: number;
+  mpesaCode?: string | null;
+  status: "COMPLETED" | "FAILED";
+  failureReason?: string;
+}) {
+  const [userProfile, adminUsers] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: args.userId },
+      select: { phone: true, email: true },
+    }),
+    prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { id: true },
+    }),
+  ]);
+
+  const normalizedMpesaCode = args.mpesaCode ?? null;
+  const codeSuffix = normalizedMpesaCode
+    ? ` M-Pesa code: ${normalizedMpesaCode}.`
+    : "";
+  const userIdentifier = userProfile?.phone ?? userProfile?.email ?? args.userId;
+  const isSuccess = args.status === "COMPLETED";
+
+  const userTitle = isSuccess ? "Deposit Successful" : "Deposit Failed";
+  const userMessage = isSuccess
+    ? `You deposited KES ${args.amount.toLocaleString()}. Your new balance is KES ${args.balance.toLocaleString()}.${codeSuffix}`
+    : `Your deposit request for KES ${args.amount.toLocaleString()} failed.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
+
+  const adminTitle = isSuccess
+    ? "New Customer Deposit"
+    : "Customer Deposit Failed";
+  const adminMessage = isSuccess
+    ? `${userIdentifier} deposited KES ${args.amount.toLocaleString()}. Updated wallet balance: KES ${args.balance.toLocaleString()}.${codeSuffix}`
+    : `${userIdentifier} had a failed deposit request of KES ${args.amount.toLocaleString()}.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
+
+  const notificationType: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" = isSuccess
+    ? "DEPOSIT_SUCCESS"
+    : "DEPOSIT_FAILED";
+  const createdAtIso = new Date().toISOString();
+
+  const createPayload = [
+    {
+      userId: args.userId,
+      audience: "USER" as const,
+      type: notificationType,
+      title: userTitle,
+      message: userMessage,
+      transactionId: args.transactionId,
+      amount: args.amount,
+      balance: args.balance,
+      mpesaCode: normalizedMpesaCode,
+    },
+    ...adminUsers.map((admin) => ({
+      userId: admin.id,
+      audience: "ADMIN" as const,
+      type: notificationType,
+      title: adminTitle,
+      message: adminMessage,
+      transactionId: args.transactionId,
+      amount: args.amount,
+      balance: args.balance,
+      mpesaCode: normalizedMpesaCode,
+    })),
+  ];
+
+  const created = await prisma.notification.createMany({
+    data: createPayload,
+    skipDuplicates: true,
+  });
+
+  if (created.count === 0) {
+    return;
+  }
+
+  emitNotificationUpdate(args.userId, {
+    audience: "USER",
+    type: notificationType,
+    title: userTitle,
+    message: userMessage,
+    transactionId: args.transactionId,
+    amount: args.amount,
+    balance: args.balance,
+    mpesaCode: normalizedMpesaCode,
+    createdAt: createdAtIso,
+  });
+
+  for (const admin of adminUsers) {
+    emitNotificationUpdate(admin.id, {
+      audience: "ADMIN",
+      type: notificationType,
+      title: adminTitle,
+      message: adminMessage,
+      transactionId: args.transactionId,
+      amount: args.amount,
+      balance: args.balance,
+      mpesaCode: normalizedMpesaCode,
+      createdAt: createdAtIso,
+    });
+  }
 }
 
 const paymentRouter = Router();
@@ -406,6 +511,15 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
         balance: updatedWallet.balance,
         amount: matchedTransaction.amount,
       });
+
+      await createDepositNotifications({
+        userId: matchedTransaction.userId,
+        transactionId: matchedTransaction.id,
+        amount: matchedTransaction.amount,
+        balance: updatedWallet.balance,
+        mpesaCode: normalizedReceiptNumber,
+        status: "COMPLETED",
+      });
       return;
     }
 
@@ -420,6 +534,8 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
       },
     });
 
+    const latestSummary = await getWalletSummary(matchedTransaction.userId);
+
     emitWalletEvent({
       userId: matchedTransaction.userId,
       transactionId: matchedTransaction.id,
@@ -428,8 +544,17 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
       mpesaCode: null,
       status: "FAILED",
       message: callback.ResultDesc,
-      balance: (await getWalletSummary(matchedTransaction.userId)).balance,
+      balance: latestSummary.balance,
       amount: matchedTransaction.amount,
+    });
+
+    await createDepositNotifications({
+      userId: matchedTransaction.userId,
+      transactionId: matchedTransaction.id,
+      amount: matchedTransaction.amount,
+      balance: latestSummary.balance,
+      status: "FAILED",
+      failureReason: callback.ResultDesc,
     });
   })().catch((error) => {
     console.error("Failed to process M-Pesa callback.", error);
@@ -760,6 +885,15 @@ paymentRouter.get(
           amount: transaction.amount,
         });
 
+        await createDepositNotifications({
+          userId: req.user.id,
+          transactionId: transaction.id,
+          amount: transaction.amount,
+          balance: updatedWallet?.balance ?? latestSummary.balance,
+          mpesaCode: transaction.providerReceiptNumber,
+          status: "COMPLETED",
+        });
+
         return res.status(200).json({
           transactionId: transaction.id,
           status: "COMPLETED",
@@ -791,6 +925,15 @@ paymentRouter.get(
           message: resultDesc,
           balance: latestSummary.balance,
           amount: transaction.amount,
+        });
+
+        await createDepositNotifications({
+          userId: req.user.id,
+          transactionId: transaction.id,
+          amount: transaction.amount,
+          balance: latestSummary.balance,
+          status: "FAILED",
+          failureReason: resultDesc,
         });
 
         return res.status(200).json({
