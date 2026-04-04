@@ -58,10 +58,12 @@ export function useAppNotifications(take = 20) {
           );
 
           if (alreadyExists) {
-            return current ?? {
-              unreadCount: 0,
-              notifications: [],
-            };
+            return (
+              current ?? {
+                unreadCount: 0,
+                notifications: [],
+              }
+            );
           }
 
           const nextNotification: AppNotification = {

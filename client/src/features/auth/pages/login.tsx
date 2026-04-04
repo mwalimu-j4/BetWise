@@ -2,7 +2,7 @@ import type { FormEvent } from "react";
 import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import AuthCard from "@/components/auth/AuthCard";
 import { useAuth } from "@/context/AuthContext";
@@ -182,8 +182,9 @@ export default function Login() {
         <button
           type="submit"
           disabled={!formValid || isSubmitting}
-          className="h-9 rounded-lg bg-admin-accent text-xs font-semibold text-[var(--color-text-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex items-center justify-center gap-2 h-9 rounded-lg bg-admin-accent text-xs font-semibold text-[var(--color-text-dark)] disabled:cursor-not-allowed disabled:opacity-60 transition-all"
         >
+          {isSubmitting && <Loader2 size={16} className="animate-spin" />}
           {isSubmitting ? "Signing in..." : "Login"}
         </button>
       </form>
