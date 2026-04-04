@@ -1,11 +1,34 @@
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { isAxiosError } from "axios";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import AuthCard from "@/components/auth/AuthCard";
 import { useAuth } from "@/context/AuthContext";
 
 const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
+
+function normalizePhoneInput(value: string) {
+  return value.replace(/[\s-]/g, "");
+}
+
+function getLoginErrorMessage(error: unknown) {
+  if (isAxiosError<{ message?: string }>(error)) {
+    const status = error.response?.status;
+    const message = error.response?.data?.message;
+
+    if (typeof message === "string" && message.trim().length > 0) {
+      return message;
+    }
+
+    if (!status) {
+      return "Unable to reach server. Check your internet or API server.";
+    }
+  }
+
+  return "Invalid phone number or password.";
+}
 
 export default function Login() {
   const { login } = useAuth();
@@ -24,7 +47,10 @@ export default function Login() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!formValid) return;
+    if (!formValid) {
+      setErrorMessage("Enter a valid Kenyan phone number and password.");
+      return;
+    }
 
     setIsSubmitting(true);
     setErrorMessage("");
@@ -35,13 +61,17 @@ export default function Login() {
         password,
       });
 
+      toast.success("Signed in successfully.");
+
       const redirectTo =
         search.redirect && search.redirect.startsWith("/")
           ? search.redirect
           : "/user";
       void navigate({ to: redirectTo as never });
-    } catch {
-      setErrorMessage("Invalid credentials");
+    } catch (error: unknown) {
+      const message = getLoginErrorMessage(error);
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -74,12 +104,22 @@ export default function Login() {
             id="phone"
             type="tel"
             value={phone}
-            onChange={(event) => setPhone(event.target.value)}
+            onChange={(event) => {
+              setPhone(normalizePhoneInput(event.target.value));
+              if (errorMessage) {
+                setErrorMessage("");
+              }
+            }}
             placeholder="07XXXXXXXX or +2547XXXXXXXX"
-            className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
+            className="h-9 rounded-lg border border-admin-border bg-(--color-bg-elevated) px-2.5 text-xs text-admin-text-primary outline-none"
             autoComplete="tel"
             required
           />
+          {!KENYAN_PHONE_REGEX.test(phone.trim()) && phone.length > 0 ? (
+            <p className="text-xs text-amber-400">
+              Use 07XXXXXXXX, 01XXXXXXXX, or +254XXXXXXXX.
+            </p>
+          ) : null}
         </div>
 
         <div className="grid gap-1">
@@ -94,8 +134,13 @@ export default function Login() {
               id="password"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="h-9 w-full rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 pr-10 text-xs text-admin-text-primary outline-none"
+              onChange={(event) => {
+                setPassword(event.target.value);
+                if (errorMessage) {
+                  setErrorMessage("");
+                }
+              }}
+              className="h-9 w-full rounded-lg border border-admin-border bg-(--color-bg-elevated) px-2.5 pr-10 text-xs text-admin-text-primary outline-none"
               autoComplete="current-password"
               required
             />
@@ -121,13 +166,15 @@ export default function Login() {
         </div>
 
         {errorMessage ? (
-          <p className="text-xs text-red-400">{errorMessage}</p>
+          <p className="rounded-md border border-red-400/30 bg-red-500/10 px-2 py-1.5 text-xs text-red-300">
+            {errorMessage}
+          </p>
         ) : null}
 
         <button
           type="submit"
           disabled={!formValid || isSubmitting}
-          className="h-9 rounded-lg bg-admin-accent text-xs font-semibold text-[var(--color-text-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-9 rounded-lg bg-admin-accent text-xs font-semibold text-(--color-text-dark) disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Signing in..." : "Login"}
         </button>
