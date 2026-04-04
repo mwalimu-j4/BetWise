@@ -26,6 +26,7 @@ export type WalletTransaction = {
   currency: "KES";
   channel: string;
   reference: string;
+  mpesaCode?: string | null;
   createdAt: string;
 };
 
@@ -51,6 +52,7 @@ export type StkPushResponse = {
 export type MpesaTransactionStatusResponse = {
   transactionId: string;
   status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
+  mpesaCode?: string | null;
   message: string;
 };
 
@@ -58,11 +60,14 @@ export type WalletStreamEvent = {
   transactionId: string;
   checkoutRequestId?: string | null;
   merchantRequestId?: string | null;
+  mpesaCode?: string | null;
   status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
   message: string;
   balance: number;
   amount: number;
 };
+
+export const walletUpdateBrowserEvent = "wallet:update-event";
 
 export const walletSummaryQueryKey = ["wallet-summary"] as const;
 
@@ -137,6 +142,14 @@ export function useWalletRealtime() {
           };
         },
       );
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent<WalletStreamEvent>(walletUpdateBrowserEvent, {
+            detail: payload,
+          }),
+        );
+      }
 
       void queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
     };

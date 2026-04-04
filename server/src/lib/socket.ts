@@ -9,6 +9,7 @@ export type WalletRealtimeEvent = {
   transactionId: string;
   checkoutRequestId?: string | null;
   merchantRequestId?: string | null;
+  mpesaCode?: string | null;
   status: WalletEventStatus;
   message: string;
   balance: number;

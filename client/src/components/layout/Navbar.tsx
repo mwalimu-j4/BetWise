@@ -4,7 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "@/components/search/SearchBar";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "@/features/user/payments/data";
-import { useWalletSummary } from "@/features/user/payments/wallet";
+import {
+  useWalletSummary,
+  walletUpdateBrowserEvent,
+  type WalletStreamEvent,
+} from "@/features/user/payments/wallet";
 
 type NavbarProps = {
   onToggleSidebar: () => void;
@@ -69,11 +73,25 @@ const leagues = [
   "Rugby",
 ];
 
+type UserNotification = {
+  id: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+};
+
+function buildDepositNotification(payload: WalletStreamEvent) {
+  const mpesaCode = payload.mpesaCode ? payload.mpesaCode : "Pending";
+
+  return `Deposit of ${formatMoney(payload.amount)} received. New balance ${formatMoney(payload.balance)}. M-Pesa code: ${mpesaCode}.`;
+}
+
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
   const { data: walletData } = useWalletSummary();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const lastPathRef = useRef(location.pathname);
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
@@ -95,6 +113,54 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       setNotificationsOpen(false);
     }
   }, [location.pathname]);
+
+  useEffect(() => {
+    const historyNotifications = (walletData?.transactions ?? [])
+      .filter((transaction) => {
+        return transaction.type === "deposit" && transaction.status === "completed";
+      })
+      .slice(0, 6)
+      .map((transaction, index) => ({
+        id: `history-${transaction.id}`,
+        message: `Deposit of ${formatMoney(transaction.amount)} confirmed. M-Pesa code: ${transaction.mpesaCode ?? "Pending"}.`,
+        timestamp: transaction.createdAt,
+        read: index === 0,
+      }));
+
+    setNotifications((current) => {
+      const liveOnly = current.filter((item) => item.id.startsWith("live-"));
+      return [...liveOnly, ...historyNotifications].slice(0, 12);
+    });
+  }, [walletData?.transactions]);
+
+  useEffect(() => {
+    const handleWalletUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<WalletStreamEvent>;
+      const payload = customEvent.detail;
+
+      if (!payload || payload.status !== "COMPLETED") {
+        return;
+      }
+
+      setNotifications((current) => [
+        {
+          id: `live-${payload.transactionId}-${Date.now()}`,
+          message: buildDepositNotification(payload),
+          timestamp: new Date().toISOString(),
+          read: false,
+        },
+        ...current,
+      ].slice(0, 12));
+    };
+
+    window.addEventListener(walletUpdateBrowserEvent, handleWalletUpdate);
+
+    return () => {
+      window.removeEventListener(walletUpdateBrowserEvent, handleWalletUpdate);
+    };
+  }, []);
+
+  const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   return (
     <header className="bc-navbar" role="banner">
@@ -185,27 +251,43 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               type="button"
               className="bc-icon-btn"
               aria-label="Open notifications"
-              onClick={() => setNotificationsOpen((prev) => !prev)}
+              onClick={() => {
+                setNotificationsOpen((prev) => !prev);
+                setNotifications((current) =>
+                  current.map((notification) => ({
+                    ...notification,
+                    read: true,
+                  })),
+                );
+              }}
             >
               <Bell size={18} />
             </button>
-            <span className="bc-notify-dot" aria-hidden="true" />
+            {unreadCount > 0 ? (
+              <span className="bc-notify-dot" aria-hidden="true" />
+            ) : null}
             {notificationsOpen ? (
               <div className="bc-notify-dropdown" role="menu">
-                <button
-                  type="button"
-                  className="bc-notify-item"
-                  onClick={() => setNotificationsOpen(false)}
-                >
-                  Odds update available
-                </button>
-                <button
-                  type="button"
-                  className="bc-notify-item"
-                  onClick={() => setNotificationsOpen(false)}
-                >
-                  Withdrawal status changed
-                </button>
+                {notifications.length > 0 ? (
+                  notifications.map((notification) => (
+                    <button
+                      key={notification.id}
+                      type="button"
+                      className="bc-notify-item"
+                      onClick={() => setNotificationsOpen(false)}
+                    >
+                      {notification.message}
+                    </button>
+                  ))
+                ) : (
+                  <button
+                    type="button"
+                    className="bc-notify-item"
+                    onClick={() => setNotificationsOpen(false)}
+                  >
+                    No new notifications.
+                  </button>
+                )}
               </div>
             ) : null}
           </div>

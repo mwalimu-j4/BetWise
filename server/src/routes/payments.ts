@@ -18,6 +18,7 @@ type PaymentEvent = {
   transactionId: string;
   checkoutRequestId?: string | null;
   merchantRequestId?: string | null;
+  mpesaCode?: string | null;
   status: WalletTransactionStatus;
   message: string;
   balance: number;
@@ -29,6 +30,7 @@ function emitWalletEvent(event: PaymentEvent) {
     transactionId: event.transactionId,
     checkoutRequestId: event.checkoutRequestId,
     merchantRequestId: event.merchantRequestId,
+    mpesaCode: event.mpesaCode,
     status: event.status,
     message: event.message,
     balance: event.balance,
@@ -159,6 +161,7 @@ function toClientTransaction(transaction: {
   currency: string;
   channel: string;
   reference: string;
+  providerReceiptNumber: string | null;
   createdAt: Date;
 }) {
   return {
@@ -169,6 +172,7 @@ function toClientTransaction(transaction: {
     currency: transaction.currency,
     channel: transaction.channel,
     reference: transaction.reference,
+    mpesaCode: transaction.providerReceiptNumber,
     createdAt: transaction.createdAt.toISOString(),
   };
 }
@@ -316,7 +320,7 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
       },
     });
 
-    if (!matchedTransaction || matchedTransaction.status !== "PENDING") {
+    if (!matchedTransaction) {
       return;
     }
 
@@ -326,6 +330,45 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
     )?.Value;
 
     if (callback.ResultCode === 0) {
+      const normalizedReceiptNumber =
+        typeof receiptNumber === "string"
+          ? receiptNumber
+          : typeof receiptNumber === "number"
+            ? String(receiptNumber)
+            : null;
+
+      if (
+        matchedTransaction.status === "COMPLETED" &&
+        !matchedTransaction.providerReceiptNumber &&
+        normalizedReceiptNumber
+      ) {
+        await prisma.walletTransaction.update({
+          where: { id: matchedTransaction.id },
+          data: {
+            providerReceiptNumber: normalizedReceiptNumber,
+            providerResponseCode: String(callback.ResultCode),
+            providerResponseDescription: callback.ResultDesc,
+            providerCallback: callback as never,
+          },
+        });
+
+        emitWalletEvent({
+          userId: matchedTransaction.userId,
+          transactionId: matchedTransaction.id,
+          checkoutRequestId,
+          merchantRequestId: callback.MerchantRequestID,
+          mpesaCode: normalizedReceiptNumber,
+          status: "COMPLETED",
+          message: "Deposit confirmed and wallet updated.",
+          balance: (await getWalletSummary(matchedTransaction.userId)).balance,
+          amount: matchedTransaction.amount,
+        });
+      }
+
+      if (matchedTransaction.status !== "PENDING") {
+        return;
+      }
+
       const wallet =
         matchedTransaction.wallet ??
         (await getOrCreateWallet(matchedTransaction.userId));
@@ -334,12 +377,7 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
           where: { id: matchedTransaction.id },
           data: {
             status: "COMPLETED",
-            providerReceiptNumber:
-              typeof receiptNumber === "string"
-                ? receiptNumber
-                : typeof receiptNumber === "number"
-                  ? String(receiptNumber)
-                  : null,
+            providerReceiptNumber: normalizedReceiptNumber,
             providerResponseCode: String(callback.ResultCode),
             providerResponseDescription: callback.ResultDesc,
             providerCallback: callback as never,
@@ -362,6 +400,7 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
         transactionId: matchedTransaction.id,
         checkoutRequestId,
         merchantRequestId: callback.MerchantRequestID,
+        mpesaCode: normalizedReceiptNumber,
         status: "COMPLETED",
         message: "Deposit confirmed and wallet updated.",
         balance: updatedWallet.balance,
@@ -386,6 +425,7 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
       transactionId: matchedTransaction.id,
       checkoutRequestId,
       merchantRequestId: callback.MerchantRequestID,
+      mpesaCode: null,
       status: "FAILED",
       message: callback.ResultDesc,
       balance: (await getWalletSummary(matchedTransaction.userId)).balance,
@@ -590,6 +630,7 @@ paymentRouter.get(
         return res.status(200).json({
           transactionId: transaction.id,
           status: transaction.status,
+          mpesaCode: transaction.providerReceiptNumber,
           message:
             transaction.status === "COMPLETED"
               ? "Deposit confirmed."
@@ -712,6 +753,7 @@ paymentRouter.get(
           transactionId: transaction.id,
           checkoutRequestId: transaction.checkoutRequestId,
           merchantRequestId: transaction.merchantRequestId,
+          mpesaCode: transaction.providerReceiptNumber,
           status: "COMPLETED",
           message: "Deposit confirmed and wallet updated.",
           balance: updatedWallet?.balance ?? latestSummary.balance,
@@ -721,6 +763,7 @@ paymentRouter.get(
         return res.status(200).json({
           transactionId: transaction.id,
           status: "COMPLETED",
+          mpesaCode: transaction.providerReceiptNumber,
           message: "Deposit confirmed.",
         });
       }
@@ -743,6 +786,7 @@ paymentRouter.get(
           transactionId: transaction.id,
           checkoutRequestId: transaction.checkoutRequestId,
           merchantRequestId: transaction.merchantRequestId,
+          mpesaCode: null,
           status: "FAILED",
           message: resultDesc,
           balance: latestSummary.balance,
