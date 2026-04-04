@@ -12,6 +12,11 @@ enum UserRole {
   ADMIN
 }
 
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
 enum WalletTransactionType {
   DEPOSIT
   WITHDRAWAL
@@ -43,10 +48,12 @@ enum NotificationType {
 
 model User {
   id            String               @id @default(uuid()) @db.Uuid
+  fullName      String?              @map("full_name")
   email         String               @unique
   phone         String               @unique
   passwordHash  String               @map("password_hash")
   isVerified    Boolean              @default(false) @map("is_verified")
+  accountStatus AccountStatus        @default(ACTIVE) @map("account_status")
   role          UserRole             @default(USER)
   createdAt     DateTime             @default(now()) @map("created_at")
   updatedAt     DateTime             @updatedAt @map("updated_at")
