@@ -1,7 +1,4 @@
-import {
-  AdminCard,
-  AdminSectionHeader,
-} from "../../components/ui";
+import { AdminCard, AdminSectionHeader } from "../../components/ui";
 
 export default function Analytics() {
   return (
@@ -15,7 +12,8 @@ export default function Analytics() {
         <div className="space-y-4">
           <p className="text-4xl font-bold text-admin-accent">Coming Soon!!!</p>
           <p className="text-admin-text-muted">
-            Advanced analytics features are being developed to help you understand betting trends and performance metrics.
+            Advanced analytics features are being developed to help you
+            understand betting trends and performance metrics.
           </p>
         </div>
       </AdminCard>
