@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
 import { Eye, EyeOff } from "lucide-react";
@@ -31,7 +31,7 @@ function getLoginErrorMessage(error: unknown) {
 }
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { redirect?: string };
 
@@ -44,6 +44,19 @@ export default function Login() {
   const formValid = useMemo(() => {
     return KENYAN_PHONE_REGEX.test(phone.trim()) && password.length > 0;
   }, [password.length, phone]);
+
+  // Handle redirect when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      let redirectTo = "/user";
+      if (user.role === "ADMIN") {
+        redirectTo = "/admin";
+      } else if (search.redirect && search.redirect.startsWith("/")) {
+        redirectTo = search.redirect;
+      }
+      void navigate({ to: redirectTo as never });
+    }
+  }, [isAuthenticated, user, navigate, search.redirect]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,12 +75,7 @@ export default function Login() {
       });
 
       toast.success("Signed in successfully.");
-
-      const redirectTo =
-        search.redirect && search.redirect.startsWith("/")
-          ? search.redirect
-          : "/user";
-      void navigate({ to: redirectTo as never });
+      // The useEffect above will handle the redirect
     } catch (error: unknown) {
       const message = getLoginErrorMessage(error);
       setErrorMessage(message);
