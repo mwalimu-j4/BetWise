@@ -237,11 +237,11 @@ function getMpesaConfig() {
   return {
     isConfigured: true as const,
     baseUrl,
-    consumerKey,
-    consumerSecret,
-    shortcode,
-    passkey,
-    callbackUrl,
+    consumerKey: consumerKey as string,
+    consumerSecret: consumerSecret as string,
+    shortcode: shortcode as string,
+    passkey: passkey as string,
+    callbackUrl: callbackUrl as string,
   };
 }
 
@@ -566,9 +566,17 @@ paymentRouter.get(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      const transactionId = Array.isArray(req.params.transactionId)
+        ? req.params.transactionId[0]
+        : req.params.transactionId;
+
+      if (!transactionId) {
+        return res.status(400).json({ message: "Invalid transaction id." });
+      }
+
       const transaction = await prisma.walletTransaction.findFirst({
         where: {
-          id: req.params.transactionId,
+          id: transactionId,
           userId: req.user.id,
           type: "DEPOSIT",
         },
@@ -585,7 +593,8 @@ paymentRouter.get(
           message:
             transaction.status === "COMPLETED"
               ? "Deposit confirmed."
-              : transaction.providerResponseDescription ?? "Payment not completed.",
+              : (transaction.providerResponseDescription ??
+                "Payment not completed."),
         });
       }
 
@@ -635,7 +644,8 @@ paymentRouter.get(
         return res.status(200).json({
           transactionId: transaction.id,
           status: "PENDING",
-          message: queryData.errorMessage ?? "Still waiting for M-Pesa confirmation.",
+          message:
+            queryData.errorMessage ?? "Still waiting for M-Pesa confirmation.",
         });
       }
 
@@ -646,7 +656,12 @@ paymentRouter.get(
         const updatedWallet = await prisma.$transaction(async (tx) => {
           const latestTransaction = await tx.walletTransaction.findUnique({
             where: { id: transaction.id },
-            select: { status: true, amount: true, walletId: true, userId: true },
+            select: {
+              status: true,
+              amount: true,
+              walletId: true,
+              userId: true,
+            },
           });
 
           if (!latestTransaction || latestTransaction.status !== "PENDING") {

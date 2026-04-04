@@ -20,7 +20,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatMoney } from "../data";
-import { useWalletSummary, type StkPushResponse } from "../wallet";
+import {
+  useWalletSummary,
+  type MpesaTransactionStatusResponse,
+  type StkPushResponse,
+} from "../wallet";
 
 const quickAmounts = [200, 500, 1000, 2500, 5000, 10000];
 const paymentStages = [
@@ -41,6 +45,9 @@ export default function PaymentsDepositPage() {
     null,
   );
   const [submissionAmount, setSubmissionAmount] = useState<number | null>(null);
+  const [submittedTransactionId, setSubmittedTransactionId] = useState<
+    string | null
+  >(null);
   const [depositConfirmed, setDepositConfirmed] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [paymentFailed, setPaymentFailed] = useState<string | null>(null);
@@ -71,6 +78,60 @@ export default function PaymentsDepositPage() {
     }
   }, [currentBalance, isSubmitting, submissionBalance, submissionStartedAt]);
 
+  useEffect(() => {
+    if (!submittedTransactionId || depositConfirmed || paymentFailed) {
+      return;
+    }
+
+    let active = true;
+    const maxAttempts = 18;
+    let attempts = 0;
+
+    const pollStatus = async () => {
+      attempts += 1;
+
+      try {
+        const { data } = await api.get<MpesaTransactionStatusResponse>(
+          `/payments/mpesa/status/${submittedTransactionId}`,
+        );
+
+        if (!active) {
+          return;
+        }
+
+        if (data.status === "COMPLETED") {
+          setDepositConfirmed(true);
+          setSubmissionStartedAt(null);
+          setSubmissionBalance(null);
+          return;
+        }
+
+        if (data.status === "FAILED" || data.status === "REVERSED") {
+          setPaymentFailed(data.message || "Payment failed.");
+          setSubmissionStartedAt(null);
+          setSubmissionBalance(null);
+          return;
+        }
+      } catch {
+        // Keep retrying for transient gateway/provider delays.
+      }
+
+      if (active && attempts < maxAttempts) {
+        window.setTimeout(() => {
+          void pollStatus();
+        }, 5000);
+      }
+    };
+
+    window.setTimeout(() => {
+      void pollStatus();
+    }, 4000);
+
+    return () => {
+      active = false;
+    };
+  }, [depositConfirmed, paymentFailed, submittedTransactionId]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -87,6 +148,7 @@ export default function PaymentsDepositPage() {
     setSubmissionStartedAt(new Date().toISOString());
     setSubmissionBalance(currentBalance);
     setSubmissionAmount(Number(amount));
+    setSubmittedTransactionId(null);
 
     try {
       const { data } = await api.post<StkPushResponse>(
@@ -98,6 +160,7 @@ export default function PaymentsDepositPage() {
       );
 
       setResponse(data);
+  setSubmittedTransactionId(data.transactionId ?? null);
       toast.info("Payment initiated. Please approve the prompt on your phone.");
     } catch (error: unknown) {
       setSubmissionStartedAt(null);
