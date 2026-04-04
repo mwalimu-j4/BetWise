@@ -517,8 +517,8 @@ export function DepositWithdrawalChart({ data }: { data: any[] }) {
   return (
     <ResponsiveContainer width="100%" height={250}>
       <BarChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-        <CartesianGrid 
-          strokeDasharray="3 3" 
+        <CartesianGrid
+          strokeDasharray="3 3"
           stroke="rgba(255,255,255,0.06)"
           fill="rgba(0,0,0,0.2)"
         />
@@ -539,8 +539,18 @@ export function DepositWithdrawalChart({ data }: { data: any[] }) {
           cursor={{ fill: "rgba(255,255,255,0.05)" }}
         />
         <Legend />
-        <Bar dataKey="deposits" fill="#00e5a0" name="Deposits" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="withdrawals" fill="#ff9800" name="Withdrawals" radius={[4, 4, 0, 0]} />
+        <Bar
+          dataKey="deposits"
+          fill="#00e5a0"
+          name="Deposits"
+          radius={[4, 4, 0, 0]}
+        />
+        <Bar
+          dataKey="withdrawals"
+          fill="#ff9800"
+          name="Withdrawals"
+          radius={[4, 4, 0, 0]}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

@@ -335,3 +335,330 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     }),
   });
 }
+
+export async function getAllUsers(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const { search = "", status = "", page = 1, limit = 50 } = req.query;
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const where: any = {};
+
+  if (search) {
+    where.OR = [
+      { email: { contains: String(search), mode: "insensitive" } },
+      { fullName: { contains: String(search), mode: "insensitive" } },
+      { phone: { contains: String(search), mode: "insensitive" } },
+    ];
+  }
+
+  if (status === "suspended") {
+    where.accountStatus = "SUSPENDED";
+  } else if (status === "banned") {
+    where.bannedAt = { not: null };
+  } else if (status === "active") {
+    where.accountStatus = "ACTIVE";
+    where.bannedAt = null;
+  }
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: "USER", ...where },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        isVerified: true,
+        accountStatus: true,
+        bannedAt: true,
+        createdAt: true,
+        updatedAt: true,
+        wallet: {
+          select: { balance: true },
+        },
+        transactions: {
+          select: { id: true },
+        },
+      },
+      skip,
+      take: Number(limit),
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.user.count({ where: { role: "USER", ...where } }),
+  ]);
+
+  const formattedUsers = users.map((user) => ({
+    id: user.id,
+    name: user.fullName || "Unknown",
+    email: user.email,
+    phone: user.phone,
+    balance: user.wallet?.balance ?? 0,
+    isVerified: user.isVerified,
+    status:
+      user.bannedAt !== null
+        ? "banned"
+        : user.accountStatus === "SUSPENDED"
+          ? "suspended"
+          : "active",
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
+    totalBets: user.transactions.length,
+  }));
+
+  return res.status(200).json({
+    users: formattedUsers,
+    total,
+    page: Number(page),
+    limit: Number(limit),
+    pages: Math.ceil(total / Number(limit)),
+  });
+}
+
+export async function getUserDetails(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const { userId } = req.params;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      phone: true,
+      isVerified: true,
+      accountStatus: true,
+      bannedAt: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+      wallet: {
+        select: { balance: true },
+      },
+      transactions: {
+        select: { id: true, type: true, amount: true, status: true },
+      },
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  return res.status(200).json({
+    id: user.id,
+    name: user.fullName || "Unknown",
+    email: user.email,
+    phone: user.phone,
+    balance: user.wallet?.balance ?? 0,
+    isVerified: user.isVerified,
+    status:
+      user.bannedAt !== null
+        ? "banned"
+        : user.accountStatus === "SUSPENDED"
+          ? "suspended"
+          : "active",
+    role: user.role,
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
+    totalBets: user.transactions.length,
+    bannedAt: user.bannedAt?.toISOString() || null,
+  });
+}
+
+export async function banUser(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const { userId } = req.params;
+  const { reason } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  if (user.bannedAt) {
+    return res.status(400).json({ message: "User is already banned" });
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      bannedAt: new Date(),
+      accountStatus: "SUSPENDED",
+    },
+    select: {
+      id: true,
+      email: true,
+      bannedAt: true,
+    },
+  });
+
+  return res.status(200).json({
+    message: "User banned successfully",
+    user: {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      bannedAt: updatedUser.bannedAt?.toISOString(),
+    },
+  });
+}
+
+export async function unbanUser(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const { userId } = req.params;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  if (!user.bannedAt) {
+    return res.status(400).json({ message: "User is not banned" });
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      bannedAt: null,
+      accountStatus: "ACTIVE",
+    },
+    select: {
+      id: true,
+      email: true,
+      bannedAt: true,
+    },
+  });
+
+  return res.status(200).json({
+    message: "User unbanned successfully",
+    user: {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      bannedAt: updatedUser.bannedAt?.toISOString() || null,
+    },
+  });
+}
+
+export async function suspendUser(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const { userId } = req.params;
+  const { reason } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  if (user.accountStatus === "SUSPENDED") {
+    return res.status(400).json({ message: "User is already suspended" });
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      accountStatus: "SUSPENDED",
+    },
+    select: {
+      id: true,
+      email: true,
+      accountStatus: true,
+    },
+  });
+
+  return res.status(200).json({
+    message: "User suspended successfully",
+    user: {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      accountStatus: updatedUser.accountStatus,
+    },
+  });
+}
+
+export async function unsuspendUser(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const { userId } = req.params;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  if (user.accountStatus !== "SUSPENDED") {
+    return res.status(400).json({ message: "User is not suspended" });
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      accountStatus: "ACTIVE",
+    },
+    select: {
+      id: true,
+      email: true,
+      accountStatus: true,
+    },
+  });
+
+  return res.status(200).json({
+    message: "User unsuspended successfully",
+    user: {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      accountStatus: updatedUser.accountStatus,
+    },
+  });
+}

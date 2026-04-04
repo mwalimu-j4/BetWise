@@ -54,6 +54,7 @@ model User {
   passwordHash  String               @map("password_hash")
   isVerified    Boolean              @default(false) @map("is_verified")
   accountStatus AccountStatus        @default(ACTIVE) @map("account_status")
+  bannedAt      DateTime?            @map("banned_at")
   role          UserRole             @default(USER)
   createdAt     DateTime             @default(now()) @map("created_at")
   updatedAt     DateTime             @updatedAt @map("updated_at")
