@@ -231,3 +231,156 @@ export async function createWithdrawalNotifications(args: {
     });
   }
 }
+
+function toClientNotification(notification: {
+  id: string;
+  audience: "USER" | "ADMIN";
+  type:
+    | "DEPOSIT_SUCCESS"
+    | "DEPOSIT_FAILED"
+    | "WITHDRAWAL_SUCCESS"
+    | "WITHDRAWAL_FAILED"
+    | "SYSTEM";
+  title: string;
+  message: string;
+  transactionId: string | null;
+  amount: number | null;
+  balance: number | null;
+  mpesaCode: string | null;
+  isRead: boolean;
+  createdAt: Date;
+}) {
+  return {
+    id: notification.id,
+    audience: notification.audience,
+    type: notification.type,
+    title: notification.title,
+    message: notification.message,
+    transactionId: notification.transactionId,
+    amount: notification.amount,
+    balance: notification.balance,
+    mpesaCode: notification.mpesaCode,
+    isRead: notification.isRead,
+    createdAt: notification.createdAt.toISOString(),
+  };
+}
+
+export async function listNotifications(
+  req: import("express").Request,
+  res: import("express").Response,
+  next: (error?: unknown) => void,
+) {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const take = Math.min(Number(req.query.take ?? 20), 50) || 20;
+    const unreadOnly =
+      req.query.unreadOnly === "true" || req.query.unreadOnly === "1";
+
+    const audience: "ADMIN" | "USER" = req.user.role === "ADMIN" ? "ADMIN" : "USER";
+
+    const where: {
+      userId: string;
+      audience: "ADMIN" | "USER";
+      isRead?: boolean;
+    } = {
+      userId: req.user.id,
+      audience,
+      ...(unreadOnly ? { isRead: false } : {}),
+    };
+
+    const [notifications, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take,
+      }),
+      prisma.notification.count({
+        where: {
+          userId: req.user.id,
+          audience,
+          isRead: false,
+        },
+      }),
+    ]);
+
+    return res.status(200).json({
+      notifications: notifications.map(toClientNotification),
+      unreadCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function markAllNotificationsRead(
+  req: import("express").Request,
+  res: import("express").Response,
+  next: (error?: unknown) => void,
+) {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const audience: "ADMIN" | "USER" = req.user.role === "ADMIN" ? "ADMIN" : "USER";
+
+    await prisma.notification.updateMany({
+      where: {
+        userId: req.user.id,
+        audience,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+
+    return res.status(200).json({ message: "Notifications marked as read." });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function markNotificationRead(
+  req: import("express").Request,
+  res: import("express").Response,
+  next: (error?: unknown) => void,
+) {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const notificationId = Array.isArray(req.params.notificationId)
+      ? req.params.notificationId[0]
+      : req.params.notificationId;
+
+    if (!notificationId) {
+      return res.status(400).json({ message: "Invalid notification id." });
+    }
+
+    const audience: "ADMIN" | "USER" = req.user.role === "ADMIN" ? "ADMIN" : "USER";
+
+    const result = await prisma.notification.updateMany({
+      where: {
+        id: notificationId,
+        userId: req.user.id,
+        audience,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+
+    if (result.count === 0) {
+      return res.status(404).json({ message: "Notification not found." });
+    }
+
+    return res.status(200).json({ message: "Notification marked as read." });
+  } catch (error) {
+    next(error);
+  }
+}
