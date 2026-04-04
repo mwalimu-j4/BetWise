@@ -1,12 +1,4 @@
-import {
-  BarChart3,
-  Globe,
-  Smartphone,
-  Wifi,
-  MapPin,
-  Users,
-  Signal,
-} from "lucide-react";
+import { Wifi } from "lucide-react";
 import {
   AdminCard,
   AdminCardHeader,

@@ -1,8 +1,5 @@
 import { Download, Eye, Filter, Flag } from "lucide-react";
-import {
-  dashboardMetrics,
-  recentBets,
-} from "../../data/mock-data";
+import { dashboardMetrics, recentBets } from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
