@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
-  BarChart3,
   CheckCircle,
   Clock,
   Flag,
@@ -159,9 +158,16 @@ export function AdminButton({
         size === "md" ? "h-9 px-3.5" : "h-8 px-2.5 text-[11px]",
         variant === "solid"
           ? cn(solidToneClasses[tone], "border-transparent hover:opacity-95")
-          : "border-admin-border bg-transparent text-admin-text-secondary hover:bg-[var(--color-bg-hover)] hover:text-admin-text-primary",
+          : "border-admin-border bg-transparent text-admin-text-secondary hover:text-admin-text-primary",
         className,
       )}
+      style={
+        variant === "ghost"
+          ? ({
+              backgroundColor: "transparent",
+            } as CSSProperties)
+          : undefined
+      }
       type={type}
     />
   );
@@ -399,7 +405,7 @@ export function DonutChart() {
 
   return (
     <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-      <svg className="h-[90px] w-[90px]" viewBox="0 0 90 90">
+      <svg style={{ height: 90, width: 90 }} viewBox="0 0 90 90">
         <circle
           cx={45}
           cy={45}

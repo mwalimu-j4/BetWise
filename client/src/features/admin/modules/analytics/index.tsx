@@ -11,7 +11,6 @@ import {
   AdminCard,
   AdminCardHeader,
   AdminSectionHeader,
-  AdminButton,
   MetricCard,
   SummaryCard,
   adminFilterRowClassName,
@@ -34,7 +33,8 @@ export default function Analytics() {
   const mobileUsers = deviceAnalytics
     .filter((item) => item.device.toLowerCase().includes("mobile"))
     .reduce((sum, item) => sum + item.users, 0);
-  const desktopUsers = deviceAnalytics.find((item) => item.device === "Desktop")?.users ?? 0;
+  const desktopUsers =
+    deviceAnalytics.find((item) => item.device === "Desktop")?.users ?? 0;
 
   return (
     <div className="space-y-6">
@@ -110,7 +110,10 @@ export default function Analytics() {
           />
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {geoAnalytics.map((location) => (
-              <GeoLocationCard key={`${location.country}-${location.region}`} {...location} />
+              <GeoLocationCard
+                key={`${location.country}-${location.region}`}
+                {...location}
+              />
             ))}
           </div>
         </AdminCard>
@@ -166,10 +169,18 @@ export default function Analytics() {
                       {carrier.carrier}
                     </span>
                   </td>
-                  <td className={adminTableCellClassName}>{carrier.users.toLocaleString()}</td>
-                  <td className={adminTableCellClassName}>{carrier.percentage.toFixed(1)}%</td>
-                  <td className={adminTableCellClassName}>{carrier.avgBetSize}</td>
-                  <td className={adminTableCellClassName}>{carrier.avgPayout}</td>
+                  <td className={adminTableCellClassName}>
+                    {carrier.users.toLocaleString()}
+                  </td>
+                  <td className={adminTableCellClassName}>
+                    {carrier.percentage.toFixed(1)}%
+                  </td>
+                  <td className={adminTableCellClassName}>
+                    {carrier.avgBetSize}
+                  </td>
+                  <td className={adminTableCellClassName}>
+                    {carrier.avgPayout}
+                  </td>
                   <td className={adminTableCellClassName}>
                     <span className="inline-flex items-center gap-2 rounded-lg bg-admin-surface px-2 py-1 text-xs font-medium text-admin-text-secondary">
                       <Users size={12} />
@@ -190,8 +201,16 @@ export default function Analytics() {
         />
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <SummaryCard label="Best Mobile Region" value="Kenya" tone="accent" />
-          <SummaryCard label="Highest Carrier Value" value="Safaricom" tone="blue" />
-          <SummaryCard label="Desktop Upsell" value="Premium markets" tone="gold" />
+          <SummaryCard
+            label="Highest Carrier Value"
+            value="Safaricom"
+            tone="blue"
+          />
+          <SummaryCard
+            label="Desktop Upsell"
+            value="Premium markets"
+            tone="gold"
+          />
         </div>
       </AdminCard>
     </div>
