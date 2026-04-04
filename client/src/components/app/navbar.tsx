@@ -114,27 +114,6 @@ const leagueItems = [
 export default function Navbar() {
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
 
-  const mockNotifications = [
-    {
-      id: 1,
-      title: "Bet Won!",
-      message: "Your bet on Team A was successful",
-      time: "2 min ago",
-    },
-    {
-      id: 2,
-      title: "Deposit Confirmed",
-      message: "KES 5,000 has been added to your account",
-      time: "1 hour ago",
-    },
-    {
-      id: 3,
-      title: "Event Updated",
-      message: "Match starting in 30 minutes",
-      time: "3 hours ago",
-    },
-  ];
-
   return (
     <header className={styles.navbar}>
       <div className={styles.tickerBar}>
