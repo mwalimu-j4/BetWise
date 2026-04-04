@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import Footer from "@/components/app/footer";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
-import MobileBottomNav from "@/components/layout/MobileBottomNav"; // NEW: Importing your separate file!
+import MobileBottomNav from "@/components/layout/MobileBottomNav"; // <-- Added your import back!
 import "@/styles/layout.css";
-
+import { useWalletRealtime } from "@/features/user/payments/wallet";
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  useWalletRealtime();
 
   useEffect(() => {
     if (typeof document === "undefined") return;

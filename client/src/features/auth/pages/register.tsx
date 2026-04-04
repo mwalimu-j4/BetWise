@@ -1,15 +1,47 @@
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { isAxiosError } from "axios";
+import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import AuthCard from "@/components/auth/AuthCard";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 import { useAuth } from "@/context/AuthContext";
 
+type FormErrors = Partial<Record<string, string[]>>;
+
 const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+function normalizePhoneInput(value: string) {
+  return value.replace(/[\s-]/g, "");
+}
+
+function extractRegisterErrors(error: unknown) {
+  if (
+    isAxiosError<{ errors?: Record<string, string[]>; message?: string }>(error)
+  ) {
+    const fieldErrors = error.response?.data?.errors;
+    if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+      return fieldErrors;
+    }
+
+    const message = error.response?.data?.message;
+    if (message && message.trim().length > 0) {
+      return { general: [message] };
+    }
+
+    if (!error.response) {
+      return {
+        general: ["Unable to reach server. Check your internet or API server."],
+      };
+    }
+  }
+
+  return { general: ["Registration failed. Please try again."] };
 }
 
 function passwordChecks(password: string) {
@@ -30,10 +62,10 @@ export default function Register() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // NEW: State variables to track password visibility
+  // Hellen's password visibility state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -49,9 +81,22 @@ export default function Register() {
     [confirmValid, emailValid, passwordValid, phoneValid],
   );
 
+  function clearFieldError(field: string) {
+    setErrors((previous) => ({
+      ...previous,
+      [field]: undefined,
+      general: undefined,
+    }));
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!formValid) return;
+    if (!formValid) {
+      setErrors({
+        general: ["Please complete all fields correctly before submitting."],
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     setErrors({});
@@ -64,12 +109,14 @@ export default function Register() {
         confirmPassword,
       });
 
+      toast.success("Account created successfully. Welcome to BetWise.");
       void navigate({ to: "/user" });
     } catch (error: unknown) {
-      const serverErrors = (
-        error as { response?: { data?: { errors?: Record<string, string[]> } } }
-      )?.response?.data?.errors;
-      setErrors(serverErrors ?? { general: ["Registration failed."] });
+      const parsedErrors = extractRegisterErrors(error);
+      setErrors(parsedErrors);
+      if (parsedErrors.general?.[0]) {
+        toast.error(parsedErrors.general[0]);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -102,7 +149,10 @@ export default function Register() {
             id="email"
             type="email"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              clearFieldError("email");
+            }}
             className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
             required
           />
@@ -129,7 +179,10 @@ export default function Register() {
             id="phone"
             type="tel"
             value={phone}
-            onChange={(event) => setPhone(event.target.value)}
+            onChange={(event) => {
+              setPhone(normalizePhoneInput(event.target.value));
+              clearFieldError("phone");
+            }}
             placeholder="07XXXXXXXX or 01XXXXXXXX or +2547XXXXXXXX"
             className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
             required
@@ -154,13 +207,15 @@ export default function Register() {
           >
             Password
           </label>
-          {/* UPDATED: Wrapped input and button in a relative container */}
           <div className="relative w-full">
             <input
               id="password"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                clearFieldError("password");
+              }}
               className="w-full h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 pr-10 text-xs text-admin-text-primary outline-none"
               required
             />
@@ -188,13 +243,15 @@ export default function Register() {
           >
             Confirm password
           </label>
-          {/* UPDATED: Wrapped input and button in a relative container */}
           <div className="relative w-full">
             <input
               id="confirm-password"
               type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
+              onChange={(event) => {
+                setConfirmPassword(event.target.value);
+                clearFieldError("confirmPassword");
+              }}
               className="w-full h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 pr-10 text-xs text-admin-text-primary outline-none"
               required
             />
@@ -218,7 +275,10 @@ export default function Register() {
         </div>
 
         {errors.general?.map((message) => (
-          <p key={message} className="text-sm text-red-400">
+          <p
+            key={message}
+            className="rounded-md border border-red-400/30 bg-red-500/10 px-2 py-1.5 text-xs text-red-300"
+          >
             {message}
           </p>
         ))}
