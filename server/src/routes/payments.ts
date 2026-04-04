@@ -30,7 +30,11 @@ paymentRouter.get(
 );
 
 // Withdrawal endpoints
-paymentRouter.post("/payments/withdrawals", authenticate, createWithdrawalRequest);
+paymentRouter.post(
+  "/payments/withdrawals",
+  authenticate,
+  createWithdrawalRequest,
+);
 paymentRouter.get("/payments/withdrawals", authenticate, listWithdrawals);
 
 // Admin withdrawal endpoints
