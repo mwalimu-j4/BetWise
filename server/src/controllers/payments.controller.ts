@@ -3,7 +3,24 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { emitNotificationUpdate, emitWalletUpdate } from "../lib/socket";
-import { createWithdrawalNotifications } from "./notifications.controller";
+import { createWithdrawalNotifications, createDepositNotifications } from "./notifications.controller";
+import {
+  toTransactionType,
+  getMpesaConfig,
+  getTimestamp,
+  getMpesaAccessToken,
+  normalizePhoneNumber,
+  stkPushBodySchema,
+  mpesaCallbackSchema,
+  toClientTransaction,
+  getValue,
+  normalizeCallbackValue,
+  type WalletTransactionStatus,
+  type WalletTransactionType,
+  type MpesaStkPushResponse,
+  type MpesaStkQueryResponse,
+  type MpesaCallbackItem,
+} from "../lib/mpesa";
 
 const WITHDRAWAL_CONFIG = {
   MIN_AMOUNT: 1,
@@ -20,16 +37,7 @@ const withdrawalRequestSchema = z.object({
   pin: z.string().trim().min(4).max(6).optional(),
 });
 
-type WalletTransactionStatus = "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
-type WalletTransactionType =
-  | "DEPOSIT"
-  | "WITHDRAWAL"
-  | "BET_STAKE"
-  | "BET_WIN"
-  | "REFUND"
-  | "BONUS";
-
-function emitWalletEvent(event: {
+type PaymentEvent = {
   userId: string;
   transactionId: string;
   checkoutRequestId?: string | null;
@@ -39,7 +47,9 @@ function emitWalletEvent(event: {
   message: string;
   balance: number;
   amount: number;
-}) {
+};
+
+function emitWalletEvent(event: PaymentEvent) {
   emitWalletUpdate(event.userId, {
     transactionId: event.transactionId,
     checkoutRequestId: event.checkoutRequestId,
@@ -63,7 +73,7 @@ async function getOrCreateWallet(userId: string) {
   });
 }
 
-async function getWalletSummary(userId: string) {
+async function getWalletBalance(userId: string) {
   const wallet = await getOrCreateWallet(userId);
   return {
     balance: wallet.balance,
