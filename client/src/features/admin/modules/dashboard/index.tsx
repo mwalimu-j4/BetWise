@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Download, Eye, Filter, Flag, Loader, TriangleAlert } from "lucide-react";
+import {
+  Download,
+  Eye,
+  Filter,
+  Flag,
+  Loader,
+  TriangleAlert,
+} from "lucide-react";
 import { api } from "@/api/axiosConfig";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -204,7 +211,9 @@ export default function Dashboard() {
                     <td className={adminTableCellClassName}>
                       <InlinePill
                         label={transaction.type}
-                        tone={transaction.type === "deposit" ? "accent" : "gold"}
+                        tone={
+                          transaction.type === "deposit" ? "accent" : "gold"
+                        }
                       />
                     </td>
                     <td

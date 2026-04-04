@@ -306,7 +306,10 @@ export async function createWithdrawalRequest(
         status: "PENDING",
       });
     } catch (notificationError) {
-      console.error("Failed to create withdrawal notifications:", notificationError);
+      console.error(
+        "Failed to create withdrawal notifications:",
+        notificationError,
+      );
     }
 
     return res.status(200).json({
@@ -327,7 +330,11 @@ export async function createWithdrawalRequest(
   }
 }
 
-export async function listWithdrawals(req: Request, res: Response, next: (error?: unknown) => void) {
+export async function listWithdrawals(
+  req: Request,
+  res: Response,
+  next: (error?: unknown) => void,
+) {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -396,7 +403,9 @@ export async function approveWithdrawal(
     }
 
     if (transaction.type !== "WITHDRAWAL") {
-      return res.status(400).json({ message: "This is not a withdrawal transaction." });
+      return res
+        .status(400)
+        .json({ message: "This is not a withdrawal transaction." });
     }
 
     if (transaction.status !== "PENDING") {
@@ -425,7 +434,8 @@ export async function approveWithdrawal(
       amount: transaction.amount,
     });
 
-    const feeAmount = (transaction.providerCallback as { fee?: number } | null)?.fee ?? 0;
+    const feeAmount =
+      (transaction.providerCallback as { fee?: number } | null)?.fee ?? 0;
     await createWithdrawalNotifications({
       userId: transaction.userId,
       transactionId: transaction.id,
@@ -483,7 +493,9 @@ export async function rejectWithdrawal(
     }
 
     if (transaction.type !== "WITHDRAWAL") {
-      return res.status(400).json({ message: "This is not a withdrawal transaction." });
+      return res
+        .status(400)
+        .json({ message: "This is not a withdrawal transaction." });
     }
 
     if (transaction.status !== "PENDING") {
@@ -493,7 +505,8 @@ export async function rejectWithdrawal(
     }
 
     const totalDebit =
-      (transaction.providerCallback as { totalDebit?: number } | null)?.totalDebit ?? transaction.amount;
+      (transaction.providerCallback as { totalDebit?: number } | null)
+        ?.totalDebit ?? transaction.amount;
 
     await prisma.wallet.update({
       where: { id: transaction.walletId! },
@@ -524,7 +537,8 @@ export async function rejectWithdrawal(
       amount: transaction.amount,
     });
 
-    const feeAmount = (transaction.providerCallback as { fee?: number } | null)?.fee ?? 0;
+    const feeAmount =
+      (transaction.providerCallback as { fee?: number } | null)?.fee ?? 0;
     await createWithdrawalNotifications({
       userId: transaction.userId,
       transactionId: transaction.id,

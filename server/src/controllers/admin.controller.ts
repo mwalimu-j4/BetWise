@@ -23,53 +23,61 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const [userCount, walletBalanceAggregate, pendingWithdrawals, completedWithdrawals, failedWithdrawals, todayDeposits, todayWithdrawals, recentTransactions] =
-    await Promise.all([
-      prisma.user.count({ where: { role: "USER" } }),
-      prisma.wallet.aggregate({
-        _sum: { balance: true },
-      }),
-      prisma.walletTransaction.count({
-        where: { type: "WITHDRAWAL", status: "PENDING" },
-      }),
-      prisma.walletTransaction.count({
-        where: { type: "WITHDRAWAL", status: "COMPLETED" },
-      }),
-      prisma.walletTransaction.count({
-        where: { type: "WITHDRAWAL", status: "FAILED" },
-      }),
-      prisma.walletTransaction.aggregate({
-        where: {
-          type: "DEPOSIT",
-          status: "COMPLETED",
-          createdAt: { gte: todayStart },
-        },
-        _sum: { amount: true },
-      }),
-      prisma.walletTransaction.aggregate({
-        where: {
-          type: "WITHDRAWAL",
-          status: "COMPLETED",
-          createdAt: { gte: todayStart },
-        },
-        _sum: { amount: true },
-      }),
-      prisma.walletTransaction.findMany({
-        where: {
-          type: { in: ["DEPOSIT", "WITHDRAWAL"] },
-        },
-        orderBy: { createdAt: "desc" },
-        take: RECENT_ACTIVITY_LIMIT,
-        include: {
-          user: {
-            select: {
-              email: true,
-              phone: true,
-            },
+  const [
+    userCount,
+    walletBalanceAggregate,
+    pendingWithdrawals,
+    completedWithdrawals,
+    failedWithdrawals,
+    todayDeposits,
+    todayWithdrawals,
+    recentTransactions,
+  ] = await Promise.all([
+    prisma.user.count({ where: { role: "USER" } }),
+    prisma.wallet.aggregate({
+      _sum: { balance: true },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "WITHDRAWAL", status: "PENDING" },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "WITHDRAWAL", status: "COMPLETED" },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "WITHDRAWAL", status: "FAILED" },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: {
+        type: "DEPOSIT",
+        status: "COMPLETED",
+        createdAt: { gte: todayStart },
+      },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: {
+        type: "WITHDRAWAL",
+        status: "COMPLETED",
+        createdAt: { gte: todayStart },
+      },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.findMany({
+      where: {
+        type: { in: ["DEPOSIT", "WITHDRAWAL"] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: RECENT_ACTIVITY_LIMIT,
+      include: {
+        user: {
+          select: {
+            email: true,
+            phone: true,
           },
         },
-      }),
-    ]);
+      },
+    }),
+  ]);
 
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
@@ -108,7 +116,8 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     recentTransactions: recentTransactions.map((transaction) => {
       const fee =
         transaction.type === "WITHDRAWAL"
-          ? ((transaction.providerCallback as { fee?: number } | null)?.fee ?? 0)
+          ? ((transaction.providerCallback as { fee?: number } | null)?.fee ??
+            0)
           : 0;
       const totalDebit =
         transaction.type === "WITHDRAWAL"

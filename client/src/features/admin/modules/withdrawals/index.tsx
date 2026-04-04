@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "@tanstack/react-router";
-import { CheckCircle, Download, Loader, MoreHorizontal, XCircle } from "lucide-react";
+import {
+  CheckCircle,
+  Download,
+  Loader,
+  MoreHorizontal,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
 import {
@@ -512,7 +518,9 @@ export default function WithdrawalsAdmin() {
                             reason: rejectReason,
                           })
                         }
-                        disabled={rejectMutation.isPending || approveMutation.isPending}
+                        disabled={
+                          rejectMutation.isPending || approveMutation.isPending
+                        }
                         variant="outline"
                         className="flex-1 border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:text-red-400"
                       >
@@ -525,8 +533,12 @@ export default function WithdrawalsAdmin() {
                       </Button>
 
                       <Button
-                        onClick={() => approveMutation.mutate(selectedWithdrawal.id)}
-                        disabled={approveMutation.isPending || rejectMutation.isPending}
+                        onClick={() =>
+                          approveMutation.mutate(selectedWithdrawal.id)
+                        }
+                        disabled={
+                          approveMutation.isPending || rejectMutation.isPending
+                        }
                         className="flex-1 bg-admin-accent text-black hover:opacity-90"
                       >
                         {approveMutation.isPending ? (

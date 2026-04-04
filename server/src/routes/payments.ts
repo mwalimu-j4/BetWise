@@ -1313,11 +1313,7 @@ paymentRouter.post(
   createWithdrawalRequest,
 );
 
-paymentRouter.get(
-  "/payments/withdrawals",
-  authenticate,
-  listWithdrawals,
-);
+paymentRouter.get("/payments/withdrawals", authenticate, listWithdrawals);
 
 // Admin endpoints
 paymentRouter.get(
