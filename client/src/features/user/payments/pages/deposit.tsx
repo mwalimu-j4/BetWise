@@ -204,7 +204,7 @@ export default function PaymentsDepositPage() {
 
       setResponse(data);
       setSubmittedTransactionId(data.transactionId ?? null);
-      toast.info("Payment initiated. Please approve the prompt on your phone.");
+      toast.info("Payment initiated. Enter pin on your phone to complete.");
     } catch (error: unknown) {
       setSubmissionStartedAt(null);
       setSubmissionBalance(null);

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Bell, Menu, Plus, Wallet } from "lucide-react";
+import { Bell, CircleCheck, CircleX, Menu, Plus, Wallet } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "@/components/search/SearchBar";
 import { useAuth } from "@/context/AuthContext";
@@ -70,10 +70,37 @@ const leagues = [
   "Rugby",
 ];
 
+function formatNotificationTime(isoDate: string) {
+  const eventTime = new Date(isoDate).getTime();
+  if (Number.isNaN(eventTime)) {
+    return "Just now";
+  }
+
+  const minutesAgo = Math.max(0, Math.floor((Date.now() - eventTime) / 60000));
+
+  if (minutesAgo < 1) {
+    return "Just now";
+  }
+
+  if (minutesAgo < 60) {
+    return `${minutesAgo}m ago`;
+  }
+
+  const hoursAgo = Math.floor(minutesAgo / 60);
+  if (hoursAgo < 24) {
+    return `${hoursAgo}h ago`;
+  }
+
+  const daysAgo = Math.floor(hoursAgo / 24);
+  return `${daysAgo}d ago`;
+}
+
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
   const { data: walletData } = useWalletSummary();
+  const { data: notificationData } = useAppNotifications(12);
+  const markAllNotificationsRead = useMarkAllNotificationsRead();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const lastPathRef = useRef(location.pathname);
 
@@ -96,6 +123,9 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       setNotificationsOpen(false);
     }
   }, [location.pathname]);
+
+  const notifications = notificationData?.notifications ?? [];
+  const unreadCount = notificationData?.unreadCount ?? 0;
 
   return (
     <header className="bc-navbar" role="banner">
@@ -177,49 +207,110 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             </span>
           </div>
 
-          <div className="bc-notify">
-            <button
-              type="button"
-              className="bc-icon-btn"
-              aria-label="Open notifications"
-              onClick={() => setNotificationsOpen((prev) => !prev)}
-            >
-              <Bell size={18} />
-            </button>
-            <span className="bc-notify-dot" aria-hidden="true" />
-            {notificationsOpen ? (
-              <div className="bc-notify-dropdown" role="menu">
+              <div className="bc-notify">
                 <button
                   type="button"
-                  className="bc-notify-item"
-                  onClick={() => setNotificationsOpen(false)}
+                  className="bc-icon-btn bc-notify-trigger"
+                  aria-label="Open notifications"
+                  onClick={() => {
+                    setNotificationsOpen((prev) => {
+                      const next = !prev;
+                      if (next && unreadCount > 0) {
+                        void markAllNotificationsRead();
+                      }
+
+                      return next;
+                    });
+                  }}
                 >
-                  Odds update available
+                  <Bell size={18} />
+                  {unreadCount > 0 ? (
+                    <span className="bc-notify-badge" aria-hidden="true">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  ) : null}
                 </button>
+                {notificationsOpen ? (
+                  <div className="bc-notify-dropdown" role="menu">
+                    <div className="bc-notify-head">
+                      <div>
+                        <p className="bc-notify-title">Notifications</p>
+                        <p className="bc-notify-subtitle">
+                          {unreadCount > 0
+                            ? `${unreadCount} unread update${
+                                unreadCount === 1 ? "" : "s"
+                              }`
+                            : "All caught up"}
+                        </p>
+                      </div>
+                      <span className="bc-notify-count">
+                        {notifications.length}
+                      </span>
+                    </div>
+                    {notifications.length > 0 ? (
+                      notifications.map((notification) => (
+                        <button
+                          key={notification.id}
+                          type="button"
+                          className="bc-notify-item"
+                          onClick={() => setNotificationsOpen(false)}
+                        >
+                          <span
+                            className={`bc-notify-icon ${notification.type === "DEPOSIT_SUCCESS" ? "is-success" : notification.type === "DEPOSIT_FAILED" ? "is-failed" : ""}`}
+                            aria-hidden="true"
+                          >
+                            {notification.type === "DEPOSIT_SUCCESS" ? (
+                              <CircleCheck size={14} />
+                            ) : notification.type === "DEPOSIT_FAILED" ? (
+                              <CircleX size={14} />
+                            ) : (
+                              <Bell size={14} />
+                            )}
+                          </span>
+                          <span className="bc-notify-body">
+                            <span className="bc-notify-item-title">
+                              {notification.title}
+                            </span>
+                            <span className="bc-notify-item-copy">
+                              {notification.message}
+                            </span>
+                            <span className="bc-notify-item-time">
+                              {formatNotificationTime(notification.createdAt)}
+                            </span>
+                          </span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="bc-notify-empty">
+                        No new notifications.
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="bc-auth-group">
+                <span className="bc-phone-badge">{maskedPhone}</span>
                 <button
                   type="button"
-                  className="bc-notify-item"
-                  onClick={() => setNotificationsOpen(false)}
+                  className="bc-logout-btn"
+                  onClick={() => {
+                    void logout();
+                  }}
                 >
-                  Withdrawal status changed
+                  Logout
                 </button>
               </div>
-            ) : null}
-          </div>
 
-          {isAuthenticated ? (
-            <div className="bc-auth-group">
-              <span className="bc-phone-badge">{maskedPhone}</span>
-              <button
-                type="button"
-                className="bc-logout-btn"
-                onClick={() => {
-                  void logout();
-                }}
+              <Link
+                to="/user/payments/deposit"
+                className="bc-deposit-btn"
+                aria-label="Deposit funds"
               >
-                Logout
-              </button>
-            </div>
+                <Plus size={18} />
+                <span className="bc-deposit-text">Deposit</span>
+              </Link>
+            </>
           ) : (
             <div className="bc-auth-group">
               <Link to="/register" className="bc-register-btn">
