@@ -179,26 +179,28 @@ export default function Dashboard() {
           ? Array.from({ length: 6 }).map((_, index) => (
               <AdminCard key={index} className="animate-pulse">
                 <div className="h-6 w-24 rounded bg-admin-surface" />
-                <div className="mt-4 h-8 w-32 rounded bg-admin-surface" />
-                <div className="mt-2 h-4 w-20 rounded bg-admin-surface" />
+                <div className="mt-3 h-8 w-32 rounded bg-admin-surface" />
+                <div className="mt-2 h-3 w-20 rounded bg-admin-surface" />
               </AdminCard>
             ))
-          : metrics.map((metric) => (
+          : metrics.slice(0, 6).map((metric) => (
               <AdminCard key={metric.label}>
-                <p className="text-[11px] uppercase tracking-[0.08em] text-admin-text-muted">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
                   {metric.label}
                 </p>
-                <p className="mt-2 text-2xl font-bold text-admin-text-primary">
+                <p className="mt-2 text-xl font-bold text-admin-text-primary">
                   {metric.value}
                 </p>
-                <p className="mt-2 text-xs text-admin-text-secondary">
-                  {metric.helper ?? "Live operational metric"}
-                </p>
+                {metric.helper && (
+                  <p className="mt-1 text-[10px] text-admin-text-secondary">
+                    {metric.helper}
+                  </p>
+                )}
               </AdminCard>
             ))}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
         <AdminCard>
           <AdminCardHeader
             title="Deposit vs Withdrawal Trend"
@@ -208,33 +210,22 @@ export default function Dashboard() {
         </AdminCard>
 
         <AdminCard>
-          <AdminCardHeader title="7 Day Totals" subtitle="Liquidity monitor" />
-          <div className="space-y-3 pt-2">
-            <div className="rounded-xl border border-admin-border bg-admin-surface p-3">
-              <p className="text-[11px] uppercase tracking-[0.08em] text-admin-text-muted">
-                Deposits (7d)
+          <AdminCardHeader title="7 Day Totals" subtitle="Liquidity" />
+          <div className="space-y-2.5 pt-2">
+            <div className="rounded-lg border border-admin-border bg-admin-surface/60 p-2.5">
+              <p className="text-[9px] uppercase tracking-[0.08em] text-admin-text-muted">
+                Deposits
               </p>
-              <p className="mt-1 text-xl font-bold text-admin-accent">
+              <p className="mt-1 text-lg font-bold text-admin-accent">
                 {formatCurrency(data?.charts.totals.deposits7d ?? 0)}
               </p>
             </div>
-            <div className="rounded-xl border border-admin-border bg-admin-surface p-3">
-              <p className="text-[11px] uppercase tracking-[0.08em] text-admin-text-muted">
-                Withdrawals (7d)
+            <div className="rounded-lg border border-admin-border bg-admin-surface/60 p-2.5">
+              <p className="text-[9px] uppercase tracking-[0.08em] text-admin-text-muted">
+                Withdrawals
               </p>
-              <p className="mt-1 text-xl font-bold text-admin-gold">
+              <p className="mt-1 text-lg font-bold text-admin-gold">
                 {formatCurrency(data?.charts.totals.withdrawals7d ?? 0)}
-              </p>
-            </div>
-            <div className="rounded-xl border border-admin-border bg-admin-surface p-3">
-              <p className="text-[11px] uppercase tracking-[0.08em] text-admin-text-muted">
-                Net (7d)
-              </p>
-              <p className="mt-1 text-xl font-bold text-admin-text-primary">
-                {formatCurrency(
-                  (data?.charts.totals.deposits7d ?? 0) -
-                    (data?.charts.totals.withdrawals7d ?? 0),
-                )}
               </p>
             </div>
           </div>

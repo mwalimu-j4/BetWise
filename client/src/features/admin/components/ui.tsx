@@ -517,24 +517,30 @@ export function DepositWithdrawalChart({ data }: { data: any[] }) {
   return (
     <ResponsiveContainer width="100%" height={250}>
       <BarChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+        <CartesianGrid 
+          strokeDasharray="3 3" 
+          stroke="rgba(255,255,255,0.06)"
+          fill="rgba(0,0,0,0.2)"
+        />
         <XAxis
           dataKey="period"
-          stroke="rgba(255,255,255,0.5)"
+          stroke="rgba(255,255,255,0.4)"
           style={{ fontSize: "12px" }}
         />
-        <YAxis stroke="rgba(255,255,255,0.5)" style={{ fontSize: "12px" }} />
+        <YAxis stroke="rgba(255,255,255,0.4)" style={{ fontSize: "12px" }} />
         <Tooltip
           contentStyle={{
-            backgroundColor: "rgba(10,14,26,0.95)",
-            border: "1px solid rgba(0,229,160,0.2)",
+            backgroundColor: "rgba(20,24,40,0.98)",
+            border: "1px solid rgba(0,229,160,0.3)",
             borderRadius: "8px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
           }}
-          labelStyle={{ color: "#00e5a0" }}
+          labelStyle={{ color: "#00e5a0", fontSize: "12px" }}
+          cursor={{ fill: "rgba(255,255,255,0.05)" }}
         />
         <Legend />
-        <Bar dataKey="deposits" fill="#00e5a0" name="Deposits" />
-        <Bar dataKey="withdrawals" fill="#ff9800" name="Withdrawals" />
+        <Bar dataKey="deposits" fill="#00e5a0" name="Deposits" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="withdrawals" fill="#ff9800" name="Withdrawals" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

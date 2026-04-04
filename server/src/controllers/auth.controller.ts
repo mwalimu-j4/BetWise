@@ -226,10 +226,26 @@ export async function login(req: Request, res: Response) {
 
   const user = await prisma.user.findUnique({
     where: { phone: normalizedPhone },
+    select: {
+      id: true,
+      email: true,
+      phone: true,
+      role: true,
+      isVerified: true,
+      createdAt: true,
+      passwordHash: true,
+      accountStatus: true,
+    },
   });
 
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  if (user.accountStatus === "SUSPENDED") {
+    return res
+      .status(403)
+      .json({ message: "This account has been suspended." });
   }
 
   const isValidPassword = await bcrypt.compare(
@@ -274,6 +290,7 @@ export async function refresh(req: Request, res: Response) {
           role: true,
           isVerified: true,
           createdAt: true,
+          accountStatus: true,
         },
       },
     },
@@ -282,6 +299,14 @@ export async function refresh(req: Request, res: Response) {
   if (!tokenRecord?.user) {
     res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
     return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (tokenRecord.user.accountStatus === "SUSPENDED") {
+    await prisma.refreshToken.deleteMany({
+      where: { userId: tokenRecord.user.id },
+    });
+    res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
+    return res.status(403).json({ message: "This account has been suspended." });
   }
 
   const newRawRefreshToken = createRefreshToken();
