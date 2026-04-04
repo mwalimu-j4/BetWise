@@ -56,7 +56,7 @@ export default function PaymentsWithdrawalPage() {
           </p>
         </div>
 
-        <div className="mb-4 rounded-xl border border-admin-border bg-[rgba(15,76,117,0.45)] p-3">
+        <div className="mb-4 rounded-xl border border-admin-border bg-[var(--color-bg-elevated)] p-3">
           <p className="text-[11px] uppercase tracking-[0.08em] text-admin-text-muted">
             Available for withdrawal
           </p>
@@ -73,7 +73,7 @@ export default function PaymentsWithdrawalPage() {
             >
               Amount
             </label>
-            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-[rgba(15,76,117,0.65)] transition focus-within:border-[rgba(249,168,38,0.35)] focus-within:shadow-[0_0_0_3px_rgba(249,168,38,0.12)]">
+            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-[var(--color-bg-elevated)] transition focus-within:border-[var(--color-border-focus)] focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]">
               <span className="flex h-11 items-center border-r border-admin-border px-3 text-[11px] font-bold text-admin-text-muted">
                 KES
               </span>
@@ -94,7 +94,7 @@ export default function PaymentsWithdrawalPage() {
                 <button
                   key={option}
                   type="button"
-                  className="rounded-lg border border-admin-border bg-[rgba(15,76,117,0.7)] px-2.5 py-1 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent/30 hover:text-admin-text-primary"
+                  className="rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 py-1 text-xs font-medium text-admin-text-secondary transition hover:border-[var(--color-border-accent)] hover:text-admin-text-primary"
                   onClick={() => setAmount(String(option))}
                 >
                   {formatMoney(option)}
@@ -112,7 +112,7 @@ export default function PaymentsWithdrawalPage() {
             </label>
             <input
               id="withdraw-account"
-              className="h-11 w-full rounded-xl border border-admin-border bg-[rgba(15,76,117,0.65)] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-[rgba(249,168,38,0.35)] focus:shadow-[0_0_0_3px_rgba(249,168,38,0.12)]"
+              className="h-11 w-full rounded-xl border border-admin-border bg-[var(--color-bg-elevated)] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-[var(--color-border-focus)] focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
               value={account}
               onChange={(event) => setAccount(event.target.value)}
               placeholder="Phone number or bank account"
@@ -121,7 +121,7 @@ export default function PaymentsWithdrawalPage() {
 
           <Button
             type="submit"
-            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-black hover:bg-[#e29a1e]"
+            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-[var(--color-text-dark)] hover:bg-[var(--color-accent-dark)]"
             disabled={!canWithdraw || isSubmitting}
           >
             {isSubmitting ? "Submitting..." : "Request Withdrawal"}
@@ -129,7 +129,7 @@ export default function PaymentsWithdrawalPage() {
         </form>
       </article>
 
-      <article className="rounded-2xl border border-admin-border bg-[rgba(15,76,117,0.5)] p-5">
+      <article className="rounded-2xl border border-admin-border bg-[var(--color-bg-elevated)] p-5">
         <h3 className="text-sm font-semibold text-admin-text-primary">
           Recent Requests
         </h3>
@@ -138,13 +138,13 @@ export default function PaymentsWithdrawalPage() {
             recentWithdrawals.map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-lg border border-admin-border bg-[rgba(15,76,117,0.6)] p-3"
+                className="rounded-lg border border-admin-border bg-[var(--color-bg-surface)] p-3"
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-semibold text-admin-text-primary">
                     {formatMoney(entry.amount)}
                   </p>
-                  <span className="inline-flex items-center rounded-full border border-admin-border bg-[rgba(15,76,117,0.45)] px-2 py-0.5 text-[10px] font-medium uppercase text-admin-text-muted">
+                  <span className="inline-flex items-center rounded-full border border-admin-border bg-[var(--color-bg-elevated)] px-2 py-0.5 text-[10px] font-medium uppercase text-admin-text-muted">
                     {entry.status}
                   </span>
                 </div>
@@ -157,7 +157,7 @@ export default function PaymentsWithdrawalPage() {
               </div>
             ))
           ) : (
-            <div className="rounded-lg border border-admin-border bg-[rgba(15,76,117,0.6)] p-3">
+            <div className="rounded-lg border border-admin-border bg-[var(--color-bg-surface)] p-3">
               <p className="text-sm text-admin-text-muted">
                 No withdrawal requests yet.
               </p>
@@ -168,5 +168,8 @@ export default function PaymentsWithdrawalPage() {
     </section>
   );
 }
+
+
+
 
 

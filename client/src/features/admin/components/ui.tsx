@@ -43,21 +43,21 @@ const toneSoftClasses: Record<AdminTone, string> = {
   gold: "bg-admin-gold-dim text-admin-gold",
   red: "bg-admin-red-dim text-admin-red",
   purple: "bg-admin-purple-dim text-admin-purple",
-  muted: "bg-[rgba(61,75,110,0.18)] text-admin-text-muted",
+  muted: "bg-admin-surface/45 text-admin-text-muted",
   live: "bg-admin-live-dim text-admin-live",
 };
 
 const toneGlowClasses: Record<AdminTone, string> = {
   accent:
-    "bg-[radial-gradient(circle_at_80%_20%,rgba(249,168,38,0.12),transparent_70%)]",
-  blue: "bg-[radial-gradient(circle_at_80%_20%,rgba(50,130,184,0.12),transparent_70%)]",
-  gold: "bg-[radial-gradient(circle_at_80%_20%,rgba(245,166,35,0.12),transparent_70%)]",
-  red: "bg-[radial-gradient(circle_at_80%_20%,rgba(255,77,106,0.12),transparent_70%)]",
+    "bg-[radial-gradient(circle_at_80%_20%,var(--admin-accent-dim),transparent_70%)]",
+  blue: "bg-[radial-gradient(circle_at_80%_20%,var(--admin-blue-dim),transparent_70%)]",
+  gold: "bg-[radial-gradient(circle_at_80%_20%,var(--admin-gold-dim),transparent_70%)]",
+  red: "bg-[radial-gradient(circle_at_80%_20%,var(--admin-red-dim),transparent_70%)]",
   purple:
-    "bg-[radial-gradient(circle_at_80%_20%,rgba(155,89,245,0.12),transparent_70%)]",
+    "bg-[radial-gradient(circle_at_80%_20%,var(--admin-purple-dim),transparent_70%)]",
   muted:
-    "bg-[radial-gradient(circle_at_80%_20%,rgba(61,75,110,0.16),transparent_70%)]",
-  live: "bg-[radial-gradient(circle_at_80%_20%,rgba(255,107,53,0.16),transparent_70%)]",
+    "bg-[radial-gradient(circle_at_80%_20%,var(--color-bg-hover),transparent_70%)]",
+  live: "bg-[radial-gradient(circle_at_80%_20%,var(--admin-live-dim),transparent_70%)]",
 };
 
 const solidToneClasses: Record<AdminTone, string> = {
@@ -122,8 +122,8 @@ export function AdminCard({
   return (
     <section
       className={cn(
-        "relative rounded-2xl border border-admin-border bg-admin-card p-5 text-admin-text-primary shadow-[0_12px_40px_rgba(0,0,0,0.18)]",
-        "bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent_120px)]",
+        "relative rounded-2xl border border-admin-border bg-admin-card p-5 text-admin-text-primary shadow-[0_12px_40px_var(--color-bg-deepest)]",
+        "bg-[linear-gradient(180deg,var(--color-bg-hover),transparent_120px)]",
         interactive &&
           "transition duration-200 hover:-translate-y-0.5 hover:border-admin-border-strong",
         className,
@@ -151,7 +151,7 @@ export function AdminButton({
         size === "md" ? "h-9 px-3.5" : "h-8 px-2.5 text-[11px]",
         variant === "solid"
           ? cn(solidToneClasses[tone], "border-transparent hover:opacity-95")
-          : "border-admin-border bg-transparent text-admin-text-secondary hover:bg-white/4 hover:text-admin-text-primary",
+          : "border-admin-border bg-transparent text-admin-text-secondary hover:bg-[var(--color-bg-hover)] hover:text-admin-text-primary",
         className,
       )}
       type={type}
@@ -415,5 +415,8 @@ export function DonutChart() {
     </div>
   );
 }
+
+
+
 
 

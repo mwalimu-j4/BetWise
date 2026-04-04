@@ -73,7 +73,7 @@ export default function PaymentsDepositPage() {
               Instant top-up through M-Pesa STK Push.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(249,168,38,0.22)] bg-admin-accent-dim px-3 py-1.5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border-accent)] bg-admin-accent-dim px-3 py-1.5">
             <img
               src="/images/mpesa/logo.png"
               alt="M-Pesa"
@@ -95,7 +95,7 @@ export default function PaymentsDepositPage() {
             </label>
             <input
               id="phone"
-              className="h-11 w-full rounded-xl border border-admin-border bg-[rgba(15,76,117,0.65)] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-[rgba(249,168,38,0.35)] focus:shadow-[0_0_0_3px_rgba(249,168,38,0.12)]"
+              className="h-11 w-full rounded-xl border border-admin-border bg-[var(--color-bg-elevated)] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-[var(--color-border-focus)] focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
               placeholder="2547XXXXXXXX"
@@ -116,7 +116,7 @@ export default function PaymentsDepositPage() {
               </span>
             </div>
 
-            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-[rgba(15,76,117,0.65)] transition focus-within:border-[rgba(249,168,38,0.35)] focus-within:shadow-[0_0_0_3px_rgba(249,168,38,0.12)]">
+            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-[var(--color-bg-elevated)] transition focus-within:border-[var(--color-border-focus)] focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]">
               <span className="flex h-11 items-center border-r border-admin-border px-3 text-[11px] font-bold text-admin-text-muted">
                 KES
               </span>
@@ -137,7 +137,7 @@ export default function PaymentsDepositPage() {
                 <button
                   key={option}
                   type="button"
-                  className="rounded-lg border border-admin-border bg-[rgba(15,76,117,0.7)] px-2.5 py-1 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent/30 hover:text-admin-text-primary"
+                  className="rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 py-1 text-xs font-medium text-admin-text-secondary transition hover:border-[var(--color-border-accent)] hover:text-admin-text-primary"
                   onClick={() => setAmount(String(option))}
                 >
                   {formatMoney(option)}
@@ -149,24 +149,24 @@ export default function PaymentsDepositPage() {
           <Button
             type="submit"
             disabled={!isFormValid || isSubmitting}
-            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-black hover:bg-[#e29a1e]"
+            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-[var(--color-text-dark)] hover:bg-[var(--color-accent-dark)]"
           >
             {isSubmitting ? "Initiating payment..." : "Deposit now"}
           </Button>
         </form>
 
         {response ? (
-          <div className="mt-4 rounded-2xl border border-[rgba(249,168,38,0.28)] bg-[rgba(249,168,38,0.08)] p-4">
-            <p className="text-sm font-semibold text-[#bfffe9]">
+          <div className="mt-4 rounded-2xl border border-[var(--color-border-accent)] bg-[var(--color-accent-soft)] p-4">
+            <p className="text-sm font-semibold text-admin-text-primary">
               {response.message}
             </p>
             {response.customerMessage ? (
-              <p className="mt-1 text-sm text-[#94e5ca]">
+              <p className="mt-1 text-sm text-admin-text-secondary">
                 {response.customerMessage}
               </p>
             ) : null}
             {response.checkoutRequestId ? (
-              <p className="mt-2 break-all rounded-lg border border-[rgba(191,255,233,0.2)] bg-[rgba(5,40,29,0.3)] px-2 py-1.5 text-xs text-[#bfffe9]">
+              <p className="mt-2 break-all rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2 py-1.5 text-xs text-admin-text-primary">
                 Request ID: {response.checkoutRequestId}
               </p>
             ) : null}
@@ -174,18 +174,18 @@ export default function PaymentsDepositPage() {
         ) : null}
       </article>
 
-      <article className="rounded-2xl border border-admin-border bg-[rgba(15,76,117,0.5)] p-5">
+      <article className="rounded-2xl border border-admin-border bg-[var(--color-bg-elevated)] p-5">
         <h3 className="text-sm font-semibold text-admin-text-primary">
           Deposit Guidelines
         </h3>
         <div className="mt-3 grid gap-2 text-sm text-admin-text-secondary">
-          <p className="rounded-lg border border-admin-border bg-[rgba(15,76,117,0.6)] px-3 py-2">
+          <p className="rounded-lg border border-admin-border bg-[var(--color-bg-surface)] px-3 py-2">
             Use your registered phone number for faster KYC checks.
           </p>
-          <p className="rounded-lg border border-admin-border bg-[rgba(15,76,117,0.6)] px-3 py-2">
+          <p className="rounded-lg border border-admin-border bg-[var(--color-bg-surface)] px-3 py-2">
             Deposits are reflected immediately after STK confirmation.
           </p>
-          <p className="rounded-lg border border-admin-border bg-[rgba(15,76,117,0.6)] px-3 py-2">
+          <p className="rounded-lg border border-admin-border bg-[var(--color-bg-surface)] px-3 py-2">
             High value deposits may trigger extra account verification.
           </p>
         </div>
@@ -193,5 +193,8 @@ export default function PaymentsDepositPage() {
     </section>
   );
 }
+
+
+
 
 

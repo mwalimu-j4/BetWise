@@ -57,47 +57,100 @@
 }
 
 :root {
-  --background: #f5f7fa;
-  --foreground: #1b1b1b;
-  --card: #ffffff;
-  --card-foreground: #1b1b1b;
-  --popover: #ffffff;
-  --popover-foreground: #1b1b1b;
-  --primary: #0f4c75;
-  --primary-foreground: #f5f7fa;
-  --secondary: #3282b8;
-  --secondary-foreground: #f5f7fa;
-  --muted: #e8eef4;
-  --muted-foreground: #6b7280;
-  --accent: #f9a826;
-  --accent-foreground: #1b1b1b;
-  --destructive: #3282b8;
-  --border: #d6e0ea;
-  --input: #d6e0ea;
-  --ring: #3282b8;
+  /* Backgrounds */
+  --color-bg-deepest: #0d2137;
+  --color-bg-primary: #1a3a6b;
+  --color-bg-secondary: #1e4080;
+  --color-bg-surface: #2a5298;
+  --color-bg-elevated: #1c3d7a;
+  --color-bg-hover: rgba(255, 255, 255, 0.06);
+
+  /* Accent (CTA + active states ONLY) */
+  --color-accent: #f5c518;
+  --color-accent-dark: #e6b800;
+  --color-accent-glow: rgba(245, 197, 24, 0.25);
+  --color-accent-soft: rgba(245, 197, 24, 0.12);
+
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a8c4e0;
+  --color-text-muted: #6b8cae;
+  --color-text-accent: #f5c518;
+  --color-text-dark: #0d2137;
+
+  /* Borders */
+  --color-border-primary: rgba(255, 255, 255, 0.08);
+  --color-border-accent: rgba(245, 197, 24, 0.2);
+  --color-border-focus: rgba(245, 197, 24, 0.55);
+
+  /* Status */
+  --color-live: #ff3b30;
+  --color-live-bg: rgba(255, 59, 48, 0.15);
+  --color-win: #00c97a;
+  --color-loss: #ff3b30;
+  --color-pending: #f5c518;
+  --color-new: #00c97a;
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --navbar-height: 118px;
+
+  /* Typography */
+  --font-main: 'Barlow', sans-serif;
+  --font-cond: 'Barlow Condensed', sans-serif;
+
+  --background: var(--color-bg-primary);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-bg-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-bg-deepest);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-bg-secondary);
+  --primary-foreground: var(--color-text-primary);
+  --secondary: var(--color-bg-surface);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-bg-elevated);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-accent);
+  --accent-foreground: var(--color-text-dark);
+  --destructive: var(--color-loss);
+  --border: var(--color-border-primary);
+  --input: var(--color-border-primary);
+  --ring: var(--color-border-focus);
   --radius: 0.625rem;
 
-  --admin-bg: #0f4c75;
-  --admin-card: #135a88;
-  --admin-surface: #1a6a9e;
-  --admin-hover: #1f76b0;
-  --admin-accent: #f9a826;
-  --admin-accent-dim: rgba(249, 168, 38, 0.16);
-  --admin-blue: #3282b8;
-  --admin-blue-dim: rgba(50, 130, 184, 0.16);
-  --admin-gold: #f9a826;
-  --admin-gold-dim: rgba(249, 168, 38, 0.16);
-  --admin-red: #f9a826;
-  --admin-red-dim: rgba(249, 168, 38, 0.16);
-  --admin-purple: #3282b8;
-  --admin-purple-dim: rgba(50, 130, 184, 0.16);
-  --admin-live: #f9a826;
-  --admin-live-dim: rgba(249, 168, 38, 0.16);
-  --admin-text-primary: #f5f7fa;
-  --admin-text-secondary: #c6d7e6;
-  --admin-text-muted: #a7c0d6;
-  --admin-border: rgba(245, 247, 250, 0.16);
-  --admin-border-strong: rgba(245, 247, 250, 0.28);
+  --admin-bg: var(--color-bg-primary);
+  --admin-card: var(--color-bg-surface);
+  --admin-surface: var(--color-bg-elevated);
+  --admin-hover: var(--color-bg-hover);
+  --admin-accent: var(--color-accent);
+  --admin-accent-dim: var(--color-accent-soft);
+  --admin-blue: var(--color-text-secondary);
+  --admin-blue-dim: var(--color-bg-hover);
+  --admin-gold: var(--color-accent);
+  --admin-gold-dim: var(--color-accent-soft);
+  --admin-red: var(--color-loss);
+  --admin-red-dim: var(--color-live-bg);
+  --admin-purple: var(--color-text-muted);
+  --admin-purple-dim: var(--color-bg-hover);
+  --admin-live: var(--color-win);
+  --admin-live-dim: rgba(0, 201, 122, 0.16);
+  --admin-text-primary: var(--color-text-primary);
+  --admin-text-secondary: var(--color-text-secondary);
+  --admin-text-muted: var(--color-text-muted);
+  --admin-border: var(--color-border-primary);
+  --admin-border-strong: var(--color-border-accent);
+
+  --nav-bg: var(--color-bg-secondary);
+  --nav-surface: var(--color-bg-deepest);
+  --nav-surface2: var(--color-bg-surface);
+  --nav-accent: var(--color-accent);
+  --nav-accent2: var(--color-accent-dark);
+  --nav-border: var(--color-border-accent);
+  --nav-text: var(--color-text-primary);
+  --nav-muted: var(--color-text-muted);
+  --nav-green: var(--color-win);
+  --nav-red: var(--color-live);
 }
 
 @layer base {
@@ -107,6 +160,9 @@
 
   body {
     @apply min-h-screen bg-background text-foreground font-sans;
+    overflow-x: hidden;
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
   }
 
   h1,
@@ -128,7 +184,7 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-border-primary);
     border-radius: 999px;
   }
 }

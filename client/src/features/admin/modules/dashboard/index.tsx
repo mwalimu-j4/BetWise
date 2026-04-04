@@ -103,7 +103,7 @@ export default function Dashboard() {
             <tbody>
               {recentBets.map((bet) => (
                 <tr
-                  className="even:bg-[rgba(15,76,117,0.5)]"
+                  className="even:bg-admin-surface/45"
                   key={bet.id}
                 >
                   <td

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
@@ -19,7 +19,7 @@ import {
   Gem,
   Swords,
 } from "lucide-react";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 
 import { cn } from "@/lib/utils";
 
@@ -149,7 +149,7 @@ function SectionHeading({
   if (collapsed) return null;
 
   return (
-    <p className="mt-5 mb-2 px-3 text-xs font-semibold uppercase tracking-[0.12em] text-primary-foreground/70">
+    <p className="mt-4 mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-foreground/70 sm:mt-5 sm:text-xs">
       {label}
     </p>
   );
@@ -182,13 +182,12 @@ function ItemLink({
         onNavigate?.();
       }}
       className={cn(
-        "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors sm:text-[0.95rem]",
+        "group flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:gap-3 sm:px-3 sm:text-sm sm:leading-5 sm:[font-size:0.95rem]",
         isSelected
           ? "bg-accent text-accent-foreground"
           : "text-primary-foreground/90 hover:bg-secondary/25 hover:text-primary-foreground",
         collapsed && "justify-center px-0",
       )}
-      activeProps={{ className: "bg-accent text-accent-foreground" }}
       title={collapsed ? link.label : undefined}
     >
       {ItemIcon ? (
@@ -206,27 +205,17 @@ export default function Sidebar({
   onCollapseToggle,
   onNavigate,
 }: SidebarProps) {
-  const location = useLocation();
   const [openTopLeagues, setOpenTopLeagues] = useState(true);
   const [openSports, setOpenSports] = useState<Record<string, boolean>>({
     football: true,
     basketball: true,
   });
-  const [selectedItemKey, setSelectedItemKey] = useState("main-homepage");
-
-  const activePath = location.pathname;
-
-  const activeSportGroupKey = useMemo(() => {
-    const found = sportGroups.find((group) =>
-      group.children.some((child) => child.to === activePath),
-    );
-    return found?.key ?? null;
-  }, [activePath]);
+  const [selectedItemKey, setSelectedItemKey] = useState("main-0");
 
   return (
     <aside
       className={cn(
-        "flex h-full flex-col border-r border-border bg-primary text-primary-foreground",
+        "flex h-full flex-col border-r border-border bg-primary text-primary-foreground shadow-[inset_-1px_0_0_var(--color-border-primary)]",
         collapsed ? "w-[84px]" : "w-[300px]",
       )}
     >
@@ -258,7 +247,7 @@ export default function Sidebar({
           <button
             type="button"
             onClick={onCollapseToggle}
-            className="rounded-md p-2 text-primary-foreground/90 hover:bg-secondary/25"
+            className="rounded-md p-2 text-primary-foreground/90 transition hover:bg-secondary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             aria-label="Collapse sidebar"
           >
             <ChevronDown className="h-4 w-4 -rotate-90" />
@@ -266,7 +255,7 @@ export default function Sidebar({
         ) : null}
       </div>
 
-      <div className="scrollbar-thin scrollbar-thumb-primary-foreground/20 flex-1 overflow-y-auto p-3">
+      <div className="app-scrollbar flex-1 overflow-y-auto p-2.5 sm:p-3">
         <div className="grid gap-1.5">
           {mainLinks.map((link, index) => (
             <ItemLink
@@ -288,7 +277,7 @@ export default function Sidebar({
             type="button"
             onClick={() => setOpenTopLeagues((prev) => !prev)}
             className={cn(
-              "mb-1 flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors sm:text-[0.95rem]",
+              "mb-1 flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:px-3 sm:text-[0.95rem]",
               openTopLeagues
                 ? "bg-secondary/30 text-primary-foreground"
                 : "text-primary-foreground/90 hover:bg-secondary/25",
@@ -325,7 +314,7 @@ export default function Sidebar({
           {sportGroups.map((group) => {
             const GroupIcon = group.icon;
             const groupOpen = openSports[group.key] ?? false;
-            const groupIsActive = activeSportGroupKey === group.key;
+            const groupIsActive = selectedItemKey.startsWith(`${group.key}-`);
 
             return (
               <div key={group.key}>
@@ -338,7 +327,7 @@ export default function Sidebar({
                     }))
                   }
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors sm:text-[0.95rem]",
+                    "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:gap-3 sm:px-3 sm:text-sm sm:[font-size:0.95rem]",
                     collapsed && "justify-center px-0",
                     groupOpen || groupIsActive
                       ? "bg-accent text-accent-foreground"
@@ -401,5 +390,3 @@ export default function Sidebar({
     </aside>
   );
 }
-
-

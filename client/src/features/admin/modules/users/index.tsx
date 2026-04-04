@@ -100,7 +100,7 @@ export default function Users() {
             <tbody>
               {users.map((user) => (
                 <tr
-                  className="even:bg-[rgba(15,76,117,0.5)]"
+                  className="even:bg-[var(--color-bg-elevated)]"
                   key={user.id}
                 >
                   <td

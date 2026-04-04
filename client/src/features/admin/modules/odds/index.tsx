@@ -60,7 +60,7 @@ export default function Odds() {
             <tbody>
               {oddsRows.map((row) => (
                 <tr
-                  className="even:bg-[rgba(15,76,117,0.5)]"
+                  className="even:bg-[var(--color-bg-elevated)]"
                   key={`${row.event}-${row.market}`}
                 >
                   <td
