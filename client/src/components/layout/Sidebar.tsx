@@ -26,7 +26,7 @@ type Group = {
 const sectionOne: Item[] = [
   { label: "Homepage", to: "/user", icon: "H" },
   { label: "Pre-match", to: "/user/payments", icon: "P" },
-  { label: "Live", to: "/user/payments/deposit", icon: "L", liveBadge: "LIVE" },
+  { label: "Live", to: "/user/live", icon: "L", liveBadge: "LIVE" },
   {
     label: "Sports",
     to: "/user/coming-soon?feature=sports",
