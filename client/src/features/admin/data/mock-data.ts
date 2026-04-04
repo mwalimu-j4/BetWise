@@ -815,13 +815,62 @@ export const financialKPIs: FinancialKPI[] = [
 ];
 
 export const financialTrendData: FinancialTrendData[] = [
-  { day: "Mon", totalBets: 28400, stake: 1240000, ggr: 198400, ngr: 142000, payout: 65.2 },
-  { day: "Tue", stake: 1520000, totalBets: 31200, ggr: 254400, ngr: 182000, payout: 67.1 },
-  { day: "Wed", stake: 1180000, totalBets: 24800, ggr: 194200, ngr: 139000, payout: 64.8 },
-  { day: "Thu", stake: 1840000, totalBets: 38400, ggr: 312000, ngr: 223000, payout: 69.2 },
-  { day: "Fri", stake: 1620000, totalBets: 34200, ggr: 273600, ngr: 196000, payout: 68.1 },
-  { day: "Sat", stake: 2100000, totalBets: 42800, ggr: 357000, ngr: 256000, payout: 70.1 },
-  { day: "Sun", stake: 1920000, totalBets: 39600, ggr: 326400, ngr: 234000, payout: 69.8 },
+  {
+    day: "Mon",
+    totalBets: 28400,
+    stake: 1240000,
+    ggr: 198400,
+    ngr: 142000,
+    payout: 65.2,
+  },
+  {
+    day: "Tue",
+    stake: 1520000,
+    totalBets: 31200,
+    ggr: 254400,
+    ngr: 182000,
+    payout: 67.1,
+  },
+  {
+    day: "Wed",
+    stake: 1180000,
+    totalBets: 24800,
+    ggr: 194200,
+    ngr: 139000,
+    payout: 64.8,
+  },
+  {
+    day: "Thu",
+    stake: 1840000,
+    totalBets: 38400,
+    ggr: 312000,
+    ngr: 223000,
+    payout: 69.2,
+  },
+  {
+    day: "Fri",
+    stake: 1620000,
+    totalBets: 34200,
+    ggr: 273600,
+    ngr: 196000,
+    payout: 68.1,
+  },
+  {
+    day: "Sat",
+    stake: 2100000,
+    totalBets: 42800,
+    ggr: 357000,
+    ngr: 256000,
+    payout: 70.1,
+  },
+  {
+    day: "Sun",
+    stake: 1920000,
+    totalBets: 39600,
+    ggr: 326400,
+    ngr: 234000,
+    payout: 69.8,
+  },
 ];
 
 export const depositWithdrawalTrend = [
@@ -958,4 +1007,3 @@ export const carrierAnalytics: CarrierAnalytics[] = [
     tone: "purple",
   },
 ];
-
