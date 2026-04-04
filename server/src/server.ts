@@ -3,6 +3,7 @@ config({ path: "./.env", override: true });
 import { app } from "./app";
 import { prisma } from "./lib/prisma";
 import { createHttpServerWithSockets } from "./lib/socket";
+import "./services/scheduler";
 
 const port = Number(process.env.PORT ?? 5000);
 
