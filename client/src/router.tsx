@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { adminBetsRoute } from "./routes/admin/bets";
+import { adminAnalyticsRoute } from "./routes/admin/analytics";
 import { adminDashboardRoute } from "./routes/admin/dashboard";
 import { adminEventsRoute } from "./routes/admin/events";
 import { adminIndexRoute } from "./routes/admin";
@@ -51,6 +52,7 @@ const routeTree = rootRoute.addChildren([
   adminRoute.addChildren([
     adminIndexRoute,
     adminDashboardRoute,
+    adminAnalyticsRoute,
     adminUsersRoute,
     adminBetsRoute,
     adminEventsRoute,

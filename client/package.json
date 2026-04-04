@@ -1,5 +1,6 @@
 {
   "name": "client",
+  "author": "Dickens Omondi, Joshua Mwalimu and Hellen Mochama",
   "private": true,
   "version": "0.0.0",
   "type": "module",
