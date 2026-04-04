@@ -19,7 +19,8 @@ import {
   type StkPushResponse,
 } from "../wallet";
 
-const quickAmounts = [200, 500, 1000, 2500, 5000, 10000];
+// Reduced to exactly 4 options
+const quickAmounts = [500, 1000, 2500, 5000];
 const paymentStages = [
   "STK sent",
   "Awaiting phone approval",
@@ -44,7 +45,10 @@ export default function PaymentsDepositPage() {
   const [depositConfirmed, setDepositConfirmed] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [paymentFailed, setPaymentFailed] = useState<string | null>(null);
-  const { data: walletData, isLoading: isWalletLoading } = useWalletSummary();
+
+  // Kept under the hood for optimistic UI updates, but removed from the visible layout
+  const { data: walletData } = useWalletSummary();
+  const currentBalance = walletData?.wallet.balance ?? 0;
 
   const isFormValid = useMemo(() => {
     const amountValue = Number(amount);
@@ -53,9 +57,6 @@ export default function PaymentsDepositPage() {
     );
   }, [amount, phone]);
 
-  const currentBalance = walletData?.wallet.balance ?? 0;
-
-  // Optimistic UI update listener
   useEffect(() => {
     if (
       submissionStartedAt &&
@@ -72,14 +73,11 @@ export default function PaymentsDepositPage() {
     }
   }, [currentBalance, isSubmitting, submissionBalance, submissionStartedAt]);
 
-  // Polling listener
   useEffect(() => {
-    if (!submittedTransactionId || depositConfirmed || paymentFailed) {
-      return;
-    }
+    if (!submittedTransactionId || depositConfirmed || paymentFailed) return;
 
     let active = true;
-    const maxAttempts = 18; // 18 * 5s = 90 seconds timeout
+    const maxAttempts = 18;
     let attempts = 0;
 
     const pollStatus = async () => {
@@ -111,11 +109,8 @@ export default function PaymentsDepositPage() {
 
       if (active) {
         if (attempts < maxAttempts) {
-          window.setTimeout(() => {
-            void pollStatus();
-          }, 5000);
+          window.setTimeout(() => void pollStatus(), 5000);
         } else {
-          // Prevent user from being stuck with an unclosable modal forever
           setPaymentFailed(
             "Payment request timed out. Please check your balance or try again.",
           );
@@ -125,9 +120,7 @@ export default function PaymentsDepositPage() {
       }
     };
 
-    window.setTimeout(() => {
-      void pollStatus();
-    }, 4000);
+    window.setTimeout(() => void pollStatus(), 4000);
 
     return () => {
       active = false;
@@ -155,10 +148,7 @@ export default function PaymentsDepositPage() {
     try {
       const { data } = await api.post<StkPushResponse>(
         "/payments/mpesa/stk-push",
-        {
-          phone,
-          amount: Number(amount),
-        },
+        { phone, amount: Number(amount) },
       );
 
       setResponse(data);
@@ -170,84 +160,43 @@ export default function PaymentsDepositPage() {
       const messageFromApi = (
         error as { response?: { data?: { message?: string } } }
       )?.response?.data?.message;
-      setPaymentFailed(
-        messageFromApi || "Could not start M-Pesa payment. Try again.",
-      );
-      toast.error(
-        messageFromApi || "Could not start M-Pesa payment. Try again.",
-      );
+      const errorMsg =
+        messageFromApi || "Could not start M-Pesa payment. Try again.";
+
+      setPaymentFailed(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  const paymentStateLabel = paymentFailed
-    ? "Failed"
-    : depositConfirmed
-      ? "Success"
-      : response
-        ? "Awaiting approval"
-        : isSubmitting
-          ? "Initiating"
-          : "Idle";
-
   const shouldShowDialog =
     feedbackDialogOpen &&
     Boolean(isSubmitting || response || depositConfirmed || paymentFailed);
 
-  // Determine current step for UI progress indicator
   const currentStepIndex = depositConfirmed ? 3 : response ? 1 : 0;
 
   return (
-    <section className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-      {/* Left Column: Form */}
-      <article className="rounded-2xl border border-admin-border bg-admin-card p-5 h-fit shadow-sm">
-        <div className="mb-6 flex items-start justify-between gap-3 border-b border-admin-border pb-4">
+    // Restricted max-width to make it a neat, compact widget instead of a massive spanning grid
+    <section className="mx-auto max-w-md">
+      <article className="rounded-2xl border border-admin-border bg-admin-card p-5 shadow-sm">
+        <div className="mb-6 flex items-center justify-between border-b border-admin-border pb-4">
           <div>
             <h2 className="text-lg font-bold text-admin-text-primary">
               Deposit Funds
             </h2>
-            <p className="mt-1 text-sm text-admin-text-muted">
-              Instant top-up through M-Pesa STK Push.
+            <p className="mt-1 text-xs text-admin-text-muted">
+              Instant M-Pesa Top-up
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-admin-accent/30 bg-admin-accent-dim px-3 py-1.5 shadow-inner">
+          {/* Online high-res M-Pesa SVG Logo */}
+          <div className="flex h-10 w-16 items-center justify-center rounded-lg bg-[#4CAF50]/10 px-2">
             <img
-              src="/images/mpesa/logo.png"
+              src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
               alt="M-Pesa"
-              className="h-5 w-auto object-contain"
+              className="h-full w-full object-contain drop-shadow-sm"
             />
-            <span className="text-[11px] font-bold tracking-[0.04em] text-admin-accent">
-              M-PESA
-            </span>
           </div>
-        </div>
-
-        <div className="mb-6 grid gap-3 sm:grid-cols-3">
-          <article className="rounded-2xl border border-admin-border bg-admin-surface p-4">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
-              Available balance
-            </p>
-            <p className="mt-2 text-2xl font-bold text-admin-accent">
-              {isWalletLoading ? "Loading..." : formatMoney(currentBalance)}
-            </p>
-          </article>
-          <article className="rounded-2xl border border-admin-border bg-admin-surface p-4">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
-              Deposit status
-            </p>
-            <p className="mt-2 text-sm font-semibold text-admin-text-primary">
-              {paymentStateLabel}
-            </p>
-          </article>
-          <article className="rounded-2xl border border-admin-border bg-admin-surface p-4">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
-              Requested amount
-            </p>
-            <p className="mt-2 text-2xl font-bold text-admin-gold">
-              {formatMoney(Number(amount) || 0)}
-            </p>
-          </article>
         </div>
 
         <form className="grid gap-5" onSubmit={handleSubmit}>
@@ -256,13 +205,13 @@ export default function PaymentsDepositPage() {
               htmlFor="phone"
               className="text-sm font-semibold text-admin-text-primary"
             >
-              M-Pesa phone number
+              Phone Number
             </label>
             <input
               id="phone"
-              className="h-11 w-full rounded-xl border border-admin-border bg-admin-surface px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-admin-accent focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
+              className="h-11 w-full rounded-xl border border-admin-border bg-admin-surface px-3 text-sm text-admin-text-primary outline-none transition focus:border-admin-accent focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
               value={phone}
-              onChange={(event) => setPhone(event.target.value)}
+              onChange={(e) => setPhone(e.target.value)}
               placeholder="2547XXXXXXXX"
               autoComplete="tel"
             />
@@ -276,9 +225,6 @@ export default function PaymentsDepositPage() {
               >
                 Amount
               </label>
-              <span className="text-xs text-admin-text-muted">
-                Min: KES 1 | Max: KES 250,000
-              </span>
             </div>
 
             <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-admin-surface transition focus-within:border-admin-accent focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]">
@@ -287,22 +233,22 @@ export default function PaymentsDepositPage() {
               </span>
               <input
                 id="amount"
-                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"
+                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none"
                 value={amount}
                 type="number"
                 min={1}
                 max={250000}
-                onChange={(event) => setAmount(event.target.value)}
+                onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
               />
             </div>
 
-            <div className="flex flex-wrap gap-2 mt-1">
+            <div className="mt-1 grid grid-cols-4 gap-2">
               {quickAmounts.map((option) => (
                 <button
                   key={option}
                   type="button"
-                  className="rounded-lg border border-admin-border bg-admin-surface px-3 py-1.5 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent hover:text-admin-text-primary"
+                  className="rounded-lg border border-admin-border bg-admin-surface py-1.5 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent hover:text-admin-text-primary"
                   onClick={() => setAmount(String(option))}
                 >
                   {formatMoney(option)}
@@ -314,61 +260,17 @@ export default function PaymentsDepositPage() {
           <Button
             type="submit"
             disabled={!isFormValid || isSubmitting}
-            className="mt-2 h-12 w-full rounded-xl bg-admin-accent text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="mt-2 h-11 w-full rounded-xl bg-admin-accent text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {isSubmitting ? "Initiating STK Push..." : "Deposit Now"}
           </Button>
         </form>
       </article>
 
-      {/* Right Column: Instructions / FAQ to fill the responsive grid */}
-      <article className="rounded-2xl border border-admin-border bg-admin-surface p-5 h-fit shadow-sm">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-admin-text-muted mb-4">
-          How it works
-        </h3>
-        <ul className="space-y-4">
-          <li className="flex gap-3">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-admin-accent/20 text-xs font-bold text-admin-accent">
-              1
-            </div>
-            <p className="text-sm text-admin-text-secondary">
-              Enter your registered M-Pesa mobile number and the amount you wish
-              to top up.
-            </p>
-          </li>
-          <li className="flex gap-3">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-admin-accent/20 text-xs font-bold text-admin-accent">
-              2
-            </div>
-            <p className="text-sm text-admin-text-secondary">
-              Click "Deposit Now" and wait for the STK prompt to appear on your
-              phone screen.
-            </p>
-          </li>
-          <li className="flex gap-3">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-admin-accent/20 text-xs font-bold text-admin-accent">
-              3
-            </div>
-            <p className="text-sm text-admin-text-secondary">
-              Enter your M-Pesa PIN to authorize the transaction. Your wallet
-              will update automatically within seconds.
-            </p>
-          </li>
-        </ul>
-        <div className="mt-6 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
-          <p className="text-xs text-amber-600 dark:text-amber-400">
-            <strong>Note:</strong> Ensure your phone is unlocked and active to
-            receive the STK prompt. Do not refresh this page while waiting for
-            confirmation.
-          </p>
-        </div>
-      </article>
-
-      {/* Feedback Dialog */}
+      {/* Strict Unclosable Feedback Dialog */}
       <Dialog
         open={shouldShowDialog}
         onOpenChange={(open) => {
-          // PREVENT CLOSING: Only allow user to dismiss modal if payment has resolved
           if (!open && (depositConfirmed || paymentFailed)) {
             setFeedbackDialogOpen(false);
           }
@@ -376,12 +278,12 @@ export default function PaymentsDepositPage() {
       >
         <DialogContent
           showCloseButton={false}
-          className="max-w-md overflow-hidden border-admin-border bg-admin-card p-0 shadow-2xl"
+          className="max-w-[400px] overflow-hidden border-admin-border bg-admin-card p-0 shadow-2xl"
         >
-          <div className="p-6 sm:p-8">
+          <div className="p-6">
             <DialogHeader className="items-center text-center">
               <div
-                className={`mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full border-2 ${
+                className={`mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full border-2 ${
                   paymentFailed
                     ? "border-red-400/30 bg-red-500/10 text-red-500"
                     : depositConfirmed
@@ -390,32 +292,31 @@ export default function PaymentsDepositPage() {
                 }`}
               >
                 {paymentFailed ? (
-                  <CircleAlert className="h-8 w-8" />
+                  <CircleAlert className="h-7 w-7" />
                 ) : depositConfirmed ? (
-                  <CheckCircle2 className="h-8 w-8" />
+                  <CheckCircle2 className="h-7 w-7" />
                 ) : (
-                  <LoaderCircle className="h-8 w-8 animate-spin" />
+                  <LoaderCircle className="h-7 w-7 animate-spin" />
                 )}
               </div>
-              <DialogTitle className="text-2xl font-bold text-admin-text-primary">
+              <DialogTitle className="text-xl font-bold text-admin-text-primary">
                 {paymentFailed
                   ? "Payment Failed"
                   : depositConfirmed
                     ? "Payment Complete"
                     : "Awaiting Payment"}
               </DialogTitle>
-              <DialogDescription className="mt-2 text-center text-sm text-admin-text-muted">
+              <DialogDescription className="mt-1.5 text-center text-sm text-admin-text-muted">
                 {paymentFailed
                   ? paymentFailed
                   : depositConfirmed
-                    ? `Your deposit of ${formatMoney(submissionAmount ?? 0)} has gone through. Your new balance is ${formatMoney(currentBalance)}.`
-                    : "Please check your phone and enter your M-Pesa PIN to complete the transaction."}
+                    ? `Deposit of ${formatMoney(submissionAmount ?? 0)} successful.`
+                    : "Enter your M-Pesa PIN on your phone to authorize."}
               </DialogDescription>
             </DialogHeader>
 
-            {/* Visual Progress Tracker (only show if not failed) */}
             {!paymentFailed && (
-              <div className="mt-8 space-y-3">
+              <div className="mt-6 space-y-3">
                 {paymentStages.map((stage, index) => {
                   const isActive = currentStepIndex === index;
                   const isCompleted = currentStepIndex > index;
@@ -423,7 +324,7 @@ export default function PaymentsDepositPage() {
                   return (
                     <div key={stage} className="flex items-center gap-3">
                       <div
-                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
                           isCompleted
                             ? "border-admin-accent bg-admin-accent text-black"
                             : isActive
@@ -432,22 +333,20 @@ export default function PaymentsDepositPage() {
                         }`}
                       >
                         {isCompleted ? (
-                          <Check className="h-3.5 w-3.5 stroke-[3]" />
+                          <Check className="h-3 w-3 stroke-[3]" />
                         ) : (
-                          <span className="text-xs font-bold">{index + 1}</span>
+                          <span className="text-[10px] font-bold">
+                            {index + 1}
+                          </span>
                         )}
                       </div>
                       <p
-                        className={`text-sm font-medium ${
-                          isCompleted || isActive
-                            ? "text-admin-text-primary"
-                            : "text-admin-text-muted"
-                        }`}
+                        className={`text-sm ${isCompleted || isActive ? "font-medium text-admin-text-primary" : "text-admin-text-muted"}`}
                       >
                         {stage}
                       </p>
                       {isActive && (
-                        <LoaderCircle className="ml-auto h-4 w-4 animate-spin text-admin-accent" />
+                        <LoaderCircle className="ml-auto h-3.5 w-3.5 animate-spin text-admin-accent" />
                       )}
                     </div>
                   );
@@ -455,28 +354,16 @@ export default function PaymentsDepositPage() {
               </div>
             )}
 
-            {/* Display Transaction Info */}
-            {response?.checkoutRequestId &&
-            !depositConfirmed &&
-            !paymentFailed ? (
-              <div className="mt-6 rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-center text-xs text-admin-text-secondary">
-                Request ID:{" "}
-                <span className="font-mono">{response.checkoutRequestId}</span>
-              </div>
-            ) : null}
-
-            {/* Only show dismiss button when the process is fully resolved */}
-            <DialogFooter className="mt-8 sm:justify-center">
+            <DialogFooter className="mt-6 sm:justify-center">
               {depositConfirmed || paymentFailed ? (
                 <Button
                   type="button"
-                  className="h-11 w-full rounded-xl bg-admin-accent text-sm font-bold text-black transition hover:opacity-90"
+                  className="h-10 w-full rounded-xl bg-admin-accent text-sm font-bold text-black transition hover:opacity-90"
                   onClick={() => setFeedbackDialogOpen(false)}
                 >
-                  Close & Return
+                  Close
                 </Button>
               ) : null}
-              {/* Note: The 'Hide' button has been removed intentionally so they cannot dismiss it while waiting */}
             </DialogFooter>
           </div>
         </DialogContent>
