@@ -138,17 +138,17 @@ export default function AdminShell() {
             </div>
 
             <button
+              type="button"
               aria-label="View notifications"
               className="relative grid h-10 w-10 place-items-center rounded-xl border border-admin-border bg-[var(--color-bg-hover)] text-admin-text-secondary transition hover:bg-[var(--color-bg-hover)] hover:text-admin-text-primary"
               onClick={() => setNotifications(0)}
-              type="button"
             >
               <Bell size={18} />
-              {notifications > 0 ? (
+              {notifications > 0 && (
                 <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-admin-red text-[8px] font-bold text-white">
                   {notifications}
                 </span>
-              ) : null}
+              )}
             </button>
 
             <div className="grid h-8 w-8 place-items-center rounded-full bg-[linear-gradient(135deg,var(--admin-purple),var(--admin-blue))] text-[11px] font-bold text-white">
