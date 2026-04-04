@@ -31,7 +31,7 @@ function getLoginErrorMessage(error: unknown) {
 }
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { redirect?: string };
 
@@ -63,10 +63,14 @@ export default function Login() {
 
       toast.success("Signed in successfully.");
 
-      const redirectTo =
-        search.redirect && search.redirect.startsWith("/")
-          ? search.redirect
-          : "/user";
+      // Determine redirect based on user role
+      let redirectTo = "/user";
+      if (user?.role === "ADMIN") {
+        redirectTo = "/admin";
+      } else if (search.redirect && search.redirect.startsWith("/")) {
+        redirectTo = search.redirect;
+      }
+
       void navigate({ to: redirectTo as never });
     } catch (error: unknown) {
       const message = getLoginErrorMessage(error);
