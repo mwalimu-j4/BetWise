@@ -26,6 +26,7 @@ export type WalletTransaction = {
   currency: "KES";
   channel: string;
   reference: string;
+  mpesaCode?: string | null;
   createdAt: string;
 };
 
@@ -51,6 +52,7 @@ export type StkPushResponse = {
 export type MpesaTransactionStatusResponse = {
   transactionId: string;
   status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
+  mpesaCode?: string | null;
   message: string;
 };
 
@@ -58,11 +60,28 @@ export type WalletStreamEvent = {
   transactionId: string;
   checkoutRequestId?: string | null;
   merchantRequestId?: string | null;
+  mpesaCode?: string | null;
   status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
   message: string;
   balance: number;
   amount: number;
 };
+
+export type NotificationStreamEvent = {
+  notificationId?: string;
+  audience: "USER" | "ADMIN";
+  type: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" | "SYSTEM";
+  title: string;
+  message: string;
+  transactionId?: string | null;
+  amount?: number | null;
+  balance?: number | null;
+  mpesaCode?: string | null;
+  createdAt: string;
+};
+
+export const walletUpdateBrowserEvent = "wallet:update-event";
+export const notificationUpdateBrowserEvent = "notification:update-event";
 
 export const walletSummaryQueryKey = ["wallet-summary"] as const;
 
@@ -138,13 +157,39 @@ export function useWalletRealtime() {
         },
       );
 
-      void queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent<WalletStreamEvent>(walletUpdateBrowserEvent, {
+            detail: payload,
+          }),
+        );
+      }
+
+      // Force immediate refetch of full summary to get updated transactions with receipt
+      void queryClient.refetchQueries({ queryKey: walletSummaryQueryKey });
+    };
+
+    const handleNotificationUpdate = (payload: NotificationStreamEvent) => {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent<NotificationStreamEvent>(
+            notificationUpdateBrowserEvent,
+            {
+              detail: payload,
+            },
+          ),
+        );
+      }
+
+      void queryClient.invalidateQueries({ queryKey: ["app-notifications"] });
     };
 
     socket.on("wallet:update", handleWalletUpdate);
+    socket.on("notification:update", handleNotificationUpdate);
 
     return () => {
       socket.off("wallet:update", handleWalletUpdate);
+      socket.off("notification:update", handleNotificationUpdate);
       socket.disconnect();
       if (socketRef.current === socket) {
         socketRef.current = null;

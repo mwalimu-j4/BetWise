@@ -22,7 +22,7 @@ export default function ProtectedRoute({
       void navigate({
         to: "/login",
         search: {
-          redirect: `${location.pathname}${location.searchStr}`,
+          redirect: location.pathname,
         },
       });
       return;
@@ -35,7 +35,6 @@ export default function ProtectedRoute({
     isAuthenticated,
     isLoading,
     location.pathname,
-    location.searchStr,
     navigate,
     requireRole,
     user?.role,

@@ -487,42 +487,183 @@
   position: relative;
 }
 
-.bc-notify-dot {
+.bc-notify-trigger {
+  position: relative;
+}
+
+.bc-notify-badge {
   position: absolute;
-  top: 9px;
-  right: 10px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--nav-red);
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--nav-red), #ff8a8a);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .bc-notify-dropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
-  width: 220px;
-  border: 1px solid var(--nav-border);
-  border-radius: 8px;
-  background: var(--nav-surface);
-  box-shadow: 0 8px 24px var(--color-bg-deepest);
+  width: min(380px, calc(100vw - 24px));
+  border: 1px solid
+    color-mix(in srgb, var(--color-border-accent) 75%, white 25%);
+  border-radius: 18px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--nav-surface) 94%, white 6%),
+    var(--nav-surface)
+  );
+  box-shadow: 0 16px 40px
+    color-mix(in srgb, var(--color-bg-deepest) 75%, black 25%);
   overflow: hidden;
+  z-index: 1200;
+  white-space: normal;
+  max-height: 440px;
+  overflow-y: auto;
+}
+
+.bc-notify-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--nav-border);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-accent-soft) 70%, transparent),
+      transparent
+    ),
+    var(--nav-surface);
+}
+
+.bc-notify-title {
+  margin: 0;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 17px;
+  line-height: 1;
+  letter-spacing: 0.4px;
+  color: var(--nav-text);
+}
+
+.bc-notify-subtitle {
+  margin: 4px 0 0;
+  color: var(--nav-muted);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.bc-notify-count {
+  min-width: 34px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-primary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--nav-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .bc-notify-item {
   width: 100%;
   border: 0;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--nav-border) 80%, transparent);
   background: transparent;
-  color: var(--nav-muted);
-  font-size: 12px;
+  color: var(--nav-text);
+  font-size: 13px;
   font-weight: 500;
   text-align: left;
-  padding: 10px 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  white-space: normal;
 }
 
 .bc-notify-item:hover {
   background: var(--color-bg-hover);
   color: var(--nav-text);
+}
+
+.bc-notify-item:last-child {
+  border-bottom: 0;
+}
+
+.bc-notify-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-border-primary) 55%, transparent);
+  color: var(--nav-muted);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.bc-notify-icon.is-success {
+  background: color-mix(in srgb, var(--nav-green) 24%, transparent);
+  color: var(--nav-green);
+}
+
+.bc-notify-icon.is-failed {
+  background: color-mix(in srgb, var(--nav-red) 22%, transparent);
+  color: var(--nav-red);
+}
+
+.bc-notify-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.bc-notify-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--nav-text);
+  line-height: 1.25;
+}
+
+.bc-notify-item-copy {
+  font-size: 12px;
+  color: var(--nav-muted);
+  line-height: 1.4;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.bc-notify-item-time {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--nav-muted) 88%, white 12%);
+}
+
+.bc-notify-empty {
+  padding: 18px 16px;
+  color: var(--nav-muted);
+  font-size: 12px;
 }
 
 .bc-account-wrap {

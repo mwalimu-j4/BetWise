@@ -9,10 +9,24 @@ export type WalletRealtimeEvent = {
   transactionId: string;
   checkoutRequestId?: string | null;
   merchantRequestId?: string | null;
+  mpesaCode?: string | null;
   status: WalletEventStatus;
   message: string;
   balance: number;
   amount: number;
+};
+
+export type NotificationRealtimeEvent = {
+  notificationId?: string;
+  audience: "USER" | "ADMIN";
+  type: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" | "SYSTEM";
+  title: string;
+  message: string;
+  transactionId?: string | null;
+  amount?: number | null;
+  balance?: number | null;
+  mpesaCode?: string | null;
+  createdAt: string;
 };
 
 const USER_ROOM_PREFIX = "user:";
@@ -72,4 +86,17 @@ export function emitWalletUpdate(userId: string, event: WalletRealtimeEvent) {
   }
 
   ioInstance.to(`${USER_ROOM_PREFIX}${userId}`).emit("wallet:update", event);
+}
+
+export function emitNotificationUpdate(
+  userId: string,
+  event: NotificationRealtimeEvent,
+) {
+  if (!ioInstance) {
+    return;
+  }
+
+  ioInstance
+    .to(`${USER_ROOM_PREFIX}${userId}`)
+    .emit("notification:update", event);
 }

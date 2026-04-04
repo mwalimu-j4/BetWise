@@ -1,8 +1,8 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { z } from "zod";
 import { authenticate } from "../middleware/authenticate";
 import { prisma } from "../lib/prisma";
-import { emitWalletUpdate } from "../lib/socket";
+import { emitNotificationUpdate, emitWalletUpdate } from "../lib/socket";
 
 type WalletTransactionStatus = "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
 type WalletTransactionType =
@@ -18,6 +18,7 @@ type PaymentEvent = {
   transactionId: string;
   checkoutRequestId?: string | null;
   merchantRequestId?: string | null;
+  mpesaCode?: string | null;
   status: WalletTransactionStatus;
   message: string;
   balance: number;
@@ -29,11 +30,118 @@ function emitWalletEvent(event: PaymentEvent) {
     transactionId: event.transactionId,
     checkoutRequestId: event.checkoutRequestId,
     merchantRequestId: event.merchantRequestId,
+    mpesaCode: event.mpesaCode,
     status: event.status,
     message: event.message,
     balance: event.balance,
     amount: event.amount,
   });
+}
+
+async function createDepositNotifications(args: {
+  userId: string;
+  transactionId: string;
+  amount: number;
+  balance: number;
+  mpesaCode?: string | null;
+  status: "COMPLETED" | "FAILED";
+  failureReason?: string;
+}) {
+  const [userProfile, adminUsers] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: args.userId },
+      select: { phone: true, email: true },
+    }),
+    prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { id: true },
+    }),
+  ]);
+
+  const normalizedMpesaCode = args.mpesaCode ?? null;
+  const codeSuffix = normalizedMpesaCode
+    ? ` M-Pesa code: ${normalizedMpesaCode}.`
+    : "";
+  const userIdentifier =
+    userProfile?.phone ?? userProfile?.email ?? args.userId;
+  const isSuccess = args.status === "COMPLETED";
+
+  const userTitle = isSuccess ? "Deposit Successful" : "Deposit Failed";
+  const userMessage = isSuccess
+    ? `You deposited KES ${args.amount.toLocaleString()}. Your new balance is KES ${args.balance.toLocaleString()}.${codeSuffix}`
+    : `Your deposit request for KES ${args.amount.toLocaleString()} failed.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
+
+  const adminTitle = isSuccess
+    ? "New Customer Deposit"
+    : "Customer Deposit Failed";
+  const adminMessage = isSuccess
+    ? `${userIdentifier} deposited KES ${args.amount.toLocaleString()}. Updated wallet balance: KES ${args.balance.toLocaleString()}.${codeSuffix}`
+    : `${userIdentifier} had a failed deposit request of KES ${args.amount.toLocaleString()}.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
+
+  const notificationType: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" = isSuccess
+    ? "DEPOSIT_SUCCESS"
+    : "DEPOSIT_FAILED";
+  const createdAtIso = new Date().toISOString();
+
+  const createPayload = [
+    {
+      userId: args.userId,
+      audience: "USER" as const,
+      type: notificationType,
+      title: userTitle,
+      message: userMessage,
+      transactionId: args.transactionId,
+      amount: args.amount,
+      balance: args.balance,
+      mpesaCode: normalizedMpesaCode,
+    },
+    ...adminUsers.map((admin) => ({
+      userId: admin.id,
+      audience: "ADMIN" as const,
+      type: notificationType,
+      title: adminTitle,
+      message: adminMessage,
+      transactionId: args.transactionId,
+      amount: args.amount,
+      balance: args.balance,
+      mpesaCode: normalizedMpesaCode,
+    })),
+  ];
+
+  const created = await prisma.notification.createMany({
+    data: createPayload,
+    skipDuplicates: true,
+  });
+
+  if (created.count === 0) {
+    return;
+  }
+
+  emitNotificationUpdate(args.userId, {
+    audience: "USER",
+    type: notificationType,
+    title: userTitle,
+    message: userMessage,
+    transactionId: args.transactionId,
+    amount: args.amount,
+    balance: args.balance,
+    mpesaCode: normalizedMpesaCode,
+    createdAt: createdAtIso,
+  });
+
+  for (const admin of adminUsers) {
+    emitNotificationUpdate(admin.id, {
+      audience: "ADMIN",
+      type: notificationType,
+      title: adminTitle,
+      message: adminMessage,
+      transactionId: args.transactionId,
+      amount: args.amount,
+      balance: args.balance,
+      mpesaCode: normalizedMpesaCode,
+      createdAt: createdAtIso,
+    });
+  }
 }
 
 const paymentRouter = Router();
@@ -69,13 +177,33 @@ type MpesaStkQueryResponse = {
   errorMessage?: string;
 };
 
+type MpesaCallbackItem = {
+  Name: string;
+  Value?: string | number;
+};
+
+const getValue = (items: MpesaCallbackItem[], name: string) =>
+  items.find((item) => item.Name === name)?.Value;
+
+function normalizeCallbackValue(value: unknown) {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    return String(value);
+  }
+
+  return null;
+}
+
 const mpesaCallbackSchema = z.object({
   Body: z.object({
     stkCallback: z.object({
       MerchantRequestID: z.string().optional(),
       CheckoutRequestID: z.string().optional(),
-      ResultCode: z.number(),
-      ResultDesc: z.string(),
+      ResultCode: z.union([z.number(), z.string()]).optional(),
+      ResultDesc: z.string().optional(),
       CallbackMetadata: z
         .object({
           Item: z
@@ -159,6 +287,7 @@ function toClientTransaction(transaction: {
   currency: string;
   channel: string;
   reference: string;
+  providerReceiptNumber: string | null;
   createdAt: Date;
 }) {
   return {
@@ -169,6 +298,7 @@ function toClientTransaction(transaction: {
     currency: transaction.currency,
     channel: transaction.channel,
     reference: transaction.reference,
+    mpesaCode: transaction.providerReceiptNumber,
     createdAt: transaction.createdAt.toISOString(),
   };
 }
@@ -283,29 +413,120 @@ async function getMpesaAccessToken(config: {
   return (await tokenResponse.json()) as MpesaAuthTokenResponse;
 }
 
-paymentRouter.post("/payments/mpesa/callback", (req, res) => {
+const handleMpesaCallback = (req: Request, res: Response) => {
+  console.log("\n=== M-PESA CALLBACK STARTED ===");
+  console.log("Raw request body:");
+  console.log(JSON.stringify(req.body ?? null, null, 2));
+  console.log("=== END RAW BODY ===");
+
   const parsedBody = mpesaCallbackSchema.safeParse(req.body);
 
   if (!parsedBody.success) {
-    console.warn("Invalid M-Pesa callback payload received.", req.body);
+    console.error("❌ VALIDATION FAILED. Zod errors:", parsedBody.error.errors);
+    console.error(
+      "Raw body that failed validation:",
+      JSON.stringify(req.body, null, 2),
+    );
     return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
   }
 
+  console.log("✅ Validation passed");
   const callback = parsedBody.data.Body.stkCallback;
-  console.log("M-Pesa callback received", {
-    merchantRequestId: callback.MerchantRequestID,
-    checkoutRequestId: callback.CheckoutRequestID,
-    resultCode: callback.ResultCode,
-    resultDesc: callback.ResultDesc,
-    callbackMetadata: callback.CallbackMetadata?.Item ?? [],
+  console.log("Parsed stkCallback:", JSON.stringify(callback, null, 2));
+
+  const resultCode = Number(callback.ResultCode ?? NaN);
+  const resultDesc = callback.ResultDesc ?? "Missing ResultDesc";
+  const checkoutRequestId = callback.CheckoutRequestID;
+
+  console.log("Extracted basic fields:", {
+    resultCode,
+    resultDesc,
+    checkoutRequestId,
   });
 
+  console.log(
+    "CallbackMetadata raw:",
+    JSON.stringify(callback.CallbackMetadata, null, 2),
+  );
+  const callbackItems = callback.CallbackMetadata?.Item ?? [];
+  console.log(
+    "CallbackMetadata.Item array:",
+    JSON.stringify(callbackItems, null, 2),
+  );
+  console.log(`Found ${callbackItems.length} items in CallbackMetadata.Item`);
+
+  // Log each item individually
+  callbackItems.forEach((item, index) => {
+    console.log(
+      `Item [${index}]: Name="${item.Name}", Value=${JSON.stringify(item.Value)} (type: ${typeof item.Value})`,
+    );
+  });
+
+  // Extract each field with logging
+  const mpesaReceiptValue = getValue(
+    callbackItems as MpesaCallbackItem[],
+    "MpesaReceiptNumber",
+  );
+  console.log(
+    "getValue('MpesaReceiptNumber') returned:",
+    mpesaReceiptValue,
+    `(type: ${typeof mpesaReceiptValue})`,
+  );
+  const mpesaReceiptNumber = normalizeCallbackValue(mpesaReceiptValue);
+  console.log(
+    "normalizeCallbackValue(mpesaReceiptValue) returned:",
+    mpesaReceiptNumber,
+  );
+
+  const amountValue = getValue(callbackItems as MpesaCallbackItem[], "Amount");
+  console.log("getValue('Amount') returned:", amountValue);
+  const amount = normalizeCallbackValue(amountValue);
+  console.log("normalizeCallbackValue(amountValue) returned:", amount);
+
+  const phoneNumberValue = getValue(
+    callbackItems as MpesaCallbackItem[],
+    "PhoneNumber",
+  );
+  console.log("getValue('PhoneNumber') returned:", phoneNumberValue);
+  const phoneNumber = normalizeCallbackValue(phoneNumberValue);
+  console.log(
+    "normalizeCallbackValue(phoneNumberValue) returned:",
+    phoneNumber,
+  );
+
+  const transactionDateValue = getValue(
+    callbackItems as MpesaCallbackItem[],
+    "TransactionDate",
+  );
+  console.log("getValue('TransactionDate') returned:", transactionDateValue);
+  const transactionDate = normalizeCallbackValue(transactionDateValue);
+  console.log(
+    "normalizeCallbackValue(transactionDateValue) returned:",
+    transactionDate,
+  );
+
+  console.log("=== FINAL EXTRACTED VALUES ===");
+  console.log({
+    ResultCode: callback.ResultCode,
+    ResultDesc: resultDesc,
+    CheckoutRequestID: checkoutRequestId,
+    MpesaReceiptNumber: mpesaReceiptNumber,
+    Amount: amount,
+    PhoneNumber: phoneNumber,
+    TransactionDate: transactionDate,
+  });
+  console.log("=== END EXTRACTED VALUES ===");
+
   void (async () => {
-    const checkoutRequestId = callback.CheckoutRequestID;
+    console.log("\n=== ASYNC PROCESSING STARTED ===");
     if (!checkoutRequestId) {
+      console.error("❌ CALLBACK MISSING CheckoutRequestID - cannot proceed");
       return;
     }
 
+    console.log(
+      `Searching for transaction with checkoutRequestId: "${checkoutRequestId}"`,
+    );
     const matchedTransaction = await prisma.walletTransaction.findFirst({
       where: {
         checkoutRequestId,
@@ -316,35 +537,122 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
       },
     });
 
-    if (!matchedTransaction || matchedTransaction.status !== "PENDING") {
+    if (!matchedTransaction) {
+      console.error("❌ NO MATCHING TRANSACTION FOUND", {
+        checkoutRequestId,
+        resultCode,
+        resultDesc,
+      });
       return;
     }
 
-    const callbackItems = callback.CallbackMetadata?.Item ?? [];
-    const receiptNumber = callbackItems.find(
-      (item) => item.Name === "MpesaReceiptNumber",
-    )?.Value;
+    console.log("✅ Found matching transaction:", {
+      transactionId: matchedTransaction.id,
+      status: matchedTransaction.status,
+      providerReceiptNumber: matchedTransaction.providerReceiptNumber,
+      checkoutRequestId,
+    });
 
-    if (callback.ResultCode === 0) {
+    if (resultCode === 0) {
+      console.log("\nResultCode is 0 (success)");
+      if (!mpesaReceiptNumber) {
+        console.error(
+          "❌ SUCCESS CALLBACK BUT NO MpesaReceiptNumber EXTRACTED!",
+        );
+        console.error(
+          "Full callback payload:",
+          JSON.stringify(req.body ?? null, null, 2),
+        );
+      } else {
+        console.log(
+          `✅ MpesaReceiptNumber successfully extracted: "${mpesaReceiptNumber}"`,
+        );
+      }
+
+      if (
+        matchedTransaction.status === "COMPLETED" &&
+        !matchedTransaction.providerReceiptNumber &&
+        mpesaReceiptNumber
+      ) {
+        console.log(
+          "Backfilling receipt on COMPLETED transaction:",
+          mpesaReceiptNumber,
+        );
+        const backfilledTransaction = await prisma.walletTransaction.update({
+          where: { id: matchedTransaction.id },
+          data: {
+            providerReceiptNumber: mpesaReceiptNumber,
+            providerResponseCode: String(resultCode),
+            providerResponseDescription: resultDesc,
+            providerCallback: callback as never,
+          },
+          select: {
+            id: true,
+            status: true,
+            providerReceiptNumber: true,
+            providerResponseCode: true,
+            providerResponseDescription: true,
+          },
+        });
+
+        console.log("✅ BACKFILL SUCCESS:", {
+          transactionId: backfilledTransaction.id,
+          status: backfilledTransaction.status,
+          providerReceiptNumber: backfilledTransaction.providerReceiptNumber,
+          providerResponseCode: backfilledTransaction.providerResponseCode,
+        });
+
+        emitWalletEvent({
+          userId: matchedTransaction.userId,
+          transactionId: matchedTransaction.id,
+          checkoutRequestId,
+          merchantRequestId: callback.MerchantRequestID,
+          mpesaCode: mpesaReceiptNumber,
+          status: "COMPLETED",
+          message: "Deposit confirmed and wallet updated.",
+          balance: (await getWalletSummary(matchedTransaction.userId)).balance,
+          amount: matchedTransaction.amount,
+        });
+      }
+
+      if (matchedTransaction.status !== "PENDING") {
+        return;
+      }
+
       const wallet =
         matchedTransaction.wallet ??
         (await getOrCreateWallet(matchedTransaction.userId));
+      console.log(
+        "Updating PENDING transaction to COMPLETED with receipt:",
+        mpesaReceiptNumber,
+      );
       const updatedWallet = await prisma.$transaction(async (tx) => {
-        await tx.walletTransaction.update({
+        const updatedTransaction = await tx.walletTransaction.update({
           where: { id: matchedTransaction.id },
           data: {
             status: "COMPLETED",
-            providerReceiptNumber:
-              typeof receiptNumber === "string"
-                ? receiptNumber
-                : typeof receiptNumber === "number"
-                  ? String(receiptNumber)
-                  : null,
-            providerResponseCode: String(callback.ResultCode),
-            providerResponseDescription: callback.ResultDesc,
+            providerReceiptNumber: mpesaReceiptNumber,
+            providerResponseCode: String(resultCode),
+            providerResponseDescription: resultDesc,
             providerCallback: callback as never,
             processedAt: new Date(),
           },
+          select: {
+            id: true,
+            status: true,
+            providerReceiptNumber: true,
+            providerResponseCode: true,
+            providerResponseDescription: true,
+          },
+        });
+
+        console.log("✅ TRANSACTION UPDATE SUCCESS:", {
+          transactionId: updatedTransaction.id,
+          status: updatedTransaction.status,
+          providerReceiptNumber: updatedTransaction.providerReceiptNumber,
+          providerResponseCode: updatedTransaction.providerResponseCode,
+          providerResponseDescription:
+            updatedTransaction.providerResponseDescription,
         });
 
         return tx.wallet.update({
@@ -362,41 +670,81 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
         transactionId: matchedTransaction.id,
         checkoutRequestId,
         merchantRequestId: callback.MerchantRequestID,
+        mpesaCode: mpesaReceiptNumber,
         status: "COMPLETED",
         message: "Deposit confirmed and wallet updated.",
         balance: updatedWallet.balance,
         amount: matchedTransaction.amount,
       });
+
+      await createDepositNotifications({
+        userId: matchedTransaction.userId,
+        transactionId: matchedTransaction.id,
+        amount: matchedTransaction.amount,
+        balance: updatedWallet.balance,
+        mpesaCode: mpesaReceiptNumber,
+        status: "COMPLETED",
+      });
       return;
     }
 
-    await prisma.walletTransaction.update({
+    console.error("❌ M-Pesa FAILED TRANSACTION", {
+      checkoutRequestId,
+      resultCode,
+      resultDesc,
+    });
+
+    const failedTransaction = await prisma.walletTransaction.update({
       where: { id: matchedTransaction.id },
       data: {
         status: "FAILED",
-        providerResponseCode: String(callback.ResultCode),
-        providerResponseDescription: callback.ResultDesc,
+        providerResponseCode: String(resultCode),
+        providerResponseDescription: resultDesc,
         providerCallback: callback as never,
         processedAt: new Date(),
       },
+      select: {
+        id: true,
+        status: true,
+        providerResponseCode: true,
+        providerResponseDescription: true,
+      },
     });
+
+    console.log("✅ FAILED TRANSACTION RECORDED:", failedTransaction);
+
+    const latestSummary = await getWalletSummary(matchedTransaction.userId);
 
     emitWalletEvent({
       userId: matchedTransaction.userId,
       transactionId: matchedTransaction.id,
       checkoutRequestId,
       merchantRequestId: callback.MerchantRequestID,
+      mpesaCode: null,
       status: "FAILED",
-      message: callback.ResultDesc,
-      balance: (await getWalletSummary(matchedTransaction.userId)).balance,
+      message: resultDesc,
+      balance: latestSummary.balance,
       amount: matchedTransaction.amount,
     });
+
+    await createDepositNotifications({
+      userId: matchedTransaction.userId,
+      transactionId: matchedTransaction.id,
+      amount: matchedTransaction.amount,
+      balance: latestSummary.balance,
+      status: "FAILED",
+      failureReason: resultDesc,
+    });
   })().catch((error) => {
-    console.error("Failed to process M-Pesa callback.", error);
+    console.error("CRITICAL ERROR IN M-PESA CALLBACK PROCESSING:", error);
   });
 
+  console.log("\n=== M-PESA CALLBACK RESPONSE SENT ===");
   return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
-});
+};
+
+paymentRouter.post("/mpesa/callback", handleMpesaCallback);
+paymentRouter.post("/payments/mpesa/callback", handleMpesaCallback);
 
 paymentRouter.get(
   "/payments/wallet/summary",
@@ -464,6 +812,24 @@ paymentRouter.post(
       const password = Buffer.from(
         `${config.shortcode}${config.passkey}${timestamp}`,
       ).toString("base64");
+
+      console.log("M-Pesa STK callback URL:", config.callbackUrl);
+
+      try {
+        const callbackUrl = new URL(config.callbackUrl);
+        if (callbackUrl.protocol !== "https:") {
+          console.warn("M-Pesa callback URL is not HTTPS.", config.callbackUrl);
+        }
+
+        if (["localhost", "127.0.0.1"].includes(callbackUrl.hostname)) {
+          console.warn(
+            "M-Pesa callback URL is not publicly reachable.",
+            config.callbackUrl,
+          );
+        }
+      } catch {
+        console.warn("M-Pesa callback URL is invalid.", config.callbackUrl);
+      }
 
       const stkPayload = {
         BusinessShortCode: config.shortcode,
@@ -588,8 +954,10 @@ paymentRouter.get(
 
       if (transaction.status !== "PENDING") {
         return res.status(200).json({
+          transaction,
           transactionId: transaction.id,
           status: transaction.status,
+          mpesaCode: transaction.providerReceiptNumber,
           message:
             transaction.status === "COMPLETED"
               ? "Deposit confirmed."
@@ -706,21 +1074,41 @@ paymentRouter.get(
           });
         });
 
+        const refreshedTransaction = await prisma.walletTransaction.findUnique({
+          where: { id: transaction.id },
+          select: {
+            providerReceiptNumber: true,
+          },
+        });
+
+        const mpesaCode = refreshedTransaction?.providerReceiptNumber ?? null;
+
         const latestSummary = await getWalletSummary(req.user.id);
         emitWalletEvent({
           userId: req.user.id,
           transactionId: transaction.id,
           checkoutRequestId: transaction.checkoutRequestId,
           merchantRequestId: transaction.merchantRequestId,
+          mpesaCode,
           status: "COMPLETED",
           message: "Deposit confirmed and wallet updated.",
           balance: updatedWallet?.balance ?? latestSummary.balance,
           amount: transaction.amount,
         });
 
+        await createDepositNotifications({
+          userId: req.user.id,
+          transactionId: transaction.id,
+          amount: transaction.amount,
+          balance: updatedWallet?.balance ?? latestSummary.balance,
+          mpesaCode,
+          status: "COMPLETED",
+        });
+
         return res.status(200).json({
           transactionId: transaction.id,
           status: "COMPLETED",
+          mpesaCode,
           message: "Deposit confirmed.",
         });
       }
@@ -743,10 +1131,20 @@ paymentRouter.get(
           transactionId: transaction.id,
           checkoutRequestId: transaction.checkoutRequestId,
           merchantRequestId: transaction.merchantRequestId,
+          mpesaCode: null,
           status: "FAILED",
           message: resultDesc,
           balance: latestSummary.balance,
           amount: transaction.amount,
+        });
+
+        await createDepositNotifications({
+          userId: req.user.id,
+          transactionId: transaction.id,
+          amount: transaction.amount,
+          balance: latestSummary.balance,
+          status: "FAILED",
+          failureReason: resultDesc,
         });
 
         return res.status(200).json({

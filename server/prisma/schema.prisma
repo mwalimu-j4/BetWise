@@ -28,6 +28,17 @@ enum WalletTransactionStatus {
   REVERSED
 }
 
+enum NotificationAudience {
+  USER
+  ADMIN
+}
+
+enum NotificationType {
+  DEPOSIT_SUCCESS
+  DEPOSIT_FAILED
+  SYSTEM
+}
+
 model User {
   id            String               @id @default(uuid()) @db.Uuid
   email         String               @unique
@@ -41,6 +52,7 @@ model User {
   resetTokens   PasswordResetToken[]
   wallet        Wallet?
   transactions  WalletTransaction[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -87,6 +99,30 @@ model WalletTransaction {
   @@index([checkoutRequestId])
   @@index([status])
   @@map("wallet_transactions")
+}
+
+model Notification {
+  id            String               @id @default(uuid()) @db.Uuid
+  userId        String               @db.Uuid @map("user_id")
+  audience      NotificationAudience @default(USER)
+  type          NotificationType     @default(SYSTEM)
+  title         String
+  message       String
+  transactionId String?              @db.Uuid @map("transaction_id")
+  amount        Int?
+  balance       Int?
+  mpesaCode     String?              @map("mpesa_code")
+  isRead        Boolean              @default(false) @map("is_read")
+  createdAt     DateTime             @default(now()) @map("created_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([audience, isRead])
+  @@index([createdAt])
+  @@index([transactionId])
+  @@unique([userId, transactionId, type, audience])
+  @@map("notifications")
 }
 
 model RefreshToken {
