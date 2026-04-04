@@ -65,7 +65,9 @@ export default function PaymentsDepositPage() {
       setDepositConfirmed(true);
       setSubmissionStartedAt(null);
       setSubmissionBalance(null);
-      toast.success(`Payment successful. New balance is ${formatMoney(currentBalance)}.`);
+      toast.success(
+        `Payment successful. New balance is ${formatMoney(currentBalance)}.`,
+      );
     }
   }, [currentBalance, isSubmitting, submissionBalance, submissionStartedAt]);
 
@@ -251,16 +253,22 @@ export default function PaymentsDepositPage() {
 
         <Card className="mt-4 border-admin-border bg-admin-surface shadow-none">
           <CardHeader className="pb-0">
-            <CardTitle className="text-sm text-admin-text-primary">Live Payment Feedback</CardTitle>
+            <CardTitle className="text-sm text-admin-text-primary">
+              Live Payment Feedback
+            </CardTitle>
             <CardDescription className="text-admin-text-muted">
-              Status updates change automatically as M-Pesa confirms your request.
+              Status updates change automatically as M-Pesa confirms your
+              request.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2 pt-4 sm:grid-cols-3">
             {paymentStages.map((stage, index) => {
               const isActive =
-                (index === 0 && (isSubmitting || Boolean(response) || depositConfirmed)) ||
-                (index === 1 && (Boolean(response) || depositConfirmed) && !paymentFailed) ||
+                (index === 0 &&
+                  (isSubmitting || Boolean(response) || depositConfirmed)) ||
+                (index === 1 &&
+                  (Boolean(response) || depositConfirmed) &&
+                  !paymentFailed) ||
                 (index === 2 && depositConfirmed);
 
               return (
