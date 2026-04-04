@@ -11,6 +11,7 @@ const listEventsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
   status: z.enum(["UPCOMING", "LIVE", "FINISHED", "CANCELLED"]).optional(),
+  hasOdds: z.coerce.boolean().optional(),
   search: z.string().trim().optional(),
   sport: z.string().trim().optional(),
 });
@@ -29,10 +30,11 @@ eventsAdminRouter.get("/admin/events", async (req, res, next) => {
       return res.status(400).json({ message: "Invalid events query." });
     }
 
-    const { page, limit, search, sport, status } = parsedQuery.data;
+    const { page, limit, search, sport, status, hasOdds } = parsedQuery.data;
     const where: Prisma.SportEventWhereInput = {
       status: status ? { equals: status } : { in: ["UPCOMING", "LIVE"] },
       ...(sport ? { sportKey: { equals: sport } } : {}),
+      ...(hasOdds ? { displayedOdds: { some: {} } } : {}),
       ...(search
         ? {
             AND: [
@@ -63,6 +65,7 @@ eventsAdminRouter.get("/admin/events", async (req, res, next) => {
                 ])})`
           }
           ${sport ? Prisma.sql`AND sport_key = ${sport}` : Prisma.empty}
+          ${hasOdds ? Prisma.sql`AND EXISTS (SELECT 1 FROM displayed_odds d WHERE d.event_id = sport_events.event_id)` : Prisma.empty}
           ${
             search
               ? Prisma.sql`AND (
@@ -85,7 +88,9 @@ eventsAdminRouter.get("/admin/events", async (req, res, next) => {
       `),
     ]);
 
-    const orderedEventIds = orderedRows.map((row: { eventId: string }) => row.eventId);
+    const orderedEventIds = orderedRows.map(
+      (row: { eventId: string }) => row.eventId,
+    );
     if (orderedEventIds.length === 0) {
       return res.status(200).json({
         events: [],
@@ -120,10 +125,9 @@ eventsAdminRouter.get("/admin/events", async (req, res, next) => {
       },
     });
 
-    const eventMap = new Map<
-      string,
-      (typeof events)[number]
-    >(events.map((event: (typeof events)[number]) => [event.eventId, event]));
+    const eventMap = new Map<string, (typeof events)[number]>(
+      events.map((event: (typeof events)[number]) => [event.eventId, event]),
+    );
 
     return res.status(200).json({
       events: orderedEventIds
@@ -180,7 +184,11 @@ eventsAdminRouter.get("/admin/events/:eventId", async (req, res, next) => {
             isVisible: true,
             updatedAt: true,
           },
-          orderBy: [{ bookmakerName: "asc" }, { marketType: "asc" }, { side: "asc" }],
+          orderBy: [
+            { bookmakerName: "asc" },
+            { marketType: "asc" },
+            { side: "asc" },
+          ],
         },
         _count: {
           select: { bets: true },
@@ -214,21 +222,21 @@ eventsAdminRouter.get("/admin/events/:eventId", async (req, res, next) => {
           >,
           odd: (typeof event.displayedOdds)[number],
         ) => {
-        const existing = accumulator[odd.bookmakerId];
-        if (existing) {
-          existing.odds.push(odd);
-          return accumulator;
-        }
+          const existing = accumulator[odd.bookmakerId];
+          if (existing) {
+            existing.odds.push(odd);
+            return accumulator;
+          }
 
-        accumulator[odd.bookmakerId] = {
-          bookmakerId: odd.bookmakerId,
-          bookmakerName: odd.bookmakerName,
-          odds: [odd],
-        };
-        return accumulator;
-      },
-      {},
-    ),
+          accumulator[odd.bookmakerId] = {
+            bookmakerId: odd.bookmakerId,
+            bookmakerName: odd.bookmakerName,
+            odds: [odd],
+          };
+          return accumulator;
+        },
+        {},
+      ),
     );
 
     return res.status(200).json({
@@ -240,117 +248,130 @@ eventsAdminRouter.get("/admin/events/:eventId", async (req, res, next) => {
   }
 });
 
-eventsAdminRouter.patch("/admin/events/:eventId/toggle", async (req, res, next) => {
-  try {
-    const eventId = Array.isArray(req.params.eventId)
-      ? req.params.eventId[0]
-      : req.params.eventId;
+eventsAdminRouter.patch(
+  "/admin/events/:eventId/toggle",
+  async (req, res, next) => {
+    try {
+      const eventId = Array.isArray(req.params.eventId)
+        ? req.params.eventId[0]
+        : req.params.eventId;
 
-    if (!eventId) {
-      return res.status(400).json({ message: "Invalid event id." });
-    }
+      if (!eventId) {
+        return res.status(400).json({ message: "Invalid event id." });
+      }
 
-    const existing = await prisma.sportEvent.findUnique({
-      where: { eventId },
-      select: { isActive: true },
-    });
-
-    if (!existing) {
-      return res.status(404).json({ message: "Event not found." });
-    }
-
-    const updatedEvent = await prisma.sportEvent.update({
-      where: { eventId },
-      data: { isActive: !existing.isActive },
-      select: {
-        id: true,
-        eventId: true,
-        isActive: true,
-        status: true,
-        houseMargin: true,
-        marketsEnabled: true,
-      },
-    });
-
-    return res.status(200).json(updatedEvent);
-  } catch (error) {
-    next(error);
-  }
-});
-
-eventsAdminRouter.patch("/admin/events/:eventId/config", async (req, res, next) => {
-  try {
-    const eventId = Array.isArray(req.params.eventId)
-      ? req.params.eventId[0]
-      : req.params.eventId;
-
-    if (!eventId) {
-      return res.status(400).json({ message: "Invalid event id." });
-    }
-
-    const parsedBody = updateEventConfigSchema.safeParse(req.body);
-    if (!parsedBody.success) {
-      return res.status(400).json({ message: "Invalid event configuration." });
-    }
-
-    const updatedEvent = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const event = await tx.sportEvent.update({
+      const existing = await prisma.sportEvent.findUnique({
         where: { eventId },
-        data: {
-          houseMargin: parsedBody.data.houseMargin,
-          marketsEnabled: parsedBody.data.marketsEnabled,
-        },
+        select: { isActive: true },
+      });
+
+      if (!existing) {
+        return res.status(404).json({ message: "Event not found." });
+      }
+
+      const updatedEvent = await prisma.sportEvent.update({
+        where: { eventId },
+        data: { isActive: !existing.isActive },
         select: {
           id: true,
           eventId: true,
-          leagueName: true,
-          sportKey: true,
-          homeTeam: true,
-          awayTeam: true,
-          commenceTime: true,
-          status: true,
-          homeScore: true,
-          awayScore: true,
           isActive: true,
+          status: true,
           houseMargin: true,
           marketsEnabled: true,
-          _count: {
-            select: {
-              odds: true,
-              bets: true,
-            },
-          },
         },
       });
 
-      const displayedOdds = await tx.displayedOdds.findMany({
-        where: { eventId },
-        select: {
-          id: true,
-          rawOdds: true,
-        },
-      });
+      return res.status(200).json(updatedEvent);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-      await Promise.all(
-        displayedOdds.map((odd: { id: string; rawOdds: number }) =>
-          tx.displayedOdds.update({
-            where: { id: odd.id },
+eventsAdminRouter.patch(
+  "/admin/events/:eventId/config",
+  async (req, res, next) => {
+    try {
+      const eventId = Array.isArray(req.params.eventId)
+        ? req.params.eventId[0]
+        : req.params.eventId;
+
+      if (!eventId) {
+        return res.status(400).json({ message: "Invalid event id." });
+      }
+
+      const parsedBody = updateEventConfigSchema.safeParse(req.body);
+      if (!parsedBody.success) {
+        return res
+          .status(400)
+          .json({ message: "Invalid event configuration." });
+      }
+
+      const updatedEvent = await prisma.$transaction(
+        async (tx: Prisma.TransactionClient) => {
+          const event = await tx.sportEvent.update({
+            where: { eventId },
             data: {
-              displayOdds: Number(
-                (odd.rawOdds / (1 + parsedBody.data.houseMargin / 100)).toFixed(2),
-              ),
+              houseMargin: parsedBody.data.houseMargin,
+              marketsEnabled: parsedBody.data.marketsEnabled,
             },
-          }),
-        ),
+            select: {
+              id: true,
+              eventId: true,
+              leagueName: true,
+              sportKey: true,
+              homeTeam: true,
+              awayTeam: true,
+              commenceTime: true,
+              status: true,
+              homeScore: true,
+              awayScore: true,
+              isActive: true,
+              houseMargin: true,
+              marketsEnabled: true,
+              _count: {
+                select: {
+                  odds: true,
+                  bets: true,
+                },
+              },
+            },
+          });
+
+          const displayedOdds = await tx.displayedOdds.findMany({
+            where: { eventId },
+            select: {
+              id: true,
+              rawOdds: true,
+            },
+          });
+
+          await Promise.all(
+            displayedOdds.map((odd: { id: string; rawOdds: number }) =>
+              tx.displayedOdds.update({
+                where: { id: odd.id },
+                data: {
+                  displayOdds: Number(
+                    (
+                      odd.rawOdds /
+                      (1 + parsedBody.data.houseMargin / 100)
+                    ).toFixed(2),
+                  ),
+                },
+              }),
+            ),
+          );
+
+          return event;
+        },
       );
 
-      return event;
-    });
-
-    return res.status(200).json(updatedEvent);
-  } catch (error) {
-    next(error);
-  }
-});
+      return res.status(200).json(updatedEvent);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 export { eventsAdminRouter };

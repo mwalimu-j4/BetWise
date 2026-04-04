@@ -77,10 +77,7 @@ type OddsTableRow = {
   }>;
 };
 
-function findOutcome(
-  outcomes: OddsTableRow["outcomes"],
-  sideNames: string[],
-) {
+function findOutcome(outcomes: OddsTableRow["outcomes"], sideNames: string[]) {
   return outcomes.find((outcome) => sideNames.includes(outcome.side));
 }
 
@@ -105,26 +102,34 @@ export default function Odds() {
     setEventsLoading(true);
 
     try {
-      const response = await api.get<{ events: ApiEventOption[] }>("/admin/events", {
-        params: {
-          status: "LIVE",
-          page: 1,
-          limit: 100,
+      const response = await api.get<{ events: ApiEventOption[] }>(
+        "/admin/events",
+        {
+          params: {
+            page: 1,
+            limit: 100,
+            hasOdds: true,
+          },
         },
-      });
+      );
 
       setEvents(response.data.events);
     } catch (requestError) {
       console.error(requestError);
-      setError("Unable to load live events.");
+      setError("Unable to load events.");
     } finally {
       setEventsLoading(false);
     }
   }
 
-  function mapOddsToRows(data: ApiOddsGroup, currentEvent: ApiEventOption | null) {
+  function mapOddsToRows(
+    data: ApiOddsGroup,
+    currentEvent: ApiEventOption | null,
+  ) {
     return data.bookmakers.map<OddsTableRow>((bookmaker) => {
-      const h2hMarket = bookmaker.markets.find((market) => market.marketType === "h2h");
+      const h2hMarket = bookmaker.markets.find(
+        (market) => market.marketType === "h2h",
+      );
       const outcomes = h2hMarket?.outcomes ?? [];
       const homeOutcome = currentEvent
         ? findOutcome(outcomes, [currentEvent.homeTeam])
@@ -132,7 +137,9 @@ export default function Odds() {
       const drawOutcome = findOutcome(outcomes, ["Draw"]);
       const awayOutcome = currentEvent
         ? findOutcome(outcomes, [currentEvent.awayTeam])
-        : outcomes.find((outcome) => outcome !== homeOutcome && outcome !== drawOutcome);
+        : outcomes.find(
+            (outcome) => outcome !== homeOutcome && outcome !== drawOutcome,
+          );
       const marginValue = outcomes.reduce((sum, outcome) => {
         if (!outcome.displayOdds) return sum;
         return sum + 1 / outcome.displayOdds;
@@ -152,7 +159,9 @@ export default function Odds() {
         selectionThree: awayOutcome?.side ?? "-",
         oddsThree: awayOutcome ? String(awayOutcome.displayOdds) : "-",
         margin: `${Math.max((marginValue - 1) * 100, 0).toFixed(1)}%`,
-        status: outcomes.some((outcome) => !outcome.isVisible) ? "suspended" : "active",
+        status: outcomes.some((outcome) => !outcome.isVisible)
+          ? "suspended"
+          : "active",
         outcomes,
       };
     });
@@ -256,7 +265,10 @@ export default function Odds() {
   const skeletonRows = useMemo(
     () =>
       Array.from({ length: 4 }, (_, rowIndex) => (
-        <tr className="even:bg-[var(--color-bg-elevated)]" key={`odds-skeleton-${rowIndex}`}>
+        <tr
+          className="even:bg-[var(--color-bg-elevated)]"
+          key={`odds-skeleton-${rowIndex}`}
+        >
           {Array.from({ length: 11 }, (_, cellIndex) => (
             <td className={adminTableCellClassName} key={cellIndex}>
               <div className="h-4 w-full rounded bg-admin-surface animate-pulse" />
@@ -276,7 +288,9 @@ export default function Odds() {
           <>
             <AdminButton
               variant="ghost"
-              onClick={() => (selectedEventId ? void loadOdds(selectedEventId) : undefined)}
+              onClick={() =>
+                selectedEventId ? void loadOdds(selectedEventId) : undefined
+              }
             >
               <RefreshCw size={13} />
               Sync Feed
@@ -293,7 +307,9 @@ export default function Odds() {
         <Select onValueChange={setSelectedEventId} value={selectedEventId}>
           <SelectTrigger className="h-9 w-full rounded-lg border border-admin-border bg-admin-surface text-admin-text-primary font-medium">
             <SelectValue
-              placeholder={eventsLoading ? "Loading events..." : "Select an event"}
+              placeholder={
+                eventsLoading ? "Loading events..." : "Select an event"
+              }
             />
           </SelectTrigger>
           <SelectContent className="border-admin-border bg-admin-card text-admin-text-primary">
@@ -314,7 +330,9 @@ export default function Odds() {
 
       {!selectedEventId ? (
         <AdminCard>
-          <p className="text-sm text-admin-text-muted">Select an event to view odds</p>
+          <p className="text-sm text-admin-text-muted">
+            Select an event to view odds
+          </p>
         </AdminCard>
       ) : (
         <AdminCard>
@@ -365,7 +383,9 @@ export default function Odds() {
                         >
                           {row.event}
                         </td>
-                        <td className={adminTableCellClassName}>{row.bookmakerName}</td>
+                        <td className={adminTableCellClassName}>
+                          {row.bookmakerName}
+                        </td>
                         <td
                           className={`${adminTableCellClassName} text-admin-text-primary`}
                         >
@@ -399,7 +419,9 @@ export default function Odds() {
                         </td>
                         <td className={adminTableCellClassName}>
                           <StatusBadge
-                            status={row.status === "active" ? "active" : "suspended"}
+                            status={
+                              row.status === "active" ? "active" : "suspended"
+                            }
                           />
                         </td>
                         <td className={adminTableCellClassName}>
@@ -413,15 +435,14 @@ export default function Odds() {
                                     setSelectedOdds(row);
                                     setEditMargin(row.margin);
                                     setCustomOdds(
-                                      row.outcomes.reduce<Record<string, string>>(
-                                        (accumulator, outcome) => {
-                                          accumulator[
-                                            `${row.bookmakerId}-${outcome.side}`
-                                          ] = String(outcome.displayOdds);
-                                          return accumulator;
-                                        },
-                                        {},
-                                      ),
+                                      row.outcomes.reduce<
+                                        Record<string, string>
+                                      >((accumulator, outcome) => {
+                                        accumulator[
+                                          `${row.bookmakerId}-${outcome.side}`
+                                        ] = String(outcome.displayOdds);
+                                        return accumulator;
+                                      }, {}),
                                     );
                                   }}
                                 >
@@ -451,7 +472,8 @@ export default function Odds() {
                                           Market
                                         </label>
                                         <p className="mt-1 text-sm text-admin-text-muted">
-                                          {selectedOdds.bookmakerName} | {selectedOdds.market}
+                                          {selectedOdds.bookmakerName} |{" "}
+                                          {selectedOdds.market}
                                         </p>
                                       </div>
                                       {selectedOdds.outcomes.map((outcome) => (
@@ -483,7 +505,9 @@ export default function Odds() {
                                         </label>
                                         <Input
                                           value={editMargin}
-                                          onChange={(event) => setEditMargin(event.target.value)}
+                                          onChange={(event) =>
+                                            setEditMargin(event.target.value)
+                                          }
                                           placeholder="2.5"
                                           className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
                                         />
@@ -498,7 +522,9 @@ export default function Odds() {
                                   <Button
                                     className="flex-1 bg-admin-accent text-black hover:bg-[#00d492]"
                                     onClick={() =>
-                                      selectedOdds ? void handleOverride(selectedOdds) : undefined
+                                      selectedOdds
+                                        ? void handleOverride(selectedOdds)
+                                        : undefined
                                     }
                                   >
                                     Save Changes
@@ -523,7 +549,10 @@ export default function Odds() {
                               <DialogContent className="border-admin-border bg-admin-card">
                                 <DialogHeader>
                                   <DialogTitle>
-                                    {row.status === "active" ? "Suspend" : "Reactivate"} Market
+                                    {row.status === "active"
+                                      ? "Suspend"
+                                      : "Reactivate"}{" "}
+                                    Market
                                   </DialogTitle>
                                   <DialogDescription>
                                     {row.status === "active"
@@ -539,7 +568,9 @@ export default function Odds() {
                                     <Input
                                       placeholder="E.g., Line movement, Technical issue"
                                       value={suspendReason}
-                                      onChange={(event) => setSuspendReason(event.target.value)}
+                                      onChange={(event) =>
+                                        setSuspendReason(event.target.value)
+                                      }
                                       className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
                                     />
                                   </div>
@@ -555,10 +586,15 @@ export default function Odds() {
                                         : "bg-admin-accent text-black hover:bg-[#00d492]"
                                     }`}
                                     onClick={() =>
-                                      void handleVisibility(row, row.status !== "active")
+                                      void handleVisibility(
+                                        row,
+                                        row.status !== "active",
+                                      )
                                     }
                                   >
-                                    {row.status === "active" ? "Suspend" : "Reactivate"}
+                                    {row.status === "active"
+                                      ? "Suspend"
+                                      : "Reactivate"}
                                   </Button>
                                 </div>
                               </DialogContent>
