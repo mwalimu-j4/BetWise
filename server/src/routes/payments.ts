@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { z } from "zod";
+import { authenticate } from "../middleware/authenticate";
 
 const paymentRouter = Router();
+paymentRouter.use(authenticate);
 
 const stkPushBodySchema = z.object({
   phone: z.string().trim().min(10),
@@ -43,7 +45,8 @@ function normalizePhoneNumber(phone: string) {
 }
 
 function getMpesaConfig() {
-  const env = process.env.MPESA_ENV?.toLowerCase() === "live" ? "live" : "sandbox";
+  const env =
+    process.env.MPESA_ENV?.toLowerCase() === "live" ? "live" : "sandbox";
   const consumerKey = process.env.MPESA_CONSUMER_KEY;
   const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
   const shortcode = process.env.MPESA_SHORTCODE;

@@ -1,9 +1,8 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Bell, Menu, Plus, UserRound } from "lucide-react";
+import { Bell, Menu, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import AccountDropdown from "@/components/layout/AccountDropdown";
 import SearchBar from "@/components/search/SearchBar";
-import { authClient } from "@/lib/auth-client";
+import { useAuth } from "@/context/AuthContext";
 import { formatMoney, walletSummary } from "@/features/user/payments/data";
 
 type NavbarProps = {
@@ -71,52 +70,26 @@ const leagues = [
 
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
-  const session = authClient.useSession();
-  const [accountOpen, setAccountOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const accountWrapRef = useRef<HTMLDivElement | null>(null);
   const lastPathRef = useRef(location.pathname);
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
-  const initials = (
-    session.data?.user?.name ||
-    session.data?.user?.email ||
-    "U"
-  )
-    .split(" ")
-    .map((part) => part.charAt(0).toUpperCase())
-    .slice(0, 2)
-    .join("");
 
-  useEffect(() => {
-    if (!accountOpen) return;
+  const maskedPhone = useMemo(() => {
+    if (!user?.phone) return "";
+    const digits = user.phone.replace(/\D/g, "");
+    if (digits.length < 10) return user.phone;
 
-    function handleOutsideClick(event: MouseEvent) {
-      if (!accountWrapRef.current) return;
-      if (!accountWrapRef.current.contains(event.target as Node)) {
-        setAccountOpen(false);
-      }
-    }
+    const local = digits.startsWith("254") ? `0${digits.slice(3)}` : user.phone;
+    if (local.length !== 10) return local;
 
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setAccountOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    window.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-      window.removeEventListener("keydown", handleEscape);
-    };
-  }, [accountOpen]);
+    return `${local.slice(0, 4)}***${local.slice(-3)}`;
+  }, [user?.phone]);
 
   useEffect(() => {
     if (location.pathname !== lastPathRef.current) {
       lastPathRef.current = location.pathname;
-      setAccountOpen(false);
       setNotificationsOpen(false);
     }
   }, [location.pathname]);
@@ -230,34 +203,37 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             ) : null}
           </div>
 
-          <div className="bc-account-wrap" ref={accountWrapRef}>
-            <button
-              type="button"
-              className={`bc-account-trigger ${accountOpen ? "is-open" : ""}`}
-              aria-label="Open account"
-              onClick={() => setAccountOpen((prev) => !prev)}
-            >
-              <span className="bc-trigger-avatar">
-                {session.data?.user?.image ? (
-                  <img
-                    src={session.data.user.image}
-                    alt="Account"
-                    className="bc-account-avatar-img"
-                  />
-                ) : (
-                  initials || <UserRound size={14} />
-                )}
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2">
+              <span className="rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 py-1.5 text-xs font-semibold text-admin-text-primary">
+                {maskedPhone}
               </span>
-              <span className="bc-account-label">Account</span>
-              <span className="bc-account-chevron" aria-hidden="true">
-                v
-              </span>
-            </button>
-            <AccountDropdown
-              open={accountOpen}
-              onClose={() => setAccountOpen(false)}
-            />
-          </div>
+              <button
+                type="button"
+                className="rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-3 py-1.5 text-xs font-semibold text-admin-text-primary transition hover:border-[var(--color-border-accent)]"
+                onClick={() => {
+                  void logout();
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/register"
+                className="rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-3 py-1.5 text-xs font-semibold text-admin-text-primary transition hover:border-[var(--color-border-accent)]"
+              >
+                Register
+              </Link>
+              <Link
+                to="/login"
+                className="rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-semibold text-[var(--color-text-dark)]"
+              >
+                Login
+              </Link>
+            </div>
+          )}
 
           <Link
             to="/user/payments/deposit"

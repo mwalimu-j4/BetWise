@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useAuth } from "@/context/AuthContext";
 
 type AccountDropdownProps = {
   open: boolean;
@@ -44,18 +44,16 @@ export default function AccountDropdown({
 }: AccountDropdownProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const session = authClient.useSession();
-
-  const user = session.data?.user;
+  const { user, logout } = useAuth();
 
   const initials = useMemo(() => {
-    const source = user?.name?.trim() || user?.email?.trim() || "User";
+    const source = user?.email?.trim() || user?.phone?.trim() || "User";
     return source
       .split(" ")
       .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
+      .map((part: string) => part.charAt(0).toUpperCase())
       .join("");
-  }, [user?.email, user?.name]);
+  }, [user?.email, user?.phone]);
 
   if (!open) return null;
 
@@ -63,18 +61,10 @@ export default function AccountDropdown({
     <div className="bc-account-dropdown">
       <div className="bc-account-head">
         <div className="bc-account-avatar" aria-hidden="true">
-          {user?.image ? (
-            <img
-              src={user.image}
-              alt="User"
-              className="bc-account-avatar-img"
-            />
-          ) : (
-            initials
-          )}
+          {initials}
         </div>
         <div className="bc-account-head-meta">
-          <p className="bc-account-name">{user?.name || "BettCenic User"}</p>
+          <p className="bc-account-name">{user?.phone || "BettCenic User"}</p>
           <p className="bc-account-email">
             {user?.email || "guest@bettcenic.com"}
           </p>
@@ -116,9 +106,9 @@ export default function AccountDropdown({
           type="button"
           className="bc-account-item is-logout"
           onClick={async () => {
-            await authClient.signOut();
+            await logout();
             onClose();
-            navigate({ to: "/user/login" });
+            navigate({ to: "/login" });
           }}
         >
           <span className="bc-account-item-icon" aria-hidden="true">

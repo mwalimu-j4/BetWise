@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useAuth } from "@/context/AuthContext";
 
 type SidebarProps = {
   isOpen: boolean;
@@ -336,16 +336,16 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const session = authClient.useSession();
+  const { isAuthenticated, logout } = useAuth();
   const [openSports, setOpenSports] = useState<Record<string, boolean>>({
     football: true,
     basketball: true,
   });
 
   const accountSection = useMemo(() => {
-    if (!session.data?.session) return [];
+    if (!isAuthenticated) return [];
     return myAccount;
-  }, [session.data?.session]);
+  }, [isAuthenticated]);
 
   function closeIfMobile() {
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
@@ -428,19 +428,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         <div className="bc-side-bottom">
-          <button
-            type="button"
-            className="bc-side-logout"
-            onClick={async () => {
-              await authClient.signOut();
-              closeIfMobile();
-            }}
-          >
-            <span className="bc-side-icon" aria-hidden="true">
-              x
-            </span>
-            <span>Logout</span>
-          </button>
+          {isAuthenticated ? (
+            <button
+              type="button"
+              className="bc-side-logout"
+              onClick={async () => {
+                await logout();
+                closeIfMobile();
+              }}
+            >
+              <span className="bc-side-icon" aria-hidden="true">
+                x
+              </span>
+              <span>Logout</span>
+            </button>
+          ) : null}
         </div>
       </aside>
 

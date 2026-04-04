@@ -1,10 +1,137 @@
+import type { FormEvent } from "react";
+import { useMemo, useState } from "react";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { Eye, EyeOff } from "lucide-react";
+import AuthCard from "@/components/auth/AuthCard";
+import { useAuth } from "@/context/AuthContext";
+
+const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
+
 export default function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as { redirect?: string };
+
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const formValid = useMemo(() => {
+    return KENYAN_PHONE_REGEX.test(phone.trim()) && password.length > 0;
+  }, [password.length, phone]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!formValid) return;
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      await login({
+        phone,
+        password,
+      });
+
+      const redirectTo =
+        search.redirect && search.redirect.startsWith("/")
+          ? search.redirect
+          : "/user";
+      void navigate({ to: redirectTo as never });
+    } catch {
+      setErrorMessage("Invalid credentials");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
-    <section className="animate-lift-in max-w-[620px] rounded-3xl border border-admin-border bg-admin-card p-6 shadow-[0_16px_48px_var(--color-bg-deepest)]">
-      <h1 className="text-2xl font-bold text-admin-text-primary">Login</h1>
-      <p className="mt-1.5 text-sm text-admin-text-muted">
-        Sign in to manage your wallet, bets, and payouts.
-      </p>
-    </section>
+    <AuthCard
+      title="Welcome back"
+      subtitle="Sign in and continue."
+      backTo="/user"
+      backLabel="Back home"
+      footer={
+        <p className="text-center text-xs text-admin-text-muted">
+          Don&apos;t have an account?{" "}
+          <Link className="font-semibold text-admin-accent" to="/register">
+            Register
+          </Link>
+        </p>
+      }
+    >
+      <form className="grid gap-2.5" onSubmit={handleSubmit}>
+        <div className="grid gap-1">
+          <label
+            className="text-xs font-medium text-admin-text-primary"
+            htmlFor="phone"
+          >
+            Phone number
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            placeholder="07XXXXXXXX or +2547XXXXXXXX"
+            className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
+            autoComplete="tel"
+            required
+          />
+        </div>
+
+        <div className="grid gap-1">
+          <label
+            className="text-xs font-medium text-admin-text-primary"
+            htmlFor="password"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="h-9 w-full rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 pr-10 text-xs text-admin-text-primary outline-none"
+              autoComplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-admin-text-muted"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-admin-text-muted">Secure sign-in</span>
+          <Link
+            className="font-semibold text-admin-accent"
+            to="/forgot-password"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
+        {errorMessage ? (
+          <p className="text-xs text-red-400">{errorMessage}</p>
+        ) : null}
+
+        <button
+          type="submit"
+          disabled={!formValid || isSubmitting}
+          className="h-9 rounded-lg bg-admin-accent text-xs font-semibold text-[var(--color-text-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? "Signing in..." : "Login"}
+        </button>
+      </form>
+    </AuthCard>
   );
 }
