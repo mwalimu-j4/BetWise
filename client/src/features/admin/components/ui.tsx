@@ -456,3 +456,214 @@ export function DonutChart() {
     </div>
   );
 }
+
+export function FinancialTrendChart({ data }: { data: any[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+        <XAxis
+          dataKey="day"
+          stroke="rgba(255,255,255,0.5)"
+          style={{ fontSize: "12px" }}
+        />
+        <YAxis stroke="rgba(255,255,255,0.5)" style={{ fontSize: "12px" }} />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "rgba(10,14,26,0.95)",
+            border: "1px solid rgba(0,229,160,0.2)",
+            borderRadius: "8px",
+          }}
+          labelStyle={{ color: "#00e5a0" }}
+          itemStyle={{ color: "#00e5a0" }}
+        />
+        <Legend />
+        <Line
+          type="monotone"
+          dataKey="stake"
+          stroke="#00e5a0"
+          strokeWidth={2}
+          dot={false}
+          name="Stake ($)"
+        />
+        <Line
+          type="monotone"
+          dataKey="ggr"
+          stroke="#ff9800"
+          strokeWidth={2}
+          dot={false}
+          name="GGR ($)"
+        />
+        <Line
+          type="monotone"
+          dataKey="ngr"
+          stroke="#5e5ce6"
+          strokeWidth={2}
+          dot={false}
+          name="NGR ($)"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function DepositWithdrawalChart({ data }: { data: any[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={250}>
+      <BarChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+        <XAxis
+          dataKey="period"
+          stroke="rgba(255,255,255,0.5)"
+          style={{ fontSize: "12px" }}
+        />
+        <YAxis stroke="rgba(255,255,255,0.5)" style={{ fontSize: "12px" }} />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "rgba(10,14,26,0.95)",
+            border: "1px solid rgba(0,229,160,0.2)",
+            borderRadius: "8px",
+          }}
+          labelStyle={{ color: "#00e5a0" }}
+        />
+        <Legend />
+        <Bar dataKey="deposits" fill="#00e5a0" name="Deposits" />
+        <Bar dataKey="withdrawals" fill="#ff9800" name="Withdrawals" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function AnalyticsTable({
+  data,
+  columns,
+}: {
+  data: any[];
+  columns: { label: string; key: string; format?: (value: any) => string }[];
+}) {
+  return (
+    <TableShell>
+      <table className={adminTableClassName}>
+        <thead>
+          <tr>
+            {columns.map((col) => (
+              <th className={adminTableHeadCellClassName} key={col.key}>
+                {col.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, idx) => (
+            <tr key={idx}>
+              {columns.map((col) => (
+                <td className={adminTableCellClassName} key={col.key}>
+                  {col.format ? col.format(row[col.key]) : row[col.key]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </TableShell>
+  );
+}
+
+export function GeoLocationCard({
+  country,
+  region,
+  users,
+  bets,
+  revenue,
+  percentage,
+  tone,
+}: {
+  country: string;
+  region: string;
+  users: number;
+  bets: number;
+  revenue: string;
+  percentage: number;
+  tone: AdminTone;
+}) {
+  return (
+    <AdminCard className="space-y-3">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="font-semibold text-admin-text-primary">{country}</p>
+          <p className="text-xs text-admin-text-muted">{region}</p>
+        </div>
+        <div className={cn("rounded-lg px-2 py-1 text-xs font-bold", toneSoftClasses[tone])}>
+          {percentage.toFixed(1)}%
+        </div>
+      </div>
+      <div className="space-y-2 border-t border-admin-border pt-3 text-sm">
+        <div className="flex justify-between text-admin-text-secondary">
+          <span>Users</span>
+          <span className="font-semibold text-admin-text-primary">
+            {users.toLocaleString()}
+          </span>
+        </div>
+        <div className="flex justify-between text-admin-text-secondary">
+          <span>Bets</span>
+          <span className="font-semibold text-admin-text-primary">
+            {bets.toLocaleString()}
+          </span>
+        </div>
+        <div className="flex justify-between text-admin-text-secondary">
+          <span>Revenue</span>
+          <span className={cn("font-semibold", toneTextClasses[tone])}>
+            {revenue}
+          </span>
+        </div>
+      </div>
+    </AdminCard>
+  );
+}
+
+export function DeviceCard({
+  device,
+  users,
+  percentage,
+  sessions,
+  avgSessionDuration,
+  tone,
+}: {
+  device: string;
+  users: number;
+  percentage: number;
+  sessions: number;
+  avgSessionDuration: string;
+  tone: AdminTone;
+}) {
+  return (
+    <AdminCard className="space-y-3">
+      <div className="flex items-start justify-between">
+        <p className="font-semibold text-admin-text-primary">{device}</p>
+        <div className={cn("rounded-lg px-2 py-1 text-xs font-bold", toneSoftClasses[tone])}>
+          {percentage.toFixed(1)}%
+        </div>
+      </div>
+      <div className="space-y-2 border-t border-admin-border pt-3 text-sm">
+        <div className="flex justify-between text-admin-text-secondary">
+          <span>Users</span>
+          <span className="font-semibold text-admin-text-primary">
+            {users.toLocaleString()}
+          </span>
+        </div>
+        <div className="flex justify-between text-admin-text-secondary">
+          <span>Sessions</span>
+          <span className="font-semibold text-admin-text-primary">
+            {sessions.toLocaleString()}
+          </span>
+        </div>
+        <div className="flex justify-between text-admin-text-secondary">
+          <span>Avg Duration</span>
+          <span className={cn("font-semibold", toneTextClasses[tone])}>
+            {avgSessionDuration}
+          </span>
+        </div>
+      </div>
+    </AdminCard>
+  );
+}
