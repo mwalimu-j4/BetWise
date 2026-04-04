@@ -174,10 +174,8 @@ async function createWithdrawalNotifications(args: {
   let userMessage = "";
   let adminTitle = "";
   let adminMessage = "";
-  let notificationType:
-    | "WITHDRAWAL_SUCCESS"
-    | "WITHDRAWAL_FAILED"
-    | "SYSTEM" = "SYSTEM";
+  let notificationType: "WITHDRAWAL_SUCCESS" | "WITHDRAWAL_FAILED" | "SYSTEM" =
+    "SYSTEM";
 
   if (args.status === "PENDING") {
     userTitle = "Withdrawal Request Submitted";
