@@ -279,10 +279,14 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
     }
 
     const callbackItems = callback.CallbackMetadata?.Item ?? [];
-    const receiptNumber = callbackItems.find((item) => item.Name === "MpesaReceiptNumber")?.Value;
+    const receiptNumber = callbackItems.find(
+      (item) => item.Name === "MpesaReceiptNumber",
+    )?.Value;
 
     if (callback.ResultCode === 0) {
-      const wallet = matchedTransaction.wallet ?? (await getOrCreateWallet(matchedTransaction.userId));
+      const wallet =
+        matchedTransaction.wallet ??
+        (await getOrCreateWallet(matchedTransaction.userId));
       const updatedWallet = await prisma.$transaction(async (tx) => {
         await tx.walletTransaction.update({
           where: { id: matchedTransaction.id },
@@ -350,36 +354,40 @@ paymentRouter.post("/payments/mpesa/callback", (req, res) => {
   return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
 });
 
-paymentRouter.get("/payments/wallet/summary", authenticate, async (req, res, next) => {
-  try {
-    if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
+paymentRouter.get(
+  "/payments/wallet/summary",
+  authenticate,
+  async (req, res, next) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const wallet = await getOrCreateWallet(req.user.id);
+      const [transactions, totalDeposits] = await Promise.all([
+        prisma.walletTransaction.findMany({
+          where: { userId: req.user.id },
+          orderBy: { createdAt: "desc" },
+          take: 12,
+        }),
+        prisma.walletTransaction.aggregate({
+          where: { userId: req.user.id, type: "DEPOSIT", status: "COMPLETED" },
+          _sum: { amount: true },
+        }),
+      ]);
+
+      return res.status(200).json({
+        wallet: {
+          balance: wallet.balance,
+          totalDepositsThisMonth: totalDeposits._sum.amount ?? 0,
+        },
+        transactions: transactions.map(toClientTransaction),
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const wallet = await getOrCreateWallet(req.user.id);
-    const [transactions, totalDeposits] = await Promise.all([
-      prisma.walletTransaction.findMany({
-        where: { userId: req.user.id },
-        orderBy: { createdAt: "desc" },
-        take: 12,
-      }),
-      prisma.walletTransaction.aggregate({
-        where: { userId: req.user.id, type: "DEPOSIT", status: "COMPLETED" },
-        _sum: { amount: true },
-      }),
-    ]);
-
-    return res.status(200).json({
-      wallet: {
-        balance: wallet.balance,
-        totalDepositsThisMonth: totalDeposits._sum.amount ?? 0,
-      },
-      transactions: transactions.map(toClientTransaction),
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 paymentRouter.get("/payments/wallet/stream", authenticate, async (req, res) => {
   if (!req.user?.id) {
@@ -529,7 +537,10 @@ paymentRouter.post(
           amount: parsedBody.data.amount,
           currency: "KES",
           channel: "M-Pesa STK",
-          reference: stkData.CheckoutRequestID ?? stkData.MerchantRequestID ?? `DEP-${Date.now()}`,
+          reference:
+            stkData.CheckoutRequestID ??
+            stkData.MerchantRequestID ??
+            `DEP-${Date.now()}`,
           checkoutRequestId: stkData.CheckoutRequestID ?? null,
           merchantRequestId: stkData.MerchantRequestID ?? null,
           phone: normalizedPhone,
@@ -543,7 +554,8 @@ paymentRouter.post(
         checkoutRequestId: transaction.checkoutRequestId,
         merchantRequestId: transaction.merchantRequestId,
         status: "PENDING",
-        message: stkData.CustomerMessage ?? "Approve the STK prompt on your phone.",
+        message:
+          stkData.CustomerMessage ?? "Approve the STK prompt on your phone.",
         balance: wallet.balance,
         amount: transaction.amount,
       });

@@ -131,7 +131,10 @@ export function useWalletRealtime() {
             eventBoundary = buffer.indexOf("\n\n");
 
             const lines = rawEvent.split("\n");
-            const eventType = lines.find((line) => line.startsWith("event:"))?.slice(6).trim();
+            const eventType = lines
+              .find((line) => line.startsWith("event:"))
+              ?.slice(6)
+              .trim();
             const dataLine = lines
               .filter((line) => line.startsWith("data:"))
               .map((line) => line.slice(5).trim())

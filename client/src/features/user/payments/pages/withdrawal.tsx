@@ -2,10 +2,7 @@ import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  formatDateTime,
-  formatMoney,
-} from "../data";
+import { formatDateTime, formatMoney } from "../data";
 import { useWalletSummary } from "../wallet";
 
 const quickAmounts = [100, 500, 1000, 2500, 5000, 10000];
