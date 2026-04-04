@@ -543,7 +543,7 @@ export default function Users() {
                       </p>
                       <p className="mt-2 text-sm text-admin-text-primary">
                         {new Date(selectedUser.createdAt).toLocaleString(
-                          "en-KE"
+                          "en-KE",
                         )}
                       </p>
                     </div>
