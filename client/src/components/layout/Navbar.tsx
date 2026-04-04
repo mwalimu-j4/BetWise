@@ -210,9 +210,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
 
           {isAuthenticated ? (
             <div className="bc-auth-group">
-              <span className="bc-phone-badge">
-                {maskedPhone}
-              </span>
+              <span className="bc-phone-badge">{maskedPhone}</span>
               <button
                 type="button"
                 className="bc-logout-btn"
@@ -225,16 +223,10 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             </div>
           ) : (
             <div className="bc-auth-group">
-              <Link
-                to="/register"
-                className="bc-register-btn"
-              >
+              <Link to="/register" className="bc-register-btn">
                 Register
               </Link>
-              <Link
-                to="/login"
-                className="bc-login-btn"
-              >
+              <Link to="/login" className="bc-login-btn">
                 Login
               </Link>
             </div>
