@@ -52,10 +52,7 @@ export default function Dashboard() {
         </AdminCard>
 
         <AdminCard>
-          <AdminCardHeader
-            title="Sport Distribution"
-            subtitle="By bet count"
-          />
+          <AdminCardHeader title="Sport Distribution" subtitle="By bet count" />
           <DonutChart />
         </AdminCard>
       </div>
@@ -102,10 +99,7 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {recentBets.map((bet) => (
-                <tr
-                  className="even:bg-admin-surface/45"
-                  key={bet.id}
-                >
+                <tr className="even:bg-admin-surface/45" key={bet.id}>
                   <td
                     className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
                   >
@@ -160,5 +154,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-

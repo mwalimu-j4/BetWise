@@ -29,13 +29,9 @@ export default function Home() {
           <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
             Today&apos;s Activity
           </p>
-          <p className="mt-2 text-2xl font-bold text-admin-gold">
-            No activity
-          </p>
+          <p className="mt-2 text-2xl font-bold text-admin-gold">No activity</p>
         </article>
       </div>
     </section>
   );
 }
-
-

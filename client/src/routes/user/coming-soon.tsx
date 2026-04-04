@@ -7,5 +7,7 @@ export const userComingSoonRoute = createRoute({
   validateSearch: (search: Record<string, unknown>) => ({
     feature: typeof search.feature === "string" ? search.feature : undefined,
   }),
-  component: lazyRouteComponent(() => import("@/features/user/pages/not-found")),
+  component: lazyRouteComponent(
+    () => import("@/features/user/pages/not-found"),
+  ),
 });

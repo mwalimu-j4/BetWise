@@ -16,19 +16,32 @@ type MenuItem = {
 
 const menuGroups: MenuItem[][] = [
   [
-    { label: "Dashboard", icon: "d", to: "/user/coming-soon?feature=dashboard", warn: true },
+    {
+      label: "Dashboard",
+      icon: "d",
+      to: "/user/coming-soon?feature=dashboard",
+      warn: true,
+    },
     { label: "Deposit", icon: "+", to: "/user/payments/deposit" },
     { label: "Withdrawal", icon: "^", to: "/user/payments/withdrawal" },
   ],
   [
-    { label: "My Profile", icon: "u", to: "/user/coming-soon?feature=profile", warn: true },
+    {
+      label: "My Profile",
+      icon: "u",
+      to: "/user/coming-soon?feature=profile",
+      warn: true,
+    },
     { label: "My Bets", icon: "t", to: "/user/payments" },
     { label: "My Results", icon: "r", to: "/user/payments/history" },
     { label: "My Wallet", icon: "w", to: "/user/payments", warn: true },
   ],
 ];
 
-export default function AccountDropdown({ open, onClose }: AccountDropdownProps) {
+export default function AccountDropdown({
+  open,
+  onClose,
+}: AccountDropdownProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const session = authClient.useSession();
@@ -51,44 +64,50 @@ export default function AccountDropdown({ open, onClose }: AccountDropdownProps)
       <div className="bc-account-head">
         <div className="bc-account-avatar" aria-hidden="true">
           {user?.image ? (
-            <img src={user.image} alt="User" className="bc-account-avatar-img" />
+            <img
+              src={user.image}
+              alt="User"
+              className="bc-account-avatar-img"
+            />
           ) : (
             initials
           )}
         </div>
         <div className="bc-account-head-meta">
           <p className="bc-account-name">{user?.name || "BettCenic User"}</p>
-          <p className="bc-account-email">{user?.email || "guest@bettcenic.com"}</p>
+          <p className="bc-account-email">
+            {user?.email || "guest@bettcenic.com"}
+          </p>
         </div>
       </div>
 
       {menuGroups.map((group, groupIndex) => (
         <div className="bc-account-group" key={`group-${groupIndex}`}>
-          {group.map((item) => (
+          {group.map((item) =>
             (() => {
               const itemPath = item.to.split("?")[0];
               const isActive = location.pathname === itemPath;
 
               return (
-            <Link
-              key={item.label}
-              to={item.to as never}
-              className={`bc-account-item ${isActive ? "is-active" : ""}`}
-              onClick={() => {
-                if (item.warn) {
-                  console.warn(`Route ${item.to} not yet implemented`);
-                }
-                onClose();
-              }}
-            >
-              <span className="bc-account-item-icon" aria-hidden="true">
-                {item.icon}
-              </span>
-              <span>{item.label}</span>
-            </Link>
+                <Link
+                  key={item.label}
+                  to={item.to as never}
+                  className={`bc-account-item ${isActive ? "is-active" : ""}`}
+                  onClick={() => {
+                    if (item.warn) {
+                      console.warn(`Route ${item.to} not yet implemented`);
+                    }
+                    onClose();
+                  }}
+                >
+                  <span className="bc-account-item-icon" aria-hidden="true">
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                </Link>
               );
-            })()
-          ))}
+            })(),
+          )}
         </div>
       ))}
 

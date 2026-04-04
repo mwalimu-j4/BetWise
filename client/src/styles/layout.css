@@ -323,7 +323,12 @@
   height: 28px;
   border-radius: 6px;
   margin-bottom: 8px;
-  background: linear-gradient(90deg, var(--color-bg-hover), var(--color-border-primary), var(--color-bg-hover));
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-hover),
+    var(--color-border-primary),
+    var(--color-bg-hover)
+  );
   background-size: 220% 100%;
   animation: bcShimmer 1.2s linear infinite;
 }
@@ -353,7 +358,9 @@
   color: var(--nav-muted);
   font-size: 12px;
   font-weight: 600;
-  transition: color 0.2s, background-color 0.2s;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
 }
 
 .bc-nav-link:hover {
@@ -634,7 +641,9 @@
   font-size: 13px;
   font-weight: 700;
   box-shadow: 0 2px 12px var(--color-accent-glow);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .bc-deposit-btn:hover {
@@ -926,6 +935,3 @@
     transform: translateY(0);
   }
 }
-
-
-

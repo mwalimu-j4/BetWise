@@ -1,8 +1,4 @@
-import type {
-  ButtonHTMLAttributes,
-  CSSProperties,
-  ReactNode,
-} from "react";
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
@@ -102,8 +98,7 @@ export const adminTableHeadCellClassName =
   "border-b border-admin-border px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted";
 export const adminTableCellClassName =
   "border-b border-admin-border px-3 py-2.5 text-sm text-admin-text-secondary";
-export const adminCompactActionsClassName =
-  "flex flex-wrap items-center gap-1";
+export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
 
 export function adminToneTextClass(tone: AdminTone) {
@@ -174,7 +169,9 @@ export function AdminSectionHeader({
         <h1 className="text-2xl font-bold text-admin-text-primary">{title}</h1>
         <p className="mt-1 text-sm text-admin-text-muted">{subtitle}</p>
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+      {actions ? (
+        <div className="flex flex-wrap items-center gap-3">{actions}</div>
+      ) : null}
     </div>
   );
 }
@@ -191,12 +188,16 @@ export function AdminCardHeader({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="text-base font-semibold text-admin-text-primary">{title}</p>
+        <p className="text-base font-semibold text-admin-text-primary">
+          {title}
+        </p>
         {subtitle ? (
           <p className="mt-1 text-xs text-admin-text-muted">{subtitle}</p>
         ) : null}
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+      {actions ? (
+        <div className="flex flex-wrap items-center gap-3">{actions}</div>
+      ) : null}
     </div>
   );
 }
@@ -318,7 +319,10 @@ export function MiniChart() {
   return (
     <div className="mt-3 flex h-12 items-end gap-1">
       {revenueTrend.map((bar) => (
-        <div className="flex flex-1 flex-col items-center gap-0.5" key={bar.day}>
+        <div
+          className="flex flex-1 flex-col items-center gap-0.5"
+          key={bar.day}
+        >
           <div
             className="w-full rounded-[3px] bg-admin-accent-dim"
             style={{ height: `${bar.bets * 0.44}px` }}
@@ -415,8 +419,3 @@ export function DonutChart() {
     </div>
   );
 }
-
-
-
-
-
