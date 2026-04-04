@@ -31,7 +31,7 @@ const paymentStages = [
 ] as const;
 
 export default function PaymentsDepositPage() {
-  const [phone, setPhone] = useState("254712345678");
+  const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("100");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<StkPushResponse | null>(null);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { Bell, Menu, Search, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -20,8 +20,12 @@ export default function AdminShell() {
   const pathname = useLocation({
     select: (location) => location.pathname,
   });
+  const navigate = useNavigate();
   const notifications = notificationData?.notifications ?? [];
   const unreadCount = notificationData?.unreadCount ?? 0;
+
+  const isWithdrawalNotification = (type: string) =>
+    type === "WITHDRAWAL_SUCCESS" || type === "WITHDRAWAL_FAILED";
 
   return (
     <ProtectedRoute requireRole="ADMIN">
@@ -190,7 +194,16 @@ export default function AdminShell() {
                           <button
                             key={notification.id}
                             type="button"
-                            onClick={() => setNotificationsOpen(false)}
+                            onClick={() => {
+                              setNotificationsOpen(false);
+
+                              if (isWithdrawalNotification(notification.type)) {
+                                void navigate({
+                                  to: "/admin/withdrawals",
+                                  hash: notification.transactionId ?? "latest",
+                                });
+                              }
+                            }}
                             className="w-full border-b border-admin-border/70 px-4 py-3 text-left transition hover:bg-[var(--color-bg-hover)]"
                           >
                             <p className="text-sm font-semibold text-admin-text-primary">

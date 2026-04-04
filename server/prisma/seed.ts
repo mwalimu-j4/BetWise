@@ -3,6 +3,54 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+async function upsertSeedUser(args: {
+  email: string;
+  phone: string;
+  passwordHash: string;
+  role: "ADMIN" | "USER";
+}) {
+  const byEmail = await prisma.user.findUnique({
+    where: { email: args.email },
+    select: { id: true },
+  });
+
+  const byPhone = await prisma.user.findUnique({
+    where: { phone: args.phone },
+    select: { id: true },
+  });
+
+  if (byEmail && byPhone && byEmail.id !== byPhone.id) {
+    throw new Error(
+      `Seed conflict: email ${args.email} and phone ${args.phone} belong to different users.`,
+    );
+  }
+
+  const existingUserId = byEmail?.id ?? byPhone?.id;
+
+  if (existingUserId) {
+    return prisma.user.update({
+      where: { id: existingUserId },
+      data: {
+        email: args.email,
+        phone: args.phone,
+        passwordHash: args.passwordHash,
+        role: args.role,
+        isVerified: true,
+      },
+    });
+  }
+
+  return prisma.user.create({
+    data: {
+      email: args.email,
+      phone: args.phone,
+      passwordHash: args.passwordHash,
+      role: args.role,
+      isVerified: true,
+    },
+  });
+}
+
 async function main() {
   try {
     console.log("Seeding admin and user accounts...");
@@ -21,37 +69,17 @@ async function main() {
     ]);
 
     const [admin, user] = await Promise.all([
-      prisma.user.upsert({
-        where: { phone: adminPhone },
-        update: {
-          email: adminEmail,
-          passwordHash: adminPasswordHash,
-          role: "ADMIN",
-          isVerified: true,
-        },
-        create: {
-          email: adminEmail,
-          phone: adminPhone,
-          passwordHash: adminPasswordHash,
-          role: "ADMIN",
-          isVerified: true,
-        },
+      upsertSeedUser({
+        email: adminEmail,
+        phone: adminPhone,
+        passwordHash: adminPasswordHash,
+        role: "ADMIN",
       }),
-      prisma.user.upsert({
-        where: { phone: userPhone },
-        update: {
-          email: userEmail,
-          passwordHash: userPasswordHash,
-          role: "USER",
-          isVerified: true,
-        },
-        create: {
-          email: userEmail,
-          phone: userPhone,
-          passwordHash: userPasswordHash,
-          role: "USER",
-          isVerified: true,
-        },
+      upsertSeedUser({
+        email: userEmail,
+        phone: userPhone,
+        passwordHash: userPasswordHash,
+        role: "USER",
       }),
     ]);
 

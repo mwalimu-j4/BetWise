@@ -36,6 +36,8 @@ enum NotificationAudience {
 enum NotificationType {
   DEPOSIT_SUCCESS
   DEPOSIT_FAILED
+  WITHDRAWAL_SUCCESS
+  WITHDRAWAL_FAILED
   SYSTEM
 }
 

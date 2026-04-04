@@ -19,7 +19,12 @@ export type WalletRealtimeEvent = {
 export type NotificationRealtimeEvent = {
   notificationId?: string;
   audience: "USER" | "ADMIN";
-  type: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" | "SYSTEM";
+  type:
+    | "DEPOSIT_SUCCESS"
+    | "DEPOSIT_FAILED"
+    | "WITHDRAWAL_SUCCESS"
+    | "WITHDRAWAL_FAILED"
+    | "SYSTEM";
   title: string;
   message: string;
   transactionId?: string | null;

@@ -11,6 +11,7 @@ import { adminRiskRoute } from "./routes/admin/risk";
 import { adminRoute } from "./routes/admin/route";
 import { adminSettingsRoute } from "./routes/admin/settings";
 import { adminTransactionsRoute } from "./routes/admin/transactions";
+import { adminWithdrawalsRoute } from "./routes/admin/withdrawals";
 import { adminUsersRoute } from "./routes/admin/users";
 import { forgotPasswordRoute } from "./routes/forgot-password";
 import { indexRoute } from "./routes";
@@ -58,6 +59,7 @@ const routeTree = rootRoute.addChildren([
     adminEventsRoute,
     adminOddsRoute,
     adminTransactionsRoute,
+    adminWithdrawalsRoute,
     adminRiskRoute,
     adminReportsRoute,
     adminSettingsRoute,

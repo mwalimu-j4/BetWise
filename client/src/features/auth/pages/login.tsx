@@ -118,14 +118,14 @@ export default function Login() {
                 setErrorMessage("");
               }
             }}
-            placeholder="07XXXXXXXX or 01XXXXXXXX or +2547XXXXXXXX or +2541XXXXXXXX"
+            placeholder="0712345678"
             className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
-            autoComplete="tel"
+            // autoComplete="tel"
             required
           />
           {!KENYAN_PHONE_REGEX.test(phone.trim()) && phone.length > 0 ? (
-            <p className="text-xs text-amber-400">
-              Use 07XXXXXXXX, 01XXXXXXXX, +2547XXXXXXXX, or +2541XXXXXXXX.
+            <p className="text-xs text-red-400">
+              Enter a valid kenyan phone number
             </p>
           ) : null}
         </div>

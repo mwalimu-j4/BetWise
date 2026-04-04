@@ -1,4 +1,8 @@
-import { Download, Eye, Filter, Flag } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Download, Eye, Filter, Flag, TriangleAlert } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { api } from "@/api/axiosConfig";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { dashboardMetrics, recentBets } from "../../data/mock-data";
 import {
   AdminButton,
@@ -17,12 +21,50 @@ import {
 } from "../../components/ui";
 
 export default function Dashboard() {
+  const { data: pendingWithdrawalData } = useQuery({
+    queryKey: ["admin-withdrawals", "PENDING"],
+    queryFn: async () => {
+      const response = await api.get<{ withdrawals: Array<{ id: string }> }>(
+        "/admin/withdrawals",
+        {
+          params: { status: "PENDING" },
+        },
+      );
+
+      return response.data;
+    },
+    refetchInterval: 10_000,
+  });
+
+  const pendingWithdrawals = pendingWithdrawalData?.withdrawals ?? [];
+
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         title="Overview"
         subtitle="Friday, April 3, 2026 - Live Platform Snapshot"
       />
+
+      {pendingWithdrawals.length > 0 ? (
+        <Alert className="border-amber-400/30 bg-amber-400/10">
+          <TriangleAlert className="h-4 w-4 text-amber-300" />
+          <AlertTitle className="text-amber-200">
+            Pending Withdrawal Requests
+          </AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-amber-100/90">
+            <span>
+              You have {pendingWithdrawals.length} withdrawal request
+              {pendingWithdrawals.length === 1 ? "" : "s"} waiting for review.
+            </span>
+            <Link
+              to="/admin/withdrawals"
+              className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-amber-100 transition hover:bg-amber-300/20"
+            >
+              Review Requests
+            </Link>
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
       <div className="grid gap-4 xl:grid-cols-3">
         {dashboardMetrics.map((metric) => (

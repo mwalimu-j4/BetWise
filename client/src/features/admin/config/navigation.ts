@@ -9,6 +9,7 @@ import {
   Target,
   Trophy,
   Users,
+  ArrowUpRight,
 } from "lucide-react";
 
 export type AdminNavId =
@@ -19,6 +20,7 @@ export type AdminNavId =
   | "events"
   | "odds"
   | "transactions"
+  | "withdrawals"
   | "risk"
   | "reports"
   | "settings";
@@ -35,6 +37,7 @@ export interface AdminNavSection {
     | "/admin/events"
     | "/admin/odds"
     | "/admin/transactions"
+    | "/admin/withdrawals"
     | "/admin/risk"
     | "/admin/reports"
     | "/admin/settings";
@@ -82,6 +85,12 @@ export const adminNavigation: AdminNavSection[] = [
     label: "Payments",
     icon: CreditCard,
     to: "/admin/transactions",
+  },
+  {
+    id: "withdrawals",
+    label: "Withdrawals",
+    icon: ArrowUpRight,
+    to: "/admin/withdrawals",
   },
   {
     id: "risk",

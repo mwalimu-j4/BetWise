@@ -136,6 +136,12 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const notifications = notificationData?.notifications ?? [];
   const unreadCount = notificationData?.unreadCount ?? 0;
 
+  const isSuccessNotification = (type: string) =>
+    type === "DEPOSIT_SUCCESS" || type === "WITHDRAWAL_SUCCESS";
+
+  const isFailedNotification = (type: string) =>
+    type === "DEPOSIT_FAILED" || type === "WITHDRAWAL_FAILED";
+
   return (
     <header className="bc-navbar" role="banner">
       <div className="bc-ticker">
@@ -261,12 +267,12 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                           onClick={() => setNotificationsOpen(false)}
                         >
                           <span
-                            className={`bc-notify-icon ${notification.type === "DEPOSIT_SUCCESS" ? "is-success" : notification.type === "DEPOSIT_FAILED" ? "is-failed" : ""}`}
+                            className={`bc-notify-icon ${isSuccessNotification(notification.type) ? "is-success" : isFailedNotification(notification.type) ? "is-failed" : ""}`}
                             aria-hidden="true"
                           >
-                            {notification.type === "DEPOSIT_SUCCESS" ? (
+                            {isSuccessNotification(notification.type) ? (
                               <CircleCheck size={14} />
-                            ) : notification.type === "DEPOSIT_FAILED" ? (
+                            ) : isFailedNotification(notification.type) ? (
                               <CircleX size={14} />
                             ) : (
                               <Bell size={14} />

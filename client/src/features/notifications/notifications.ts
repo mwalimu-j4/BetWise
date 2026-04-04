@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -10,7 +11,12 @@ import {
 export type AppNotification = {
   id: string;
   audience: "USER" | "ADMIN";
-  type: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" | "SYSTEM";
+  type:
+    | "DEPOSIT_SUCCESS"
+    | "DEPOSIT_FAILED"
+    | "WITHDRAWAL_SUCCESS"
+    | "WITHDRAWAL_FAILED"
+    | "SYSTEM";
   title: string;
   message: string;
   transactionId?: string | null;
@@ -50,7 +56,7 @@ export function useAppNotifications(take = 20) {
         (current) => {
           const syntheticId =
             payload.notificationId ??
-            `${payload.audience}-${payload.transactionId ?? "sys"}-${payload.createdAt}`;
+            `${payload.audience}-${payload.type}-${payload.transactionId ?? "sys"}-${payload.createdAt}`;
 
           const existingNotifications = current?.notifications ?? [];
           const alreadyExists = existingNotifications.some(
@@ -79,6 +85,18 @@ export function useAppNotifications(take = 20) {
             isRead: false,
             createdAt: payload.createdAt,
           };
+
+          if (payload.type === "WITHDRAWAL_SUCCESS") {
+            toast.success(payload.title || "Withdrawal Successful", {
+              description: payload.message,
+            });
+          }
+
+          if (payload.type === "WITHDRAWAL_FAILED") {
+            toast.error(payload.title || "Withdrawal Failed", {
+              description: payload.message,
+            });
+          }
 
           return {
             unreadCount: (current?.unreadCount ?? 0) + 1,
