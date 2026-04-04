@@ -4,11 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "@/components/search/SearchBar";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "@/features/user/payments/data";
-import {
-  useWalletSummary,
-  walletUpdateBrowserEvent,
-  type WalletStreamEvent,
-} from "@/features/user/payments/wallet";
+import { useAppNotifications, useMarkAllNotificationsRead } from "@/features/notifications/notifications";
+import { useWalletSummary } from "@/features/user/payments/wallet";
 
 type NavbarProps = {
   onToggleSidebar: () => void;
@@ -73,25 +70,13 @@ const leagues = [
   "Rugby",
 ];
 
-type UserNotification = {
-  id: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-};
-
-function buildDepositNotification(payload: WalletStreamEvent) {
-  const mpesaCode = payload.mpesaCode ? payload.mpesaCode : "Pending";
-
-  return `Deposit of ${formatMoney(payload.amount)} received. New balance ${formatMoney(payload.balance)}. M-Pesa code: ${mpesaCode}.`;
-}
-
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
   const { data: walletData } = useWalletSummary();
+  const { data: notificationData } = useAppNotifications(12);
+  const markAllNotificationsRead = useMarkAllNotificationsRead();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const lastPathRef = useRef(location.pathname);
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
@@ -114,59 +99,8 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
     }
   }, [location.pathname]);
 
-  useEffect(() => {
-    const historyNotifications = (walletData?.transactions ?? [])
-      .filter((transaction) => {
-        return (
-          transaction.type === "deposit" && transaction.status === "completed"
-        );
-      })
-      .slice(0, 6)
-      .map((transaction, index) => ({
-        id: `history-${transaction.id}`,
-        message: `Deposit of ${formatMoney(transaction.amount)} confirmed. M-Pesa code: ${transaction.mpesaCode ?? "Pending"}.`,
-        timestamp: transaction.createdAt,
-        read: index === 0,
-      }));
-
-    setNotifications((current) => {
-      const liveOnly = current.filter((item) => item.id.startsWith("live-"));
-      return [...liveOnly, ...historyNotifications].slice(0, 12);
-    });
-  }, [walletData?.transactions]);
-
-  useEffect(() => {
-    const handleWalletUpdate = (event: Event) => {
-      const customEvent = event as CustomEvent<WalletStreamEvent>;
-      const payload = customEvent.detail;
-
-      if (!payload || payload.status !== "COMPLETED") {
-        return;
-      }
-
-      setNotifications((current) =>
-        [
-          {
-            id: `live-${payload.transactionId}-${Date.now()}`,
-            message: buildDepositNotification(payload),
-            timestamp: new Date().toISOString(),
-            read: false,
-          },
-          ...current,
-        ].slice(0, 12),
-      );
-    };
-
-    window.addEventListener(walletUpdateBrowserEvent, handleWalletUpdate);
-
-    return () => {
-      window.removeEventListener(walletUpdateBrowserEvent, handleWalletUpdate);
-    };
-  }, []);
-
-  const unreadCount = notifications.filter(
-    (notification) => !notification.read,
-  ).length;
+  const notifications = notificationData?.notifications ?? [];
+  const unreadCount = notificationData?.unreadCount ?? 0;
 
   return (
     <header className="bc-navbar" role="banner">
@@ -258,13 +192,14 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               className="bc-icon-btn"
               aria-label="Open notifications"
               onClick={() => {
-                setNotificationsOpen((prev) => !prev);
-                setNotifications((current) =>
-                  current.map((notification) => ({
-                    ...notification,
-                    read: true,
-                  })),
-                );
+                setNotificationsOpen((prev) => {
+                  const next = !prev;
+                  if (next && unreadCount > 0) {
+                    void markAllNotificationsRead();
+                  }
+
+                  return next;
+                });
               }}
             >
               <Bell size={18} />
@@ -282,7 +217,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                       className="bc-notify-item"
                       onClick={() => setNotificationsOpen(false)}
                     >
-                      {notification.message}
+                      <strong>{notification.title}:</strong> {notification.message}
                     </button>
                   ))
                 ) : (
