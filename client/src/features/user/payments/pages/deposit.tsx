@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { CheckCircle2, CircleAlert, LoaderCircle } from "lucide-react";
+import { CheckCircle2, CircleAlert, LoaderCircle, Check } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -12,13 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { formatMoney } from "../data";
 import {
   useWalletSummary,
@@ -62,6 +55,7 @@ export default function PaymentsDepositPage() {
 
   const currentBalance = walletData?.wallet.balance ?? 0;
 
+  // Optimistic UI update listener
   useEffect(() => {
     if (
       submissionStartedAt &&
@@ -78,13 +72,14 @@ export default function PaymentsDepositPage() {
     }
   }, [currentBalance, isSubmitting, submissionBalance, submissionStartedAt]);
 
+  // Polling listener
   useEffect(() => {
     if (!submittedTransactionId || depositConfirmed || paymentFailed) {
       return;
     }
 
     let active = true;
-    const maxAttempts = 18;
+    const maxAttempts = 18; // 18 * 5s = 90 seconds timeout
     let attempts = 0;
 
     const pollStatus = async () => {
@@ -95,9 +90,7 @@ export default function PaymentsDepositPage() {
           `/payments/mpesa/status/${submittedTransactionId}`,
         );
 
-        if (!active) {
-          return;
-        }
+        if (!active) return;
 
         if (data.status === "COMPLETED") {
           setDepositConfirmed(true);
@@ -116,10 +109,19 @@ export default function PaymentsDepositPage() {
         // Keep retrying for transient gateway/provider delays.
       }
 
-      if (active && attempts < maxAttempts) {
-        window.setTimeout(() => {
-          void pollStatus();
-        }, 5000);
+      if (active) {
+        if (attempts < maxAttempts) {
+          window.setTimeout(() => {
+            void pollStatus();
+          }, 5000);
+        } else {
+          // Prevent user from being stuck with an unclosable modal forever
+          setPaymentFailed(
+            "Payment request timed out. Please check your balance or try again.",
+          );
+          setSubmissionStartedAt(null);
+          setSubmissionBalance(null);
+        }
       }
     };
 
@@ -160,7 +162,7 @@ export default function PaymentsDepositPage() {
       );
 
       setResponse(data);
-  setSubmittedTransactionId(data.transactionId ?? null);
+      setSubmittedTransactionId(data.transactionId ?? null);
       toast.info("Payment initiated. Please approve the prompt on your phone.");
     } catch (error: unknown) {
       setSubmissionStartedAt(null);
@@ -193,10 +195,14 @@ export default function PaymentsDepositPage() {
     feedbackDialogOpen &&
     Boolean(isSubmitting || response || depositConfirmed || paymentFailed);
 
+  // Determine current step for UI progress indicator
+  const currentStepIndex = depositConfirmed ? 3 : response ? 1 : 0;
+
   return (
-    <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-      <article className="rounded-2xl border border-admin-border bg-admin-card p-5">
-        <div className="mb-5 flex items-start justify-between gap-3 border-b border-admin-border pb-4">
+    <section className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+      {/* Left Column: Form */}
+      <article className="rounded-2xl border border-admin-border bg-admin-card p-5 h-fit shadow-sm">
+        <div className="mb-6 flex items-start justify-between gap-3 border-b border-admin-border pb-4">
           <div>
             <h2 className="text-lg font-bold text-admin-text-primary">
               Deposit Funds
@@ -205,7 +211,7 @@ export default function PaymentsDepositPage() {
               Instant top-up through M-Pesa STK Push.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-admin-accent/30 bg-admin-accent-dim px-3 py-1.5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-admin-accent/30 bg-admin-accent-dim px-3 py-1.5 shadow-inner">
             <img
               src="/images/mpesa/logo.png"
               alt="M-Pesa"
@@ -217,7 +223,7 @@ export default function PaymentsDepositPage() {
           </div>
         </div>
 
-        <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        <div className="mb-6 grid gap-3 sm:grid-cols-3">
           <article className="rounded-2xl border border-admin-border bg-admin-surface p-4">
             <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
               Available balance
@@ -244,7 +250,7 @@ export default function PaymentsDepositPage() {
           </article>
         </div>
 
-        <form className="grid gap-4" onSubmit={handleSubmit}>
+        <form className="grid gap-5" onSubmit={handleSubmit}>
           <div className="grid gap-2">
             <label
               htmlFor="phone"
@@ -291,12 +297,12 @@ export default function PaymentsDepositPage() {
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-1">
               {quickAmounts.map((option) => (
                 <button
                   key={option}
                   type="button"
-                  className="rounded-lg border border-admin-border bg-admin-surface px-2.5 py-1 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent hover:text-admin-text-primary"
+                  className="rounded-lg border border-admin-border bg-admin-surface px-3 py-1.5 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent hover:text-admin-text-primary"
                   onClick={() => setAmount(String(option))}
                 >
                   {formatMoney(option)}
@@ -308,135 +314,169 @@ export default function PaymentsDepositPage() {
           <Button
             type="submit"
             disabled={!isFormValid || isSubmitting}
-            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-black hover:opacity-90"
+            className="mt-2 h-12 w-full rounded-xl bg-admin-accent text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
           >
-            {isSubmitting ? "Sending STK prompt..." : "Deposit now"}
+            {isSubmitting ? "Initiating STK Push..." : "Deposit Now"}
           </Button>
         </form>
-
-        <Card className="mt-4 border-admin-border bg-admin-surface shadow-none">
-          <CardHeader className="pb-0">
-            <CardTitle className="text-sm text-admin-text-primary">
-              Live Payment Feedback
-            </CardTitle>
-            <CardDescription className="text-admin-text-muted">
-              Status updates change automatically as M-Pesa confirms your
-              request.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-2 pt-4 sm:grid-cols-3">
-            {paymentStages.map((stage, index) => {
-              const isActive =
-                (index === 0 &&
-                  (isSubmitting || Boolean(response) || depositConfirmed)) ||
-                (index === 1 &&
-                  (Boolean(response) || depositConfirmed) &&
-                  !paymentFailed) ||
-                (index === 2 && depositConfirmed);
-
-              return (
-                <div
-                  key={stage}
-                  className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${
-                    isActive
-                      ? "border-admin-accent/30 bg-admin-accent-dim text-admin-text-primary"
-                      : "border-admin-border bg-admin-card text-admin-text-secondary"
-                  }`}
-                >
-                  {stage}
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
       </article>
 
-      <article className="rounded-2xl border border-admin-border bg-admin-surface p-5">
-        <h3 className="text-sm font-semibold text-admin-text-primary">
-          Deposit Guidelines
+      {/* Right Column: Instructions / FAQ to fill the responsive grid */}
+      <article className="rounded-2xl border border-admin-border bg-admin-surface p-5 h-fit shadow-sm">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-admin-text-muted mb-4">
+          How it works
         </h3>
-        <div className="mt-3 grid gap-2 text-sm text-admin-text-secondary">
-          <p className="rounded-lg border border-admin-border bg-admin-card px-3 py-2">
-            Use your registered phone number for faster KYC checks.
-          </p>
-          <p className="rounded-lg border border-admin-border bg-admin-card px-3 py-2">
-            Deposits are reflected immediately after STK confirmation.
-          </p>
-          <p className="rounded-lg border border-admin-border bg-admin-card px-3 py-2">
-            High value deposits may trigger extra account verification.
+        <ul className="space-y-4">
+          <li className="flex gap-3">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-admin-accent/20 text-xs font-bold text-admin-accent">
+              1
+            </div>
+            <p className="text-sm text-admin-text-secondary">
+              Enter your registered M-Pesa mobile number and the amount you wish
+              to top up.
+            </p>
+          </li>
+          <li className="flex gap-3">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-admin-accent/20 text-xs font-bold text-admin-accent">
+              2
+            </div>
+            <p className="text-sm text-admin-text-secondary">
+              Click "Deposit Now" and wait for the STK prompt to appear on your
+              phone screen.
+            </p>
+          </li>
+          <li className="flex gap-3">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-admin-accent/20 text-xs font-bold text-admin-accent">
+              3
+            </div>
+            <p className="text-sm text-admin-text-secondary">
+              Enter your M-Pesa PIN to authorize the transaction. Your wallet
+              will update automatically within seconds.
+            </p>
+          </li>
+        </ul>
+        <div className="mt-6 rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            <strong>Note:</strong> Ensure your phone is unlocked and active to
+            receive the STK prompt. Do not refresh this page while waiting for
+            confirmation.
           </p>
         </div>
       </article>
 
-      <Dialog open={shouldShowDialog} onOpenChange={setFeedbackDialogOpen}>
+      {/* Feedback Dialog */}
+      <Dialog
+        open={shouldShowDialog}
+        onOpenChange={(open) => {
+          // PREVENT CLOSING: Only allow user to dismiss modal if payment has resolved
+          if (!open && (depositConfirmed || paymentFailed)) {
+            setFeedbackDialogOpen(false);
+          }
+        }}
+      >
         <DialogContent
           showCloseButton={false}
-          className="max-w-md border-admin-border bg-admin-card p-0"
+          className="max-w-md overflow-hidden border-admin-border bg-admin-card p-0 shadow-2xl"
         >
-          <div className="rounded-2xl p-6">
+          <div className="p-6 sm:p-8">
             <DialogHeader className="items-center text-center">
               <div
-                className={`mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full border ${
+                className={`mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full border-2 ${
                   paymentFailed
-                    ? "border-red-400/30 bg-red-500/10"
+                    ? "border-red-400/30 bg-red-500/10 text-red-500"
                     : depositConfirmed
-                      ? "border-admin-accent/30 bg-admin-accent-dim"
-                      : "border-admin-border bg-admin-surface"
+                      ? "border-admin-accent/30 bg-admin-accent-dim text-admin-accent"
+                      : "border-admin-accent/50 bg-admin-surface text-admin-accent"
                 }`}
               >
                 {paymentFailed ? (
-                  <CircleAlert className="h-7 w-7 text-red-400" />
+                  <CircleAlert className="h-8 w-8" />
                 ) : depositConfirmed ? (
-                  <CheckCircle2 className="h-7 w-7 text-admin-accent" />
+                  <CheckCircle2 className="h-8 w-8" />
                 ) : (
-                  <LoaderCircle className="h-7 w-7 animate-spin text-admin-accent" />
+                  <LoaderCircle className="h-8 w-8 animate-spin" />
                 )}
               </div>
-              <DialogTitle className="text-xl text-admin-text-primary">
+              <DialogTitle className="text-2xl font-bold text-admin-text-primary">
                 {paymentFailed
                   ? "Payment Failed"
                   : depositConfirmed
                     ? "Payment Complete"
-                    : response
-                      ? "Awaiting Confirmation"
-                      : "Payment Initiated"}
+                    : "Awaiting Payment"}
               </DialogTitle>
-              <DialogDescription className="mt-1 text-center text-sm text-admin-text-muted">
+              <DialogDescription className="mt-2 text-center text-sm text-admin-text-muted">
                 {paymentFailed
                   ? paymentFailed
                   : depositConfirmed
-                    ? `Your deposit of ${formatMoney(submissionAmount ?? 0)} has gone through. Your balance is ${formatMoney(currentBalance)}.`
-                    : response
-                      ? "We sent the STK request. Approve it on your phone to complete payment."
-                      : "Payment initiated. Preparing your M-Pesa request..."}
+                    ? `Your deposit of ${formatMoney(submissionAmount ?? 0)} has gone through. Your new balance is ${formatMoney(currentBalance)}.`
+                    : "Please check your phone and enter your M-Pesa PIN to complete the transaction."}
               </DialogDescription>
             </DialogHeader>
 
-            {response?.checkoutRequestId ? (
-              <div className="mt-4 rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-xs text-admin-text-secondary">
-                Request ID: {response.checkoutRequestId}
+            {/* Visual Progress Tracker (only show if not failed) */}
+            {!paymentFailed && (
+              <div className="mt-8 space-y-3">
+                {paymentStages.map((stage, index) => {
+                  const isActive = currentStepIndex === index;
+                  const isCompleted = currentStepIndex > index;
+
+                  return (
+                    <div key={stage} className="flex items-center gap-3">
+                      <div
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                          isCompleted
+                            ? "border-admin-accent bg-admin-accent text-black"
+                            : isActive
+                              ? "border-admin-accent bg-admin-surface text-admin-accent"
+                              : "border-admin-border bg-transparent text-admin-text-muted"
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <Check className="h-3.5 w-3.5 stroke-[3]" />
+                        ) : (
+                          <span className="text-xs font-bold">{index + 1}</span>
+                        )}
+                      </div>
+                      <p
+                        className={`text-sm font-medium ${
+                          isCompleted || isActive
+                            ? "text-admin-text-primary"
+                            : "text-admin-text-muted"
+                        }`}
+                      >
+                        {stage}
+                      </p>
+                      {isActive && (
+                        <LoaderCircle className="ml-auto h-4 w-4 animate-spin text-admin-accent" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Display Transaction Info */}
+            {response?.checkoutRequestId &&
+            !depositConfirmed &&
+            !paymentFailed ? (
+              <div className="mt-6 rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-center text-xs text-admin-text-secondary">
+                Request ID:{" "}
+                <span className="font-mono">{response.checkoutRequestId}</span>
               </div>
             ) : null}
 
-            <DialogFooter className="mt-6 sm:justify-center">
+            {/* Only show dismiss button when the process is fully resolved */}
+            <DialogFooter className="mt-8 sm:justify-center">
               {depositConfirmed || paymentFailed ? (
                 <Button
                   type="button"
-                  className="h-10 min-w-28 rounded-xl bg-admin-accent text-black hover:opacity-90"
+                  className="h-11 w-full rounded-xl bg-admin-accent text-sm font-bold text-black transition hover:opacity-90"
                   onClick={() => setFeedbackDialogOpen(false)}
                 >
-                  Okay
+                  Close & Return
                 </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10 min-w-28 rounded-xl border-admin-border bg-admin-surface text-admin-text-primary hover:bg-admin-card"
-                  onClick={() => setFeedbackDialogOpen(false)}
-                >
-                  Hide
-                </Button>
-              )}
+              ) : null}
+              {/* Note: The 'Hide' button has been removed intentionally so they cannot dismiss it while waiting */}
             </DialogFooter>
           </div>
         </DialogContent>
