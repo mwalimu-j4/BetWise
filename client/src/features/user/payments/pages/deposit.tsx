@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { CheckCircle2, CircleAlert, LoaderCircle, Check } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -15,8 +16,10 @@ import {
 import { formatMoney } from "../data";
 import {
   useWalletSummary,
+  walletSummaryQueryKey,
   type MpesaTransactionStatusResponse,
   type StkPushResponse,
+  type WalletSummaryResponse,
 } from "../wallet";
 
 // Reduced to exactly 4 options
@@ -47,6 +50,7 @@ export default function PaymentsDepositPage() {
   const [paymentFailed, setPaymentFailed] = useState<string | null>(null);
 
   // Kept under the hood for optimistic UI updates, but removed from the visible layout
+  const queryClient = useQueryClient();
   const { data: walletData } = useWalletSummary();
   const currentBalance = walletData?.wallet.balance ?? 0;
 
@@ -64,14 +68,32 @@ export default function PaymentsDepositPage() {
       currentBalance > submissionBalance &&
       !isSubmitting
     ) {
+      const optimisticBalance = submissionBalance + (submissionAmount ?? 0);
+      queryClient.setQueryData<WalletSummaryResponse>(
+        walletSummaryQueryKey,
+        (prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            wallet: {
+              ...prev.wallet,
+              balance: Math.max(currentBalance, optimisticBalance),
+            },
+          };
+        },
+      );
       setDepositConfirmed(true);
       setSubmissionStartedAt(null);
       setSubmissionBalance(null);
+      queryClient.invalidateQueries({
+        queryKey: walletSummaryQueryKey,
+        refetchType: "active",
+      });
       toast.success(
         `Payment successful. New balance is ${formatMoney(currentBalance)}.`,
       );
     }
-  }, [currentBalance, isSubmitting, submissionBalance, submissionStartedAt]);
+  }, [currentBalance, isSubmitting, submissionBalance, submissionStartedAt, queryClient]);
 
   useEffect(() => {
     if (!submittedTransactionId || depositConfirmed || paymentFailed) return;
@@ -91,9 +113,27 @@ export default function PaymentsDepositPage() {
         if (!active) return;
 
         if (data.status === "COMPLETED") {
+          const optimisticBalance = (submissionBalance ?? currentBalance) + (submissionAmount ?? 0);
+          queryClient.setQueryData<WalletSummaryResponse>(
+            walletSummaryQueryKey,
+            (prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                wallet: {
+                  ...prev.wallet,
+                  balance: optimisticBalance,
+                },
+              };
+            },
+          );
           setDepositConfirmed(true);
           setSubmissionStartedAt(null);
           setSubmissionBalance(null);
+          queryClient.invalidateQueries({
+            queryKey: walletSummaryQueryKey,
+            refetchType: "active",
+          });
           return;
         }
 
@@ -101,6 +141,10 @@ export default function PaymentsDepositPage() {
           setPaymentFailed(data.message || "Payment failed.");
           setSubmissionStartedAt(null);
           setSubmissionBalance(null);
+          queryClient.invalidateQueries({
+            queryKey: walletSummaryQueryKey,
+            refetchType: "active",
+          });
           return;
         }
       } catch {
