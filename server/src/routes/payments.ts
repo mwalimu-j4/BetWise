@@ -3,7 +3,6 @@ import { z } from "zod";
 import { authenticate } from "../middleware/authenticate";
 
 const paymentRouter = Router();
-paymentRouter.use(authenticate);
 
 const stkPushBodySchema = z.object({
   phone: z.string().trim().min(10),
@@ -25,6 +24,29 @@ type MpesaStkPushResponse = {
   CustomerMessage?: string;
   errorMessage?: string;
 };
+
+const mpesaCallbackSchema = z.object({
+  Body: z.object({
+    stkCallback: z.object({
+      MerchantRequestID: z.string().optional(),
+      CheckoutRequestID: z.string().optional(),
+      ResultCode: z.number(),
+      ResultDesc: z.string(),
+      CallbackMetadata: z
+        .object({
+          Item: z
+            .array(
+              z.object({
+                Name: z.string(),
+                Value: z.union([z.string(), z.number()]).optional(),
+              }),
+            )
+            .optional(),
+        })
+        .optional(),
+    }),
+  }),
+});
 
 function normalizePhoneNumber(phone: string) {
   const digitsOnly = phone.replace(/\D/g, "");
@@ -64,7 +86,7 @@ function getMpesaConfig() {
   }
 
   if (!shortcode) {
-    missingVars.push("MPESA_SHORTCODE ");
+    missingVars.push("MPESA_SHORTCODE");
   }
 
   if (!passkey) {
@@ -72,7 +94,7 @@ function getMpesaConfig() {
   }
 
   if (!callbackUrl) {
-    missingVars.push("MPESA_CALLBACK_URL ");
+    missingVars.push("MPESA_CALLBACK_URL");
   }
 
   if (missingVars.length > 0) {
@@ -110,99 +132,123 @@ function getTimestamp() {
   return `${year}${month}${day}${hour}${minute}${second}`;
 }
 
-paymentRouter.post("/payments/mpesa/stk-push", async (req, res, next) => {
-  try {
-    const parsedBody = stkPushBodySchema.safeParse(req.body);
+paymentRouter.post("/payments/mpesa/callback", (req, res) => {
+  const parsedBody = mpesaCallbackSchema.safeParse(req.body);
 
-    if (!parsedBody.success) {
-      return res.status(400).json({ message: "Invalid payment payload." });
-    }
-
-    const config = getMpesaConfig();
-    if (!config.isConfigured) {
-      return res.status(500).json({
-        message: `M-Pesa is not configured. Missing: ${config.missingVars.join(", ")}.`,
-      });
-    }
-
-    const normalizedPhone = normalizePhoneNumber(parsedBody.data.phone);
-    if (!normalizedPhone) {
-      return res.status(400).json({
-        message: "Phone must be in Kenyan format like 2547XXXXXXXX.",
-      });
-    }
-
-    const authHeader = Buffer.from(
-      `${config.consumerKey}:${config.consumerSecret}`,
-    ).toString("base64");
-
-    const tokenResponse = await fetch(
-      `${config.baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Basic ${authHeader}`,
-        },
-      },
-    );
-
-    if (!tokenResponse.ok) {
-      return res.status(502).json({
-        message: "Could not authenticate with M-Pesa API.",
-      });
-    }
-
-    const tokenData = (await tokenResponse.json()) as MpesaAuthTokenResponse;
-
-    const timestamp = getTimestamp();
-    const password = Buffer.from(
-      `${config.shortcode}${config.passkey}${timestamp}`,
-    ).toString("base64");
-
-    const stkPayload = {
-      BusinessShortCode: config.shortcode,
-      Password: password,
-      Timestamp: timestamp,
-      TransactionType: "CustomerPayBillOnline",
-      Amount: parsedBody.data.amount,
-      PartyA: normalizedPhone,
-      PartyB: config.shortcode,
-      PhoneNumber: normalizedPhone,
-      CallBackURL: config.callbackUrl,
-      AccountReference: parsedBody.data.accountReference ?? "BET-DEPOSIT",
-      TransactionDesc: parsedBody.data.description ?? "Bet wallet deposit",
-    };
-
-    const stkPushResponse = await fetch(
-      `${config.baseUrl}/mpesa/stkpush/v1/processrequest`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${tokenData.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(stkPayload),
-      },
-    );
-
-    const stkData = (await stkPushResponse.json()) as MpesaStkPushResponse;
-
-    if (!stkPushResponse.ok || stkData.ResponseCode !== "0") {
-      return res.status(502).json({
-        message:
-          stkData.errorMessage ?? "M-Pesa rejected the STK push request.",
-      });
-    }
-
-    return res.status(200).json({
-      message: "STK push initiated successfully.",
-      merchantRequestId: stkData.MerchantRequestID,
-      checkoutRequestId: stkData.CheckoutRequestID,
-      customerMessage: stkData.CustomerMessage,
-    });
-  } catch (error) {
-    next(error);
+  if (!parsedBody.success) {
+    console.warn("Invalid M-Pesa callback payload received.", req.body);
+    return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
   }
+
+  const callback = parsedBody.data.Body.stkCallback;
+  console.log("M-Pesa callback received", {
+    merchantRequestId: callback.MerchantRequestID,
+    checkoutRequestId: callback.CheckoutRequestID,
+    resultCode: callback.ResultCode,
+    resultDesc: callback.ResultDesc,
+    callbackMetadata: callback.CallbackMetadata?.Item ?? [],
+  });
+
+  return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
 });
+
+paymentRouter.post(
+  "/payments/mpesa/stk-push",
+  authenticate,
+  async (req, res, next) => {
+    try {
+      const parsedBody = stkPushBodySchema.safeParse(req.body);
+
+      if (!parsedBody.success) {
+        return res.status(400).json({ message: "Invalid payment payload." });
+      }
+
+      const config = getMpesaConfig();
+      if (!config.isConfigured) {
+        return res.status(500).json({
+          message: `M-Pesa is not configured. Missing: ${config.missingVars.join(", ")}.`,
+        });
+      }
+
+      const normalizedPhone = normalizePhoneNumber(parsedBody.data.phone);
+      if (!normalizedPhone) {
+        return res.status(400).json({
+          message: "Phone must be in Kenyan format like 2547XXXXXXXX.",
+        });
+      }
+
+      const authHeader = Buffer.from(
+        `${config.consumerKey}:${config.consumerSecret}`,
+      ).toString("base64");
+
+      const tokenResponse = await fetch(
+        `${config.baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Basic ${authHeader}`,
+          },
+        },
+      );
+
+      if (!tokenResponse.ok) {
+        return res.status(502).json({
+          message: "Could not authenticate with M-Pesa API.",
+        });
+      }
+
+      const tokenData = (await tokenResponse.json()) as MpesaAuthTokenResponse;
+
+      const timestamp = getTimestamp();
+      const password = Buffer.from(
+        `${config.shortcode}${config.passkey}${timestamp}`,
+      ).toString("base64");
+
+      const stkPayload = {
+        BusinessShortCode: config.shortcode,
+        Password: password,
+        Timestamp: timestamp,
+        TransactionType: "CustomerPayBillOnline",
+        Amount: parsedBody.data.amount,
+        PartyA: normalizedPhone,
+        PartyB: config.shortcode,
+        PhoneNumber: normalizedPhone,
+        CallBackURL: config.callbackUrl,
+        AccountReference: parsedBody.data.accountReference ?? "BET-DEPOSIT",
+        TransactionDesc: parsedBody.data.description ?? "Bet wallet deposit",
+      };
+
+      const stkPushResponse = await fetch(
+        `${config.baseUrl}/mpesa/stkpush/v1/processrequest`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(stkPayload),
+        },
+      );
+
+      const stkData = (await stkPushResponse.json()) as MpesaStkPushResponse;
+
+      if (!stkPushResponse.ok || stkData.ResponseCode !== "0") {
+        return res.status(502).json({
+          message:
+            stkData.errorMessage ?? "M-Pesa rejected the STK push request.",
+        });
+      }
+
+      return res.status(200).json({
+        message: "STK push initiated successfully.",
+        merchantRequestId: stkData.MerchantRequestID,
+        checkoutRequestId: stkData.CheckoutRequestID,
+        customerMessage: stkData.CustomerMessage,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 export { paymentRouter };

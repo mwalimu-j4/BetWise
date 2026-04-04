@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Bell, Menu, Plus } from "lucide-react";
+import { Bell, Menu, Plus, Wallet } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "@/components/search/SearchBar";
 import { useAuth } from "@/context/AuthContext";
@@ -36,20 +36,20 @@ const navLinks: NavRoute[] = [
     badge: { text: "24", tone: "red" },
   },
   { label: "Upcoming", icon: "*", to: "/user/payments" },
-  {
-    label: "Jackpot",
-    icon: "$",
-    to: "/user/coming-soon?feature=jackpot",
-    badge: { text: "4.2M", tone: "gold" },
-  },
-  {
-    label: "Promotions",
-    icon: "+",
-    to: "/user/coming-soon?feature=promotions",
-    badge: { text: "New", tone: "green" },
-  },
+  // {
+  //   label: "Jackpot",
+  //   icon: "$",
+  //   to: "/user/coming-soon?feature=jackpot",
+  //   badge: { text: "4.2M", tone: "gold" },
+  // },
+  // {
+  //   label: "Promotions",
+  //   icon: "+",
+  //   to: "/user/coming-soon?feature=promotions",
+  //   badge: { text: "New", tone: "green" },
+  // },
   { label: "Results", icon: "=", to: "/user/payments/history" },
-  { label: "Casino", icon: "@", to: "/user/coming-soon?feature=casino" },
+  // { label: "Casino", icon: "@", to: "/user/coming-soon?feature=casino" },
   { label: "My Bets", icon: "[]", to: "/user/payments" },
 ];
 
@@ -166,11 +166,16 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </nav>
 
         <div className="bc-actions">
-          <div className="bc-balance" aria-label="Balance">
-            <span className="bc-balance-label">BALANCE</span>
-            <span className="bc-balance-value">
-              {formatMoney(walletSummary.balance)}
-            </span>
+          <div className="bc-balance-card">
+            <div className="bc-balance-icon">
+              <Wallet size={16} />
+            </div>
+            <div className="bc-balance-content">
+              <span className="bc-balance-label">BALANCE</span>
+              <span className="bc-balance-value">
+                {formatMoney(walletSummary.balance)}
+              </span>
+            </div>
           </div>
 
           <div className="bc-notify">
@@ -180,7 +185,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               aria-label="Open notifications"
               onClick={() => setNotificationsOpen((prev) => !prev)}
             >
-              <Bell size={16} />
+              <Bell size={18} />
             </button>
             <span className="bc-notify-dot" aria-hidden="true" />
             {notificationsOpen ? (
@@ -204,13 +209,11 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           </div>
 
           {isAuthenticated ? (
-            <div className="flex items-center gap-2">
-              <span className="rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 py-1.5 text-xs font-semibold text-admin-text-primary">
-                {maskedPhone}
-              </span>
+            <div className="bc-auth-group">
+              <span className="bc-phone-badge">{maskedPhone}</span>
               <button
                 type="button"
-                className="rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-3 py-1.5 text-xs font-semibold text-admin-text-primary transition hover:border-[var(--color-border-accent)]"
+                className="bc-logout-btn"
                 onClick={() => {
                   void logout();
                 }}
@@ -219,17 +222,11 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Link
-                to="/register"
-                className="rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-3 py-1.5 text-xs font-semibold text-admin-text-primary transition hover:border-[var(--color-border-accent)]"
-              >
+            <div className="bc-auth-group">
+              <Link to="/register" className="bc-register-btn">
                 Register
               </Link>
-              <Link
-                to="/login"
-                className="rounded-lg bg-admin-accent px-3 py-1.5 text-xs font-semibold text-[var(--color-text-dark)]"
-              >
+              <Link to="/login" className="bc-login-btn">
                 Login
               </Link>
             </div>
@@ -240,7 +237,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             className="bc-deposit-btn"
             aria-label="Deposit funds"
           >
-            <Plus size={14} />
+            <Plus size={18} />
             <span className="bc-deposit-text">Deposit</span>
           </Link>
         </div>

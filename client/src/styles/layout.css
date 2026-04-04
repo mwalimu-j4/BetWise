@@ -406,19 +406,53 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
-.bc-balance {
+.bc-balance-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    var(--nav-accent) 0%,
+    var(--nav-accent2) 100%
+  );
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  min-width: fit-content;
+  transition: all 0.2s ease;
+}
+
+.bc-balance-card:hover {
+  transform: translateY(-0.5px);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.25);
+}
+
+.bc-balance-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  color: var(--color-text-dark);
+  flex-shrink: 0;
+}
+
+.bc-balance-content {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  gap: 2px;
 }
 
 .bc-balance-label {
   font-size: 9px;
-  color: var(--nav-muted);
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.65);
   letter-spacing: 1px;
 }
 
@@ -426,16 +460,27 @@
   font-family: "Barlow Condensed", sans-serif;
   font-size: 14px;
   font-weight: 700;
-  color: var(--nav-text);
+  color: var(--color-text-dark);
 }
 
 .bc-icon-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   border: 1px solid var(--color-border-primary);
   background: var(--nav-surface2);
   color: var(--nav-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bc-icon-btn:hover {
+  background: var(--nav-surface);
+  border-color: var(--color-border-accent);
+  color: var(--nav-accent);
 }
 
 .bc-notify {
@@ -626,21 +671,22 @@
 }
 
 .bc-deposit-btn {
-  height: 44px;
-  min-width: 44px;
+  height: 36px;
+  min-width: auto;
   border-radius: 6px;
   border: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 14px;
+  padding: 0 12px;
   text-decoration: none;
   background: linear-gradient(135deg, var(--nav-accent), var(--nav-accent2));
   color: var(--color-text-dark);
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  box-shadow: 0 2px 12px var(--color-accent-glow);
+  letter-spacing: 0.3px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   transition:
     transform 0.2s,
     box-shadow 0.2s;
@@ -648,7 +694,84 @@
 
 .bc-deposit-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px var(--color-accent-glow);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.25);
+}
+
+.bc-auth-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bc-phone-badge {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-primary);
+  background: var(--nav-surface2);
+  color: var(--nav-text);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.bc-phone-badge:hover {
+  border-color: var(--color-border-accent);
+  background: var(--nav-surface);
+}
+
+.bc-logout-btn,
+.bc-register-btn,
+.bc-login-btn {
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-primary);
+  background: var(--nav-surface2);
+  color: var(--nav-text);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.bc-logout-btn:hover,
+.bc-register-btn:hover {
+  background: var(--nav-surface);
+  border-color: var(--color-border-accent);
+  color: var(--nav-accent);
+  transform: translateY(-0.5px);
+}
+
+.bc-login-btn {
+  background: linear-gradient(
+    135deg,
+    var(--nav-accent) 0%,
+    var(--nav-accent2) 100%
+  );
+  border: 0;
+  color: var(--color-text-dark);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+}
+
+.bc-login-btn:hover {
+  background: linear-gradient(
+    135deg,
+    var(--nav-accent) 0%,
+    var(--nav-accent2) 100%
+  );
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.25);
 }
 
 .bc-leagues {
