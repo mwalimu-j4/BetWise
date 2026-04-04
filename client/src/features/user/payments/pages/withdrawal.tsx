@@ -11,7 +11,7 @@ const quickAmounts = [100, 500, 1000, 2500, 5000, 10000];
 
 const MAX_WITHDRAWAL = 10000;
 const WITHDRAWAL_FEE_PERCENTAGE = 5;
-const MIN_WITHDRAWAL = 100;
+const MIN_WITHDRAWAL = 1;
 
 type WithdrawalResponse = {
   message: string;
@@ -46,7 +46,9 @@ export default function PaymentsWithdrawalPage() {
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success(data.message || "Withdrawal request submitted successfully!");
+      toast.success(
+        data.message || "Withdrawal request submitted successfully!",
+      );
       setAmount("500");
       setPhone("");
       // Refetch wallet summary to get updated balance
@@ -66,7 +68,9 @@ export default function PaymentsWithdrawalPage() {
   const balance = walletData?.wallet.balance ?? 0;
   const totalNeeded = numAmount + feeAmount;
 
-  const isPhoneValid = /^254\d{9}$/.test(phone.replace(/\s+/g, ""));
+  const isPhoneValid = /^(?:\+254|254|0)?7\d{8}$/.test(
+    phone.replace(/\s+/g, ""),
+  );
 
   const canWithdraw = useMemo(() => {
     return (
@@ -92,7 +96,9 @@ export default function PaymentsWithdrawalPage() {
       } else if (numAmount > MAX_WITHDRAWAL) {
         toast.error(`Maximum withdrawal is KES ${MAX_WITHDRAWAL}.`);
       } else if (totalNeeded > balance) {
-        toast.error(`Insufficient balance. You need KES ${totalNeeded.toLocaleString()}.`);
+        toast.error(
+          `Insufficient balance. You need KES ${totalNeeded.toLocaleString()}.`,
+        );
       } else {
         toast.error("Please check your input and try again.");
       }
@@ -118,7 +124,8 @@ export default function PaymentsWithdrawalPage() {
             Withdraw Funds
           </h2>
           <p className="mt-1 text-sm text-admin-text-muted">
-            Transfer your winnings to M-Pesa. Withdrawals require admin approval.
+            Transfer your winnings to M-Pesa. Withdrawals require admin
+            approval.
           </p>
         </div>
 
@@ -172,20 +179,26 @@ export default function PaymentsWithdrawalPage() {
             {numAmount > 0 && (
               <div className="mt-2 space-y-2 rounded-lg bg-admin-surface p-3 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-admin-text-muted">Withdrawal amount:</span>
+                  <span className="text-admin-text-muted">
+                    Withdrawal amount:
+                  </span>
                   <span className="text-admin-text-primary font-medium">
                     KES {numAmount.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-admin-text-muted">Fee ({WITHDRAWAL_FEE_PERCENTAGE}%):</span>
+                  <span className="text-admin-text-muted">
+                    Fee ({WITHDRAWAL_FEE_PERCENTAGE}%):
+                  </span>
                   <span className="text-admin-text-primary font-medium">
                     KES {feeAmount.toLocaleString()}
                   </span>
                 </div>
                 <div className="border-t border-admin-border pt-2 flex justify-between font-semibold">
                   <span className="text-admin-text-muted">You'll receive:</span>
-                  <span className="text-admin-accent">{formatMoney(netAmount)}</span>
+                  <span className="text-admin-accent">
+                    {formatMoney(netAmount)}
+                  </span>
                 </div>
               </div>
             )}
@@ -216,7 +229,9 @@ export default function PaymentsWithdrawalPage() {
           <Button
             type="submit"
             className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-black hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!canWithdraw || isSubmitting || withdrawalMutation.isPending}
+            disabled={
+              !canWithdraw || isSubmitting || withdrawalMutation.isPending
+            }
           >
             {isSubmitting || withdrawalMutation.isPending
               ? "Submitting..."
@@ -224,7 +239,8 @@ export default function PaymentsWithdrawalPage() {
           </Button>
 
           <p className="text-xs text-admin-text-muted">
-            Your withdrawal will be processed after admin approval, typically within 1-2 hours.
+            Your withdrawal will be processed after admin approval, typically
+            within 1-2 hours.
           </p>
         </form>
       </article>
@@ -244,13 +260,15 @@ export default function PaymentsWithdrawalPage() {
                   <p className="text-sm font-semibold text-admin-text-primary">
                     {formatMoney(entry.amount)}
                   </p>
-                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase ${
-                    entry.status === "completed"
-                      ? "border-green-500/30 bg-green-500/10 text-green-600"
-                      : entry.status === "pending"
-                        ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-600"
-                        : "border-red-500/30 bg-red-500/10 text-red-600"
-                  }`}>
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase ${
+                      entry.status === "completed"
+                        ? "border-green-500/30 bg-green-500/10 text-green-600"
+                        : entry.status === "pending"
+                          ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-600"
+                          : "border-red-500/30 bg-red-500/10 text-red-600"
+                    }`}
+                  >
                     {entry.status}
                   </span>
                 </div>

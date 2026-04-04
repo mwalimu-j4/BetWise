@@ -46,17 +46,27 @@ type WithdrawalsResponse = {
 };
 
 export default function WithdrawalsAdmin() {
-  const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
+  const [selectedWithdrawal, setSelectedWithdrawal] =
+    useState<Withdrawal | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"PENDING" | "COMPLETED" | "FAILED">("PENDING");
+  const [statusFilter, setStatusFilter] = useState<
+    "PENDING" | "COMPLETED" | "FAILED"
+  >("PENDING");
   const queryClient = useQueryClient();
 
-  const { data: withdrawalsData, isLoading, refetch } = useQuery({
+  const {
+    data: withdrawalsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["admin-withdrawals", statusFilter],
     queryFn: async () => {
-      const response = await api.get<WithdrawalsResponse>("/admin/withdrawals", {
-        params: { status: statusFilter },
-      });
+      const response = await api.get<WithdrawalsResponse>(
+        "/admin/withdrawals",
+        {
+          params: { status: statusFilter },
+        },
+      );
       return response.data;
     },
     refetchInterval: 10000,
@@ -65,7 +75,7 @@ export default function WithdrawalsAdmin() {
   const approveMutation = useMutation({
     mutationFn: async (withdrawalId: string) => {
       const response = await api.patch(
-        `/admin/withdrawals/${withdrawalId}/approve`
+        `/admin/withdrawals/${withdrawalId}/approve`,
       );
       return response.data;
     },
@@ -76,7 +86,8 @@ export default function WithdrawalsAdmin() {
       refetch();
     },
     onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || "Failed to approve withdrawal";
+      const errorMessage =
+        error.response?.data?.message || "Failed to approve withdrawal";
       toast.error(errorMessage);
     },
   });
@@ -85,7 +96,7 @@ export default function WithdrawalsAdmin() {
     mutationFn: async (data: { withdrawalId: string; reason: string }) => {
       const response = await api.patch(
         `/admin/withdrawals/${data.withdrawalId}/reject`,
-        { reason: data.reason }
+        { reason: data.reason },
       );
       return response.data;
     },
@@ -97,7 +108,8 @@ export default function WithdrawalsAdmin() {
       refetch();
     },
     onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || "Failed to reject withdrawal";
+      const errorMessage =
+        error.response?.data?.message || "Failed to reject withdrawal";
       toast.error(errorMessage);
     },
   });
@@ -105,10 +117,18 @@ export default function WithdrawalsAdmin() {
   const withdrawals = withdrawalsData?.withdrawals ?? [];
 
   const stats = useMemo(() => {
-    const pendingCount = withdrawals.filter((w) => w.status === "pending").length;
-    const pendingAmount = withdrawals.filter((w) => w.status === "pending").reduce((sum, w) => sum + w.amount, 0);
-    const pendingFees = withdrawals.filter((w) => w.status === "pending").reduce((sum, w) => sum + w.fee, 0);
-    const completedCount = withdrawals.filter((w) => w.status === "completed").length;
+    const pendingCount = withdrawals.filter(
+      (w) => w.status === "pending",
+    ).length;
+    const pendingAmount = withdrawals
+      .filter((w) => w.status === "pending")
+      .reduce((sum, w) => sum + w.amount, 0);
+    const pendingFees = withdrawals
+      .filter((w) => w.status === "pending")
+      .reduce((sum, w) => sum + w.fee, 0);
+    const completedCount = withdrawals.filter(
+      (w) => w.status === "completed",
+    ).length;
 
     return [
       {
@@ -273,13 +293,17 @@ export default function WithdrawalsAdmin() {
                               <ScrollArea className="h-auto max-h-[400px] w-full pr-4">
                                 <div className="space-y-4">
                                   <div>
-                                    <p className="text-xs text-admin-text-muted">USER EMAIL</p>
+                                    <p className="text-xs text-admin-text-muted">
+                                      USER EMAIL
+                                    </p>
                                     <p className="text-sm font-semibold text-admin-text-primary">
                                       {selectedWithdrawal.userEmail}
                                     </p>
                                   </div>
                                   <div>
-                                    <p className="text-xs text-admin-text-muted">USER PHONE</p>
+                                    <p className="text-xs text-admin-text-muted">
+                                      USER PHONE
+                                    </p>
                                     <p className="text-sm text-admin-text-primary">
                                       {selectedWithdrawal.userPhone}
                                     </p>
@@ -293,13 +317,19 @@ export default function WithdrawalsAdmin() {
                                     </p>
                                   </div>
                                   <div>
-                                    <p className="text-xs text-admin-text-muted">AMOUNT</p>
+                                    <p className="text-xs text-admin-text-muted">
+                                      AMOUNT
+                                    </p>
                                     <p className="text-sm font-semibold text-admin-accent">
-                                      {formatCurrency(selectedWithdrawal.amount)}
+                                      {formatCurrency(
+                                        selectedWithdrawal.amount,
+                                      )}
                                     </p>
                                   </div>
                                   <div>
-                                    <p className="text-xs text-admin-text-muted">FEE</p>
+                                    <p className="text-xs text-admin-text-muted">
+                                      FEE
+                                    </p>
                                     <p className="text-sm text-admin-text-primary">
                                       {formatCurrency(selectedWithdrawal.fee)}
                                     </p>
@@ -309,19 +339,27 @@ export default function WithdrawalsAdmin() {
                                       TOTAL DEBIT
                                     </p>
                                     <p className="text-sm font-semibold">
-                                      {formatCurrency(selectedWithdrawal.totalDebit)}
+                                      {formatCurrency(
+                                        selectedWithdrawal.totalDebit,
+                                      )}
                                     </p>
                                   </div>
                                   <div>
-                                    <p className="text-xs text-admin-text-muted">STATUS</p>
-                                    <StatusBadge status={selectedWithdrawal.status} />
+                                    <p className="text-xs text-admin-text-muted">
+                                      STATUS
+                                    </p>
+                                    <StatusBadge
+                                      status={selectedWithdrawal.status}
+                                    />
                                   </div>
                                   <div>
                                     <p className="text-xs text-admin-text-muted">
                                       REQUESTED AT
                                     </p>
                                     <p className="text-sm text-admin-text-primary">
-                                      {formatDateTime(selectedWithdrawal.createdAt)}
+                                      {formatDateTime(
+                                        selectedWithdrawal.createdAt,
+                                      )}
                                     </p>
                                   </div>
                                   {selectedWithdrawal.processedAt && (
@@ -330,7 +368,9 @@ export default function WithdrawalsAdmin() {
                                         PROCESSED AT
                                       </p>
                                       <p className="text-sm text-admin-text-primary">
-                                        {formatDateTime(selectedWithdrawal.processedAt)}
+                                        {formatDateTime(
+                                          selectedWithdrawal.processedAt,
+                                        )}
                                       </p>
                                     </div>
                                   )}
@@ -353,19 +393,27 @@ export default function WithdrawalsAdmin() {
                                       <div className="flex gap-2">
                                         <Button
                                           onClick={() =>
-                                            approveMutation.mutate(selectedWithdrawal.id)
+                                            approveMutation.mutate(
+                                              selectedWithdrawal.id,
+                                            )
                                           }
                                           disabled={approveMutation.isPending}
                                           className="flex-1 bg-admin-accent text-black hover:opacity-90"
                                         >
                                           {approveMutation.isPending ? (
                                             <>
-                                              <Loader size={14} className="mr-2 animate-spin" />
+                                              <Loader
+                                                size={14}
+                                                className="mr-2 animate-spin"
+                                              />
                                               Approving...
                                             </>
                                           ) : (
                                             <>
-                                              <CheckCircle size={14} className="mr-2" />
+                                              <CheckCircle
+                                                size={14}
+                                                className="mr-2"
+                                              />
                                               Approve
                                             </>
                                           )}
@@ -373,7 +421,8 @@ export default function WithdrawalsAdmin() {
                                         <Button
                                           onClick={() =>
                                             rejectMutation.mutate({
-                                              withdrawalId: selectedWithdrawal.id,
+                                              withdrawalId:
+                                                selectedWithdrawal.id,
                                               reason: rejectReason,
                                             })
                                           }
@@ -382,12 +431,18 @@ export default function WithdrawalsAdmin() {
                                         >
                                           {rejectMutation.isPending ? (
                                             <>
-                                              <Loader size={14} className="mr-2 animate-spin" />
+                                              <Loader
+                                                size={14}
+                                                className="mr-2 animate-spin"
+                                              />
                                               Rejecting...
                                             </>
                                           ) : (
                                             <>
-                                              <XCircle size={14} className="mr-2" />
+                                              <XCircle
+                                                size={14}
+                                                className="mr-2"
+                                              />
                                               Reject
                                             </>
                                           )}

@@ -173,7 +173,8 @@ async function createWithdrawalNotifications(args: {
   let userMessage = "";
   let adminTitle = "";
   let adminMessage = "";
-  let notificationType: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" = "DEPOSIT_SUCCESS";
+  let notificationType: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" =
+    "DEPOSIT_SUCCESS";
 
   if (args.status === "PENDING") {
     userTitle = "Withdrawal Request Submitted";
@@ -273,7 +274,10 @@ const stkPushBodySchema = z.object({
 });
 
 const withdrawalRequestSchema = z.object({
-  phone: z.string().trim().regex(/^254\d{9}$/, "Phone must be in format 2547XXXXXXXX"),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^254\d{9}$/, "Phone must be in format 2547XXXXXXXX"),
   amount: z.number().int().positive().min(WITHDRAWAL_CONFIG.MIN_AMOUNT),
   pin: z.string().trim().min(4).max(6).optional(), // Optional for now
 });
@@ -1321,7 +1325,9 @@ paymentRouter.post(
       }
 
       // Calculate fee
-      const feeAmount = Math.ceil((requestedAmount * WITHDRAWAL_CONFIG.FEE_PERCENTAGE) / 100);
+      const feeAmount = Math.ceil(
+        (requestedAmount * WITHDRAWAL_CONFIG.FEE_PERCENTAGE) / 100,
+      );
       const totalDebit = requestedAmount + feeAmount;
 
       // Get wallet
@@ -1525,7 +1531,9 @@ paymentRouter.patch(
       }
 
       if (transaction.type !== "WITHDRAWAL") {
-        return res.status(400).json({ message: "This is not a withdrawal transaction." });
+        return res
+          .status(400)
+          .json({ message: "This is not a withdrawal transaction." });
       }
 
       if (transaction.status !== "PENDING") {
@@ -1610,7 +1618,9 @@ paymentRouter.patch(
       }
 
       if (transaction.type !== "WITHDRAWAL") {
-        return res.status(400).json({ message: "This is not a withdrawal transaction." });
+        return res
+          .status(400)
+          .json({ message: "This is not a withdrawal transaction." });
       }
 
       if (transaction.status !== "PENDING") {
@@ -1620,7 +1630,8 @@ paymentRouter.patch(
       }
 
       // Refund the debited amount back to user wallet
-      const totalDebit = (transaction.providerCallback as any)?.totalDebit ?? transaction.amount;
+      const totalDebit =
+        (transaction.providerCallback as any)?.totalDebit ?? transaction.amount;
       await prisma.wallet.update({
         where: { id: transaction.walletId! },
         data: {
