@@ -165,7 +165,8 @@ export function useWalletRealtime() {
         );
       }
 
-      void queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
+      // Force immediate refetch of full summary to get updated transactions with receipt
+      void queryClient.refetchQueries({ queryKey: walletSummaryQueryKey });
     };
 
     const handleNotificationUpdate = (payload: NotificationStreamEvent) => {

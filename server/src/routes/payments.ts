@@ -413,53 +413,120 @@ async function getMpesaAccessToken(config: {
   return (await tokenResponse.json()) as MpesaAuthTokenResponse;
 }
 
-const handleMpesaCallback = (req:Request, res:Response) => {
+const handleMpesaCallback = (req: Request, res: Response) => {
+  console.log("\n=== M-PESA CALLBACK STARTED ===");
+  console.log("Raw request body:");
   console.log(JSON.stringify(req.body ?? null, null, 2));
-  console.log("M-Pesa callback raw payload received.");
+  console.log("=== END RAW BODY ===");
 
   const parsedBody = mpesaCallbackSchema.safeParse(req.body);
 
   if (!parsedBody.success) {
-    console.warn("Invalid M-Pesa callback payload received.", req.body);
+    console.error("❌ VALIDATION FAILED. Zod errors:", parsedBody.error.errors);
+    console.error(
+      "Raw body that failed validation:",
+      JSON.stringify(req.body, null, 2),
+    );
     return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
   }
 
+  console.log("✅ Validation passed");
   const callback = parsedBody.data.Body.stkCallback;
+  console.log("Parsed stkCallback:", JSON.stringify(callback, null, 2));
+
   const resultCode = Number(callback.ResultCode ?? NaN);
   const resultDesc = callback.ResultDesc ?? "Missing ResultDesc";
   const checkoutRequestId = callback.CheckoutRequestID;
+
+  console.log("Extracted basic fields:", {
+    resultCode,
+    resultDesc,
+    checkoutRequestId,
+  });
+
+  console.log(
+    "CallbackMetadata raw:",
+    JSON.stringify(callback.CallbackMetadata, null, 2),
+  );
   const callbackItems = callback.CallbackMetadata?.Item ?? [];
-  const mpesaReceiptNumber = normalizeCallbackValue(
-    getValue(callbackItems as MpesaCallbackItem[], "MpesaReceiptNumber"),
+  console.log(
+    "CallbackMetadata.Item array:",
+    JSON.stringify(callbackItems, null, 2),
   );
-  const amount = normalizeCallbackValue(
-    getValue(callbackItems as MpesaCallbackItem[], "Amount"),
+  console.log(`Found ${callbackItems.length} items in CallbackMetadata.Item`);
+
+  // Log each item individually
+  callbackItems.forEach((item, index) => {
+    console.log(
+      `Item [${index}]: Name="${item.Name}", Value=${JSON.stringify(item.Value)} (type: ${typeof item.Value})`,
+    );
+  });
+
+  // Extract each field with logging
+  const mpesaReceiptValue = getValue(
+    callbackItems as MpesaCallbackItem[],
+    "MpesaReceiptNumber",
   );
-  const phoneNumber = normalizeCallbackValue(
-    getValue(callbackItems as MpesaCallbackItem[], "PhoneNumber"),
+  console.log(
+    "getValue('MpesaReceiptNumber') returned:",
+    mpesaReceiptValue,
+    `(type: ${typeof mpesaReceiptValue})`,
   );
-  const transactionDate = normalizeCallbackValue(
-    getValue(callbackItems as MpesaCallbackItem[], "TransactionDate"),
+  const mpesaReceiptNumber = normalizeCallbackValue(mpesaReceiptValue);
+  console.log(
+    "normalizeCallbackValue(mpesaReceiptValue) returned:",
+    mpesaReceiptNumber,
   );
 
-  console.log("M-Pesa callback received", {
+  const amountValue = getValue(callbackItems as MpesaCallbackItem[], "Amount");
+  console.log("getValue('Amount') returned:", amountValue);
+  const amount = normalizeCallbackValue(amountValue);
+  console.log("normalizeCallbackValue(amountValue) returned:", amount);
+
+  const phoneNumberValue = getValue(
+    callbackItems as MpesaCallbackItem[],
+    "PhoneNumber",
+  );
+  console.log("getValue('PhoneNumber') returned:", phoneNumberValue);
+  const phoneNumber = normalizeCallbackValue(phoneNumberValue);
+  console.log(
+    "normalizeCallbackValue(phoneNumberValue) returned:",
+    phoneNumber,
+  );
+
+  const transactionDateValue = getValue(
+    callbackItems as MpesaCallbackItem[],
+    "TransactionDate",
+  );
+  console.log("getValue('TransactionDate') returned:", transactionDateValue);
+  const transactionDate = normalizeCallbackValue(transactionDateValue);
+  console.log(
+    "normalizeCallbackValue(transactionDateValue) returned:",
+    transactionDate,
+  );
+
+  console.log("=== FINAL EXTRACTED VALUES ===");
+  console.log({
     ResultCode: callback.ResultCode,
     ResultDesc: resultDesc,
     CheckoutRequestID: checkoutRequestId,
-  });
-  console.log("M-Pesa callback extracted metadata", {
     MpesaReceiptNumber: mpesaReceiptNumber,
     Amount: amount,
     PhoneNumber: phoneNumber,
     TransactionDate: transactionDate,
   });
+  console.log("=== END EXTRACTED VALUES ===");
 
   void (async () => {
+    console.log("\n=== ASYNC PROCESSING STARTED ===");
     if (!checkoutRequestId) {
-      console.warn("M-Pesa callback missing CheckoutRequestID.");
+      console.error("❌ CALLBACK MISSING CheckoutRequestID - cannot proceed");
       return;
     }
 
+    console.log(
+      `Searching for transaction with checkoutRequestId: "${checkoutRequestId}"`,
+    );
     const matchedTransaction = await prisma.walletTransaction.findFirst({
       where: {
         checkoutRequestId,
@@ -471,7 +538,7 @@ const handleMpesaCallback = (req:Request, res:Response) => {
     });
 
     if (!matchedTransaction) {
-      console.warn("No wallet transaction matched the M-Pesa callback.", {
+      console.error("❌ NO MATCHING TRANSACTION FOUND", {
         checkoutRequestId,
         resultCode,
         resultDesc,
@@ -479,7 +546,7 @@ const handleMpesaCallback = (req:Request, res:Response) => {
       return;
     }
 
-    console.log("Matched wallet transaction before M-Pesa callback update", {
+    console.log("✅ Found matching transaction:", {
       transactionId: matchedTransaction.id,
       status: matchedTransaction.status,
       providerReceiptNumber: matchedTransaction.providerReceiptNumber,
@@ -487,10 +554,18 @@ const handleMpesaCallback = (req:Request, res:Response) => {
     });
 
     if (resultCode === 0) {
+      console.log("\nResultCode is 0 (success)");
       if (!mpesaReceiptNumber) {
-        console.warn(
-          "Successful M-Pesa callback did not include MpesaReceiptNumber.",
+        console.error(
+          "❌ SUCCESS CALLBACK BUT NO MpesaReceiptNumber EXTRACTED!",
+        );
+        console.error(
+          "Full callback payload:",
           JSON.stringify(req.body ?? null, null, 2),
+        );
+      } else {
+        console.log(
+          `✅ MpesaReceiptNumber successfully extracted: "${mpesaReceiptNumber}"`,
         );
       }
 
@@ -499,6 +574,10 @@ const handleMpesaCallback = (req:Request, res:Response) => {
         !matchedTransaction.providerReceiptNumber &&
         mpesaReceiptNumber
       ) {
+        console.log(
+          "Backfilling receipt on COMPLETED transaction:",
+          mpesaReceiptNumber,
+        );
         const backfilledTransaction = await prisma.walletTransaction.update({
           where: { id: matchedTransaction.id },
           data: {
@@ -516,7 +595,7 @@ const handleMpesaCallback = (req:Request, res:Response) => {
           },
         });
 
-        console.log("Backfilled M-Pesa receipt on completed transaction", {
+        console.log("✅ BACKFILL SUCCESS:", {
           transactionId: backfilledTransaction.id,
           status: backfilledTransaction.status,
           providerReceiptNumber: backfilledTransaction.providerReceiptNumber,
@@ -543,6 +622,10 @@ const handleMpesaCallback = (req:Request, res:Response) => {
       const wallet =
         matchedTransaction.wallet ??
         (await getOrCreateWallet(matchedTransaction.userId));
+      console.log(
+        "Updating PENDING transaction to COMPLETED with receipt:",
+        mpesaReceiptNumber,
+      );
       const updatedWallet = await prisma.$transaction(async (tx) => {
         const updatedTransaction = await tx.walletTransaction.update({
           where: { id: matchedTransaction.id },
@@ -563,12 +646,13 @@ const handleMpesaCallback = (req:Request, res:Response) => {
           },
         });
 
-        console.log("M-Pesa transaction updated from callback", {
+        console.log("✅ TRANSACTION UPDATE SUCCESS:", {
           transactionId: updatedTransaction.id,
           status: updatedTransaction.status,
           providerReceiptNumber: updatedTransaction.providerReceiptNumber,
           providerResponseCode: updatedTransaction.providerResponseCode,
-          providerResponseDescription: updatedTransaction.providerResponseDescription,
+          providerResponseDescription:
+            updatedTransaction.providerResponseDescription,
         });
 
         return tx.wallet.update({
@@ -604,7 +688,7 @@ const handleMpesaCallback = (req:Request, res:Response) => {
       return;
     }
 
-    console.warn("M-Pesa callback reported a failed transaction.", {
+    console.error("❌ M-Pesa FAILED TRANSACTION", {
       checkoutRequestId,
       resultCode,
       resultDesc,
@@ -627,7 +711,7 @@ const handleMpesaCallback = (req:Request, res:Response) => {
       },
     });
 
-    console.log("M-Pesa transaction updated as failed", failedTransaction);
+    console.log("✅ FAILED TRANSACTION RECORDED:", failedTransaction);
 
     const latestSummary = await getWalletSummary(matchedTransaction.userId);
 
@@ -652,9 +736,10 @@ const handleMpesaCallback = (req:Request, res:Response) => {
       failureReason: resultDesc,
     });
   })().catch((error) => {
-    console.error("Failed to process M-Pesa callback.", error);
+    console.error("CRITICAL ERROR IN M-PESA CALLBACK PROCESSING:", error);
   });
 
+  console.log("\n=== M-PESA CALLBACK RESPONSE SENT ===");
   return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
 };
 
@@ -869,6 +954,7 @@ paymentRouter.get(
 
       if (transaction.status !== "PENDING") {
         return res.status(200).json({
+          transaction,
           transactionId: transaction.id,
           status: transaction.status,
           mpesaCode: transaction.providerReceiptNumber,
