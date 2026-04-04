@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 
@@ -33,6 +34,67 @@ const updateUserSchema = z.object({
   isVerified: z.boolean().optional(),
   accountStatus: z.enum(["ACTIVE", "SUSPENDED"]).optional(),
 });
+
+const createUserSchema = z.object({
+  fullName: z.string().trim().min(2).max(120).optional().nullable(),
+  email: z.string().trim().email(),
+  phone: z.string().trim(),
+  password: z.string().min(8),
+  confirmPassword: z.string().min(8),
+  isVerified: z.boolean().optional(),
+  accountStatus: z.enum(["ACTIVE", "SUSPENDED"]).optional(),
+});
+
+const bettingAnalyticsRangeSchema = z.enum(["24h", "7d", "30d", "90d"]);
+
+function normalizeKenyanPhone(rawPhone: string) {
+  const digits = rawPhone.replace(/\D/g, "");
+
+  if (digits.startsWith("0") && digits.length === 10) {
+    return `+254${digits.slice(1)}`;
+  }
+
+  if (digits.startsWith("254") && digits.length === 12) {
+    return `+${digits}`;
+  }
+
+  if ((digits.startsWith("7") || digits.startsWith("1")) && digits.length === 9) {
+    return `+254${digits}`;
+  }
+
+  return null;
+}
+
+function getAnalyticsWindow(range: "24h" | "7d" | "30d" | "90d") {
+  const end = new Date();
+  const start = new Date(end);
+
+  if (range === "24h") {
+    start.setHours(start.getHours() - 23, 0, 0, 0);
+    return { start, end, granularity: "hour" as const };
+  }
+
+  const days = range === "7d" ? 6 : range === "30d" ? 29 : 89;
+  start.setDate(start.getDate() - days);
+  start.setHours(0, 0, 0, 0);
+
+  return { start, end, granularity: "day" as const };
+}
+
+function formatAnalyticsPeriod(date: Date, granularity: "hour" | "day") {
+  if (granularity === "hour") {
+    return date.toLocaleTimeString("en-KE", {
+      hour: "2-digit",
+      hour12: false,
+    });
+  }
+
+  return date.toLocaleDateString("en-KE", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export async function getAdminDashboardSummary(req: Request, res: Response) {
   if (!req.user?.id) {
@@ -342,6 +404,250 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
         channel: transaction.channel,
       };
     }),
+  });
+}
+
+export async function getBettingAnalytics(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const parsedRange = bettingAnalyticsRangeSchema.safeParse(req.query.range ?? "7d");
+  const range = parsedRange.success ? parsedRange.data : "7d";
+  const { start, end, granularity } = getAnalyticsWindow(range);
+
+  const transactions = await prisma.walletTransaction.findMany({
+    where: {
+      createdAt: { gte: start, lte: end },
+      type: { in: ["BET_STAKE", "BET_WIN", "REFUND"] },
+      status: { in: ["COMPLETED", "PENDING", "FAILED", "REVERSED"] },
+    },
+    select: {
+      type: true,
+      amount: true,
+      createdAt: true,
+      userId: true,
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const totalStake = transactions
+    .filter((transaction) => transaction.type === "BET_STAKE")
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+  const totalPayout = transactions
+    .filter((transaction) => transaction.type === "BET_WIN")
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+  const totalRefunds = transactions
+    .filter((transaction) => transaction.type === "REFUND")
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  const betCount = transactions.filter((transaction) => transaction.type === "BET_STAKE")
+    .length;
+  const activeBettorIds = new Set(transactions.map((transaction) => transaction.userId));
+  const ggr = totalStake - totalPayout - totalRefunds;
+  const avgStake = betCount > 0 ? totalStake / betCount : 0;
+  const payoutRatio = totalStake > 0 ? (totalPayout / totalStake) * 100 : 0;
+
+  const bins = new Map<
+    string,
+    { period: string; stake: number; payout: number; refunds: number; ggr: number }
+  >();
+
+  const stepDate = new Date(start);
+  if (granularity === "hour") {
+    for (let offset = 0; offset < 24; offset += 1) {
+      const current = new Date(stepDate);
+      current.setHours(stepDate.getHours() + offset);
+      const key = current.toISOString().slice(0, 13);
+      bins.set(key, {
+        period: formatAnalyticsPeriod(current, granularity),
+        stake: 0,
+        payout: 0,
+        refunds: 0,
+        ggr: 0,
+      });
+    }
+  } else {
+    const totalDays = Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1;
+    for (let offset = 0; offset < totalDays; offset += 1) {
+      const current = new Date(start);
+      current.setDate(start.getDate() + offset);
+      const key = current.toISOString().slice(0, 10);
+      bins.set(key, {
+        period: formatAnalyticsPeriod(current, granularity),
+        stake: 0,
+        payout: 0,
+        refunds: 0,
+        ggr: 0,
+      });
+    }
+  }
+
+  for (const transaction of transactions) {
+    const bucketKey =
+      granularity === "hour"
+        ? transaction.createdAt.toISOString().slice(0, 13)
+        : transaction.createdAt.toISOString().slice(0, 10);
+    const bucket = bins.get(bucketKey);
+
+    if (!bucket) {
+      continue;
+    }
+
+    if (transaction.type === "BET_STAKE") {
+      bucket.stake += transaction.amount;
+    }
+
+    if (transaction.type === "BET_WIN") {
+      bucket.payout += transaction.amount;
+    }
+
+    if (transaction.type === "REFUND") {
+      bucket.refunds += transaction.amount;
+    }
+
+    bucket.ggr = bucket.stake - bucket.payout - bucket.refunds;
+  }
+
+  const trend = Array.from(bins.values());
+
+  return res.status(200).json({
+    generatedAt: new Date().toISOString(),
+    range,
+    metrics: [
+      {
+        label: "Handle",
+        value: formatMoney(totalStake),
+        tone: "accent" as const,
+        helper: `${betCount.toLocaleString()} stake events`,
+      },
+      {
+        label: "Payouts",
+        value: formatMoney(totalPayout),
+        tone: "gold" as const,
+        helper: `${payoutRatio.toFixed(1)}% payout ratio`,
+      },
+      {
+        label: "GGR",
+        value: formatMoney(ggr),
+        tone: ggr >= 0 ? ("blue" as const) : ("red" as const),
+        helper: `${formatMoney(totalRefunds)} refunded`,
+      },
+      {
+        label: "Active Bettors",
+        value: activeBettorIds.size.toLocaleString(),
+        tone: "purple" as const,
+        helper: `Across ${range} window`,
+      },
+      {
+        label: "Average Stake",
+        value: formatMoney(Math.round(avgStake)),
+        tone: "blue" as const,
+        helper: "Per settled bet stake",
+      },
+      {
+        label: "Refunds",
+        value: formatMoney(totalRefunds),
+        tone: totalRefunds > 0 ? ("red" as const) : ("muted" as const),
+        helper: "Void or returned stakes",
+      },
+    ],
+    trend,
+  });
+}
+
+export async function createUser(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const parsedBody = createUserSchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    return res.status(400).json({ message: "Invalid user payload." });
+  }
+
+  if (parsedBody.data.password !== parsedBody.data.confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match." });
+  }
+
+  const normalizedPhone = normalizeKenyanPhone(parsedBody.data.phone);
+  if (!normalizedPhone) {
+    return res.status(400).json({ message: "Invalid Kenyan phone number." });
+  }
+
+  const [existingEmail, existingPhone] = await Promise.all([
+    prisma.user.findUnique({ where: { email: parsedBody.data.email } }),
+    prisma.user.findUnique({ where: { phone: normalizedPhone } }),
+  ]);
+
+  if (existingEmail) {
+    return res.status(409).json({ message: "Email already exists." });
+  }
+
+  if (existingPhone) {
+    return res.status(409).json({ message: "Phone already exists." });
+  }
+
+  const passwordHash = await bcrypt.hash(parsedBody.data.password, 12);
+
+  const user = await prisma.user.create({
+    data: {
+      fullName: parsedBody.data.fullName ?? null,
+      email: parsedBody.data.email,
+      phone: normalizedPhone,
+      passwordHash,
+      isVerified: parsedBody.data.isVerified ?? false,
+      accountStatus: parsedBody.data.accountStatus ?? "ACTIVE",
+      role: "USER",
+      wallet: {
+        create: {
+          balance: 0,
+        },
+      },
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      phone: true,
+      isVerified: true,
+      accountStatus: true,
+      bannedAt: true,
+      createdAt: true,
+      updatedAt: true,
+      wallet: {
+        select: { balance: true },
+      },
+      transactions: {
+        select: { id: true },
+      },
+    },
+  });
+
+  return res.status(201).json({
+    id: user.id,
+    name: user.fullName || "Unknown",
+    email: user.email,
+    phone: user.phone,
+    balance: user.wallet?.balance ?? 0,
+    isVerified: user.isVerified,
+    status:
+      user.bannedAt !== null
+        ? "banned"
+        : user.accountStatus === "SUSPENDED"
+          ? "suspended"
+          : "active",
+    createdAt: user.createdAt.toISOString(),
+    updatedAt: user.updatedAt.toISOString(),
+    totalBets: user.transactions.length,
   });
 }
 
