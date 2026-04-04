@@ -745,7 +745,7 @@ export async function updateUser(req: Request, res: Response) {
     return res.status(403).json({ message: "Admin access required." });
   }
 
-  const { userId } = req.params;
+  const userId = String(req.params.userId);
   const parsedBody = updateUserSchema.safeParse(req.body);
 
   if (!parsedBody.success) {
@@ -820,7 +820,7 @@ export async function getUserDetails(req: Request, res: Response) {
     return res.status(403).json({ message: "Admin access required." });
   }
 
-  const { userId } = req.params;
+  const userId = String(req.params.userId);
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -878,7 +878,7 @@ export async function banUser(req: Request, res: Response) {
     return res.status(403).json({ message: "Admin access required." });
   }
 
-  const { userId } = req.params;
+  const userId = String(req.params.userId);
   const { reason } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -925,7 +925,7 @@ export async function unbanUser(req: Request, res: Response) {
     return res.status(403).json({ message: "Admin access required." });
   }
 
-  const { userId } = req.params;
+  const userId = String(req.params.userId);
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -971,7 +971,7 @@ export async function suspendUser(req: Request, res: Response) {
     return res.status(403).json({ message: "Admin access required." });
   }
 
-  const { userId } = req.params;
+  const userId = String(req.params.userId);
   const { reason } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -1017,7 +1017,7 @@ export async function unsuspendUser(req: Request, res: Response) {
     return res.status(403).json({ message: "Admin access required." });
   }
 
-  const { userId } = req.params;
+  const userId = String(req.params.userId);
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
