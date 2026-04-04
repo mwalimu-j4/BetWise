@@ -173,29 +173,32 @@ async function createWithdrawalNotifications(args: {
   let userMessage = "";
   let adminTitle = "";
   let adminMessage = "";
-  let notificationType: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" =
-    "DEPOSIT_SUCCESS";
+  let notificationType: "WITHDRAWAL_SUCCESS" | "WITHDRAWAL_FAILED" = "WITHDRAWAL_SUCCESS";
 
   if (args.status === "PENDING") {
     userTitle = "Withdrawal Request Submitted";
     userMessage = `Your withdrawal request for KES ${args.amount.toLocaleString()} (KES ${args.fee.toLocaleString()} fee) is pending admin approval. You'll receive KES ${netAmount.toLocaleString()}.`;
     adminTitle = "New Withdrawal Request";
     adminMessage = `${userIdentifier} requested a withdrawal of KES ${args.amount.toLocaleString()} to ${args.phone} (Fee: KES ${args.fee.toLocaleString()}).`;
+    notificationType = "WITHDRAWAL_SUCCESS";
   } else if (args.status === "COMPLETED") {
     userTitle = "Withdrawal Successful";
     userMessage = `Your withdrawal of KES ${args.amount.toLocaleString()} has been processed to ${args.phone}. Fee charged: KES ${args.fee.toLocaleString()}. New balance: KES ${args.balance.toLocaleString()}.`;
     adminTitle = "Withdrawal Completed";
     adminMessage = `Withdrawal of KES ${args.amount.toLocaleString()} to ${userIdentifier} (${args.phone}) completed successfully.`;
+    notificationType = "WITHDRAWAL_SUCCESS";
   } else if (args.status === "FAILED") {
     userTitle = "Withdrawal Failed";
     userMessage = `Your withdrawal request for KES ${args.amount.toLocaleString()} failed.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""} Your balance remains unchanged at KES ${args.balance.toLocaleString()}.`;
     adminTitle = "Withdrawal Failed";
     adminMessage = `Withdrawal of KES ${args.amount.toLocaleString()} for ${userIdentifier} to ${args.phone} failed.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
+    notificationType = "WITHDRAWAL_FAILED";
   } else if (args.status === "REJECTED") {
     userTitle = "Withdrawal Request Rejected";
     userMessage = `Your withdrawal request for KES ${args.amount.toLocaleString()} has been rejected.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""} Your balance remains KES ${args.balance.toLocaleString()}.`;
     adminTitle = "Withdrawal Rejected";
     adminMessage = `Withdrawal request of KES ${args.amount.toLocaleString()} for ${userIdentifier} to ${args.phone} was rejected.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
+    notificationType = "WITHDRAWAL_FAILED";
   }
 
   const createdAtIso = new Date().toISOString();
