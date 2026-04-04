@@ -1,4 +1,16 @@
+import { useState } from "react";
 import { Edit, Lock, Plus, RefreshCw, Unlock } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { oddsRows } from "../../data/mock-data";
 import {
   AdminButton,
@@ -14,6 +26,12 @@ import {
 } from "../../components/ui";
 
 export default function Odds() {
+  const [selectedOdds, setSelectedOdds] = useState<(typeof oddsRows)[0] | null>(
+    null,
+  );
+  const [suspendReason, setSuspendReason] = useState("");
+  const [editMargin, setEditMargin] = useState("");
+
   return (
     <div className="space-y-6">
       <AdminSectionHeader
@@ -105,16 +123,169 @@ export default function Odds() {
                   </td>
                   <td className={adminTableCellClassName}>
                     <div className={adminCompactActionsClassName}>
-                      <AdminButton size="sm" variant="ghost">
-                        <Edit size={11} />
-                      </AdminButton>
-                      <AdminButton size="sm" variant="ghost">
-                        {row.status === "active" ? (
-                          <Lock size={11} />
-                        ) : (
-                          <Unlock size={11} />
-                        )}
-                      </AdminButton>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <AdminButton
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setSelectedOdds(row);
+                              setEditMargin(row.margin);
+                            }}
+                          >
+                            <Edit size={11} />
+                          </AdminButton>
+                        </DialogTrigger>
+                        <DialogContent className="border-admin-border bg-admin-card">
+                          <DialogHeader>
+                            <DialogTitle>Edit Market Odds</DialogTitle>
+                            <DialogDescription>
+                              Adjust odds and margin for this market
+                            </DialogDescription>
+                          </DialogHeader>
+                          {selectedOdds && (
+                            <ScrollArea className="h-[400px] w-full pr-4">
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-semibold text-admin-text-primary">
+                                    Event
+                                  </label>
+                                  <p className="mt-1 text-sm text-admin-text-muted">
+                                    {selectedOdds.event}
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-semibold text-admin-text-primary">
+                                    Market
+                                  </label>
+                                  <p className="mt-1 text-sm text-admin-text-muted">
+                                    {selectedOdds.market}
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-semibold text-admin-text-primary">
+                                    {selectedOdds.selectionOne}
+                                  </label>
+                                  <Input
+                                    defaultValue={selectedOdds.oddsOne}
+                                    placeholder="1.50"
+                                    className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
+                                  />
+                                </div>
+                                {selectedOdds.selectionTwo && (
+                                  <div>
+                                    <label className="text-sm font-semibold text-admin-text-primary">
+                                      {selectedOdds.selectionTwo}
+                                    </label>
+                                    <Input
+                                      defaultValue={selectedOdds.oddsTwo}
+                                      placeholder="1.50"
+                                      className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
+                                    />
+                                  </div>
+                                )}
+                                \n{" "}
+                                {selectedOdds.selectionThree && (
+                                  <div>
+                                    <label className="text-sm font-semibold text-admin-text-primary">
+                                      {selectedOdds.selectionThree}
+                                    </label>
+                                    <Input
+                                      defaultValue={selectedOdds.oddsThree}
+                                      placeholder="1.50"
+                                      className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
+                                    />
+                                  </div>
+                                )}
+                                \n{" "}
+                                <div>
+                                  <label className="text-sm font-semibold text-admin-text-primary">
+                                    Margin %
+                                  </label>
+                                  <Input
+                                    value={editMargin}
+                                    onChange={(e) =>
+                                      setEditMargin(e.target.value)
+                                    }
+                                    placeholder="2.5"
+                                    className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
+                                  />
+                                </div>
+                              </div>
+                            </ScrollArea>
+                          )}
+                          <div className="flex gap-2 pt-4">
+                            <Button variant="outline" className="flex-1">
+                              Cancel
+                            </Button>
+                            <Button className="flex-1 bg-admin-accent text-black hover:bg-[#00d492]">
+                              Save Changes
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <AdminButton
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setSelectedOdds(row)}
+                          >
+                            {row.status === "active" ? (
+                              <Lock size={11} />
+                            ) : (
+                              <Unlock size={11} />
+                            )}
+                          </AdminButton>
+                        </DialogTrigger>
+                        <DialogContent className="border-admin-border bg-admin-card">
+                          <DialogHeader>
+                            <DialogTitle>
+                              {row.status === "active"
+                                ? "Suspend"
+                                : "Reactivate"}{" "}
+                              Market
+                            </DialogTitle>
+                            <DialogDescription>
+                              {row.status === "active"
+                                ? "Suspend this market from accepting bets"
+                                : "Reactivate this market for new bets"}
+                            </DialogDescription>
+                          </DialogHeader>
+                          {row.status === "active" && (
+                            <div>
+                              <label className="text-sm font-semibold text-admin-text-primary">
+                                Reason for Suspension
+                              </label>
+                              <Input
+                                placeholder="E.g., Line movement, Technical issue"
+                                value={suspendReason}
+                                onChange={(e) =>
+                                  setSuspendReason(e.target.value)
+                                }
+                                className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
+                              />
+                            </div>
+                          )}
+                          \n{" "}
+                          <div className="flex gap-2 pt-4">
+                            <Button variant="outline" className="flex-1">
+                              Cancel
+                            </Button>
+                            <Button
+                              className={`flex-1 ${
+                                row.status === "active"
+                                  ? "bg-admin-red hover:bg-red-600 text-white"
+                                  : "bg-admin-accent text-black hover:bg-[#00d492]"
+                              }`}
+                            >
+                              {row.status === "active"
+                                ? "Suspend"
+                                : "Reactivate"}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </td>
                 </tr>

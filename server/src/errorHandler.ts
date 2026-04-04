@@ -6,6 +6,11 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  const message = err instanceof Error ? err.message : "Internal server error";
+  const message =
+    process.env.NODE_ENV === "production"
+      ? "Internal server error"
+      : err instanceof Error
+        ? err.message
+        : "Internal server error";
   res.status(500).json({ message });
 }

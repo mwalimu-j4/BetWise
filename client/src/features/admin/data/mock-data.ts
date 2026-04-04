@@ -7,7 +7,7 @@ import {
   Target,
   TrendingUp,
   Users,
-  Zap,
+  Zap
 } from "lucide-react";
 
 export type AdminTone =
@@ -154,6 +154,71 @@ export interface AdminExposureLimit {
 export interface AdminRiskControl {
   label: string;
   value: string;
+}
+
+export interface FinancialKPI {
+  label: string;
+  value: string;
+  change: string;
+  up: boolean;
+  icon: LucideIcon;
+  tone: AdminTone;
+}
+
+export interface FinancialTrendData {
+  day: string;
+  totalBets: number;
+  stake: number;
+  ggr: number;
+  ngr: number;
+  payout: number;
+}
+
+export interface GeoAnalytics {
+  country: string;
+  region: string;
+  users: number;
+  bets: number;
+  revenue: string;
+  percentage: number;
+  tone: AdminTone;
+}
+
+export interface LocalLocationAnalytics {
+  location: string;
+  area: string;
+  users: number;
+  bets: number;
+  share: number;
+  tone: AdminTone;
+}
+
+export interface DeviceAnalytics {
+  device: string;
+  users: number;
+  percentage: number;
+  sessions: number;
+  avgSessionDuration: string;
+  tone: AdminTone;
+}
+
+export interface CarrierAnalytics {
+  carrier: string;
+  users: number;
+  percentage: number;
+  avgBetSize: string;
+  avgPayout: string;
+  tone: AdminTone;
+}
+
+export interface BranchAnalytics {
+  branch: string;
+  area: string;
+  users: number;
+  deposits: string;
+  bets: number;
+  status: "active" | "watch";
+  tone: AdminTone;
 }
 
 export const dashboardMetrics: AdminMetric[] = [
@@ -714,3 +779,339 @@ export const betFilters = [
   "Flagged",
   "Voided",
 ] as const;
+
+// Financial KPIs Data
+export const financialKPIs: FinancialKPI[] = [
+  {
+    label: "Total Bets Placed",
+    value: "248,392",
+    change: "+18.3%",
+    up: true,
+    icon: Target,
+    tone: "blue",
+  },
+  {
+    label: "Total Stake Volume",
+    value: "$12.4M",
+    change: "+24.1%",
+    up: true,
+    icon: DollarSign,
+    tone: "accent",
+  },
+  {
+    label: "Gross Gaming Revenue",
+    value: "$1.84M",
+    change: "+15.8%",
+    up: true,
+    icon: TrendingUp,
+    tone: "gold",
+  },
+  {
+    label: "Net Gaming Revenue",
+    value: "$1.32M",
+    change: "+12.4%",
+    up: true,
+    icon: DollarSign,
+    tone: "accent",
+  },
+  {
+    label: "Payout Ratio",
+    value: "68.2%",
+    change: "-2.1%",
+    up: false,
+    icon: Zap,
+    tone: "purple",
+  },
+  {
+    label: "Profit Margin",
+    value: "28.4%",
+    change: "+3.2%",
+    up: true,
+    icon: TrendingUp,
+    tone: "accent",
+  },
+];
+
+export const financialTrendData: FinancialTrendData[] = [
+  {
+    day: "Mon",
+    totalBets: 28400,
+    stake: 1240000,
+    ggr: 198400,
+    ngr: 142000,
+    payout: 65.2,
+  },
+  {
+    day: "Tue",
+    stake: 1520000,
+    totalBets: 31200,
+    ggr: 254400,
+    ngr: 182000,
+    payout: 67.1,
+  },
+  {
+    day: "Wed",
+    stake: 1180000,
+    totalBets: 24800,
+    ggr: 194200,
+    ngr: 139000,
+    payout: 64.8,
+  },
+  {
+    day: "Thu",
+    stake: 1840000,
+    totalBets: 38400,
+    ggr: 312000,
+    ngr: 223000,
+    payout: 69.2,
+  },
+  {
+    day: "Fri",
+    stake: 1620000,
+    totalBets: 34200,
+    ggr: 273600,
+    ngr: 196000,
+    payout: 68.1,
+  },
+  {
+    day: "Sat",
+    stake: 2100000,
+    totalBets: 42800,
+    ggr: 357000,
+    ngr: 256000,
+    payout: 70.1,
+  },
+  {
+    day: "Sun",
+    stake: 1920000,
+    totalBets: 39600,
+    ggr: 326400,
+    ngr: 234000,
+    payout: 69.8,
+  },
+];
+
+export const depositWithdrawalTrend = [
+  { period: "Week 1", deposits: 280000, withdrawals: 185000 },
+  { period: "Week 2", deposits: 320000, withdrawals: 195000 },
+  { period: "Week 3", deposits: 310000, withdrawals: 188000 },
+  { period: "Week 4", deposits: 385000, withdrawals: 220000 },
+];
+
+// Geo & Device Analytics Data
+export const geoAnalytics: GeoAnalytics[] = [
+  {
+    country: "Kenya",
+    region: "Nairobi",
+    users: 14280,
+    bets: 68420,
+    revenue: "$342,100",
+    percentage: 28.4,
+    tone: "accent",
+  },
+  {
+    country: "Uganda",
+    region: "Kampala",
+    users: 9840,
+    bets: 42180,
+    revenue: "$198,600",
+    percentage: 16.2,
+    tone: "blue",
+  },
+  {
+    country: "Tanzania",
+    region: "Dar es Salaam",
+    users: 8120,
+    bets: 38490,
+    revenue: "$167,200",
+    percentage: 13.8,
+    tone: "gold",
+  },
+  {
+    country: "Nigeria",
+    region: "Lagos",
+    users: 7620,
+    bets: 35840,
+    revenue: "$148,900",
+    percentage: 12.1,
+    tone: "purple",
+  },
+  {
+    country: "Rwanda",
+    region: "Kigali",
+    users: 5340,
+    bets: 24920,
+    revenue: "$102,400",
+    percentage: 8.3,
+    tone: "blue",
+  },
+  {
+    country: "Zambia",
+    region: "Lusaka",
+    users: 3820,
+    bets: 17840,
+    revenue: "$71,800",
+    percentage: 5.8,
+    tone: "gold",
+  },
+];
+
+export const deviceAnalytics: DeviceAnalytics[] = [
+  {
+    device: "Mobile (Android)",
+    users: 32480,
+    percentage: 62.4,
+    sessions: 142800,
+    avgSessionDuration: "8m 42s",
+    tone: "accent",
+  },
+  {
+    device: "Mobile (iOS)",
+    users: 14920,
+    percentage: 28.6,
+    sessions: 68420,
+    avgSessionDuration: "9m 18s",
+    tone: "blue",
+  },
+  {
+    device: "Desktop",
+    users: 4380,
+    percentage: 8.4,
+    sessions: 18240,
+    avgSessionDuration: "12m 34s",
+    tone: "gold",
+  },
+  {
+    device: "Tablet",
+    users: 820,
+    percentage: 1.6,
+    sessions: 3420,
+    avgSessionDuration: "11m 15s",
+    tone: "purple",
+  },
+];
+
+export const carrierAnalytics: CarrierAnalytics[] = [
+  {
+    carrier: "Safaricom",
+    users: 24180,
+    percentage: 40.2,
+    avgBetSize: "$48.20",
+    avgPayout: "$32.80",
+    tone: "accent",
+  },
+  {
+    carrier: "Airtel",
+    users: 16420,
+    percentage: 27.3,
+    avgBetSize: "$45.60",
+    avgPayout: "$31.20",
+    tone: "blue",
+  },
+  {
+    carrier: "MTN",
+    users: 12840,
+    percentage: 21.4,
+    avgBetSize: "$42.10",
+    avgPayout: "$28.90",
+    tone: "gold",
+  },
+  {
+    carrier: "Vodacom",
+    users: 7920,
+    percentage: 13.2,
+    avgBetSize: "$39.80",
+    avgPayout: "$27.10",
+    tone: "purple",
+  },
+];
+
+export const branchAnalytics: BranchAnalytics[] = [
+  {
+    branch: "Nairobi CBD",
+    area: "Nairobi County",
+    users: 18420,
+    deposits: "$428K",
+    bets: 76210,
+    status: "active",
+    tone: "accent",
+  },
+  {
+    branch: "Westlands",
+    area: "Nairobi County",
+    users: 12680,
+    deposits: "$296K",
+    bets: 51440,
+    status: "active",
+    tone: "blue",
+  },
+  {
+    branch: "Mombasa Town",
+    area: "Coast Region",
+    users: 9840,
+    deposits: "$214K",
+    bets: 38680,
+    status: "active",
+    tone: "gold",
+  },
+  {
+    branch: "Kisumu Central",
+    area: "Nyanza Region",
+    users: 7420,
+    deposits: "$164K",
+    bets: 28920,
+    status: "watch",
+    tone: "purple",
+  },
+];
+
+export const localLocationAnalytics: LocalLocationAnalytics[] = [
+  {
+    location: "Nairobi CBD",
+    area: "Nairobi County",
+    users: 18420,
+    bets: 76210,
+    share: 31.4,
+    tone: "accent",
+  },
+  {
+    location: "Westlands",
+    area: "Nairobi County",
+    users: 12680,
+    bets: 51440,
+    share: 21.6,
+    tone: "blue",
+  },
+  {
+    location: "Mombasa Town",
+    area: "Coast Region",
+    users: 9840,
+    bets: 38680,
+    share: 16.8,
+    tone: "gold",
+  },
+  {
+    location: "Kisumu Central",
+    area: "Nyanza Region",
+    users: 7420,
+    bets: 28920,
+    share: 12.6,
+    tone: "purple",
+  },
+  {
+    location: "Nakuru Town",
+    area: "Rift Valley",
+    users: 5460,
+    bets: 21400,
+    share: 9.3,
+    tone: "blue",
+  },
+  {
+    location: "Eldoret CBD",
+    area: "Rift Valley",
+    users: 3920,
+    bets: 15880,
+    share: 6.7,
+    tone: "gold",
+  },
+];

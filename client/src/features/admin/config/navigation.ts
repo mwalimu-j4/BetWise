@@ -14,6 +14,7 @@ import {
 export type AdminNavId =
   | "dashboard"
   | "users"
+  | "analytics"
   | "bets"
   | "events"
   | "odds"
@@ -29,6 +30,7 @@ export interface AdminNavSection {
   to:
     | "/admin/dashboard"
     | "/admin/users"
+    | "/admin/analytics"
     | "/admin/bets"
     | "/admin/events"
     | "/admin/odds"
@@ -50,6 +52,12 @@ export const adminNavigation: AdminNavSection[] = [
     label: "Users",
     icon: Users,
     to: "/admin/users",
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    icon: BarChart3,
+    to: "/admin/analytics",
   },
   {
     id: "bets",
@@ -94,5 +102,3 @@ export const adminNavigation: AdminNavSection[] = [
     to: "/admin/settings",
   },
 ];
-
-

@@ -1,10 +1,209 @@
+import type { FormEvent } from "react";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import AuthCard from "@/components/auth/AuthCard";
+import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
+import { useAuth } from "@/context/AuthContext";
+
+const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+function passwordChecks(password: string) {
+  return {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+}
+
 export default function Register() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const emailValid = isValidEmail(email);
+  const phoneValid = KENYAN_PHONE_REGEX.test(phone.trim());
+  const passwordRules = passwordChecks(password);
+  const passwordValid = Object.values(passwordRules).every(Boolean);
+  const confirmValid =
+    confirmPassword.length > 0 && confirmPassword === password;
+
+  const formValid = useMemo(
+    () => emailValid && phoneValid && passwordValid && confirmValid,
+    [confirmValid, emailValid, passwordValid, phoneValid],
+  );
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!formValid) return;
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      await register({
+        email,
+        phone,
+        password,
+        confirmPassword,
+      });
+
+      void navigate({ to: "/user" });
+    } catch (error: unknown) {
+      const serverErrors = (
+        error as { response?: { data?: { errors?: Record<string, string[]> } } }
+      )?.response?.data?.errors;
+      setErrors(serverErrors ?? { general: ["Registration failed."] });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
-    <section className="animate-lift-in max-w-[620px] rounded-3xl border border-admin-border bg-admin-card p-6 shadow-[0_16px_48px_var(--color-bg-deepest)]">
-      <h1 className="text-2xl font-bold text-admin-text-primary">Register</h1>
-      <p className="mt-1.5 text-sm text-admin-text-muted">
-        Create your account to start placing secure bets instantly.
-      </p>
-    </section>
+    <AuthCard
+      title="Create your account"
+      subtitle="Create an account quickly."
+      backTo="/login"
+      backLabel="Back to login"
+      footer={
+        <p className="text-center text-xs text-admin-text-muted">
+          Already have an account?{" "}
+          <Link className="font-semibold text-admin-accent" to="/login">
+            Login
+          </Link>
+        </p>
+      }
+    >
+      <form className="grid gap-2.5" onSubmit={handleSubmit}>
+        <div className="grid gap-1">
+          <label
+            className="text-xs font-medium text-admin-text-primary"
+            htmlFor="email"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
+            required
+          />
+          {!emailValid && email.length > 0 ? (
+            <p className="text-xs text-amber-400">
+              Enter a valid email format.
+            </p>
+          ) : null}
+          {errors.email?.map((message) => (
+            <p key={message} className="text-xs text-red-400">
+              {message}
+            </p>
+          ))}
+        </div>
+
+        <div className="grid gap-1">
+          <label
+            className="text-xs font-medium text-admin-text-primary"
+            htmlFor="phone"
+          >
+            Phone number
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            placeholder="07XXXXXXXX or 01XXXXXXXX or +2547XXXXXXXX"
+            className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
+            required
+          />
+          <p className="text-xs text-admin-text-muted">Kenyan format only.</p>
+          {!phoneValid && phone.length > 0 ? (
+            <p className="text-xs text-amber-400">
+              Invalid Kenyan phone format.
+            </p>
+          ) : null}
+          {errors.phone?.map((message) => (
+            <p key={message} className="text-xs text-red-400">
+              {message}
+            </p>
+          ))}
+        </div>
+
+        <div className="grid gap-1">
+          <label
+            className="text-xs font-medium text-admin-text-primary"
+            htmlFor="password"
+          >
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
+            required
+          />
+          <PasswordStrengthIndicator password={password} />
+          {errors.password?.map((message) => (
+            <p key={message} className="text-xs text-red-400">
+              {message}
+            </p>
+          ))}
+        </div>
+
+        <div className="grid gap-1">
+          <label
+            className="text-xs font-medium text-admin-text-primary"
+            htmlFor="confirm-password"
+          >
+            Confirm password
+          </label>
+          <input
+            id="confirm-password"
+            type="password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
+            required
+          />
+          {!confirmValid && confirmPassword.length > 0 ? (
+            <p className="text-xs text-amber-400">Passwords do not match.</p>
+          ) : null}
+          {errors.confirmPassword?.map((message) => (
+            <p key={message} className="text-xs text-red-400">
+              {message}
+            </p>
+          ))}
+        </div>
+
+        {errors.general?.map((message) => (
+          <p key={message} className="text-sm text-red-400">
+            {message}
+          </p>
+        ))}
+
+        <button
+          type="submit"
+          disabled={!formValid || isSubmitting}
+          className="h-9 rounded-lg bg-admin-accent text-xs font-semibold text-[var(--color-text-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? "Creating account..." : "Create account"}
+        </button>
+      </form>
+    </AuthCard>
   );
 }

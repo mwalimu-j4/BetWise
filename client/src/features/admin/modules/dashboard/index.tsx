@@ -118,7 +118,8 @@ export default function Dashboard() {
                   </td>
                   <td className={adminTableCellClassName}>{bet.sport}</td>
                   <td
-                    className={`${adminTableCellClassName} max-w-[160px] truncate`}
+                    className={adminTableCellClassName}
+                    style={{ maxWidth: 160 }}
                   >
                     {bet.event}
                   </td>
