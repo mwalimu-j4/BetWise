@@ -1,19 +1,50 @@
 -- CreateEnum
-CREATE TYPE "WalletTransactionType" AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'BET_STAKE', 'BET_WIN', 'REFUND', 'BONUS');
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'WalletTransactionType') THEN
+        CREATE TYPE "WalletTransactionType" AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'BET_STAKE', 'BET_WIN', 'REFUND', 'BONUS');
+    END IF;
+END $$;
 
 -- CreateEnum
-CREATE TYPE "WalletTransactionStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'REVERSED');
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'WalletTransactionStatus') THEN
+        CREATE TYPE "WalletTransactionStatus" AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'REVERSED');
+    END IF;
+END $$;
 
--- AlterEnum
--- This migration adds more than one value to an enum.
--- With PostgreSQL versions 11 and earlier, this is not possible
--- in a single migration. This can be worked around by creating
--- multiple migrations, each migration adding only one value to
--- the enum.
+-- Ensure NotificationType exists before adding withdrawal values.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'NotificationType') THEN
+        CREATE TYPE "NotificationType" AS ENUM (
+            'DEPOSIT_SUCCESS',
+            'DEPOSIT_FAILED',
+            'SYSTEM',
+            'WITHDRAWAL_SUCCESS',
+            'WITHDRAWAL_FAILED'
+        );
+    ELSE
+        IF NOT EXISTS (
+            SELECT 1
+            FROM pg_enum e
+            JOIN pg_type t ON t.oid = e.enumtypid
+            WHERE t.typname = 'NotificationType' AND e.enumlabel = 'WITHDRAWAL_SUCCESS'
+        ) THEN
+            ALTER TYPE "NotificationType" ADD VALUE 'WITHDRAWAL_SUCCESS';
+        END IF;
 
-
-ALTER TYPE "NotificationType" ADD VALUE 'WITHDRAWAL_SUCCESS';
-ALTER TYPE "NotificationType" ADD VALUE 'WITHDRAWAL_FAILED';
+        IF NOT EXISTS (
+            SELECT 1
+            FROM pg_enum e
+            JOIN pg_type t ON t.oid = e.enumtypid
+            WHERE t.typname = 'NotificationType' AND e.enumlabel = 'WITHDRAWAL_FAILED'
+        ) THEN
+            ALTER TYPE "NotificationType" ADD VALUE 'WITHDRAWAL_FAILED';
+        END IF;
+    END IF;
+END $$;
 
 -- CreateTable
 CREATE TABLE "wallets" (
