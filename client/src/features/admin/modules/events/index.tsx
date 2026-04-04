@@ -350,7 +350,9 @@ export default function Events() {
                       <span className="text-[11px] text-admin-text-muted">
                         {event.leagueName ?? "Unknown league"}
                       </span>
-                      <span className="text-[11px] text-admin-text-muted">-</span>
+                      <span className="text-[11px] text-admin-text-muted">
+                        -
+                      </span>
                       <span className="text-[11px] text-admin-text-muted">
                         {new Date(event.commenceTime).toLocaleString()}
                       </span>
@@ -426,39 +428,59 @@ export default function Events() {
                         ) : eventDetail ? (
                           <div className="space-y-4">
                             <div>
-                              <p className="text-xs text-admin-text-muted">EVENT ID</p>
-                              <p className="text-sm font-semibold">{eventDetail.eventId}</p>
+                              <p className="text-xs text-admin-text-muted">
+                                EVENT ID
+                              </p>
+                              <p className="text-sm font-semibold">
+                                {eventDetail.eventId}
+                              </p>
                             </div>
                             <div>
-                              <p className="text-xs text-admin-text-muted">MATCH</p>
+                              <p className="text-xs text-admin-text-muted">
+                                MATCH
+                              </p>
                               <p className="text-sm font-semibold text-admin-text-primary">
                                 {eventDetail.homeTeam} vs {eventDetail.awayTeam}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-admin-text-muted">LEAGUE</p>
+                              <p className="text-xs text-admin-text-muted">
+                                LEAGUE
+                              </p>
                               <p className="text-sm text-admin-text-primary">
                                 {eventDetail.leagueName ?? "Unknown league"}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-admin-text-muted">DATE</p>
+                              <p className="text-xs text-admin-text-muted">
+                                DATE
+                              </p>
                               <p className="text-sm text-admin-text-primary">
-                                {new Date(eventDetail.commenceTime).toLocaleString()}
+                                {new Date(
+                                  eventDetail.commenceTime,
+                                ).toLocaleString()}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-admin-text-muted">STATUS</p>
-                              <StatusBadge status={toBadgeStatus(eventDetail.status)} />
+                              <p className="text-xs text-admin-text-muted">
+                                STATUS
+                              </p>
+                              <StatusBadge
+                                status={toBadgeStatus(eventDetail.status)}
+                              />
                             </div>
                             <div>
-                              <p className="text-xs text-admin-text-muted">MARKETS</p>
+                              <p className="text-xs text-admin-text-muted">
+                                MARKETS
+                              </p>
                               <p className="text-sm font-semibold text-admin-blue">
                                 {eventDetail.marketsEnabled.join(", ")}
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs text-admin-text-muted">TOTAL BETS</p>
+                              <p className="text-xs text-admin-text-muted">
+                                TOTAL BETS
+                              </p>
                               <p className="text-sm font-semibold text-admin-gold">
                                 {eventDetail._count.bets.toLocaleString()}
                               </p>
@@ -468,29 +490,34 @@ export default function Events() {
                                 DISPLAYED ODDS
                               </p>
                               <div className="mt-2 space-y-3">
-                                {(eventDetail.displayedOdds ?? []).map((bookmaker) => (
-                                  <div
-                                    className="rounded-xl border border-admin-border p-3"
-                                    key={bookmaker.bookmakerId}
-                                  >
-                                    <p className="text-sm font-semibold text-admin-text-primary">
-                                      {bookmaker.bookmakerName}
-                                    </p>
-                                    <div className="mt-2 space-y-1 text-xs text-admin-text-muted">
-                                      {bookmaker.odds.map((odd) => (
-                                        <p key={odd.id}>
-                                          {odd.marketType} | {odd.side} | {odd.displayOdds}
-                                        </p>
-                                      ))}
+                                {(eventDetail.displayedOdds ?? []).map(
+                                  (bookmaker) => (
+                                    <div
+                                      className="rounded-xl border border-admin-border p-3"
+                                      key={bookmaker.bookmakerId}
+                                    >
+                                      <p className="text-sm font-semibold text-admin-text-primary">
+                                        {bookmaker.bookmakerName}
+                                      </p>
+                                      <div className="mt-2 space-y-1 text-xs text-admin-text-muted">
+                                        {bookmaker.odds.map((odd) => (
+                                          <p key={odd.id}>
+                                            {odd.marketType} | {odd.side} |{" "}
+                                            {odd.displayOdds}
+                                          </p>
+                                        ))}
+                                      </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  ),
+                                )}
                               </div>
                             </div>
                           </div>
                         ) : (
                           <p className="text-sm text-admin-text-muted">
-                            {selectedEvent ? "No details available." : "Select an event."}
+                            {selectedEvent
+                              ? "No details available."
+                              : "Select an event."}
                           </p>
                         )}
                       </ScrollArea>
@@ -533,7 +560,9 @@ export default function Events() {
                           </label>
                           <Input
                             value={houseMargin}
-                            onChange={(event) => setHouseMargin(event.target.value)}
+                            onChange={(event) =>
+                              setHouseMargin(event.target.value)
+                            }
                             className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
                           />
                         </div>
@@ -554,7 +583,8 @@ export default function Events() {
                                       event.target.checked
                                         ? [...currentMarkets, market]
                                         : currentMarkets.filter(
-                                            (currentMarket) => currentMarket !== market,
+                                            (currentMarket) =>
+                                              currentMarket !== market,
                                           ),
                                     );
                                   }}
@@ -600,7 +630,9 @@ export default function Events() {
                         <Input
                           placeholder="E.g., Event postponed, Match cancelled"
                           value={closeReason}
-                          onChange={(dialogEvent) => setCloseReason(dialogEvent.target.value)}
+                          onChange={(dialogEvent) =>
+                            setCloseReason(dialogEvent.target.value)
+                          }
                           className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
                         />
                       </div>
@@ -632,7 +664,9 @@ export default function Events() {
           <AdminButton
             variant="ghost"
             disabled={page <= 1}
-            onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+            onClick={() =>
+              setPage((currentPage) => Math.max(1, currentPage - 1))
+            }
           >
             Previous
           </AdminButton>

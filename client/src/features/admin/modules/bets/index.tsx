@@ -112,14 +112,22 @@ export default function Bets() {
       .reduce((sum, bet) => sum + bet.potentialPayout, 0);
 
     return [
-      { label: "Total Open", value: totalOpen.toLocaleString(), tone: "gold" as const },
+      {
+        label: "Total Open",
+        value: totalOpen.toLocaleString(),
+        tone: "gold" as const,
+      },
       {
         label: "Settled Today",
         value: settledToday.toLocaleString(),
         tone: "accent" as const,
       },
       { label: "Voided", value: voided.toLocaleString(), tone: "red" as const },
-      { label: "Flagged", value: flagged.toLocaleString(), tone: "red" as const },
+      {
+        label: "Flagged",
+        value: flagged.toLocaleString(),
+        tone: "red" as const,
+      },
       {
         label: "Liability",
         value: `KES ${Math.round(liability).toLocaleString()}`,
@@ -142,7 +150,9 @@ export default function Bets() {
         params: {
           page,
           limit: 20,
-          ...(activeFilter && activeFilter !== "FLAGGED" ? { status: activeFilter } : {}),
+          ...(activeFilter && activeFilter !== "FLAGGED"
+            ? { status: activeFilter }
+            : {}),
           ...(searchQuery.trim() ? { search: searchQuery.trim() } : {}),
         },
       });
@@ -192,7 +202,10 @@ export default function Bets() {
   const skeletonRows = useMemo(
     () =>
       Array.from({ length: 5 }, (_, rowIndex) => (
-        <tr className="even:bg-[var(--color-bg-elevated)]" key={`bet-skeleton-${rowIndex}`}>
+        <tr
+          className="even:bg-[var(--color-bg-elevated)]"
+          key={`bet-skeleton-${rowIndex}`}
+        >
           {Array.from({ length: 11 }, (_, cellIndex) => (
             <td className={adminTableCellClassName} key={cellIndex}>
               <div className="h-4 w-full rounded bg-admin-surface animate-pulse" />
@@ -295,7 +308,9 @@ export default function Bets() {
               {!loading && visibleBets.length === 0 ? (
                 <tr>
                   <td className={adminTableCellClassName} colSpan={11}>
-                    <p className="text-sm text-admin-text-muted">No bets found.</p>
+                    <p className="text-sm text-admin-text-muted">
+                      No bets found.
+                    </p>
                   </td>
                 </tr>
               ) : null}
@@ -350,7 +365,9 @@ export default function Bets() {
                           KES {Math.round(bet.potentialPayout).toLocaleString()}
                         </td>
                         <td className={adminTableCellClassName}>
-                          <StatusBadge status={toBadgeStatus(bet.status, bet.stake)} />
+                          <StatusBadge
+                            status={toBadgeStatus(bet.status, bet.stake)}
+                          />
                         </td>
                         <td
                           className={`${adminTableCellClassName} text-xs text-admin-text-muted`}
@@ -400,7 +417,8 @@ export default function Bets() {
                                           SPORT
                                         </p>
                                         <p className="text-sm text-admin-text-primary">
-                                          {selectedBet.event.sportKey ?? "Unknown"}
+                                          {selectedBet.event.sportKey ??
+                                            "Unknown"}
                                         </p>
                                       </div>
                                       <div>
@@ -441,7 +459,10 @@ export default function Bets() {
                                           STAKE
                                         </p>
                                         <p className="text-sm font-semibold">
-                                          KES {Math.round(selectedBet.stake).toLocaleString()}
+                                          KES{" "}
+                                          {Math.round(
+                                            selectedBet.stake,
+                                          ).toLocaleString()}
                                         </p>
                                       </div>
                                       <div>
@@ -471,7 +492,9 @@ export default function Bets() {
                                           TIME
                                         </p>
                                         <p className="text-sm text-admin-text-primary">
-                                          {new Date(selectedBet.placedAt).toLocaleString()}
+                                          {new Date(
+                                            selectedBet.placedAt,
+                                          ).toLocaleString()}
                                         </p>
                                       </div>
                                     </div>
@@ -510,7 +533,9 @@ export default function Bets() {
                                         <input
                                           checked={settleSelection === option}
                                           name="bet-settle"
-                                          onChange={() => setSettleSelection(option)}
+                                          onChange={() =>
+                                            setSettleSelection(option)
+                                          }
                                           type="radio"
                                         />
                                         {option}
@@ -518,14 +543,20 @@ export default function Bets() {
                                     ))}
                                   </div>
                                   <div className="flex gap-2 pt-4">
-                                    <Button variant="outline" className="flex-1">
+                                    <Button
+                                      variant="outline"
+                                      className="flex-1"
+                                    >
                                       Cancel
                                     </Button>
                                     <Button
                                       className="flex-1 bg-admin-accent text-black hover:bg-[#00d492]"
                                       onClick={() =>
                                         settleBet
-                                          ? void settle(settleBet.id, settleSelection)
+                                          ? void settle(
+                                              settleBet.id,
+                                              settleSelection,
+                                            )
                                           : undefined
                                       }
                                     >
@@ -561,8 +592,8 @@ export default function Bets() {
                                 <DialogHeader>
                                   <DialogTitle>Void Bet</DialogTitle>
                                   <DialogDescription>
-                                    This action will refund the stake and mark the bet
-                                    as void.
+                                    This action will refund the stake and mark
+                                    the bet as void.
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div>
@@ -572,7 +603,9 @@ export default function Bets() {
                                   <Input
                                     placeholder="E.g., Event cancelled, Technical error"
                                     value={voidReason}
-                                    onChange={(event) => setVoidReason(event.target.value)}
+                                    onChange={(event) =>
+                                      setVoidReason(event.target.value)
+                                    }
                                     className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
                                   />
                                 </div>
@@ -612,7 +645,9 @@ export default function Bets() {
           <AdminButton
             variant="ghost"
             disabled={page <= 1}
-            onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+            onClick={() =>
+              setPage((currentPage) => Math.max(1, currentPage - 1))
+            }
           >
             Previous
           </AdminButton>
