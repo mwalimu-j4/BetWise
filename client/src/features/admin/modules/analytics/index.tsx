@@ -65,7 +65,9 @@ export default function Analytics() {
                   <p className="font-semibold text-admin-text-primary">
                     {location.location}
                   </p>
-                  <p className="text-xs text-admin-text-muted">{location.area}</p>
+                  <p className="text-xs text-admin-text-muted">
+                    {location.area}
+                  </p>
                 </div>
                 <p className="text-sm font-semibold text-admin-text-primary">
                   {location.share.toFixed(1)}%
@@ -73,7 +75,8 @@ export default function Analytics() {
               </div>
               <p className="mt-2 text-xs text-admin-text-secondary">
                 <MapPin size={12} className="inline-block -translate-y-px" />{" "}
-                {location.users.toLocaleString()} users · {location.bets.toLocaleString()} bets
+                {location.users.toLocaleString()} users ·{" "}
+                {location.bets.toLocaleString()} bets
               </p>
             </div>
           ))}
@@ -106,9 +109,12 @@ export default function Analytics() {
                   {branch.status}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-admin-text-muted">{branch.area}</p>
+              <p className="mt-1 text-xs text-admin-text-muted">
+                {branch.area}
+              </p>
               <p className="mt-2 text-xs text-admin-text-secondary">
-                {branch.users.toLocaleString()} users · {branch.bets.toLocaleString()} bets · {branch.deposits} deposits
+                {branch.users.toLocaleString()} users ·{" "}
+                {branch.bets.toLocaleString()} bets · {branch.deposits} deposits
               </p>
             </div>
           ))}
