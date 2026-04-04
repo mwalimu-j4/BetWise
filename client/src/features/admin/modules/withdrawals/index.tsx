@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "@tanstack/react-router";
 import { CheckCircle, Download, Eye, XCircle, Loader } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
@@ -48,11 +49,17 @@ type WithdrawalsResponse = {
 export default function WithdrawalsAdmin() {
   const [selectedWithdrawal, setSelectedWithdrawal] =
     useState<Withdrawal | null>(null);
+  const [highlightedWithdrawalId, setHighlightedWithdrawalId] = useState<
+    string | null
+  >(null);
   const [rejectReason, setRejectReason] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "PENDING" | "COMPLETED" | "FAILED"
   >("PENDING");
   const queryClient = useQueryClient();
+  const locationHash = useLocation({
+    select: (location) => location.hash,
+  });
 
   const {
     data: withdrawalsData,
@@ -167,6 +174,40 @@ export default function WithdrawalsAdmin() {
     });
   };
 
+  useEffect(() => {
+    if (!locationHash || withdrawals.length === 0) {
+      return;
+    }
+
+    const hashValue = locationHash.replace(/^#/, "");
+    const targetWithdrawal =
+      hashValue === "latest"
+        ? withdrawals[0]
+        : withdrawals.find((withdrawal) => withdrawal.id === hashValue);
+
+    if (!targetWithdrawal) {
+      return;
+    }
+
+    setHighlightedWithdrawalId(targetWithdrawal.id);
+
+    const targetElement = document.querySelector(
+      `[data-withdrawal-id="${targetWithdrawal.id}"]`,
+    );
+
+    if (targetElement instanceof HTMLElement) {
+      targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setHighlightedWithdrawalId((current) =>
+        current === targetWithdrawal.id ? null : current,
+      );
+    }, 3500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [locationHash, withdrawals]);
+
   return (
     <div className="space-y-6">
       <AdminSectionHeader
@@ -235,7 +276,12 @@ export default function WithdrawalsAdmin() {
               <tbody>
                 {withdrawals.map((withdrawal) => (
                   <tr
-                    className="even:bg-[var(--color-bg-elevated)]"
+                    className={`even:bg-[var(--color-bg-elevated)] transition-colors ${
+                      highlightedWithdrawalId === withdrawal.id
+                        ? "bg-admin-accent-dim"
+                        : ""
+                    }`}
+                    data-withdrawal-id={withdrawal.id}
                     key={withdrawal.id}
                   >
                     <td
@@ -278,180 +324,205 @@ export default function WithdrawalsAdmin() {
                               size="sm"
                               variant="ghost"
                               onClick={() => setSelectedWithdrawal(withdrawal)}
+                              className="text-admin-text-muted hover:text-admin-text-primary"
                             >
-                              <Eye size={11} />
+                              <Eye size={16} />
                             </AdminButton>
                           </DialogTrigger>
-                          <DialogContent className="border-admin-border bg-admin-card">
-                            <DialogHeader>
-                              <DialogTitle>Withdrawal Details</DialogTitle>
-                              <DialogDescription>
-                                Review and process the withdrawal request
+
+                          <DialogContent className="max-w-md overflow-hidden border-admin-border bg-admin-card p-0 shadow-xl sm:rounded-2xl">
+                            <DialogHeader className="border-b border-admin-border bg-admin-surface/50 px-6 py-5">
+                              <DialogTitle className="text-lg text-admin-text-primary">
+                                Withdrawal Request
+                              </DialogTitle>
+                              <DialogDescription className="text-xs text-admin-text-muted">
+                                Review the details below before processing.
                               </DialogDescription>
                             </DialogHeader>
-                            {selectedWithdrawal && (
-                              <ScrollArea className="h-auto max-h-[400px] w-full pr-4">
-                                <div className="space-y-4">
-                                  <div>
-                                    <p className="text-xs text-admin-text-muted">
-                                      USER EMAIL
-                                    </p>
-                                    <p className="text-sm font-semibold text-admin-text-primary">
-                                      {selectedWithdrawal.userEmail}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-admin-text-muted">
-                                      USER PHONE
-                                    </p>
-                                    <p className="text-sm text-admin-text-primary">
-                                      {selectedWithdrawal.userPhone}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-admin-text-muted">
-                                      WITHDRAWAL PHONE
-                                    </p>
-                                    <p className="text-sm text-admin-text-primary">
-                                      {selectedWithdrawal.phone}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-admin-text-muted">
-                                      AMOUNT
-                                    </p>
-                                    <p className="text-sm font-semibold text-admin-accent">
-                                      {formatCurrency(
-                                        selectedWithdrawal.amount,
-                                      )}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-admin-text-muted">
-                                      FEE
-                                    </p>
-                                    <p className="text-sm text-admin-text-primary">
-                                      {formatCurrency(selectedWithdrawal.fee)}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-admin-text-muted">
-                                      TOTAL DEBIT
-                                    </p>
-                                    <p className="text-sm font-semibold">
-                                      {formatCurrency(
-                                        selectedWithdrawal.totalDebit,
-                                      )}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-admin-text-muted">
-                                      STATUS
-                                    </p>
-                                    <StatusBadge
-                                      status={selectedWithdrawal.status}
-                                    />
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-admin-text-muted">
-                                      REQUESTED AT
-                                    </p>
-                                    <p className="text-sm text-admin-text-primary">
-                                      {formatDateTime(
-                                        selectedWithdrawal.createdAt,
-                                      )}
-                                    </p>
-                                  </div>
-                                  {selectedWithdrawal.processedAt && (
-                                    <div>
-                                      <p className="text-xs text-admin-text-muted">
-                                        PROCESSED AT
-                                      </p>
-                                      <p className="text-sm text-admin-text-primary">
-                                        {formatDateTime(
-                                          selectedWithdrawal.processedAt,
-                                        )}
-                                      </p>
-                                    </div>
-                                  )}
 
-                                  {selectedWithdrawal.status === "pending" && (
-                                    <div className="space-y-3 border-t border-admin-border pt-4">
+                            {selectedWithdrawal && (
+                              <div className="flex flex-col">
+                                <ScrollArea className="max-h-[50vh] px-6 py-5">
+                                  <div className="space-y-6">
+                                    {/* User & Contact Info */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="col-span-2">
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                                          User Email
+                                        </p>
+                                        <p className="mt-1 text-sm font-medium text-admin-text-primary">
+                                          {selectedWithdrawal.userEmail}
+                                        </p>
+                                      </div>
                                       <div>
-                                        <label className="text-xs text-admin-text-muted">
-                                          Rejection Reason (Optional)
-                                        </label>
-                                        <Input
-                                          value={rejectReason}
-                                          onChange={(e) =>
-                                            setRejectReason(e.target.value)
-                                          }
-                                          placeholder="Enter reason for rejection if applicable"
-                                          className="mt-1 border-admin-border bg-admin-surface text-sm"
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                                          User Phone
+                                        </p>
+                                        <p className="mt-1 text-sm text-admin-text-primary">
+                                          {selectedWithdrawal.userPhone}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                                          Withdrawal Phone
+                                        </p>
+                                        <p className="mt-1 text-sm font-medium text-admin-text-primary">
+                                          {selectedWithdrawal.phone}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    {/* Financial Details Card */}
+                                    <div className="rounded-xl border border-admin-border bg-admin-surface p-4">
+                                      <div className="grid grid-cols-2 gap-y-4">
+                                        <div>
+                                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                                            Amount
+                                          </p>
+                                          <p className="mt-1 text-sm font-bold text-admin-text-primary">
+                                            {formatCurrency(
+                                              selectedWithdrawal.amount,
+                                            )}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                                            Fee
+                                          </p>
+                                          <p className="mt-1 text-sm text-admin-text-secondary">
+                                            {formatCurrency(
+                                              selectedWithdrawal.fee,
+                                            )}
+                                          </p>
+                                        </div>
+                                        <div className="col-span-2 border-t border-admin-border pt-3">
+                                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                                            Total Debit
+                                          </p>
+                                          <p className="mt-1 text-base font-bold text-admin-accent">
+                                            {formatCurrency(
+                                              selectedWithdrawal.totalDebit,
+                                            )}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Status & Timestamps */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                                          Status
+                                        </p>
+                                        <StatusBadge
+                                          status={selectedWithdrawal.status}
                                         />
                                       </div>
-                                      <div className="flex gap-2">
-                                        <Button
-                                          onClick={() =>
-                                            approveMutation.mutate(
-                                              selectedWithdrawal.id,
-                                            )
-                                          }
-                                          disabled={approveMutation.isPending}
-                                          className="flex-1 bg-admin-accent text-black hover:opacity-90"
-                                        >
-                                          {approveMutation.isPending ? (
-                                            <>
-                                              <Loader
-                                                size={14}
-                                                className="mr-2 animate-spin"
-                                              />
-                                              Approving...
-                                            </>
-                                          ) : (
-                                            <>
-                                              <CheckCircle
-                                                size={14}
-                                                className="mr-2"
-                                              />
-                                              Approve
-                                            </>
+                                      <div>
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                                          Requested At
+                                        </p>
+                                        <p className="mt-1 text-xs text-admin-text-secondary">
+                                          {formatDateTime(
+                                            selectedWithdrawal.createdAt,
                                           )}
-                                        </Button>
-                                        <Button
-                                          onClick={() =>
-                                            rejectMutation.mutate({
-                                              withdrawalId:
-                                                selectedWithdrawal.id,
-                                              reason: rejectReason,
-                                            })
-                                          }
-                                          disabled={rejectMutation.isPending}
-                                          className="flex-1 bg-red-600 hover:bg-red-700"
-                                        >
-                                          {rejectMutation.isPending ? (
-                                            <>
-                                              <Loader
-                                                size={14}
-                                                className="mr-2 animate-spin"
-                                              />
-                                              Rejecting...
-                                            </>
-                                          ) : (
-                                            <>
-                                              <XCircle
-                                                size={14}
-                                                className="mr-2"
-                                              />
-                                              Reject
-                                            </>
-                                          )}
-                                        </Button>
+                                        </p>
                                       </div>
+                                      {selectedWithdrawal.processedAt && (
+                                        <div className="col-span-2">
+                                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                                            Processed At
+                                          </p>
+                                          <p className="mt-1 text-xs text-admin-text-secondary">
+                                            {formatDateTime(
+                                              selectedWithdrawal.processedAt,
+                                            )}
+                                          </p>
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
-                                </div>
-                              </ScrollArea>
+                                  </div>
+                                </ScrollArea>
+
+                                {/* Action Footer (Only visible if pending) */}
+                                {selectedWithdrawal.status === "pending" && (
+                                  <div className="border-t border-admin-border bg-admin-surface/30 px-6 py-5">
+                                    <div className="mb-4">
+                                      <label
+                                        htmlFor="rejectReason"
+                                        className="text-xs font-medium text-admin-text-primary"
+                                      >
+                                        Rejection Reason{" "}
+                                        <span className="text-admin-text-muted font-normal">
+                                          (Optional)
+                                        </span>
+                                      </label>
+                                      <Input
+                                        id="rejectReason"
+                                        value={rejectReason}
+                                        onChange={(e) =>
+                                          setRejectReason(e.target.value)
+                                        }
+                                        placeholder="Enter reason if rejecting..."
+                                        className="mt-1.5 h-10 border-admin-border bg-admin-card text-sm focus-visible:ring-admin-accent"
+                                      />
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                      <Button
+                                        onClick={() =>
+                                          rejectMutation.mutate({
+                                            withdrawalId: selectedWithdrawal.id,
+                                            reason: rejectReason,
+                                          })
+                                        }
+                                        disabled={
+                                          rejectMutation.isPending ||
+                                          approveMutation.isPending
+                                        }
+                                        variant="outline"
+                                        className="flex-1 border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:text-red-400"
+                                      >
+                                        {rejectMutation.isPending ? (
+                                          <Loader
+                                            size={16}
+                                            className="mr-2 animate-spin"
+                                          />
+                                        ) : (
+                                          <XCircle size={16} className="mr-2" />
+                                        )}
+                                        Reject
+                                      </Button>
+
+                                      <Button
+                                        onClick={() =>
+                                          approveMutation.mutate(
+                                            selectedWithdrawal.id,
+                                          )
+                                        }
+                                        disabled={
+                                          approveMutation.isPending ||
+                                          rejectMutation.isPending
+                                        }
+                                        className="flex-1 bg-admin-accent text-black hover:opacity-90"
+                                      >
+                                        {approveMutation.isPending ? (
+                                          <Loader
+                                            size={16}
+                                            className="mr-2 animate-spin"
+                                          />
+                                        ) : (
+                                          <CheckCircle
+                                            size={16}
+                                            className="mr-2"
+                                          />
+                                        )}
+                                        Approve
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </DialogContent>
                         </Dialog>
