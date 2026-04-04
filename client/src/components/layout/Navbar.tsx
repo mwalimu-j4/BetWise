@@ -27,6 +27,7 @@ const tickerItems = [
   { label: "Chelsea vs Villa", odds: "2.40", up: false },
 ];
 
+// REMOVED: Results, Casino, and My Bets for the public view
 const navLinks: NavRoute[] = [
   { label: "Home", icon: "#", to: "/user" },
   {
@@ -48,9 +49,6 @@ const navLinks: NavRoute[] = [
     to: "/user/coming-soon?feature=promotions",
     badge: { text: "New", tone: "green" },
   },
-  { label: "Results", icon: "=", to: "/user/payments/history" },
-  { label: "Casino", icon: "@", to: "/user/coming-soon?feature=casino" },
-  { label: "My Bets", icon: "[]", to: "/user/payments" },
 ];
 
 const leagues = [
@@ -123,13 +121,14 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           <Menu size={18} />
         </button>
 
-        <Link to="/user" className="bc-logo" aria-label="BettCenic home">
+        <Link to="/user" className="bc-logo" aria-label="BetixPro home">
           <span className="bc-logo-icon" aria-hidden="true">
             *
           </span>
           <span className="bc-logo-text">
-            <span className="is-white">BETT</span>
-            <span className="is-gold">CENIC</span>
+            {/* UPDATED: Brand name changed to BetixPro */}
+            <span className="is-white">Betix</span>
+            <span className="is-gold">Pro</span>
           </span>
         </Link>
 
@@ -166,12 +165,16 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </nav>
 
         <div className="bc-actions">
-          <div className="bc-balance" aria-label="Balance">
-            <span className="bc-balance-label">BALANCE</span>
-            <span className="bc-balance-value">
-              {formatMoney(walletSummary.balance)}
-            </span>
-          </div>
+          
+          {/* UPDATED: Only show the Balance if the user is logged in */}
+          {isAuthenticated ? (
+             <div className="bc-balance" aria-label="Balance">
+               <span className="bc-balance-label">BALANCE</span>
+               <span className="bc-balance-value">
+                 {formatMoney(walletSummary.balance)}
+               </span>
+             </div>
+          ) : null}
 
           <div className="bc-notify">
             <button
@@ -235,14 +238,18 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             </div>
           )}
 
-          <Link
-            to="/user/payments/deposit"
-            className="bc-deposit-btn"
-            aria-label="Deposit funds"
-          >
-            <Plus size={14} />
-            <span className="bc-deposit-text">Deposit</span>
-          </Link>
+          {/* UPDATED: Only show the Deposit button if the user is logged in */}
+          {isAuthenticated ? (
+            <Link
+              to="/user/payments/deposit"
+              className="bc-deposit-btn"
+              aria-label="Deposit funds"
+            >
+              <Plus size={14} />
+              <span className="bc-deposit-text">Deposit</span>
+            </Link>
+          ) : null}
+
         </div>
       </div>
 
