@@ -261,7 +261,7 @@ export default function Register() {
         <button
           type="submit"
           disabled={!formValid || isSubmitting}
-          className="h-9 rounded-lg bg-admin-accent text-xs font-semibold text-(--color-text-dark) disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-9 rounded-lg bg-admin-accent text-xs font-semibold text-[var(--color-text-dark)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Creating account..." : "Create account"}
         </button>
