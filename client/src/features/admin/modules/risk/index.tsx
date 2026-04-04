@@ -12,11 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  exposureLimits,
-  riskAlerts,
-  riskControls,
-} from "../../data/mock-data";
+import { exposureLimits, riskAlerts, riskControls } from "../../data/mock-data";
 import {
   AdminButton,
   AdminCard,
@@ -260,5 +256,3 @@ export default function Risk() {
     </div>
   );
 }
-
-
