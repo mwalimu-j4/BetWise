@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   DollarSign,
   Flag,
+  Smartphone,
   Shield,
   Target,
   TrendingUp,
@@ -154,6 +155,52 @@ export interface AdminExposureLimit {
 export interface AdminRiskControl {
   label: string;
   value: string;
+}
+
+export interface FinancialKPI {
+  label: string;
+  value: string;
+  change: string;
+  up: boolean;
+  icon: LucideIcon;
+  tone: AdminTone;
+}
+
+export interface FinancialTrendData {
+  day: string;
+  totalBets: number;
+  stake: number;
+  ggr: number;
+  ngr: number;
+  payout: number;
+}
+
+export interface GeoAnalytics {
+  country: string;
+  region: string;
+  users: number;
+  bets: number;
+  revenue: string;
+  percentage: number;
+  tone: AdminTone;
+}
+
+export interface DeviceAnalytics {
+  device: string;
+  users: number;
+  percentage: number;
+  sessions: number;
+  avgSessionDuration: string;
+  tone: AdminTone;
+}
+
+export interface CarrierAnalytics {
+  carrier: string;
+  users: number;
+  percentage: number;
+  avgBetSize: string;
+  avgPayout: string;
+  tone: AdminTone;
 }
 
 export const dashboardMetrics: AdminMetric[] = [
