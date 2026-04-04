@@ -203,6 +203,16 @@ export interface CarrierAnalytics {
   tone: AdminTone;
 }
 
+export interface BranchAnalytics {
+  branch: string;
+  area: string;
+  users: number;
+  deposits: string;
+  bets: number;
+  status: "active" | "watch";
+  tone: AdminTone;
+}
+
 export const dashboardMetrics: AdminMetric[] = [
   {
     label: "Total Revenue",
@@ -1004,6 +1014,45 @@ export const carrierAnalytics: CarrierAnalytics[] = [
     percentage: 13.2,
     avgBetSize: "$39.80",
     avgPayout: "$27.10",
+    tone: "purple",
+  },
+];
+
+export const branchAnalytics: BranchAnalytics[] = [
+  {
+    branch: "Nairobi CBD",
+    area: "Nairobi County",
+    users: 18420,
+    deposits: "$428K",
+    bets: 76210,
+    status: "active",
+    tone: "accent",
+  },
+  {
+    branch: "Westlands",
+    area: "Nairobi County",
+    users: 12680,
+    deposits: "$296K",
+    bets: 51440,
+    status: "active",
+    tone: "blue",
+  },
+  {
+    branch: "Mombasa Town",
+    area: "Coast Region",
+    users: 9840,
+    deposits: "$214K",
+    bets: 38680,
+    status: "active",
+    tone: "gold",
+  },
+  {
+    branch: "Kisumu Central",
+    area: "Nyanza Region",
+    users: 7420,
+    deposits: "$164K",
+    bets: 28920,
+    status: "watch",
     tone: "purple",
   },
 ];
