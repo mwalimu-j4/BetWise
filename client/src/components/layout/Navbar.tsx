@@ -3,11 +3,12 @@ import { Bell, CircleCheck, CircleX, Menu, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import SearchBar from "@/components/search/SearchBar";
 import { useAuth } from "@/context/AuthContext";
+import {
+  useAppNotifications,
+  useMarkAllNotificationsRead,
+} from "@/features/notifications/notifications";
 import { formatMoney } from "@/features/user/payments/data";
 import { useWalletSummary } from "@/features/user/payments/wallet";
-
-// Note: If these two hooks have red lines, just click them and press Ctrl + . to auto-import them!
-// import { useAppNotifications, useMarkAllNotificationsRead } from "..."; 
 
 type NavbarProps = {
   onToggleSidebar: () => void;
@@ -97,18 +98,34 @@ function formatNotificationTime(isoDate: string) {
   return `${daysAgo}d ago`;
 }
 
+function toText(value: unknown, fallback = "") {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (
+    value &&
+    typeof value === "object" &&
+    "message" in value &&
+    typeof (value as { message?: unknown }).message === "string"
+  ) {
+    return (value as { message: string }).message;
+  }
+
+  return fallback;
+}
+
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
-  
-  // YOUR FIX: The wallet data is named correctly
+
   const { data: walletSummary } = useWalletSummary();
-  
-  // HIS FEATURE: The new notification system (auto-import these if they are red)
-  // @ts-ignore - Assuming these hooks exist in your team's code
-  const { data: notificationData } = typeof useAppNotifications === 'function' ? useAppNotifications(12) : { data: null };
-  // @ts-ignore
-  const markAllNotificationsRead = typeof useMarkAllNotificationsRead === 'function' ? useMarkAllNotificationsRead() : () => {};
+  const { data: notificationData } = useAppNotifications(12);
+  const markAllNotificationsRead = useMarkAllNotificationsRead();
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const lastPathRef = useRef(location.pathname);
@@ -212,8 +229,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           <div className="bc-balance" aria-label="Balance">
             <span className="bc-balance-label">BALANCE</span>
             <span className="bc-balance-value">
-              {/* YOUR FIX IS RIGHT HERE! */}
-              {formatMoney((walletSummary as any)?.balance || 0)}
+              {formatMoney(walletSummary?.wallet.balance ?? 0)}
             </span>
           </div>
 
@@ -280,13 +296,15 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                           </span>
                           <span className="bc-notify-body">
                             <span className="bc-notify-item-title">
-                              {notification.title}
+                              {toText(notification.title, "Notification")}
                             </span>
                             <span className="bc-notify-item-copy">
-                              {notification.message}
+                              {toText(notification.message, "")}
                             </span>
                             <span className="bc-notify-item-time">
-                              {formatNotificationTime(notification.createdAt)}
+                              {formatNotificationTime(
+                                toText(notification.createdAt, ""),
+                              )}
                             </span>
                           </span>
                         </button>

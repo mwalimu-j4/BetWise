@@ -31,11 +31,18 @@ type EventsResponse = {
 
 function getErrorMessage(error: unknown) {
   if (isAxiosError<{ error?: string; message?: string }>(error)) {
-    return (
-      error.response?.data?.error ||
-      error.response?.data?.message ||
-      "Unable to load matches right now."
-    );
+    const errorValue = error.response?.data?.error;
+    const messageValue = error.response?.data?.message;
+
+    if (typeof errorValue === "string" && errorValue.trim()) {
+      return errorValue;
+    }
+
+    if (typeof messageValue === "string" && messageValue.trim()) {
+      return messageValue;
+    }
+
+    return "Unable to load matches right now.";
   }
 
   return "Unable to load matches right now.";
@@ -44,9 +51,9 @@ function getErrorMessage(error: unknown) {
 export function useEvents() {
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [liveEvents, setLiveEvents] = useState<ApiEvent[]>([]);
-  const [sports, setSports] = useState<{ sportKey: string; leagues: string[] }[]>(
-    [],
-  );
+  const [sports, setSports] = useState<
+    { sportKey: string; leagues: string[] }[]
+  >([]);
   const [selectedSport, setSelectedSport] = useState("");
   const [selectedLeague, setSelectedLeague] = useState("");
   const [loading, setLoading] = useState(true);
