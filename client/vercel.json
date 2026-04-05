@@ -12,6 +12,10 @@
     {
       "source": "/socket.io/:path*",
       "destination": "https://betwise-95cj.onrender.com/socket.io/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ]
 }
