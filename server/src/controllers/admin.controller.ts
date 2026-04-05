@@ -2,6 +2,10 @@ import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
+import {
+  adminSettingsSchema,
+  defaultAdminSettings,
+} from "../lib/adminSettingsConfig";
 
 const RECENT_ACTIVITY_LIMIT = 8;
 const TREND_DAYS = 7;
@@ -1245,6 +1249,105 @@ export async function getAdminPaymentsStats(req: Request, res: Response) {
         totalValue: totalWithdrawalValue._sum.amount ?? 0,
         pendingValue: pendingWithdrawalValue._sum.amount ?? 0,
       },
+    },
+  });
+}
+
+export async function getAdminSettings(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const settings = await prisma.adminSettings.upsert({
+    where: { key: "global" },
+    update: {},
+    create: {
+      key: "global",
+      config: defaultAdminSettings,
+      updatedBy: req.user.id,
+    },
+  });
+
+  const parsedConfig = adminSettingsSchema.safeParse(settings.config);
+
+  if (!parsedConfig.success) {
+    const repaired = await prisma.adminSettings.update({
+      where: { key: "global" },
+      data: {
+        config: defaultAdminSettings,
+        updatedBy: req.user.id,
+      },
+    });
+
+    return res.status(200).json({
+      config: defaultAdminSettings,
+      metadata: {
+        key: repaired.key,
+        updatedBy: repaired.updatedBy,
+        createdAt: repaired.createdAt.toISOString(),
+        updatedAt: repaired.updatedAt.toISOString(),
+      },
+    });
+  }
+
+  return res.status(200).json({
+    config: parsedConfig.data,
+    metadata: {
+      key: settings.key,
+      updatedBy: settings.updatedBy,
+      createdAt: settings.createdAt.toISOString(),
+      updatedAt: settings.updatedAt.toISOString(),
+    },
+  });
+}
+
+export async function updateAdminSettings(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const parsedBody = z
+    .object({
+      config: adminSettingsSchema,
+    })
+    .safeParse(req.body);
+
+  if (!parsedBody.success) {
+    return res.status(400).json({
+      message: "Invalid admin settings payload.",
+      issues: parsedBody.error.flatten(),
+    });
+  }
+
+  const updated = await prisma.adminSettings.upsert({
+    where: { key: "global" },
+    update: {
+      config: parsedBody.data.config,
+      updatedBy: req.user.id,
+    },
+    create: {
+      key: "global",
+      config: parsedBody.data.config,
+      updatedBy: req.user.id,
+    },
+  });
+
+  return res.status(200).json({
+    message: "Admin settings updated successfully.",
+    config: parsedBody.data.config,
+    metadata: {
+      key: updated.key,
+      updatedBy: updated.updatedBy,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
     },
   });
 }
