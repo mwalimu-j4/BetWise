@@ -8,6 +8,31 @@ type SportEventsProps = {
   selectedOdds: Set<string>;
 };
 
+function getLeagueIcon(value: string) {
+  const league = value.toLowerCase();
+
+  if (league.includes("nba") || league.includes("basketball")) {
+    return "🏀";
+  }
+
+  if (league.includes("nfl") || league.includes("american")) {
+    return "🏈";
+  }
+
+  if (league.includes("tennis")) {
+    return "🎾";
+  }
+
+  return "⚽";
+}
+
+function formatKickoffTime(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
 export default function SportEvents({
   events,
   onOddsSelect,
@@ -16,25 +41,42 @@ export default function SportEvents({
   const groupedEvents = events.reduce<Record<string, ApiEvent[]>>(
     (groups, event) => {
       const key = event.leagueName ?? "Featured Matches";
-      groups[key] = [...(groups[key] ?? []), event];
+      const currentLeagueEvents = groups[key] ?? [];
+      groups[key] = [...currentLeagueEvents, event].sort(
+        (a, b) =>
+          new Date(a.commenceTime).getTime() -
+          new Date(b.commenceTime).getTime(),
+      );
       return groups;
     },
     {},
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {Object.entries(groupedEvents).map(([leagueName, leagueEvents]) => (
-        <section key={leagueName} className="space-y-3">
-          <div className="flex items-center gap-3">
-            <span className="h-px flex-1 bg-[#2a3f55]" />
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8fa3b1]">
-              {leagueName}
-            </h3>
-            <span className="h-px flex-1 bg-[#2a3f55]" />
+        <section
+          key={leagueName}
+          className="overflow-hidden rounded-xl border border-[#24384c] bg-[#0f1a2a]"
+        >
+          <div className="flex items-center justify-between gap-2 border-b border-[#24384c] bg-[#121f31] px-3 py-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="text-[13px]" aria-hidden="true">
+                {getLeagueIcon(leagueName)}
+              </span>
+              <h3 className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8a9bb0]">
+                {leagueName}
+              </h3>
+            </div>
+
+            {leagueEvents[0] ? (
+              <p className="shrink-0 text-[10px] font-medium uppercase tracking-[0.1em] text-[#8a9bb0]">
+                Kickoff {formatKickoffTime(leagueEvents[0].commenceTime)}
+              </p>
+            ) : null}
           </div>
 
-          <div className="space-y-2">
+          <div className="divide-y divide-[#21364a] lg:grid lg:grid-cols-2 lg:divide-x lg:divide-y-0">
             {leagueEvents.map((event) => (
               <EventCard
                 key={event.eventId}

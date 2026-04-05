@@ -101,8 +101,8 @@ export default function BettingHome() {
   }, [heroImages.length]);
 
   return (
-    <div className="space-y-6 bg-[#0f1923] text-white">
-      <section className="overflow-hidden rounded-2xl border border-[#2a3f55] bg-[#111c27]">
+    <div className="space-y-5 bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
+      <section className="overflow-hidden rounded-2xl border border-[#23384f] bg-[#101b2b]">
         <div className="relative h-[220px] w-full sm:h-[280px] md:h-[340px]">
           {heroImages.map((image, index) => (
             <article
@@ -118,12 +118,12 @@ export default function BettingHome() {
                 className="h-full w-full object-cover"
                 loading={index === 0 ? "eager" : "lazy"}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0a1218]/90 via-[#0a1218]/35 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0a1218]/88 via-[#0a1218]/42 to-[#0b1120]/28" />
             </article>
           ))}
 
           <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-[#f6bb63]">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-[#f5c518]">
               BetWise Picks
             </p>
             <h1 className="mt-2 max-w-2xl text-xl font-extrabold text-white sm:text-2xl md:text-3xl">
@@ -143,7 +143,7 @@ export default function BettingHome() {
                   aria-label={`Show slide ${index + 1}`}
                   className={`h-2.5 rounded-full transition-all ${
                     index === activeHeroIndex
-                      ? "w-7 bg-[#f5a623]"
+                      ? "w-7 bg-[#f5c518]"
                       : "w-2.5 bg-white/50 hover:bg-white/80"
                   }`}
                 />
@@ -155,8 +155,8 @@ export default function BettingHome() {
 
       <LiveTicker />
 
-      <section className="overflow-x-auto rounded-2xl border border-[#2a3f55] bg-[#111c27] px-3 py-2">
-        <div className="flex min-w-max gap-3">
+      <section className="overflow-x-auto rounded-xl border border-[#23384f] bg-[#101b2b] px-2.5 py-2 app-scrollbar scroll-smooth">
+        <div className="flex min-w-max gap-2.5">
           {tabs.map((tab) => {
             const isActive =
               selectedSport === tab.sportKey && selectedLeague === tab.league;
@@ -171,8 +171,8 @@ export default function BettingHome() {
                 }}
                 className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                   isActive
-                    ? "border-[#f5a623] bg-[#f5a623]/10 text-[#f5a623]"
-                    : "border-[#2a3f55] text-[#8fa3b1] hover:border-[#4a6f8a] hover:text-white"
+                    ? "border-[#f5c518] bg-[#f5c518]/12 text-[#f5c518]"
+                    : "border-[#294157] text-[#8a9bb0] hover:border-[#f5c518]/60 hover:text-white"
                 }`}
               >
                 {tab.label}
@@ -182,17 +182,17 @@ export default function BettingHome() {
         </div>
       </section>
 
-      <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-6">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_350px]">
+        <div className="min-w-0 space-y-5">
           {liveEvents.length > 0 ? (
-            <section className="space-y-3">
+            <section className="space-y-2.5 overflow-hidden rounded-xl border border-[#23384f] bg-[#101b2b] p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#ff1744]" />
-                  <h2 className="text-sm font-semibold tracking-[0.18em] text-white">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-[#22c55e]" />
+                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
                     LIVE NOW
                   </h2>
-                  <span className="rounded-full bg-[#1a2634] px-2 py-1 text-xs text-[#f5a623]">
+                  <span className="rounded-full bg-[#18283b] px-2 py-1 text-[10px] font-semibold text-[#f5c518]">
                     {liveEvents.length}
                   </span>
                 </div>
@@ -203,14 +203,14 @@ export default function BettingHome() {
                       setSelectedSport("");
                       setSelectedLeague("");
                     }}
-                    className="text-sm text-[#f5a623]"
+                    className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#f5c518]"
                   >
                     View all live →
                   </button>
                 ) : null}
               </div>
 
-              <div className="space-y-2">
+              <div className="divide-y divide-[#21364a]">
                 {featuredLiveEvents.map((event) => (
                   <EventCard
                     key={event.eventId}
@@ -223,13 +223,13 @@ export default function BettingHome() {
             </section>
           ) : null}
 
-          <section className="space-y-4">
+          <section className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold tracking-[0.18em] text-white">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#cfd9e2]">
                   UPCOMING MATCHES
                 </h2>
-                <p className="mt-1 text-[13px] text-[#8fa3b1]">
+                <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-[#8a9bb0]">
                   {formatToday()}
                 </p>
               </div>
@@ -240,14 +240,14 @@ export default function BettingHome() {
                 {Array.from({ length: 6 }).map((_, index) => (
                   <div
                     key={`event-skeleton-${index}`}
-                    className="animate-pulse rounded-[10px] border border-[#2a3f55] bg-[#1a2634] p-4"
+                    className="animate-pulse rounded-[10px] border border-[#23384f] bg-[#111d2e] p-4"
                   >
-                    <div className="h-3 w-1/3 rounded bg-[#243548]" />
-                    <div className="mt-4 h-5 w-full rounded bg-[#243548]" />
+                    <div className="h-2.5 w-1/3 rounded bg-[#243548]" />
+                    <div className="mt-3 h-4 w-full rounded bg-[#243548]" />
                     <div className="mt-4 grid grid-cols-3 gap-2">
-                      <div className="h-11 rounded bg-[#243548]" />
-                      <div className="h-11 rounded bg-[#243548]" />
-                      <div className="h-11 rounded bg-[#243548]" />
+                      <div className="h-8 rounded bg-[#243548]" />
+                      <div className="h-8 rounded bg-[#243548]" />
+                      <div className="h-8 rounded bg-[#243548]" />
                     </div>
                   </div>
                 ))}
@@ -258,24 +258,24 @@ export default function BettingHome() {
                 <button
                   type="button"
                   onClick={refetch}
-                  className="mt-4 rounded-lg bg-[#f5a623] px-4 py-2 text-sm font-semibold text-black"
+                  className="mt-4 rounded-lg bg-[#f5c518] px-4 py-2 text-sm font-semibold text-black"
                 >
                   Refresh
                 </button>
               </div>
             ) : upcomingEvents.length === 0 ? (
-              <div className="rounded-2xl border border-[#2a3f55] bg-[#1a2634] px-6 py-10 text-center">
+              <div className="rounded-2xl border border-[#23384f] bg-[#111d2e] px-6 py-10 text-center">
                 <p className="text-3xl">⚽</p>
                 <p className="mt-3 text-lg font-semibold text-white">
                   No matches available right now
                 </p>
-                <p className="mt-2 text-sm text-[#8fa3b1]">
+                <p className="mt-2 text-sm text-[#8a9bb0]">
                   Check back soon or refresh
                 </p>
                 <button
                   type="button"
                   onClick={refetch}
-                  className="mt-4 rounded-lg bg-[#f5a623] px-4 py-2 text-sm font-semibold text-black"
+                  className="mt-4 rounded-lg bg-[#f5c518] px-4 py-2 text-sm font-semibold text-black"
                 >
                   Refresh
                 </button>
@@ -290,7 +290,7 @@ export default function BettingHome() {
           </section>
         </div>
 
-        <div className="relative">
+        <div className="relative min-w-0">
           <BetSlip {...betSlip} />
         </div>
       </div>

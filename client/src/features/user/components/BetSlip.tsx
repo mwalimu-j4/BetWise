@@ -1,6 +1,8 @@
 import type { ChangeEvent } from "react";
+import { useEffect } from "react";
 import { Loader2, X } from "lucide-react";
 import type { UseBetSlipReturn } from "../hooks/useBetSlip";
+import { betSlipToggleEventName } from "../hooks/useBetSlip";
 
 function formatCurrency(value: number) {
   return `KES ${value.toLocaleString(undefined, {
@@ -200,6 +202,22 @@ function BetSlipPanel({
 
 export default function BetSlip(props: UseBetSlipReturn) {
   const { selections, isOpen, setIsOpen } = props;
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const onToggleRequest = () => {
+      setIsOpen((current) => !current);
+    };
+
+    window.addEventListener(betSlipToggleEventName, onToggleRequest);
+
+    return () => {
+      window.removeEventListener(betSlipToggleEventName, onToggleRequest);
+    };
+  }, [setIsOpen]);
 
   return (
     <>

@@ -24,8 +24,6 @@ function getSportIcon(sportKey: string | null) {
 
 function formatCommenceTime(value: string) {
   return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
@@ -54,116 +52,85 @@ export default function EventCard({
   selectedOdds,
 }: EventCardProps) {
   const eventName = `${event.homeTeam} vs ${event.awayTeam}`;
-  const otherMarketsCount =
-    Number(Boolean(event.markets.spreads)) +
-    Number(Boolean(event.markets.totals));
+  const homeSide = event.homeTeam;
+  const awaySide = event.awayTeam;
 
   return (
-    <article className="rounded-[10px] border border-[#2a3f55] bg-[#1a2634] p-[14px] transition-colors hover:border-[#3a5f75] hover:bg-[#1d2d3d]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2 text-[11px] text-[#8fa3b1]">
-          <span>{getSportIcon(event.sportKey)}</span>
-          <span className="truncate">
-            {event.leagueName ?? "Featured Match"}
-          </span>
-          <span className="opacity-50">•</span>
-          <span>{formatCommenceTime(event.commenceTime)}</span>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2 text-[11px]">
-          {event.status === "LIVE" ? (
-            <>
-              <span className="h-2 w-2 animate-pulse rounded-full bg-[#00c853]" />
-              <span className="font-semibold text-[#00c853]">LIVE</span>
-            </>
-          ) : (
-            <span className="text-[#8fa3b1]">
-              {getRelativeTime(event.commenceTime)}
-            </span>
-          )}
-          {event.homeScore !== null && event.awayScore !== null ? (
-            <span className="rounded-md bg-black/20 px-2 py-1 text-[12px] font-bold text-white">
-              {event.homeScore} - {event.awayScore}
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <p className="truncate text-[15px] font-bold text-white">
-          {event.homeTeam}
-        </p>
-        <p className="text-[12px] text-[#8fa3b1]">vs</p>
-        <p className="truncate text-right text-[15px] font-bold text-white">
-          {event.awayTeam}
-        </p>
-      </div>
-
-      <div
-        className={`mt-4 grid gap-2 ${
-          event.markets.h2h?.draw ? "grid-cols-3" : "grid-cols-2"
-        }`}
-      >
-        {event.markets.h2h ? (
-          <>
-            <OddsButton
-              label={event.homeTeam}
-              odds={event.markets.h2h.home}
-              eventId={event.eventId}
-              eventName={eventName}
-              leagueName={event.leagueName ?? "Featured Match"}
-              marketType="h2h"
-              side={event.homeTeam}
-              commenceTime={event.commenceTime}
-              isSelected={selectedOdds.has(
-                `${event.eventId}:${event.homeTeam}`,
-              )}
-              onSelect={onOddsSelect}
-            />
-            {event.markets.h2h.draw ? (
-              <OddsButton
-                label="Draw"
-                odds={event.markets.h2h.draw}
-                eventId={event.eventId}
-                eventName={eventName}
-                leagueName={event.leagueName ?? "Featured Match"}
-                marketType="h2h"
-                side="Draw"
-                commenceTime={event.commenceTime}
-                isSelected={selectedOdds.has(`${event.eventId}:Draw`)}
-                onSelect={onOddsSelect}
-              />
+    <article className="bg-[#111d2e] px-3 py-2 transition-colors hover:bg-[#152338] sm:px-3.5">
+      <div className="flex items-center justify-between gap-2 sm:gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.08em] text-[#8a9bb0]">
+            <span>{getSportIcon(event.sportKey)}</span>
+            <span>{formatCommenceTime(event.commenceTime)}</span>
+            {event.status === "LIVE" ? (
+              <>
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22c55e]" />
+                <span className="font-semibold text-[#22c55e]">Live</span>
+              </>
             ) : null}
-            <OddsButton
-              label={event.awayTeam}
-              odds={event.markets.h2h.away}
-              eventId={event.eventId}
-              eventName={eventName}
-              leagueName={event.leagueName ?? "Featured Match"}
-              marketType="h2h"
-              side={event.awayTeam}
-              commenceTime={event.commenceTime}
-              isSelected={selectedOdds.has(
-                `${event.eventId}:${event.awayTeam}`,
-              )}
-              onSelect={onOddsSelect}
-            />
-          </>
-        ) : (
-          <div className="col-span-full rounded-md border border-dashed border-[#2a3f55] px-3 py-4 text-center text-[13px] text-[#8fa3b1]">
-            Odds coming soon
           </div>
-        )}
+
+          <div className="space-y-0.5">
+            <p className="truncate text-[12px] font-semibold leading-[1.25] text-white sm:text-[13px]">
+              {event.homeTeam}
+            </p>
+            <p className="truncate text-[12px] font-semibold leading-[1.25] text-white sm:text-[13px]">
+              {event.awayTeam}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid w-[164px] shrink-0 grid-cols-3 gap-1.5 sm:w-[180px]">
+          <OddsButton
+            label="1"
+            odds={event.markets.h2h?.home ?? null}
+            eventId={event.eventId}
+            eventName={eventName}
+            leagueName={event.leagueName ?? "Featured Match"}
+            marketType="h2h"
+            side={homeSide}
+            commenceTime={event.commenceTime}
+            isSelected={selectedOdds.has(`${event.eventId}:${homeSide}`)}
+            disabled={!event.markets.h2h}
+            onSelect={onOddsSelect}
+          />
+
+          <OddsButton
+            label="X"
+            odds={event.markets.h2h?.draw ?? null}
+            eventId={event.eventId}
+            eventName={eventName}
+            leagueName={event.leagueName ?? "Featured Match"}
+            marketType="h2h"
+            side="Draw"
+            commenceTime={event.commenceTime}
+            isSelected={selectedOdds.has(`${event.eventId}:Draw`)}
+            disabled={!event.markets.h2h || event.markets.h2h.draw === null}
+            onSelect={onOddsSelect}
+          />
+
+          <OddsButton
+            label="2"
+            odds={event.markets.h2h?.away ?? null}
+            eventId={event.eventId}
+            eventName={eventName}
+            leagueName={event.leagueName ?? "Featured Match"}
+            marketType="h2h"
+            side={awaySide}
+            commenceTime={event.commenceTime}
+            isSelected={selectedOdds.has(`${event.eventId}:${awaySide}`)}
+            disabled={!event.markets.h2h}
+            onSelect={onOddsSelect}
+          />
+        </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-[10px] text-[#8fa3b1]">
-        <span>{event._count.bets} bets placed</span>
-        {otherMarketsCount > 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-[#2a3f55] px-2 py-1">
-            <span className="text-[12px] text-white">+</span>
-            <span>{otherMarketsCount} markets</span>
-          </span>
-        ) : null}
+      <div className="mt-1.5 text-[10px] text-[#8a9bb0]">
+        {event.status === "LIVE"
+          ? event.homeScore !== null && event.awayScore !== null
+            ? `Score ${event.homeScore}-${event.awayScore}`
+            : "In play"
+          : getRelativeTime(event.commenceTime)}
       </div>
     </article>
   );

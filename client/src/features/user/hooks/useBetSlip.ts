@@ -43,6 +43,9 @@ type WalletSummaryCache = {
 };
 
 const pendingSlipStorageKey = "betwise.pending-bet-slip";
+export const betSlipCountStorageKey = "betwise.bet-slip-count";
+export const betSlipCountEventName = "betwise:slip-count-changed";
+export const betSlipToggleEventName = "betwise:toggle-betslip";
 
 function getErrorMessage(error: unknown) {
   if (isAxiosError<{ error?: string; message?: string }>(error)) {
@@ -251,6 +254,23 @@ export function useBetSlip() {
     if (selections.length > 0) {
       setIsOpen(true);
     }
+  }, [selections.length]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.sessionStorage.setItem(
+      betSlipCountStorageKey,
+      String(selections.length),
+    );
+
+    window.dispatchEvent(
+      new CustomEvent(betSlipCountEventName, {
+        detail: { count: selections.length },
+      }),
+    );
   }, [selections.length]);
 
   useEffect(() => {
