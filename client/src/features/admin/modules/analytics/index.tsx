@@ -90,34 +90,50 @@ export default function Analytics() {
     <div className="space-y-6">
       <AdminSectionHeader
         title="Analytics Intelligence"
-        subtitle="Betting economics, game mix, and strategic recommendations. Payment totals remain in Dashboard and Payments to avoid duplicate reporting."
-        actions={
-          <div className="flex flex-wrap gap-2">
-            {timeframeOptions.map((option) => (
-              <AdminButton
-                key={option.value}
-                size="sm"
-                tone={timeframe === option.value ? "accent" : "blue"}
-                variant={timeframe === option.value ? "solid" : "ghost"}
-                onClick={() => setTimeframe(option.value)}
-              >
-                {option.label}
-              </AdminButton>
-            ))}
-            {groupByOptions.map((option) => (
-              <AdminButton
-                key={option.value}
-                size="sm"
-                tone={groupBy === option.value ? "gold" : "blue"}
-                variant={groupBy === option.value ? "solid" : "ghost"}
-                onClick={() => setGroupBy(option.value)}
-              >
-                Group: {option.label}
-              </AdminButton>
-            ))}
-          </div>
-        }
+        subtitle="Betting economics, game mix, and strategic recommendations."
       />
+
+      <AdminCard>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
+              Time Period
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {timeframeOptions.map((option) => (
+                <AdminButton
+                  key={option.value}
+                  size="sm"
+                  tone={timeframe === option.value ? "accent" : "blue"}
+                  variant={timeframe === option.value ? "solid" : "ghost"}
+                  onClick={() => setTimeframe(option.value)}
+                >
+                  {option.label}
+                </AdminButton>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
+              Group By
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {groupByOptions.map((option) => (
+                <AdminButton
+                  key={option.value}
+                  size="sm"
+                  tone={groupBy === option.value ? "gold" : "blue"}
+                  variant={groupBy === option.value ? "solid" : "ghost"}
+                  onClick={() => setGroupBy(option.value)}
+                >
+                  {option.label}
+                </AdminButton>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AdminCard>
 
       {isError ? (
         <AdminCard>
