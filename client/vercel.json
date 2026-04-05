@@ -3,5 +3,15 @@
   "framework": "vite",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "buildCommand": "pnpm run build",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://betwise-95cj.onrender.com/api/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "https://betwise-95cj.onrender.com/socket.io/:path*"
+    }
+  ]
 }
