@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
+  AlertTriangle,
   Banknote,
   Bell,
   Briefcase,
@@ -11,11 +12,13 @@ import {
   Loader2,
   Lock,
   Percent,
+  Sparkles,
   Search,
   Shield,
   TicketPercent,
   UserCog,
   Wrench,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -77,6 +80,26 @@ function parseList(value: string) {
 function toNumber(value: string, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function hasValue(value: unknown) {
+  if (typeof value === "string") {
+    return value.trim().length > 0;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value);
+  }
+
+  if (typeof value === "boolean") {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+
+  return value !== null && value !== undefined;
 }
 
 function getByPath(obj: unknown, path: string): unknown {
@@ -752,6 +775,29 @@ export default function Settings() {
     };
   }, [filteredSections]);
 
+  const modalHasChanges = useMemo(() => {
+    if (!draft || !modalDraft) {
+      return false;
+    }
+
+    return JSON.stringify(draft) !== JSON.stringify(modalDraft);
+  }, [draft, modalDraft]);
+
+  const modalStats = useMemo(() => {
+    if (!selectedSection || !modalDraft) {
+      return { filled: 0, total: 0, percent: 0 };
+    }
+
+    const total = selectedSection.fields.length;
+    const filled = selectedSection.fields.reduce((acc, field) => {
+      const value = getByPath(modalDraft, field.path);
+      return acc + (hasValue(value) ? 1 : 0);
+    }, 0);
+    const percent = total > 0 ? Math.round((filled / total) * 100) : 0;
+
+    return { filled, total, percent };
+  }, [selectedSection, modalDraft]);
+
   const openSectionModal = (sectionId: string) => {
     if (!draft) {
       return;
@@ -847,21 +893,22 @@ export default function Settings() {
         subtitle="Centralized configuration for your betting platform operations"
       />
 
-      <AdminCard className="bg-[linear-gradient(180deg,rgba(255,255,255,0.06),transparent_120px)]">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-admin-text-secondary">
-            Search and manage configuration modules with focused edit modals.
+      <AdminCard className="border-admin-border/80 bg-[linear-gradient(90deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-admin-border bg-admin-surface px-3 py-1.5 text-xs text-admin-text-secondary">
+            <Sparkles size={12} className="text-admin-accent" />
+            <span>13 configuration modules</span>
           </div>
-          <div className="relative w-full sm:w-[380px]">
+          <div className="relative w-full max-w-[280px]">
             <Search
-              size={14}
+              size={13}
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-admin-text-muted"
             />
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search setting..."
-              className="h-10 w-full rounded-lg border border-admin-border bg-admin-surface pl-9 pr-3 text-sm text-admin-text-primary outline-none transition focus:border-admin-border-strong"
+              placeholder="Search modules"
+              className="h-9 w-full rounded-full border border-admin-border bg-admin-surface pl-8 pr-3 text-xs text-admin-text-primary outline-none transition focus:border-admin-border-strong"
             />
           </div>
         </div>
@@ -922,114 +969,184 @@ export default function Settings() {
         open={Boolean(selectedSection)}
         onOpenChange={(open) => (!open ? closeModal() : null)}
       >
-        <DialogContent className="max-h-[88vh] overflow-hidden border-admin-border bg-admin-card sm:max-w-3xl">
+        <DialogContent className="border-admin-border bg-admin-card p-5 sm:max-w-5xl">
           {selectedSection && modalDraft ? (
             <>
-              <DialogHeader>
-                <DialogTitle className="text-admin-text-primary">
-                  {selectedSection.title}
-                </DialogTitle>
-                <DialogDescription className="text-admin-text-muted">
-                  {selectedSection.subtitle}
-                </DialogDescription>
+              <DialogHeader className="rounded-2xl border border-admin-border bg-[linear-gradient(145deg,var(--color-bg-hover),transparent)] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <DialogTitle className="text-admin-text-primary">
+                      {selectedSection.title}
+                    </DialogTitle>
+                    <DialogDescription className="mt-1 text-admin-text-muted">
+                      {selectedSection.subtitle}
+                    </DialogDescription>
+                  </div>
+                  <div className="rounded-xl border border-admin-border bg-admin-surface px-3 py-1 text-xs text-admin-text-secondary">
+                    {modalStats.filled}/{modalStats.total} fields configured
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <div className="h-2 w-[180px] overflow-hidden rounded-full bg-admin-surface">
+                    <div
+                      className="h-full rounded-full bg-[linear-gradient(90deg,var(--admin-accent),var(--admin-blue))]"
+                      style={{ width: `${modalStats.percent}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-admin-text-muted">
+                    {modalStats.percent}% complete
+                  </span>
+                  <span
+                    className={`ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                      modalHasChanges
+                        ? "bg-admin-gold-dim text-admin-gold"
+                        : "bg-admin-live-dim text-admin-live"
+                    }`}
+                  >
+                    {modalHasChanges ? (
+                      <AlertTriangle size={12} />
+                    ) : (
+                      <CheckCircle2 size={12} />
+                    )}
+                    {modalHasChanges ? "Unsaved changes" : "All changes saved"}
+                  </span>
+                </div>
               </DialogHeader>
 
-              <div className="app-scrollbar grid max-h-[62vh] gap-3 overflow-y-auto px-1">
+              <div className="grid gap-3 px-1">
                 <AdminCardHeader
                   title="Configuration Fields"
-                  subtitle="Review and update all values before saving"
+                  subtitle="Review and update values below"
                 />
 
-                {selectedSection.fields.map((field) => {
-                  const value = getByPath(modalDraft, field.path);
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {selectedSection.fields.map((field) => {
+                    const value = getByPath(modalDraft, field.path);
+                    const fullWidth =
+                      field.type === "textarea" || field.type === "list";
 
-                  return (
-                    <label key={field.path} className="space-y-1.5">
-                      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
-                        {field.label}
-                      </p>
+                    return (
+                      <label
+                        key={field.path}
+                        className={`space-y-1.5 rounded-xl border border-admin-border bg-admin-surface/40 p-3 ${
+                          fullWidth ? "md:col-span-2" : ""
+                        }`}
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
+                          {field.label}
+                        </p>
 
-                      {field.type === "text" && (
-                        <input
-                          className={inputClassName}
-                          value={String(value ?? "")}
-                          onChange={(event) =>
-                            updateModalField(field, event.target.value)
-                          }
-                        />
-                      )}
-
-                      {field.type === "number" && (
-                        <input
-                          className={inputClassName}
-                          type="number"
-                          value={String(value ?? 0)}
-                          onChange={(event) =>
-                            updateModalField(field, event.target.value)
-                          }
-                        />
-                      )}
-
-                      {field.type === "textarea" && (
-                        <textarea
-                          className={textareaClassName}
-                          rows={4}
-                          value={String(value ?? "")}
-                          onChange={(event) =>
-                            updateModalField(field, event.target.value)
-                          }
-                        />
-                      )}
-
-                      {field.type === "select" && (
-                        <select
-                          className={inputClassName}
-                          value={String(value ?? "")}
-                          onChange={(event) =>
-                            updateModalField(field, event.target.value)
-                          }
-                        >
-                          {(field.options ?? []).map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-
-                      {field.type === "switch" && (
-                        <div className="flex h-10 items-center justify-between rounded-lg border border-admin-border bg-admin-surface px-3">
-                          <span className="text-sm text-admin-text-secondary">
-                            {Boolean(value) ? "Enabled" : "Disabled"}
-                          </span>
-                          <Switch
-                            checked={Boolean(value)}
-                            onCheckedChange={(checked) =>
-                              updateModalField(field, checked)
+                        {field.type === "text" && (
+                          <input
+                            className={inputClassName}
+                            value={String(value ?? "")}
+                            onChange={(event) =>
+                              updateModalField(field, event.target.value)
                             }
                           />
-                        </div>
-                      )}
+                        )}
 
-                      {field.type === "list" && (
-                        <textarea
-                          className={textareaClassName}
-                          rows={3}
-                          value={Array.isArray(value) ? value.join("\n") : ""}
-                          onChange={(event) =>
-                            updateModalField(field, event.target.value)
-                          }
-                        />
-                      )}
+                        {field.type === "number" && (
+                          <input
+                            className={inputClassName}
+                            type="number"
+                            value={String(value ?? 0)}
+                            onChange={(event) =>
+                              updateModalField(field, event.target.value)
+                            }
+                          />
+                        )}
 
-                      {field.hint ? (
-                        <p className="text-[11px] text-admin-text-muted">
-                          {field.hint}
-                        </p>
-                      ) : null}
-                    </label>
-                  );
-                })}
+                        {field.type === "textarea" && (
+                          <textarea
+                            className={textareaClassName}
+                            rows={4}
+                            value={String(value ?? "")}
+                            onChange={(event) =>
+                              updateModalField(field, event.target.value)
+                            }
+                          />
+                        )}
+
+                        {field.type === "select" && (
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            {(field.options ?? []).map((option) => {
+                              const checked =
+                                String(value ?? "") === option.value;
+
+                              return (
+                                <label
+                                  key={option.value}
+                                  className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition ${
+                                    checked
+                                      ? "border-[var(--color-border-accent)] bg-admin-accent-dim text-admin-accent"
+                                      : "border-admin-border bg-admin-surface text-admin-text-secondary hover:border-admin-border-strong"
+                                  }`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name={field.path}
+                                    value={option.value}
+                                    checked={checked}
+                                    onChange={(event) =>
+                                      updateModalField(
+                                        field,
+                                        event.target.value,
+                                      )
+                                    }
+                                    className="sr-only"
+                                  />
+                                  <span className="flex items-center gap-2">
+                                    <span
+                                      className={`h-3 w-3 rounded-full border ${
+                                        checked
+                                          ? "border-admin-accent bg-admin-accent"
+                                          : "border-admin-border"
+                                      }`}
+                                    />
+                                    {option.label}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {field.type === "switch" && (
+                          <div className="flex h-10 items-center justify-between rounded-lg border border-admin-border bg-admin-surface px-3">
+                            <span className="text-sm text-admin-text-secondary">
+                              {Boolean(value) ? "Enabled" : "Disabled"}
+                            </span>
+                            <Switch
+                              checked={Boolean(value)}
+                              onCheckedChange={(checked) =>
+                                updateModalField(field, checked)
+                              }
+                            />
+                          </div>
+                        )}
+
+                        {field.type === "list" && (
+                          <textarea
+                            className={textareaClassName}
+                            rows={3}
+                            value={Array.isArray(value) ? value.join("\n") : ""}
+                            onChange={(event) =>
+                              updateModalField(field, event.target.value)
+                            }
+                          />
+                        )}
+
+                        {field.hint ? (
+                          <p className="text-[11px] text-admin-text-muted">
+                            {field.hint}
+                          </p>
+                        ) : null}
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <DialogFooter className="pt-2">
@@ -1042,7 +1159,7 @@ export default function Settings() {
                 </Button>
                 <Button
                   onClick={() => void saveSection()}
-                  disabled={updateSettings.isPending}
+                  disabled={updateSettings.isPending || !modalHasChanges}
                 >
                   {updateSettings.isPending ? (
                     <>
