@@ -390,7 +390,9 @@ const bettingAnalyticsTimeframeSchema = z.enum([
 ]);
 const bettingAnalyticsGroupBySchema = z.enum(["week", "month", "year"]);
 
-type BettingAnalyticsTimeframe = z.infer<typeof bettingAnalyticsTimeframeSchema>;
+type BettingAnalyticsTimeframe = z.infer<
+  typeof bettingAnalyticsTimeframeSchema
+>;
 type BettingAnalyticsGroupBy = z.infer<typeof bettingAnalyticsGroupBySchema>;
 
 function normalizeKenyanPhone(rawPhone: string) {
@@ -842,8 +844,12 @@ export async function getBettingAnalytics(req: Request, res: Response) {
   );
   const timeframe = parsedTimeframe.success ? parsedTimeframe.data : "12w";
   const window = resolveBettingAnalyticsWindow(timeframe);
-  const parsedGroupBy = bettingAnalyticsGroupBySchema.safeParse(req.query.groupBy);
-  const groupBy = parsedGroupBy.success ? parsedGroupBy.data : window.defaultGroupBy;
+  const parsedGroupBy = bettingAnalyticsGroupBySchema.safeParse(
+    req.query.groupBy,
+  );
+  const groupBy = parsedGroupBy.success
+    ? parsedGroupBy.data
+    : window.defaultGroupBy;
 
   const currentStart = window.start;
   const currentEnd = window.end;
@@ -929,7 +935,8 @@ export async function getBettingAnalytics(req: Request, res: Response) {
   const holdRate = totalStake > 0 ? (ggr / totalStake) * 100 : 0;
   const payoutRatio = totalStake > 0 ? (totalPayout / totalStake) * 100 : 0;
   const refundRate = totalStake > 0 ? (totalRefunds / totalStake) * 100 : 0;
-  const hitRate = wonCount + lostCount > 0 ? (wonCount / (wonCount + lostCount)) * 100 : 0;
+  const hitRate =
+    wonCount + lostCount > 0 ? (wonCount / (wonCount + lostCount)) * 100 : 0;
 
   const previousStake = previousBets.reduce((sum, bet) => sum + bet.stake, 0);
   const previousPayout = previousBets
@@ -939,7 +946,8 @@ export async function getBettingAnalytics(req: Request, res: Response) {
     .filter((bet) => bet.status === "VOID")
     .reduce((sum, bet) => sum + bet.stake, 0);
   const previousGgr = previousStake - previousPayout - previousRefunds;
-  const previousActiveBettors = new Set(previousBets.map((bet) => bet.userId)).size;
+  const previousActiveBettors = new Set(previousBets.map((bet) => bet.userId))
+    .size;
 
   const trendByBucket = new Map<
     string,
@@ -1004,15 +1012,61 @@ export async function getBettingAnalytics(req: Request, res: Response) {
     { label: "101-500", min: 101, max: 500, bets: 0, handle: 0 },
     { label: "501-1,000", min: 501, max: 1000, bets: 0, handle: 0 },
     { label: "1,001-5,000", min: 1001, max: 5000, bets: 0, handle: 0 },
-    { label: "5,001+", min: 5001, max: Number.POSITIVE_INFINITY, bets: 0, handle: 0 },
+    {
+      label: "5,001+",
+      min: 5001,
+      max: Number.POSITIVE_INFINITY,
+      bets: 0,
+      handle: 0,
+    },
   ];
 
   const oddsBands = [
-    { label: "1.01-1.49", min: 1.01, max: 1.49, bets: 0, won: 0, stake: 0, payout: 0 },
-    { label: "1.50-1.99", min: 1.5, max: 1.99, bets: 0, won: 0, stake: 0, payout: 0 },
-    { label: "2.00-2.99", min: 2, max: 2.99, bets: 0, won: 0, stake: 0, payout: 0 },
-    { label: "3.00-4.99", min: 3, max: 4.99, bets: 0, won: 0, stake: 0, payout: 0 },
-    { label: "5.00+", min: 5, max: Number.POSITIVE_INFINITY, bets: 0, won: 0, stake: 0, payout: 0 },
+    {
+      label: "1.01-1.49",
+      min: 1.01,
+      max: 1.49,
+      bets: 0,
+      won: 0,
+      stake: 0,
+      payout: 0,
+    },
+    {
+      label: "1.50-1.99",
+      min: 1.5,
+      max: 1.99,
+      bets: 0,
+      won: 0,
+      stake: 0,
+      payout: 0,
+    },
+    {
+      label: "2.00-2.99",
+      min: 2,
+      max: 2.99,
+      bets: 0,
+      won: 0,
+      stake: 0,
+      payout: 0,
+    },
+    {
+      label: "3.00-4.99",
+      min: 3,
+      max: 4.99,
+      bets: 0,
+      won: 0,
+      stake: 0,
+      payout: 0,
+    },
+    {
+      label: "5.00+",
+      min: 5,
+      max: Number.POSITIVE_INFINITY,
+      bets: 0,
+      won: 0,
+      stake: 0,
+      payout: 0,
+    },
   ];
 
   for (const bet of bets) {
@@ -1040,18 +1094,16 @@ export async function getBettingAnalytics(req: Request, res: Response) {
     }
 
     const sportName = bet.event?.sportKey ?? "Uncategorized";
-    const sportRow =
-      sportsMap.get(sportName) ??
-      {
-        sport: sportName,
-        stake: 0,
-        payout: 0,
-        refunds: 0,
-        bets: 0,
-        won: 0,
-        lost: 0,
-        activeBettorIds: new Set<string>(),
-      };
+    const sportRow = sportsMap.get(sportName) ?? {
+      sport: sportName,
+      stake: 0,
+      payout: 0,
+      refunds: 0,
+      bets: 0,
+      won: 0,
+      lost: 0,
+      activeBettorIds: new Set<string>(),
+    };
     sportRow.bets += 1;
     sportRow.stake += bet.stake;
     sportRow.activeBettorIds.add(bet.userId);
@@ -1069,17 +1121,15 @@ export async function getBettingAnalytics(req: Request, res: Response) {
 
     const leagueName = bet.event?.leagueName ?? "Other Leagues";
     const leagueKey = `${sportName}:${leagueName}`;
-    const leagueRow =
-      leaguesMap.get(leagueKey) ??
-      {
-        league: leagueName,
-        sport: sportName,
-        stake: 0,
-        payout: 0,
-        refunds: 0,
-        bets: 0,
-        activeBettorIds: new Set<string>(),
-      };
+    const leagueRow = leaguesMap.get(leagueKey) ?? {
+      league: leagueName,
+      sport: sportName,
+      stake: 0,
+      payout: 0,
+      refunds: 0,
+      bets: 0,
+      activeBettorIds: new Set<string>(),
+    };
     leagueRow.bets += 1;
     leagueRow.stake += bet.stake;
     leagueRow.activeBettorIds.add(bet.userId);
@@ -1114,7 +1164,8 @@ export async function getBettingAnalytics(req: Request, res: Response) {
 
   const trend = Array.from(trendByBucket.values()).map((row) => {
     const rowGgr = row.stake - row.payout - row.refunds;
-    const rowCommissionProvision = rowGgr > 0 ? (rowGgr * commissionRate) / 100 : 0;
+    const rowCommissionProvision =
+      rowGgr > 0 ? (rowGgr * commissionRate) / 100 : 0;
     const rowTaxProvision = rowGgr > 0 ? (rowGgr * taxRate) / 100 : 0;
     const rowSettled = row.won + row.lost;
 
@@ -1146,7 +1197,8 @@ export async function getBettingAnalytics(req: Request, res: Response) {
         refunds: row.refunds,
         ggr: rowGgr,
         shareOfHandle: totalStake > 0 ? (row.stake / totalStake) * 100 : 0,
-        hitRate: settledForHitRate > 0 ? (row.won / settledForHitRate) * 100 : 0,
+        hitRate:
+          settledForHitRate > 0 ? (row.won / settledForHitRate) * 100 : 0,
       };
     })
     .sort((left, right) => right.stake - left.stake);
@@ -1208,7 +1260,8 @@ export async function getBettingAnalytics(req: Request, res: Response) {
       title: "Low betting margin",
       priority: "high",
       insight: `Hold rate is ${holdRate.toFixed(1)}%, below healthy threshold for sustained profitability.`,
-      action: "Review high-volume markets and tighten odds margin where exposure is concentrated.",
+      action:
+        "Review high-volume markets and tighten odds margin where exposure is concentrated.",
     });
   }
 
@@ -1217,7 +1270,8 @@ export async function getBettingAnalytics(req: Request, res: Response) {
       title: "High void/refund exposure",
       priority: "medium",
       insight: `${refundRate.toFixed(1)}% of handle was refunded through void bets.`,
-      action: "Audit event settlement inputs and suspend markets with frequent result reversals.",
+      action:
+        "Audit event settlement inputs and suspend markets with frequent result reversals.",
     });
   }
 
@@ -1226,7 +1280,8 @@ export async function getBettingAnalytics(req: Request, res: Response) {
       title: "Bettor activity is declining",
       priority: "medium",
       insight: `Active bettors dropped ${Math.abs(percentageChange(activeBettors, previousActiveBettors)).toFixed(1)}% versus prior window.`,
-      action: "Boost retention campaigns around top leagues and adjust limits for dormant segments.",
+      action:
+        "Boost retention campaigns around top leagues and adjust limits for dormant segments.",
     });
   }
 
@@ -1236,7 +1291,8 @@ export async function getBettingAnalytics(req: Request, res: Response) {
       title: "Handle concentration risk",
       priority: "low",
       insight: `${topSport.sport} contributes ${topSport.shareOfHandle.toFixed(1)}% of total handle.`,
-      action: "Diversify engagement by promoting underrepresented sports and cross-sell live markets.",
+      action:
+        "Diversify engagement by promoting underrepresented sports and cross-sell live markets.",
     });
   }
 
@@ -1244,8 +1300,10 @@ export async function getBettingAnalytics(req: Request, res: Response) {
     recommendations.push({
       title: "Portfolio looks balanced",
       priority: "low",
-      insight: "Current handle mix, hit rate, and hold are within healthy operating ranges.",
-      action: "Maintain current risk controls and continue monitoring at weekly granularity.",
+      insight:
+        "Current handle mix, hit rate, and hold are within healthy operating ranges.",
+      action:
+        "Maintain current risk controls and continue monitoring at weekly granularity.",
     });
   }
 
@@ -1286,25 +1344,43 @@ export async function getBettingAnalytics(req: Request, res: Response) {
     growth: {
       handleChangePct: percentageChange(totalStake, previousStake),
       ggrChangePct: percentageChange(ggr, previousGgr),
-      activeBettorsChangePct: percentageChange(activeBettors, previousActiveBettors),
+      activeBettorsChangePct: percentageChange(
+        activeBettors,
+        previousActiveBettors,
+      ),
     },
     signalCards: [
       {
         label: "Hold Rate",
         value: `${holdRate.toFixed(1)}%`,
-        tone: holdRate >= 8 ? ("accent" as const) : holdRate >= 4 ? ("gold" as const) : ("red" as const),
+        tone:
+          holdRate >= 8
+            ? ("accent" as const)
+            : holdRate >= 4
+              ? ("gold" as const)
+              : ("red" as const),
         helper: "Gross revenue over total handle",
       },
       {
         label: "Hit Rate",
         value: `${hitRate.toFixed(1)}%`,
-        tone: hitRate <= 45 ? ("accent" as const) : hitRate <= 55 ? ("blue" as const) : ("gold" as const),
+        tone:
+          hitRate <= 45
+            ? ("accent" as const)
+            : hitRate <= 55
+              ? ("blue" as const)
+              : ("gold" as const),
         helper: "Winning tickets among won/lost",
       },
       {
         label: "Refund Rate",
         value: `${refundRate.toFixed(1)}%`,
-        tone: refundRate <= 3 ? ("accent" as const) : refundRate <= 7 ? ("gold" as const) : ("red" as const),
+        tone:
+          refundRate <= 3
+            ? ("accent" as const)
+            : refundRate <= 7
+              ? ("gold" as const)
+              : ("red" as const),
         helper: "Void volume as share of handle",
       },
       {

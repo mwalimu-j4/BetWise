@@ -26,7 +26,12 @@ adminRouter.get(
   authenticate,
   getAdminDashboardSummary,
 );
-adminRouter.get("/admin/analytics", authenticate, requireAdmin, getBettingAnalytics);
+adminRouter.get(
+  "/admin/analytics",
+  authenticate,
+  requireAdmin,
+  getBettingAnalytics,
+);
 
 // User Management
 adminRouter.get("/admin/users", authenticate, requireAdmin, getAllUsers);
