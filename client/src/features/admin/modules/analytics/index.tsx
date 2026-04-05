@@ -19,7 +19,6 @@ import {
   adminTableCellClassName,
   adminTableClassName,
   adminTableHeadCellClassName,
-  AdminButton,
   AdminCard,
   AdminCardHeader,
   AdminSectionHeader,
@@ -93,44 +92,40 @@ export default function Analytics() {
         subtitle="Betting economics, game mix, and strategic recommendations."
       />
 
-      <AdminCard>
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
+      <AdminCard className="p-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex-1">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
               Time Period
-            </p>
-            <div className="flex flex-wrap gap-2">
+            </label>
+            <select
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value as AnalyticsTimeframe)}
+              className="w-full rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-sm font-medium text-admin-text-primary transition-colors hover:border-admin-accent focus:border-admin-accent focus:outline-none focus:ring-2 focus:ring-admin-accent/20"
+            >
               {timeframeOptions.map((option) => (
-                <AdminButton
-                  key={option.value}
-                  size="sm"
-                  tone={timeframe === option.value ? "accent" : "blue"}
-                  variant={timeframe === option.value ? "solid" : "ghost"}
-                  onClick={() => setTimeframe(option.value)}
-                >
+                <option key={option.value} value={option.value}>
                   {option.label}
-                </AdminButton>
+                </option>
               ))}
-            </div>
+            </select>
           </div>
 
-          <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
+          <div className="flex-1">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
               Group By
-            </p>
-            <div className="flex flex-wrap gap-2">
+            </label>
+            <select
+              value={groupBy}
+              onChange={(e) => setGroupBy(e.target.value as AnalyticsGroupBy)}
+              className="w-full rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-sm font-medium text-admin-text-primary transition-colors hover:border-admin-gold focus:border-admin-gold focus:outline-none focus:ring-2 focus:ring-admin-gold/20"
+            >
               {groupByOptions.map((option) => (
-                <AdminButton
-                  key={option.value}
-                  size="sm"
-                  tone={groupBy === option.value ? "gold" : "blue"}
-                  variant={groupBy === option.value ? "solid" : "ghost"}
-                  onClick={() => setGroupBy(option.value)}
-                >
+                <option key={option.value} value={option.value}>
                   {option.label}
-                </AdminButton>
+                </option>
               ))}
-            </div>
+            </select>
           </div>
         </div>
       </AdminCard>
