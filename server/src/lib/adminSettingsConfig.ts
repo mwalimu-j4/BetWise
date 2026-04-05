@@ -75,7 +75,11 @@ export const adminSettingsSchema = z.object({
     bonusAmount: nonNegativeInt,
     bonusPercent: percentageField,
     wageringRequirementMultiplier: z.number().min(1).max(100),
-    bonusExpiryHours: z.number().int().min(1).max(24 * 180),
+    bonusExpiryHours: z
+      .number()
+      .int()
+      .min(1)
+      .max(24 * 180),
     maxBonusPerUser: nonNegativeInt,
     cashbackRule: z.string().trim().min(2).max(280),
   }),
@@ -105,7 +109,11 @@ export const adminSettingsSchema = z.object({
     requireUppercase: z.boolean(),
     requireNumber: z.boolean(),
     requireSpecialChar: z.boolean(),
-    sessionTimeoutMinutes: z.number().int().min(5).max(24 * 60),
+    sessionTimeoutMinutes: z
+      .number()
+      .int()
+      .min(5)
+      .max(24 * 60),
     maxLoginAttempts: z.number().int().min(3).max(20),
     ipWhitelist: z.array(z.string().trim().max(64)).max(200),
     ipBlacklist: z.array(z.string().trim().max(64)).max(500),
@@ -114,7 +122,13 @@ export const adminSettingsSchema = z.object({
     winningsTaxPercent: percentageField,
     depositTaxPercent: percentageField,
     commissionPercent: percentageField,
-    roundingRule: z.enum(["nearest_1", "nearest_5", "nearest_10", "floor", "ceil"]),
+    roundingRule: z.enum([
+      "nearest_1",
+      "nearest_5",
+      "nearest_10",
+      "floor",
+      "ceil",
+    ]),
   }),
   affiliateAndAgentConfig: z.object({
     commissionPercent: percentageField,
@@ -224,7 +238,8 @@ export const defaultAdminSettings: AdminSettingsConfig = {
     wageringRequirementMultiplier: 3,
     bonusExpiryHours: 168,
     maxBonusPerUser: 3000,
-    cashbackRule: "5% cashback for net losses above KES 2,000, credited weekly.",
+    cashbackRule:
+      "5% cashback for net losses above KES 2,000, credited weekly.",
   },
   notificationsConfig: {
     smsEnabled: true,

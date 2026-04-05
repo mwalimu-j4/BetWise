@@ -50,7 +50,9 @@ function Field({
         {label}
       </p>
       {children}
-      {hint ? <p className="text-[11px] text-admin-text-muted">{hint}</p> : null}
+      {hint ? (
+        <p className="text-[11px] text-admin-text-muted">{hint}</p>
+      ) : null}
     </label>
   );
 }
@@ -70,8 +72,12 @@ function ToggleField({
     <div className="rounded-xl border border-admin-border bg-admin-surface/60 px-3 py-2.5">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-admin-text-primary">{label}</p>
-          {hint ? <p className="text-[11px] text-admin-text-muted">{hint}</p> : null}
+          <p className="text-sm font-semibold text-admin-text-primary">
+            {label}
+          </p>
+          {hint ? (
+            <p className="text-[11px] text-admin-text-muted">{hint}</p>
+          ) : null}
         </div>
         <Switch checked={checked} onCheckedChange={onChange} />
       </div>
@@ -126,10 +132,8 @@ export default function Settings() {
         mutationError !== null &&
         "response" in mutationError &&
         typeof (mutationError as { response?: unknown }).response === "object"
-          ? (
-              (mutationError as { response?: { data?: { message?: string } } })
-                .response?.data?.message ?? "Failed to save admin settings."
-            )
+          ? ((mutationError as { response?: { data?: { message?: string } } })
+              .response?.data?.message ?? "Failed to save admin settings.")
           : "Failed to save admin settings.";
       toast.error(message);
     }
@@ -201,7 +205,10 @@ export default function Settings() {
               <RefreshCcw size={13} />
               Reset
             </AdminButton>
-            <AdminButton onClick={() => void handleSave()} disabled={!isDirty || updateSettings.isPending}>
+            <AdminButton
+              onClick={() => void handleSave()}
+              disabled={!isDirty || updateSettings.isPending}
+            >
               {updateSettings.isPending ? (
                 <Loader2 className="animate-spin" size={14} />
               ) : (
@@ -231,7 +238,8 @@ export default function Settings() {
           ))}
         </div>
         <div className="mt-3 text-xs text-admin-text-muted">
-          Last updated {new Date(data?.metadata.updatedAt ?? "").toLocaleString("en-KE")}
+          Last updated{" "}
+          {new Date(data?.metadata.updatedAt ?? "").toLocaleString("en-KE")}
         </div>
       </AdminCard>
 
@@ -374,7 +382,9 @@ export default function Settings() {
                 <Field label="Auto Verification Rule">
                   <select
                     className={inputClassName}
-                    value={draft.userDefaultsAndRestrictions.autoVerificationRule}
+                    value={
+                      draft.userDefaultsAndRestrictions.autoVerificationRule
+                    }
                     onChange={(event) =>
                       withDraft((current) => ({
                         ...current,
@@ -500,7 +510,9 @@ export default function Settings() {
                   <textarea
                     className={textareaClassName}
                     rows={3}
-                    value={draft.kycAndComplianceConfig.allowedCountries.join(", ")}
+                    value={draft.kycAndComplianceConfig.allowedCountries.join(
+                      ", ",
+                    )}
                     onChange={(event) =>
                       withDraft((current) => ({
                         ...current,
@@ -528,7 +540,10 @@ export default function Settings() {
                       ...current,
                       paymentsConfig: {
                         ...current.paymentsConfig,
-                        methods: { ...current.paymentsConfig.methods, mpesa: checked },
+                        methods: {
+                          ...current.paymentsConfig.methods,
+                          mpesa: checked,
+                        },
                       },
                     }))
                   }
@@ -573,7 +588,10 @@ export default function Settings() {
                       ...current,
                       paymentsConfig: {
                         ...current.paymentsConfig,
-                        methods: { ...current.paymentsConfig.methods, card: checked },
+                        methods: {
+                          ...current.paymentsConfig.methods,
+                          card: checked,
+                        },
                       },
                     }))
                   }
@@ -680,7 +698,10 @@ export default function Settings() {
                           ...current.paymentsConfig,
                           mpesa: {
                             ...current.paymentsConfig.mpesa,
-                            transactionFeePercent: toNumber(event.target.value, 0),
+                            transactionFeePercent: toNumber(
+                              event.target.value,
+                              0,
+                            ),
                           },
                         },
                       }))
@@ -707,7 +728,9 @@ export default function Settings() {
                   <input
                     type="number"
                     className={inputClassName}
-                    value={draft.paymentsConfig.mpesa.withdrawalApprovalThreshold}
+                    value={
+                      draft.paymentsConfig.mpesa.withdrawalApprovalThreshold
+                    }
                     onChange={(event) =>
                       withDraft((current) => ({
                         ...current,
@@ -715,7 +738,10 @@ export default function Settings() {
                           ...current.paymentsConfig,
                           mpesa: {
                             ...current.paymentsConfig.mpesa,
-                            withdrawalApprovalThreshold: toNumber(event.target.value, 0),
+                            withdrawalApprovalThreshold: toNumber(
+                              event.target.value,
+                              0,
+                            ),
                           },
                         },
                       }))
@@ -865,7 +891,9 @@ export default function Settings() {
                         ...current,
                         bonusesAndPromotionsConfig: {
                           ...current.bonusesAndPromotionsConfig,
-                          bonusMode: event.target.value as "fixed_amount" | "percentage",
+                          bonusMode: event.target.value as
+                            | "fixed_amount"
+                            | "percentage",
                         },
                       }))
                     }
@@ -1232,7 +1260,10 @@ export default function Settings() {
                         ...current,
                         securityConfig: {
                           ...current.securityConfig,
-                          sessionTimeoutMinutes: toNumber(event.target.value, 60),
+                          sessionTimeoutMinutes: toNumber(
+                            event.target.value,
+                            60,
+                          ),
                         },
                       }))
                     }
@@ -1264,7 +1295,9 @@ export default function Settings() {
                         ...current,
                         securityConfig: {
                           ...current.securityConfig,
-                          ipWhitelist: parseLineSeparatedArray(event.target.value),
+                          ipWhitelist: parseLineSeparatedArray(
+                            event.target.value,
+                          ),
                         },
                       }))
                     }
@@ -1280,7 +1313,9 @@ export default function Settings() {
                         ...current,
                         securityConfig: {
                           ...current.securityConfig,
-                          ipBlacklist: parseLineSeparatedArray(event.target.value),
+                          ipBlacklist: parseLineSeparatedArray(
+                            event.target.value,
+                          ),
                         },
                       }))
                     }
@@ -1372,7 +1407,9 @@ export default function Settings() {
                 </Field>
                 <ToggleField
                   label="Multi-level Referrals"
-                  checked={draft.affiliateAndAgentConfig.multiLevelReferralsEnabled}
+                  checked={
+                    draft.affiliateAndAgentConfig.multiLevelReferralsEnabled
+                  }
                   onChange={(checked) =>
                     withDraft((current) => ({
                       ...current,
@@ -1393,7 +1430,10 @@ export default function Settings() {
                         ...current,
                         affiliateAndAgentConfig: {
                           ...current.affiliateAndAgentConfig,
-                          minimumPayoutThreshold: toNumber(event.target.value, 0),
+                          minimumPayoutThreshold: toNumber(
+                            event.target.value,
+                            0,
+                          ),
                         },
                       }))
                     }
@@ -1504,7 +1544,10 @@ export default function Settings() {
                         ...current,
                         operationalControls: {
                           ...current.operationalControls,
-                          oddsRefreshIntervalSeconds: toNumber(event.target.value, 30),
+                          oddsRefreshIntervalSeconds: toNumber(
+                            event.target.value,
+                            30,
+                          ),
                         },
                       }))
                     }
@@ -1520,7 +1563,10 @@ export default function Settings() {
                         ...current,
                         operationalControls: {
                           ...current.operationalControls,
-                          eventSyncIntervalSeconds: toNumber(event.target.value, 300),
+                          eventSyncIntervalSeconds: toNumber(
+                            event.target.value,
+                            300,
+                          ),
                         },
                       }))
                     }
@@ -1558,7 +1604,10 @@ export default function Settings() {
                         ...current,
                         operationalControls: {
                           ...current.operationalControls,
-                          autoSettleDelayMinutes: toNumber(event.target.value, 0),
+                          autoSettleDelayMinutes: toNumber(
+                            event.target.value,
+                            0,
+                          ),
                         },
                       }))
                     }
@@ -1593,7 +1642,8 @@ export default function Settings() {
                 <ToggleField
                   label="Require Second Approval For Critical Changes"
                   checked={
-                    draft.auditAndMonitoring.requireSecondApprovalForCriticalChanges
+                    draft.auditAndMonitoring
+                      .requireSecondApprovalForCriticalChanges
                   }
                   onChange={(checked) =>
                     withDraft((current) => ({
@@ -1637,7 +1687,10 @@ export default function Settings() {
                         ...current,
                         auditAndMonitoring: {
                           ...current.auditAndMonitoring,
-                          anomalyScoreThreshold: toNumber(event.target.value, 70),
+                          anomalyScoreThreshold: toNumber(
+                            event.target.value,
+                            70,
+                          ),
                         },
                       }))
                     }
@@ -1666,13 +1719,18 @@ export default function Settings() {
                   <input
                     className={inputClassName}
                     type="number"
-                    value={draft.responsibleGamingControls.defaultDailyStakeLimit}
+                    value={
+                      draft.responsibleGamingControls.defaultDailyStakeLimit
+                    }
                     onChange={(event) =>
                       withDraft((current) => ({
                         ...current,
                         responsibleGamingControls: {
                           ...current.responsibleGamingControls,
-                          defaultDailyStakeLimit: toNumber(event.target.value, 0),
+                          defaultDailyStakeLimit: toNumber(
+                            event.target.value,
+                            0,
+                          ),
                         },
                       }))
                     }

@@ -76,7 +76,12 @@ adminRouter.get(
 );
 
 // Settings Management
-adminRouter.get("/admin/settings", authenticate, requireAdmin, getAdminSettings);
+adminRouter.get(
+  "/admin/settings",
+  authenticate,
+  requireAdmin,
+  getAdminSettings,
+);
 adminRouter.put(
   "/admin/settings",
   authenticate,
