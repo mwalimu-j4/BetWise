@@ -6,6 +6,12 @@ import {
   Loader,
   MoreHorizontal,
   TriangleAlert,
+  CreditCard,
+  Users,
+  TrendingUp,
+  AlertCircle,
+  BarChart3,
+  Sliders,
 } from "lucide-react";
 import { useState } from "react";
 import { api } from "@/api/axiosConfig";
@@ -152,6 +158,85 @@ export default function Dashboard() {
             : "Live platform snapshot from the server"
         }
       />
+
+      {/* Quick Shortcuts */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Link
+          to="/admin/withdrawals"
+          className="group rounded-xl border border-admin-border bg-linear-to-br from-admin-surface to-admin-surface/50 p-4 transition hover:border-admin-gold hover:from-admin-surface hover:to-transparent"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-admin-text-muted group-hover:text-admin-gold">
+                Pending Payouts
+              </p>
+              <p className="mt-2 text-lg font-bold text-admin-text-primary">
+                {pendingCount}
+              </p>
+            </div>
+            <div className="rounded-lg bg-admin-gold/10 p-2.5 text-admin-gold group-hover:bg-admin-gold/20">
+              <CreditCard size={18} />
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/users"
+          className="group rounded-xl border border-admin-border bg-linear-to-br from-admin-surface to-admin-surface/50 p-4 transition hover:border-admin-accent hover:from-admin-surface hover:to-transparent"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-admin-text-muted group-hover:text-admin-accent">
+                Manage Users
+              </p>
+              <p className="mt-2 text-sm text-admin-text-secondary">
+                View all accounts
+              </p>
+            </div>
+            <div className="rounded-lg bg-admin-accent/10 p-2.5 text-admin-accent group-hover:bg-admin-accent/20">
+              <Users size={18} />
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/analytics"
+          className="group rounded-xl border border-admin-border bg-linear-to-br from-admin-surface to-admin-surface/50 p-4 transition hover:border-admin-blue hover:from-admin-surface hover:to-transparent"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-admin-text-muted group-hover:text-admin-blue">
+                Analytics
+              </p>
+              <p className="mt-2 text-sm text-admin-text-secondary">
+                View reports
+              </p>
+            </div>
+            <div className="rounded-lg bg-admin-blue/10 p-2.5 text-admin-blue group-hover:bg-admin-blue/20">
+              <TrendingUp size={18} />
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/settings"
+          className="group rounded-xl border border-admin-border bg-linear-to-br from-admin-surface to-admin-surface/50 p-4 transition hover:border-admin-text-secondary hover:from-admin-surface hover:to-transparent"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-admin-text-muted group-hover:text-admin-text-secondary">
+                Settings
+              </p>
+              <p className="mt-2 text-sm text-admin-text-secondary">
+                Configure system
+              </p>
+            </div>
+            <div className="rounded-lg bg-admin-text-secondary/10 p-2.5 text-admin-text-secondary group-hover:bg-admin-text-secondary/20">
+              <Sliders size={18} />
+            </div>
+          </div>
+        </Link>
+      </div>
 
       {pendingCount > 0 ? (
         <Alert className="border-amber-400/30 bg-amber-400/10">

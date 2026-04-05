@@ -840,7 +840,7 @@ export default function Settings() {
   if (isLoading || !draft) {
     return (
       <AdminCard>
-        <div className="flex min-h-[260px] items-center justify-center gap-2 text-admin-text-muted">
+        <div className="flex min-h-65 items-center justify-center gap-2 text-admin-text-muted">
           <Loader2 size={18} className="animate-spin" />
           Loading settings...
         </div>
@@ -874,7 +874,7 @@ export default function Settings() {
             <Sparkles size={12} className="text-admin-accent" />
             <span>13 configuration modules</span>
           </div>
-          <div className="relative w-full max-w-[280px]">
+          <div className="relative w-full max-w-70">
             <Search
               size={13}
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-admin-text-muted"
@@ -963,7 +963,7 @@ export default function Settings() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <div className="h-2 w-[180px] overflow-hidden rounded-full bg-admin-surface">
+                  <div className="h-2 w-45 overflow-hidden rounded-full bg-admin-surface">
                     <div
                       className="h-full rounded-full bg-[linear-gradient(90deg,var(--admin-accent),var(--admin-blue))]"
                       style={{ width: `${modalStats.percent}%` }}
@@ -1055,7 +1055,7 @@ export default function Settings() {
                                   key={option.value}
                                   className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition ${
                                     checked
-                                      ? "border-[var(--admin-gold)] bg-admin-gold-dim text-admin-gold"
+                                      ? "border-admin-gold bg-admin-gold-dim text-admin-gold"
                                       : "border-admin-border bg-admin-surface text-admin-text-secondary hover:border-admin-border-strong"
                                   }`}
                                 >

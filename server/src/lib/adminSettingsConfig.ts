@@ -13,7 +13,6 @@ export const adminSettingsSchema = z.object({
     registrationEnabled: z.boolean(),
   }),
   userDefaultsAndRestrictions: z.object({
-    defaultWalletBalance: nonNegativeInt,
     minDeposit: nonNegativeInt,
     maxDeposit: nonNegativeInt,
     minWithdrawal: nonNegativeInt,
@@ -21,7 +20,6 @@ export const adminSettingsSchema = z.object({
     dailyTransactionLimit: nonNegativeInt,
     maxActiveBetsPerUser: nonNegativeInt,
     defaultUserRole: z.enum(["USER"]),
-    autoVerificationRule: z.enum(["none", "email", "email_and_phone"]),
   }),
   kycAndComplianceConfig: z.object({
     kycRequired: z.boolean(),
@@ -38,8 +36,6 @@ export const adminSettingsSchema = z.object({
     methods: z.object({
       mpesa: z.boolean(),
       bankTransfer: z.boolean(),
-      airtelMoney: z.boolean(),
-      card: z.boolean(),
     }),
     mpesa: z.object({
       shortcode: z.string().trim().min(5).max(20),
@@ -156,7 +152,6 @@ export const defaultAdminSettings: AdminSettingsConfig = {
     registrationEnabled: true,
   },
   userDefaultsAndRestrictions: {
-    defaultWalletBalance: 0,
     minDeposit: 100,
     maxDeposit: 200000,
     minWithdrawal: 100,
@@ -164,7 +159,6 @@ export const defaultAdminSettings: AdminSettingsConfig = {
     dailyTransactionLimit: 500000,
     maxActiveBetsPerUser: 60,
     defaultUserRole: "USER",
-    autoVerificationRule: "email",
   },
   kycAndComplianceConfig: {
     kycRequired: true,
@@ -181,8 +175,6 @@ export const defaultAdminSettings: AdminSettingsConfig = {
     methods: {
       mpesa: true,
       bankTransfer: false,
-      airtelMoney: false,
-      card: false,
     },
     mpesa: {
       shortcode: "174379",
