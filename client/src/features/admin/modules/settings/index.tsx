@@ -180,11 +180,6 @@ const sectionDefinitions: SectionDefinition[] = [
     icon: <UserCog size={16} />,
     fields: [
       {
-        path: "userDefaultsAndRestrictions.defaultWalletBalance",
-        label: "Default wallet balance",
-        type: "number",
-      },
-      {
         path: "userDefaultsAndRestrictions.minDeposit",
         label: "Min deposit",
         type: "number",
@@ -213,16 +208,6 @@ const sectionDefinitions: SectionDefinition[] = [
         path: "userDefaultsAndRestrictions.maxActiveBetsPerUser",
         label: "Max active bets per user",
         type: "number",
-      },
-      {
-        path: "userDefaultsAndRestrictions.autoVerificationRule",
-        label: "Account auto-verification",
-        type: "select",
-        options: [
-          { label: "None", value: "none" },
-          { label: "Email", value: "email" },
-          { label: "Email and phone", value: "email_and_phone" },
-        ],
       },
     ],
   },
@@ -286,16 +271,6 @@ const sectionDefinitions: SectionDefinition[] = [
       {
         path: "paymentsConfig.methods.bankTransfer",
         label: "Enable bank transfer",
-        type: "switch",
-      },
-      {
-        path: "paymentsConfig.methods.airtelMoney",
-        label: "Enable Airtel Money",
-        type: "switch",
-      },
-      {
-        path: "paymentsConfig.methods.card",
-        label: "Enable card",
         type: "switch",
       },
       {
@@ -969,7 +944,7 @@ export default function Settings() {
         open={Boolean(selectedSection)}
         onOpenChange={(open) => (!open ? closeModal() : null)}
       >
-        <DialogContent className="border-admin-border bg-admin-card p-5 sm:max-w-5xl">
+        <DialogContent className="border-admin-border bg-admin-card p-5 sm:max-w-5xl max-h-[90vh] flex flex-col">
           {selectedSection && modalDraft ? (
             <>
               <DialogHeader className="rounded-2xl border border-admin-border bg-[linear-gradient(145deg,var(--color-bg-hover),transparent)] p-4">
@@ -1014,7 +989,7 @@ export default function Settings() {
                 </div>
               </DialogHeader>
 
-              <div className="grid gap-3 px-1">
+              <div className="grid gap-3 px-1 overflow-y-auto flex-1">
                 <AdminCardHeader
                   title="Configuration Fields"
                   subtitle="Review and update values below"
@@ -1080,7 +1055,7 @@ export default function Settings() {
                                   key={option.value}
                                   className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition ${
                                     checked
-                                      ? "border-[var(--color-border-accent)] bg-admin-accent-dim text-admin-accent"
+                                      ? "border-[var(--admin-gold)] bg-admin-gold-dim text-admin-gold"
                                       : "border-admin-border bg-admin-surface text-admin-text-secondary hover:border-admin-border-strong"
                                   }`}
                                 >
@@ -1101,7 +1076,7 @@ export default function Settings() {
                                     <span
                                       className={`h-3 w-3 rounded-full border ${
                                         checked
-                                          ? "border-admin-accent bg-admin-accent"
+                                          ? "border-admin-gold bg-admin-gold"
                                           : "border-admin-border"
                                       }`}
                                     />

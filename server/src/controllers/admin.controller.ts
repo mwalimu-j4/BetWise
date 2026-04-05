@@ -41,7 +41,6 @@ const adminSettingsSelect = {
   timezone: true,
   maintenanceMode: true,
   registrationEnabled: true,
-  defaultWalletBalance: true,
   minDeposit: true,
   maxDeposit: true,
   minWithdrawal: true,
@@ -49,7 +48,6 @@ const adminSettingsSelect = {
   dailyTransactionLimit: true,
   maxActiveBetsPerUser: true,
   defaultUserRole: true,
-  autoVerificationRule: true,
   kycRequired: true,
   kycRequireId: true,
   kycRequirePhone: true,
@@ -59,8 +57,6 @@ const adminSettingsSelect = {
   allowedCountries: true,
   paymentMpesaEnabled: true,
   paymentBankTransferEnabled: true,
-  paymentAirtelMoneyEnabled: true,
-  paymentCardEnabled: true,
   mpesaShortcode: true,
   mpesaConsumerKey: true,
   mpesaConsumerSecret: true,
@@ -142,8 +138,6 @@ function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
     timezone: config.generalSystemConfig.timezone,
     maintenanceMode: config.generalSystemConfig.maintenanceMode,
     registrationEnabled: config.generalSystemConfig.registrationEnabled,
-    defaultWalletBalance:
-      config.userDefaultsAndRestrictions.defaultWalletBalance,
     minDeposit: config.userDefaultsAndRestrictions.minDeposit,
     maxDeposit: config.userDefaultsAndRestrictions.maxDeposit,
     minWithdrawal: config.userDefaultsAndRestrictions.minWithdrawal,
@@ -153,8 +147,6 @@ function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
     maxActiveBetsPerUser:
       config.userDefaultsAndRestrictions.maxActiveBetsPerUser,
     defaultUserRole: config.userDefaultsAndRestrictions.defaultUserRole,
-    autoVerificationRule:
-      config.userDefaultsAndRestrictions.autoVerificationRule,
     kycRequired: config.kycAndComplianceConfig.kycRequired,
     kycRequireId: config.kycAndComplianceConfig.requiredFields.id,
     kycRequirePhone: config.kycAndComplianceConfig.requiredFields.phone,
@@ -164,8 +156,6 @@ function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
     allowedCountries: config.kycAndComplianceConfig.allowedCountries,
     paymentMpesaEnabled: config.paymentsConfig.methods.mpesa,
     paymentBankTransferEnabled: config.paymentsConfig.methods.bankTransfer,
-    paymentAirtelMoneyEnabled: config.paymentsConfig.methods.airtelMoney,
-    paymentCardEnabled: config.paymentsConfig.methods.card,
     mpesaShortcode: config.paymentsConfig.mpesa.shortcode,
     mpesaConsumerKey: config.paymentsConfig.mpesa.consumerKey,
     mpesaConsumerSecret: config.paymentsConfig.mpesa.consumerSecret,
@@ -254,7 +244,6 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
       registrationEnabled: record.registrationEnabled,
     },
     userDefaultsAndRestrictions: {
-      defaultWalletBalance: record.defaultWalletBalance,
       minDeposit: record.minDeposit,
       maxDeposit: record.maxDeposit,
       minWithdrawal: record.minWithdrawal,
@@ -262,10 +251,6 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
       dailyTransactionLimit: record.dailyTransactionLimit,
       maxActiveBetsPerUser: record.maxActiveBetsPerUser,
       defaultUserRole: "USER",
-      autoVerificationRule: record.autoVerificationRule as
-        | "none"
-        | "email"
-        | "email_and_phone",
     },
     kycAndComplianceConfig: {
       kycRequired: record.kycRequired,
@@ -282,8 +267,6 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
       methods: {
         mpesa: record.paymentMpesaEnabled,
         bankTransfer: record.paymentBankTransferEnabled,
-        airtelMoney: record.paymentAirtelMoneyEnabled,
-        card: record.paymentCardEnabled,
       },
       mpesa: {
         shortcode: record.mpesaShortcode,
