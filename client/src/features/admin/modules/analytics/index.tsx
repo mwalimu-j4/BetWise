@@ -456,7 +456,12 @@ export default function Analytics() {
                 dataKey="hitRate"
                 stroke="#00e5a0"
                 strokeWidth={3}
-                dot={{ r: 4, fill: "#00e5a0", stroke: "rgba(255,255,255,0.2)", strokeWidth: 1.5 }}
+                dot={{
+                  r: 4,
+                  fill: "#00e5a0",
+                  stroke: "rgba(255,255,255,0.2)",
+                  strokeWidth: 1.5,
+                }}
                 activeDot={{ r: 6 }}
                 name="Hit Rate"
               />
@@ -465,7 +470,12 @@ export default function Analytics() {
                 dataKey="holdRate"
                 stroke="#ffbe55"
                 strokeWidth={3}
-                dot={{ r: 4, fill: "#ffbe55", stroke: "rgba(255,255,255,0.2)", strokeWidth: 1.5 }}
+                dot={{
+                  r: 4,
+                  fill: "#ffbe55",
+                  stroke: "rgba(255,255,255,0.2)",
+                  strokeWidth: 1.5,
+                }}
                 activeDot={{ r: 6 }}
                 name="Hold Rate"
               />
