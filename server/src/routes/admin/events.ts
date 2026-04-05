@@ -44,15 +44,10 @@ type EventsLeaguesResponse = {
 };
 
 const EVENTS_STATS_CACHE_TTL_MS = 30_000;
-const EVENTS_CONFIGURED_CACHE_TTL_MS = 60_000;
 const EVENTS_LEAGUES_CACHE_TTL_MS = 300_000;
 
 let eventsStatsCache: { data: EventsStatsResponse; expiresAt: number } | null =
   null;
-let eventsConfiguredCache: {
-  data: EventsConfiguredResponse;
-  expiresAt: number;
-} | null = null;
 let eventsLeaguesCache: {
   data: EventsLeaguesResponse;
   expiresAt: number;
@@ -60,7 +55,6 @@ let eventsLeaguesCache: {
 
 function invalidateEventsCache() {
   eventsStatsCache = null;
-  eventsConfiguredCache = null;
   eventsLeaguesCache = null;
 }
 
@@ -82,6 +76,11 @@ const listEventsQuerySchema = z.object({
   search: z.string().trim().optional(),
   sport: z.string().trim().optional(),
   leagueName: z.string().trim().optional(),
+});
+
+const configuredEventsQuerySchema = z.object({
+  search: z.string().trim().optional(),
+  limit: z.coerce.number().int().positive().optional(),
 });
 
 const updateEventConfigSchema = z.object({
@@ -176,15 +175,34 @@ eventsAdminRouter.get("/admin/events/stats", async (_req, res, next) => {
   }
 });
 
-eventsAdminRouter.get("/admin/events/configured", async (_req, res, next) => {
+eventsAdminRouter.get("/admin/events/configured", async (req, res, next) => {
   try {
-    if (eventsConfiguredCache && eventsConfiguredCache.expiresAt > Date.now()) {
-      return res.status(200).json(eventsConfiguredCache.data);
+    const parsedQuery = configuredEventsQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      return res.status(400).json({
+        error: "Invalid configured events query.",
+        code: "INVALID_CONFIGURED_EVENTS_QUERY",
+      });
     }
+
+    const search = parsedQuery.data.search?.trim();
 
     const [events, total] = await Promise.all([
       prisma.sportEvent.findMany({
-        where: { isActive: true },
+        where: {
+          isActive: true,
+          status: { in: ["UPCOMING", "LIVE"] },
+          ...(search
+            ? {
+                OR: [
+                  { homeTeam: { contains: search, mode: "insensitive" } },
+                  { awayTeam: { contains: search, mode: "insensitive" } },
+                  { leagueName: { contains: search, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
+        take: 50,
         select: {
           id: true,
           eventId: true,
@@ -203,24 +221,29 @@ eventsAdminRouter.get("/admin/events/configured", async (_req, res, next) => {
             },
           },
         },
-        orderBy: [{ status: "asc" }, { commenceTime: "asc" }],
+        orderBy: [{ commenceTime: "asc" }],
       }),
-      prisma.sportEvent.count({ where: { isActive: true } }),
+      prisma.sportEvent.count({
+        where: {
+          isActive: true,
+          status: { in: ["UPCOMING", "LIVE"] },
+          ...(search
+            ? {
+                OR: [
+                  { homeTeam: { contains: search, mode: "insensitive" } },
+                  { awayTeam: { contains: search, mode: "insensitive" } },
+                  { leagueName: { contains: search, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
+      }),
     ]);
 
     const payload: EventsConfiguredResponse = {
       events,
       total,
     };
-
-    eventsConfiguredCache = {
-      data: payload,
-      expiresAt: Date.now() + EVENTS_CONFIGURED_CACHE_TTL_MS,
-    };
-
-    console.log(
-      `[AdminEvents] /configured served with ${payload.total} events from DB`,
-    );
 
     return res.status(200).json(payload);
   } catch (error) {

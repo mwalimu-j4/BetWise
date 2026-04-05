@@ -1,5 +1,6 @@
 import { config } from "dotenv";
-config({ path: "./.env", override: true });
+config({ path: "./.env", override: false });
+console.log("[Env Check] ODDS_API_KEY loaded:", !!process.env.ODDS_API_KEY);
 import { app } from "./app";
 import { prisma } from "./lib/prisma";
 import { createHttpServerWithSockets } from "./lib/socket";
