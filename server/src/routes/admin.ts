@@ -10,6 +10,8 @@ import {
   unbanUser,
   suspendUser,
   unsuspendUser,
+  getAdminPayments,
+  getAdminPaymentsStats,
 } from "../controllers/admin.controller";
 import { requireAdmin } from "../middleware/requireAdmin";
 
@@ -55,6 +57,15 @@ adminRouter.post(
   authenticate,
   requireAdmin,
   unsuspendUser,
+);
+
+// Payments Management
+adminRouter.get("/admin/payments", authenticate, requireAdmin, getAdminPayments);
+adminRouter.get(
+  "/admin/payments/stats",
+  authenticate,
+  requireAdmin,
+  getAdminPaymentsStats,
 );
 
 export { adminRouter };

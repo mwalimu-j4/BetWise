@@ -1052,3 +1052,181 @@ export async function unsuspendUser(req: Request, res: Response) {
     },
   });
 }
+
+// Get admin payments (deposits and transactions)
+export async function getAdminPayments(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const limit = parseInt(String(req.query.limit ?? 50), 10);
+  const offset = parseInt(String(req.query.offset ?? 0), 10);
+  const status = String(req.query.status ?? "");
+  const type = String(req.query.type ?? "");
+
+  const whereFilters: any = {
+    type: { in: ["DEPOSIT", "WITHDRAWAL"] },
+  };
+
+  if (status && ["PENDING", "COMPLETED", "FAILED", "REVERSED"].includes(status)) {
+    whereFilters.status = status;
+  }
+
+  if (type && ["DEPOSIT", "WITHDRAWAL"].includes(type)) {
+    whereFilters.type = type;
+  }
+
+  const [transactions, total] = await Promise.all([
+    prisma.walletTransaction.findMany({
+      where: whereFilters,
+      orderBy: { createdAt: "desc" },
+      skip: offset,
+      take: limit,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            fullName: true,
+          },
+        },
+      },
+    }),
+    prisma.walletTransaction.count({ where: whereFilters }),
+  ]);
+
+  const formattedTransactions = transactions.map((transaction) => ({
+    id: transaction.id,
+    userId: transaction.userId,
+    userEmail: transaction.user.email,
+    userPhone: transaction.user.phone,
+    userName: transaction.user.fullName,
+    type: transaction.type.toLowerCase(),
+    amount: transaction.amount,
+    status: transaction.status.toLowerCase(),
+    reference:
+      transaction.providerReceiptNumber ??
+      transaction.checkoutRequestId ??
+      transaction.reference,
+    channel: transaction.channel,
+    mpesaCode: transaction.providerReceiptNumber,
+    phone: transaction.phone,
+    createdAt: transaction.createdAt.toISOString(),
+    processedAt: transaction.processedAt?.toISOString() ?? null,
+    fee:
+      transaction.type === "WITHDRAWAL"
+        ? ((transaction.providerCallback as { fee?: number } | null)?.fee ?? 0)
+        : 0,
+    totalDebit:
+      transaction.type === "WITHDRAWAL"
+        ? ((transaction.providerCallback as { totalDebit?: number } | null)
+            ?.totalDebit ?? transaction.amount)
+        : transaction.amount,
+  }));
+
+  return res.status(200).json({
+    transactions: formattedTransactions,
+    pagination: {
+      total,
+      limit,
+      offset,
+      pages: Math.ceil(total / limit),
+    },
+  });
+}
+
+// Get admin wallet transactions summary
+export async function getAdminPaymentsStats(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const [
+    totalDeposits,
+    totalWithdrawals,
+    pendingDeposits,
+    pendingWithdrawals,
+    completedDeposits,
+    completedWithdrawals,
+    failedDeposits,
+    failedWithdrawals,
+    totalDepositValue,
+    totalWithdrawalValue,
+    pendingDepositValue,
+    pendingWithdrawalValue,
+  ] = await Promise.all([
+    prisma.walletTransaction.count({
+      where: { type: "DEPOSIT" },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "WITHDRAWAL" },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "DEPOSIT", status: "PENDING" },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "WITHDRAWAL", status: "PENDING" },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "DEPOSIT", status: "COMPLETED" },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "WITHDRAWAL", status: "COMPLETED" },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "DEPOSIT", status: "FAILED" },
+    }),
+    prisma.walletTransaction.count({
+      where: { type: "WITHDRAWAL", status: "FAILED" },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: { type: "DEPOSIT" },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: { type: "WITHDRAWAL" },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: { type: "DEPOSIT", status: "PENDING" },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: { type: "WITHDRAWAL", status: "PENDING" },
+      _sum: { amount: true },
+    }),
+  ]);
+
+  return res.status(200).json({
+    stats: {
+      deposits: {
+        total: totalDeposits,
+        pending: pendingDeposits,
+        completed: completedDeposits,
+        failed: failedDeposits,
+        totalValue: totalDepositValue._sum.amount ?? 0,
+        pendingValue: pendingDepositValue._sum.amount ?? 0,
+      },
+      withdrawals: {
+        total: totalWithdrawals,
+        pending: pendingWithdrawals,
+        completed: completedWithdrawals,
+        failed: failedWithdrawals,
+        totalValue: totalWithdrawalValue._sum.amount ?? 0,
+        pendingValue: pendingWithdrawalValue._sum.amount ?? 0,
+      },
+    },
+  });
+}
