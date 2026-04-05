@@ -142,24 +142,6 @@ export const adminSettingsSchema = z.object({
     responsibleGamblingMessage: z.string().trim().min(10).max(1200),
     supportContactInfo: z.string().trim().min(6).max(320),
   }),
-  operationalControls: z.object({
-    oddsRefreshIntervalSeconds: z.number().int().min(5).max(3600),
-    eventSyncIntervalSeconds: z.number().int().min(30).max(86400),
-    settlementMode: z.enum(["automatic", "manual", "hybrid"]),
-    autoSettleDelayMinutes: z.number().int().min(0).max(1440),
-  }),
-  auditAndMonitoring: z.object({
-    auditRetentionDays: z.number().int().min(7).max(3650),
-    requireSecondApprovalForCriticalChanges: z.boolean(),
-    incidentAlertChannel: z.enum(["email", "sms", "both"]),
-    anomalyScoreThreshold: z.number().int().min(1).max(100),
-  }),
-  responsibleGamingControls: z.object({
-    selfExclusionEnabled: z.boolean(),
-    defaultDailyStakeLimit: nonNegativeInt,
-    coolOffPeriodHours: z.number().int().min(0).max(720),
-    mandatoryLossLimitPrompt: z.boolean(),
-  }),
 });
 
 export type AdminSettingsConfig = z.infer<typeof adminSettingsSchema>;
@@ -292,23 +274,5 @@ export const defaultAdminSettings: AdminSettingsConfig = {
     responsibleGamblingMessage:
       "Bet responsibly. Set limits and seek support if betting affects your wellbeing.",
     supportContactInfo: "support@betwise.co.ke | +254700000000",
-  },
-  operationalControls: {
-    oddsRefreshIntervalSeconds: 30,
-    eventSyncIntervalSeconds: 300,
-    settlementMode: "hybrid",
-    autoSettleDelayMinutes: 15,
-  },
-  auditAndMonitoring: {
-    auditRetentionDays: 365,
-    requireSecondApprovalForCriticalChanges: true,
-    incidentAlertChannel: "both",
-    anomalyScoreThreshold: 75,
-  },
-  responsibleGamingControls: {
-    selfExclusionEnabled: true,
-    defaultDailyStakeLimit: 100000,
-    coolOffPeriodHours: 24,
-    mandatoryLossLimitPrompt: true,
   },
 };

@@ -126,24 +126,6 @@ export interface AdminSettingsConfig {
     responsibleGamblingMessage: string;
     supportContactInfo: string;
   };
-  operationalControls: {
-    oddsRefreshIntervalSeconds: number;
-    eventSyncIntervalSeconds: number;
-    settlementMode: "automatic" | "manual" | "hybrid";
-    autoSettleDelayMinutes: number;
-  };
-  auditAndMonitoring: {
-    auditRetentionDays: number;
-    requireSecondApprovalForCriticalChanges: boolean;
-    incidentAlertChannel: "email" | "sms" | "both";
-    anomalyScoreThreshold: number;
-  };
-  responsibleGamingControls: {
-    selfExclusionEnabled: boolean;
-    defaultDailyStakeLimit: number;
-    coolOffPeriodHours: number;
-    mandatoryLossLimitPrompt: boolean;
-  };
 }
 
 export interface AdminSettingsMetadata {
