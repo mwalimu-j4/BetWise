@@ -7,13 +7,81 @@ import { requireAdmin } from "../../middleware/requireAdmin";
 
 const eventsAdminRouter = Router();
 
+type EventsStatsResponse = {
+  liveCount: number;
+  upcomingCount: number;
+  activeCount: number;
+  configuredCount: number;
+  noOddsCount: number;
+  finishedToday: number;
+};
+
+type EventsConfiguredResponse = {
+  events: Array<{
+    id: string;
+    eventId: string;
+    homeTeam: string;
+    awayTeam: string;
+    leagueName: string | null;
+    sportKey: string | null;
+    commenceTime: Date;
+    status: "UPCOMING" | "LIVE" | "FINISHED" | "CANCELLED";
+    houseMargin: number;
+    marketsEnabled: string[];
+    _count: {
+      displayedOdds: number;
+      bets: number;
+    };
+  }>;
+  total: number;
+};
+
+type EventsLeaguesResponse = {
+  sports: Array<{
+    sportKey: string;
+    leagues: string[];
+  }>;
+};
+
+const EVENTS_STATS_CACHE_TTL_MS = 30_000;
+const EVENTS_CONFIGURED_CACHE_TTL_MS = 60_000;
+const EVENTS_LEAGUES_CACHE_TTL_MS = 300_000;
+
+let eventsStatsCache: { data: EventsStatsResponse; expiresAt: number } | null =
+  null;
+let eventsConfiguredCache: {
+  data: EventsConfiguredResponse;
+  expiresAt: number;
+} | null = null;
+let eventsLeaguesCache: {
+  data: EventsLeaguesResponse;
+  expiresAt: number;
+} | null = null;
+
+function invalidateEventsCache() {
+  eventsStatsCache = null;
+  eventsConfiguredCache = null;
+  eventsLeaguesCache = null;
+}
+
+function chunkArray<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
 const listEventsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
   status: z.enum(["UPCOMING", "LIVE", "FINISHED", "CANCELLED"]).optional(),
   hasOdds: z.coerce.boolean().optional(),
+  hasMargin: z.coerce.boolean().optional(),
+  isActive: z.coerce.boolean().optional(),
   search: z.string().trim().optional(),
   sport: z.string().trim().optional(),
+  leagueName: z.string().trim().optional(),
 });
 
 const updateEventConfigSchema = z.object({
@@ -21,7 +89,200 @@ const updateEventConfigSchema = z.object({
   marketsEnabled: z.array(z.string().trim().min(1)).default(["h2h"]),
 });
 
+const bulkToggleSchema = z.object({
+  eventIds: z.array(z.string().trim().min(1)).min(1),
+  isActive: z.boolean(),
+});
+
+const bulkConfigSchema = z.object({
+  eventIds: z.array(z.string().trim().min(1)).min(1),
+  houseMargin: z.number().min(0).max(100),
+});
+
+const bulkMarginSchema = z.object({
+  filter: z.enum(["league", "sport", "selected"]),
+  leagueName: z.string().trim().optional(),
+  sportKey: z.string().trim().optional(),
+  eventIds: z.array(z.string().trim().min(1)).optional(),
+  houseMargin: z.number().min(0).max(100),
+  marketsEnabled: z.array(z.string().trim().min(1)).optional(),
+});
+
 eventsAdminRouter.use("/admin/events", authenticate, requireAdmin);
+
+eventsAdminRouter.get("/admin/events/stats", async (_req, res, next) => {
+  try {
+    if (eventsStatsCache && eventsStatsCache.expiresAt > Date.now()) {
+      return res.status(200).json(eventsStatsCache.data);
+    }
+
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const [
+      liveCount,
+      upcomingCount,
+      activeCount,
+      configuredCount,
+      noOddsCount,
+      finishedToday,
+    ] = await Promise.all([
+      prisma.sportEvent.count({ where: { status: "LIVE" } }),
+      prisma.sportEvent.count({ where: { status: "UPCOMING" } }),
+      prisma.sportEvent.count({ where: { isActive: true } }),
+      prisma.sportEvent.count({
+        where: {
+          isActive: true,
+          houseMargin: { gt: 0 },
+        },
+      }),
+      prisma.sportEvent.count({
+        where: {
+          isActive: true,
+          displayedOdds: { none: {} },
+        },
+      }),
+      prisma.sportEvent.count({
+        where: {
+          status: "FINISHED",
+          updatedAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+      }),
+    ]);
+
+    const payload: EventsStatsResponse = {
+      liveCount,
+      upcomingCount,
+      activeCount,
+      configuredCount,
+      noOddsCount,
+      finishedToday,
+    };
+
+    eventsStatsCache = {
+      data: payload,
+      expiresAt: Date.now() + EVENTS_STATS_CACHE_TTL_MS,
+    };
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+eventsAdminRouter.get("/admin/events/configured", async (_req, res, next) => {
+  try {
+    if (eventsConfiguredCache && eventsConfiguredCache.expiresAt > Date.now()) {
+      return res.status(200).json(eventsConfiguredCache.data);
+    }
+
+    const [events, total] = await Promise.all([
+      prisma.sportEvent.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          eventId: true,
+          homeTeam: true,
+          awayTeam: true,
+          leagueName: true,
+          sportKey: true,
+          commenceTime: true,
+          status: true,
+          houseMargin: true,
+          marketsEnabled: true,
+          _count: {
+            select: {
+              displayedOdds: { where: { isVisible: true } },
+              bets: true,
+            },
+          },
+        },
+        orderBy: [{ status: "asc" }, { commenceTime: "asc" }],
+      }),
+      prisma.sportEvent.count({ where: { isActive: true } }),
+    ]);
+
+    const payload: EventsConfiguredResponse = {
+      events,
+      total,
+    };
+
+    eventsConfiguredCache = {
+      data: payload,
+      expiresAt: Date.now() + EVENTS_CONFIGURED_CACHE_TTL_MS,
+    };
+
+    console.log(
+      `[AdminEvents] /configured served with ${payload.total} events from DB`,
+    );
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+eventsAdminRouter.get("/admin/events/leagues", async (_req, res, next) => {
+  try {
+    if (eventsLeaguesCache && eventsLeaguesCache.expiresAt > Date.now()) {
+      return res.status(200).json(eventsLeaguesCache.data);
+    }
+
+    const rows = await prisma.sportEvent.findMany({
+      where: {
+        status: { in: ["UPCOMING", "LIVE"] },
+      },
+      select: {
+        leagueName: true,
+        sportKey: true,
+      },
+      distinct: ["leagueName"],
+      orderBy: [{ sportKey: "asc" }, { leagueName: "asc" }],
+    });
+
+    const grouped = rows.reduce<Record<string, Set<string>>>(
+      (accumulator, row) => {
+        const leagueName = row.leagueName?.trim();
+        const sportKey = row.sportKey?.trim() ?? "unknown";
+
+        if (!leagueName) {
+          return accumulator;
+        }
+
+        accumulator[sportKey] = accumulator[sportKey] ?? new Set<string>();
+        accumulator[sportKey].add(leagueName);
+        return accumulator;
+      },
+      {},
+    );
+
+    const payload: EventsLeaguesResponse = {
+      sports: Object.entries(grouped)
+        .map(([sportKey, leagues]) => ({
+          sportKey,
+          leagues: Array.from(leagues).sort((left, right) =>
+            left.localeCompare(right),
+          ),
+        }))
+        .sort((left, right) => left.sportKey.localeCompare(right.sportKey)),
+    };
+
+    eventsLeaguesCache = {
+      data: payload,
+      expiresAt: Date.now() + EVENTS_LEAGUES_CACHE_TTL_MS,
+    };
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
 
 eventsAdminRouter.get("/admin/events", async (req, res, next) => {
   try {
@@ -30,68 +291,84 @@ eventsAdminRouter.get("/admin/events", async (req, res, next) => {
       return res.status(400).json({ message: "Invalid events query." });
     }
 
-    const { page, limit, search, sport, status, hasOdds } = parsedQuery.data;
+    const {
+      page,
+      limit,
+      search,
+      sport,
+      status,
+      hasOdds,
+      hasMargin,
+      isActive,
+      leagueName,
+    } = parsedQuery.data;
+
+    const shouldDefaultToLiveUpcoming =
+      !status &&
+      isActive === undefined &&
+      hasMargin === undefined &&
+      hasOdds === undefined;
+
     const where: Prisma.SportEventWhereInput = {
-      status: status ? { equals: status } : { in: ["UPCOMING", "LIVE"] },
+      ...(status
+        ? { status: { equals: status } }
+        : shouldDefaultToLiveUpcoming
+          ? { status: { in: ["UPCOMING", "LIVE"] } }
+          : {}),
       ...(sport ? { sportKey: { equals: sport } } : {}),
-      ...(hasOdds ? { displayedOdds: { some: {} } } : {}),
+      ...(leagueName
+        ? { leagueName: { contains: leagueName, mode: "insensitive" } }
+        : {}),
+      ...(isActive !== undefined ? { isActive } : {}),
+      ...(hasMargin ? { houseMargin: { gt: 0 } } : {}),
+      ...(hasOdds === true
+        ? { displayedOdds: { some: {} } }
+        : hasOdds === false
+          ? { displayedOdds: { none: {} } }
+          : {}),
       ...(search
         ? {
-            AND: [
-              {
-                OR: [
-                  { homeTeam: { contains: search, mode: "insensitive" } },
-                  { awayTeam: { contains: search, mode: "insensitive" } },
-                  { leagueName: { contains: search, mode: "insensitive" } },
-                ],
-              },
+            OR: [
+              { homeTeam: { contains: search, mode: "insensitive" } },
+              { awayTeam: { contains: search, mode: "insensitive" } },
+              { leagueName: { contains: search, mode: "insensitive" } },
             ],
           }
         : {}),
     };
 
-    const [total, orderedRows] = await Promise.all([
+    const [total, events] = await Promise.all([
       prisma.sportEvent.count({ where }),
-      prisma.$queryRaw<Array<{ eventId: string }>>(Prisma.sql`
-        SELECT event_id AS "eventId"
-        FROM sport_events
-        WHERE
-          ${
-            status
-              ? Prisma.sql`status = ${status}::"EventStatus"`
-              : Prisma.sql`status IN (${Prisma.join([
-                  Prisma.sql`'UPCOMING'::"EventStatus"`,
-                  Prisma.sql`'LIVE'::"EventStatus"`,
-                ])})`
-          }
-          ${sport ? Prisma.sql`AND sport_key = ${sport}` : Prisma.empty}
-          ${hasOdds ? Prisma.sql`AND EXISTS (SELECT 1 FROM displayed_odds d WHERE d.event_id = sport_events.event_id)` : Prisma.empty}
-          ${
-            search
-              ? Prisma.sql`AND (
-                  home_team ILIKE ${`%${search}%`}
-                  OR away_team ILIKE ${`%${search}%`}
-                  OR league_name ILIKE ${`%${search}%`}
-                )`
-              : Prisma.empty
-          }
-        ORDER BY
-          CASE
-            WHEN status = 'LIVE'::"EventStatus" THEN 0
-            WHEN status = 'UPCOMING'::"EventStatus" THEN 1
-            WHEN status = 'FINISHED'::"EventStatus" THEN 2
-            ELSE 3
-          END,
-          commence_time ASC
-        OFFSET ${(page - 1) * limit}
-        LIMIT ${limit}
-      `),
+      prisma.sportEvent.findMany({
+        where,
+        select: {
+          id: true,
+          eventId: true,
+          leagueName: true,
+          sportKey: true,
+          homeTeam: true,
+          awayTeam: true,
+          commenceTime: true,
+          status: true,
+          homeScore: true,
+          awayScore: true,
+          isActive: true,
+          houseMargin: true,
+          marketsEnabled: true,
+          _count: {
+            select: {
+              odds: true,
+              bets: true,
+            },
+          },
+        },
+        orderBy: [{ status: "asc" }, { commenceTime: "asc" }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
     ]);
 
-    const orderedEventIds = orderedRows.map(
-      (row: { eventId: string }) => row.eventId,
-    );
-    if (orderedEventIds.length === 0) {
+    if (events.length === 0) {
       return res.status(200).json({
         events: [],
         total,
@@ -100,43 +377,8 @@ eventsAdminRouter.get("/admin/events", async (req, res, next) => {
       });
     }
 
-    const events = await prisma.sportEvent.findMany({
-      where: { eventId: { in: orderedEventIds } },
-      select: {
-        id: true,
-        eventId: true,
-        leagueName: true,
-        sportKey: true,
-        homeTeam: true,
-        awayTeam: true,
-        commenceTime: true,
-        status: true,
-        homeScore: true,
-        awayScore: true,
-        isActive: true,
-        houseMargin: true,
-        marketsEnabled: true,
-        _count: {
-          select: {
-            odds: true,
-            bets: true,
-          },
-        },
-      },
-    });
-
-    const eventMap = new Map<string, (typeof events)[number]>(
-      events.map((event: (typeof events)[number]) => [event.eventId, event]),
-    );
-
     return res.status(200).json({
-      events: orderedEventIds
-        .map((eventId: string) => eventMap.get(eventId))
-        .filter(
-          (
-            event: (typeof events)[number] | undefined,
-          ): event is (typeof events)[number] => Boolean(event),
-        ),
+      events,
       total,
       page,
       totalPages: Math.ceil(total / limit),
@@ -282,6 +524,11 @@ eventsAdminRouter.patch(
         },
       });
 
+      invalidateEventsCache();
+      console.log(
+        `[AdminEvents] Toggled event ${eventId} to ${updatedEvent.isActive}`,
+      );
+
       return res.status(200).json(updatedEvent);
     } catch (error) {
       next(error);
@@ -367,11 +614,212 @@ eventsAdminRouter.patch(
         },
       );
 
+      invalidateEventsCache();
+      console.log(`[AdminEvents] Updated config for event ${eventId}`);
+
       return res.status(200).json(updatedEvent);
     } catch (error) {
       next(error);
     }
   },
 );
+
+eventsAdminRouter.patch("/admin/events/bulk-toggle", async (req, res, next) => {
+  try {
+    const parsedBody = bulkToggleSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json({ message: "Invalid bulk toggle payload." });
+    }
+
+    const uniqueEventIds = Array.from(new Set(parsedBody.data.eventIds));
+
+    const result = await prisma.sportEvent.updateMany({
+      where: { eventId: { in: uniqueEventIds } },
+      data: { isActive: parsedBody.data.isActive },
+    });
+
+    invalidateEventsCache();
+    console.log(
+      `[AdminEvents] Bulk toggle ${parsedBody.data.isActive} for ${result.count} events`,
+    );
+
+    return res.status(200).json({
+      updatedCount: result.count,
+      eventIds: uniqueEventIds,
+      isActive: parsedBody.data.isActive,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+eventsAdminRouter.patch("/admin/events/bulk-config", async (req, res, next) => {
+  try {
+    const parsedBody = bulkConfigSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json({ message: "Invalid bulk config payload." });
+    }
+
+    const uniqueEventIds = Array.from(new Set(parsedBody.data.eventIds));
+
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const updateResult = await tx.sportEvent.updateMany({
+          where: { eventId: { in: uniqueEventIds } },
+          data: { houseMargin: parsedBody.data.houseMargin },
+        });
+
+        const displayedOdds = await tx.displayedOdds.findMany({
+          where: { eventId: { in: uniqueEventIds } },
+          select: {
+            id: true,
+            rawOdds: true,
+          },
+        });
+
+        await Promise.all(
+          displayedOdds.map((odd) =>
+            tx.displayedOdds.update({
+              where: { id: odd.id },
+              data: {
+                displayOdds: Number(
+                  (
+                    odd.rawOdds /
+                    (1 + parsedBody.data.houseMargin / 100)
+                  ).toFixed(2),
+                ),
+              },
+            }),
+          ),
+        );
+
+        return updateResult;
+      },
+    );
+
+    invalidateEventsCache();
+    console.log(
+      `[AdminEvents] Bulk config ${parsedBody.data.houseMargin}% for ${result.count} events`,
+    );
+
+    return res.status(200).json({
+      updatedCount: result.count,
+      eventIds: uniqueEventIds,
+      houseMargin: parsedBody.data.houseMargin,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+eventsAdminRouter.patch("/admin/events/bulk-margin", async (req, res, next) => {
+  try {
+    const parsedBody = bulkMarginSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json({ message: "Invalid bulk margin payload." });
+    }
+
+    const { filter, houseMargin, marketsEnabled } = parsedBody.data;
+    let baseWhere: Prisma.SportEventWhereInput;
+
+    if (filter === "league") {
+      if (!parsedBody.data.leagueName?.trim()) {
+        return res
+          .status(400)
+          .json({ message: "leagueName is required for league filter." });
+      }
+
+      baseWhere = {
+        leagueName: {
+          contains: parsedBody.data.leagueName.trim(),
+          mode: "insensitive",
+        },
+      };
+    } else if (filter === "sport") {
+      if (!parsedBody.data.sportKey?.trim()) {
+        return res
+          .status(400)
+          .json({ message: "sportKey is required for sport filter." });
+      }
+
+      baseWhere = {
+        sportKey: parsedBody.data.sportKey.trim(),
+      };
+    } else {
+      const eventIds = Array.from(new Set(parsedBody.data.eventIds ?? []));
+      if (!eventIds.length) {
+        return res
+          .status(400)
+          .json({ message: "eventIds is required for selected filter." });
+      }
+
+      baseWhere = {
+        eventId: { in: eventIds },
+      };
+    }
+
+    const matchingEvents = await prisma.sportEvent.findMany({
+      where: baseWhere,
+      select: { eventId: true },
+    });
+
+    const matchingEventIds = matchingEvents.map((event) => event.eventId);
+    if (!matchingEventIds.length) {
+      return res.status(200).json({
+        updated: 0,
+        message: `No events matched filter for ${houseMargin}% margin`,
+      });
+    }
+
+    const chunks =
+      matchingEventIds.length > 100
+        ? chunkArray(matchingEventIds, 50)
+        : [matchingEventIds];
+
+    let updated = 0;
+    for (const batchEventIds of chunks) {
+      const result = await prisma.$transaction([
+        prisma.sportEvent.updateMany({
+          where: { eventId: { in: batchEventIds } },
+          data: {
+            houseMargin,
+            ...(marketsEnabled ? { marketsEnabled } : {}),
+          },
+        }),
+        prisma.$executeRaw(Prisma.sql`
+          UPDATE displayed_odds
+          SET display_odds = ROUND(raw_odds::numeric / (1 + ${houseMargin} / 100.0), 3),
+              updated_at = NOW()
+          WHERE event_id IN (${Prisma.join(batchEventIds)})
+        `),
+        prisma.sportEvent.updateMany({
+          where: { eventId: { in: batchEventIds } },
+          data: { isActive: true },
+        }),
+      ]);
+
+      updated += result[0].count;
+    }
+
+    invalidateEventsCache();
+
+    const targetLabel =
+      filter === "league"
+        ? `${parsedBody.data.leagueName ?? "league"} games`
+        : filter === "sport"
+          ? `${parsedBody.data.sportKey ?? "sport"} games`
+          : "selected games";
+
+    const message = `${houseMargin}% margin applied to ${updated} ${targetLabel}`;
+    console.log(`[AdminEvents] ${message}`);
+
+    return res.status(200).json({
+      updated,
+      message,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 export { eventsAdminRouter };

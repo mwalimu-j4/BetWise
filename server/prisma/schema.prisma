@@ -205,6 +205,11 @@ model SportEvent {
   @@index([commenceTime])
   @@index([sportKey])
   @@index([isActive])
+  @@index([isActive, status, commenceTime])
+  @@index([homeTeam, awayTeam])
+  @@index([leagueName, status])
+  @@index([sportKey, isActive])
+  @@index([houseMargin, isActive])
   @@map("sport_events")
 }
 
@@ -240,6 +245,9 @@ model DisplayedOdds {
   @@unique([eventId, bookmakerId, marketType, side])
   @@index([eventId])
   @@index([isVisible])
+  @@index([eventId, isVisible])
+  @@index([eventId, marketType])
+  @@index([bookmakerId, isVisible])
   @@map("displayed_odds")
 }
 
@@ -263,5 +271,8 @@ model Bet {
   @@index([eventId])
   @@index([status])
   @@index([placedAt])
+  @@index([userId, status])
+  @@index([eventId, status])
+  @@index([placedAt, status])
   @@map("bets")
 }
