@@ -381,7 +381,17 @@ const createUserSchema = z.object({
   accountStatus: z.enum(["ACTIVE", "SUSPENDED"]).optional(),
 });
 
-const bettingAnalyticsRangeSchema = z.enum(["24h", "7d", "30d", "90d"]);
+const bettingAnalyticsTimeframeSchema = z.enum([
+  "4w",
+  "12w",
+  "6m",
+  "12m",
+  "3y",
+]);
+const bettingAnalyticsGroupBySchema = z.enum(["week", "month", "year"]);
+
+type BettingAnalyticsTimeframe = z.infer<typeof bettingAnalyticsTimeframeSchema>;
+type BettingAnalyticsGroupBy = z.infer<typeof bettingAnalyticsGroupBySchema>;
 
 function normalizeKenyanPhone(rawPhone: string) {
   const digits = rawPhone.replace(/\D/g, "");
@@ -404,35 +414,107 @@ function normalizeKenyanPhone(rawPhone: string) {
   return null;
 }
 
-function getAnalyticsWindow(range: "24h" | "7d" | "30d" | "90d") {
+function resolveBettingAnalyticsWindow(timeframe: BettingAnalyticsTimeframe) {
   const end = new Date();
   const start = new Date(end);
+  let defaultGroupBy: BettingAnalyticsGroupBy = "week";
 
-  if (range === "24h") {
-    start.setHours(start.getHours() - 23, 0, 0, 0);
-    return { start, end, granularity: "hour" as const };
+  if (timeframe === "4w") {
+    start.setDate(start.getDate() - 27);
+    start.setHours(0, 0, 0, 0);
+    return { start, end, defaultGroupBy };
   }
 
-  const days = range === "7d" ? 6 : range === "30d" ? 29 : 89;
-  start.setDate(start.getDate() - days);
-  start.setHours(0, 0, 0, 0);
+  if (timeframe === "12w") {
+    start.setDate(start.getDate() - 83);
+    start.setHours(0, 0, 0, 0);
+    return { start, end, defaultGroupBy };
+  }
 
-  return { start, end, granularity: "day" as const };
+  if (timeframe === "6m") {
+    defaultGroupBy = "month";
+    start.setMonth(start.getMonth() - 5, 1);
+    start.setHours(0, 0, 0, 0);
+    return { start, end, defaultGroupBy };
+  }
+
+  if (timeframe === "12m") {
+    defaultGroupBy = "month";
+    start.setMonth(start.getMonth() - 11, 1);
+    start.setHours(0, 0, 0, 0);
+    return { start, end, defaultGroupBy };
+  }
+
+  defaultGroupBy = "year";
+  start.setFullYear(start.getFullYear() - 2, 0, 1);
+  start.setHours(0, 0, 0, 0);
+  return { start, end, defaultGroupBy };
 }
 
-function formatAnalyticsPeriod(date: Date, granularity: "hour" | "day") {
-  if (granularity === "hour") {
-    return date.toLocaleTimeString("en-KE", {
-      hour: "2-digit",
-      hour12: false,
+function startOfWeek(date: Date) {
+  const next = startOfDay(date);
+  const day = next.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  next.setDate(next.getDate() + diff);
+  return next;
+}
+
+function getBucketStart(date: Date, groupBy: BettingAnalyticsGroupBy) {
+  if (groupBy === "week") {
+    return startOfWeek(date);
+  }
+
+  if (groupBy === "month") {
+    const next = new Date(date);
+    next.setDate(1);
+    return startOfDay(next);
+  }
+
+  const next = new Date(date);
+  next.setMonth(0, 1);
+  return startOfDay(next);
+}
+
+function incrementBucket(date: Date, groupBy: BettingAnalyticsGroupBy) {
+  if (groupBy === "week") {
+    date.setDate(date.getDate() + 7);
+    return;
+  }
+
+  if (groupBy === "month") {
+    date.setMonth(date.getMonth() + 1, 1);
+    return;
+  }
+
+  date.setFullYear(date.getFullYear() + 1, 0, 1);
+}
+
+function formatBucketLabel(date: Date, groupBy: BettingAnalyticsGroupBy) {
+  if (groupBy === "week") {
+    return `Wk ${date.toLocaleDateString("en-KE", {
+      day: "2-digit",
+      month: "short",
+    })}`;
+  }
+
+  if (groupBy === "month") {
+    return date.toLocaleDateString("en-KE", {
+      month: "short",
+      year: "numeric",
     });
   }
 
   return date.toLocaleDateString("en-KE", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
+    year: "numeric",
   });
+}
+
+function percentageChange(current: number, previous: number) {
+  if (previous === 0) {
+    return current === 0 ? 0 : 100;
+  }
+
+  return ((current - previous) / Math.abs(previous)) * 100;
 }
 
 export async function getAdminDashboardSummary(req: Request, res: Response) {
@@ -755,159 +837,492 @@ export async function getBettingAnalytics(req: Request, res: Response) {
     return res.status(403).json({ message: "Admin access required." });
   }
 
-  const parsedRange = bettingAnalyticsRangeSchema.safeParse(
-    req.query.range ?? "7d",
+  const parsedTimeframe = bettingAnalyticsTimeframeSchema.safeParse(
+    req.query.timeframe ?? "12w",
   );
-  const range = parsedRange.success ? parsedRange.data : "7d";
-  const { start, end, granularity } = getAnalyticsWindow(range);
+  const timeframe = parsedTimeframe.success ? parsedTimeframe.data : "12w";
+  const window = resolveBettingAnalyticsWindow(timeframe);
+  const parsedGroupBy = bettingAnalyticsGroupBySchema.safeParse(req.query.groupBy);
+  const groupBy = parsedGroupBy.success ? parsedGroupBy.data : window.defaultGroupBy;
 
-  const transactions = await prisma.walletTransaction.findMany({
-    where: {
-      createdAt: { gte: start, lte: end },
-      type: { in: ["BET_STAKE", "BET_WIN", "REFUND"] },
-      status: { in: ["COMPLETED", "PENDING", "FAILED", "REVERSED"] },
-    },
-    select: {
-      type: true,
-      amount: true,
-      createdAt: true,
-      userId: true,
-    },
-    orderBy: { createdAt: "asc" },
-  });
+  const currentStart = window.start;
+  const currentEnd = window.end;
+  const currentDurationMs = currentEnd.getTime() - currentStart.getTime();
+  const previousEnd = new Date(currentStart.getTime() - 1);
+  const previousStart = new Date(previousEnd.getTime() - currentDurationMs);
 
-  const totalStake = transactions
-    .filter((transaction) => transaction.type === "BET_STAKE")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
-  const totalPayout = transactions
-    .filter((transaction) => transaction.type === "BET_WIN")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
-  const totalRefunds = transactions
-    .filter((transaction) => transaction.type === "REFUND")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
+  const [bets, previousBets, settings] = await Promise.all([
+    prisma.bet.findMany({
+      where: {
+        placedAt: { gte: currentStart, lte: currentEnd },
+      },
+      select: {
+        userId: true,
+        stake: true,
+        potentialPayout: true,
+        displayOdds: true,
+        status: true,
+        placedAt: true,
+        event: {
+          select: {
+            sportKey: true,
+            leagueName: true,
+          },
+        },
+      },
+      orderBy: { placedAt: "asc" },
+    }),
+    prisma.bet.findMany({
+      where: {
+        placedAt: { gte: previousStart, lte: previousEnd },
+      },
+      select: {
+        userId: true,
+        stake: true,
+        potentialPayout: true,
+        status: true,
+      },
+    }),
+    prisma.adminSettings.findUnique({
+      where: { key: "global" },
+      select: {
+        commissionPercent: true,
+        winningsTaxPercent: true,
+      },
+    }),
+  ]);
 
-  const betCount = transactions.filter(
-    (transaction) => transaction.type === "BET_STAKE",
-  ).length;
-  const activeBettorIds = new Set(
-    transactions.map((transaction) => transaction.userId),
-  );
+  const commissionRate =
+    settings?.commissionPercent ??
+    defaultAdminSettings.taxAndFinancialRules.commissionPercent;
+  const taxRate =
+    settings?.winningsTaxPercent ??
+    defaultAdminSettings.taxAndFinancialRules.winningsTaxPercent;
+
+  const totalStake = bets.reduce((sum, bet) => sum + bet.stake, 0);
+  const totalPayout = bets
+    .filter((bet) => bet.status === "WON")
+    .reduce((sum, bet) => sum + bet.potentialPayout, 0);
+  const totalRefunds = bets
+    .filter((bet) => bet.status === "VOID")
+    .reduce((sum, bet) => sum + bet.stake, 0);
+
+  const wonCount = bets.filter((bet) => bet.status === "WON").length;
+  const lostCount = bets.filter((bet) => bet.status === "LOST").length;
+  const voidCount = bets.filter((bet) => bet.status === "VOID").length;
+  const pendingCount = bets.filter((bet) => bet.status === "PENDING").length;
+  const settledCount = wonCount + lostCount + voidCount;
+  const betCount = bets.length;
+
+  const activeBettors = new Set(bets.map((bet) => bet.userId)).size;
+  const averageStake = betCount > 0 ? totalStake / betCount : 0;
+  const averageOdds =
+    betCount > 0
+      ? bets.reduce((sum, bet) => sum + bet.displayOdds, 0) / betCount
+      : 0;
+
   const ggr = totalStake - totalPayout - totalRefunds;
-  const avgStake = betCount > 0 ? totalStake / betCount : 0;
-  const payoutRatio = totalStake > 0 ? (totalPayout / totalStake) * 100 : 0;
+  const commissionProvision = ggr > 0 ? (ggr * commissionRate) / 100 : 0;
+  const taxProvision = ggr > 0 ? (ggr * taxRate) / 100 : 0;
+  const ngr = ggr - commissionProvision - taxProvision;
 
-  const bins = new Map<
+  const holdRate = totalStake > 0 ? (ggr / totalStake) * 100 : 0;
+  const payoutRatio = totalStake > 0 ? (totalPayout / totalStake) * 100 : 0;
+  const refundRate = totalStake > 0 ? (totalRefunds / totalStake) * 100 : 0;
+  const hitRate = wonCount + lostCount > 0 ? (wonCount / (wonCount + lostCount)) * 100 : 0;
+
+  const previousStake = previousBets.reduce((sum, bet) => sum + bet.stake, 0);
+  const previousPayout = previousBets
+    .filter((bet) => bet.status === "WON")
+    .reduce((sum, bet) => sum + bet.potentialPayout, 0);
+  const previousRefunds = previousBets
+    .filter((bet) => bet.status === "VOID")
+    .reduce((sum, bet) => sum + bet.stake, 0);
+  const previousGgr = previousStake - previousPayout - previousRefunds;
+  const previousActiveBettors = new Set(previousBets.map((bet) => bet.userId)).size;
+
+  const trendByBucket = new Map<
     string,
     {
       period: string;
       stake: number;
       payout: number;
       refunds: number;
-      ggr: number;
+      betCount: number;
+      won: number;
+      lost: number;
+      activeBettorIds: Set<string>;
     }
   >();
 
-  const stepDate = new Date(start);
-  if (granularity === "hour") {
-    for (let offset = 0; offset < 24; offset += 1) {
-      const current = new Date(stepDate);
-      current.setHours(stepDate.getHours() + offset);
-      const key = current.toISOString().slice(0, 13);
-      bins.set(key, {
-        period: formatAnalyticsPeriod(current, granularity),
+  const firstBucketStart = getBucketStart(currentStart, groupBy);
+  const bucketCursor = new Date(firstBucketStart);
+  while (bucketCursor.getTime() <= currentEnd.getTime()) {
+    const key = formatDateKey(bucketCursor);
+    trendByBucket.set(key, {
+      period: formatBucketLabel(bucketCursor, groupBy),
+      stake: 0,
+      payout: 0,
+      refunds: 0,
+      betCount: 0,
+      won: 0,
+      lost: 0,
+      activeBettorIds: new Set<string>(),
+    });
+
+    incrementBucket(bucketCursor, groupBy);
+  }
+
+  const sportsMap = new Map<
+    string,
+    {
+      sport: string;
+      stake: number;
+      payout: number;
+      refunds: number;
+      bets: number;
+      won: number;
+      lost: number;
+      activeBettorIds: Set<string>;
+    }
+  >();
+  const leaguesMap = new Map<
+    string,
+    {
+      league: string;
+      sport: string;
+      stake: number;
+      payout: number;
+      refunds: number;
+      bets: number;
+      activeBettorIds: Set<string>;
+    }
+  >();
+
+  const stakeBands = [
+    { label: "0-100", min: 0, max: 100, bets: 0, handle: 0 },
+    { label: "101-500", min: 101, max: 500, bets: 0, handle: 0 },
+    { label: "501-1,000", min: 501, max: 1000, bets: 0, handle: 0 },
+    { label: "1,001-5,000", min: 1001, max: 5000, bets: 0, handle: 0 },
+    { label: "5,001+", min: 5001, max: Number.POSITIVE_INFINITY, bets: 0, handle: 0 },
+  ];
+
+  const oddsBands = [
+    { label: "1.01-1.49", min: 1.01, max: 1.49, bets: 0, won: 0, stake: 0, payout: 0 },
+    { label: "1.50-1.99", min: 1.5, max: 1.99, bets: 0, won: 0, stake: 0, payout: 0 },
+    { label: "2.00-2.99", min: 2, max: 2.99, bets: 0, won: 0, stake: 0, payout: 0 },
+    { label: "3.00-4.99", min: 3, max: 4.99, bets: 0, won: 0, stake: 0, payout: 0 },
+    { label: "5.00+", min: 5, max: Number.POSITIVE_INFINITY, bets: 0, won: 0, stake: 0, payout: 0 },
+  ];
+
+  for (const bet of bets) {
+    const bucketDate = getBucketStart(bet.placedAt, groupBy);
+    const bucketKey = formatDateKey(bucketDate);
+    const bucket = trendByBucket.get(bucketKey);
+
+    if (bucket) {
+      bucket.betCount += 1;
+      bucket.stake += bet.stake;
+      bucket.activeBettorIds.add(bet.userId);
+
+      if (bet.status === "WON") {
+        bucket.payout += bet.potentialPayout;
+        bucket.won += 1;
+      }
+
+      if (bet.status === "LOST") {
+        bucket.lost += 1;
+      }
+
+      if (bet.status === "VOID") {
+        bucket.refunds += bet.stake;
+      }
+    }
+
+    const sportName = bet.event?.sportKey ?? "Uncategorized";
+    const sportRow =
+      sportsMap.get(sportName) ??
+      {
+        sport: sportName,
         stake: 0,
         payout: 0,
         refunds: 0,
-        ggr: 0,
-      });
+        bets: 0,
+        won: 0,
+        lost: 0,
+        activeBettorIds: new Set<string>(),
+      };
+    sportRow.bets += 1;
+    sportRow.stake += bet.stake;
+    sportRow.activeBettorIds.add(bet.userId);
+    if (bet.status === "WON") {
+      sportRow.won += 1;
+      sportRow.payout += bet.potentialPayout;
     }
-  } else {
-    const totalDays =
-      Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1;
-    for (let offset = 0; offset < totalDays; offset += 1) {
-      const current = new Date(start);
-      current.setDate(start.getDate() + offset);
-      const key = current.toISOString().slice(0, 10);
-      bins.set(key, {
-        period: formatAnalyticsPeriod(current, granularity),
+    if (bet.status === "LOST") {
+      sportRow.lost += 1;
+    }
+    if (bet.status === "VOID") {
+      sportRow.refunds += bet.stake;
+    }
+    sportsMap.set(sportName, sportRow);
+
+    const leagueName = bet.event?.leagueName ?? "Other Leagues";
+    const leagueKey = `${sportName}:${leagueName}`;
+    const leagueRow =
+      leaguesMap.get(leagueKey) ??
+      {
+        league: leagueName,
+        sport: sportName,
         stake: 0,
         payout: 0,
         refunds: 0,
-        ggr: 0,
-      });
+        bets: 0,
+        activeBettorIds: new Set<string>(),
+      };
+    leagueRow.bets += 1;
+    leagueRow.stake += bet.stake;
+    leagueRow.activeBettorIds.add(bet.userId);
+    if (bet.status === "WON") {
+      leagueRow.payout += bet.potentialPayout;
+    }
+    if (bet.status === "VOID") {
+      leagueRow.refunds += bet.stake;
+    }
+    leaguesMap.set(leagueKey, leagueRow);
+
+    const matchingStakeBand = stakeBands.find(
+      (band) => bet.stake >= band.min && bet.stake <= band.max,
+    );
+    if (matchingStakeBand) {
+      matchingStakeBand.bets += 1;
+      matchingStakeBand.handle += bet.stake;
+    }
+
+    const matchingOddsBand = oddsBands.find(
+      (band) => bet.displayOdds >= band.min && bet.displayOdds <= band.max,
+    );
+    if (matchingOddsBand) {
+      matchingOddsBand.bets += 1;
+      matchingOddsBand.stake += bet.stake;
+      if (bet.status === "WON") {
+        matchingOddsBand.won += 1;
+        matchingOddsBand.payout += bet.potentialPayout;
+      }
     }
   }
 
-  for (const transaction of transactions) {
-    const bucketKey =
-      granularity === "hour"
-        ? transaction.createdAt.toISOString().slice(0, 13)
-        : transaction.createdAt.toISOString().slice(0, 10);
-    const bucket = bins.get(bucketKey);
+  const trend = Array.from(trendByBucket.values()).map((row) => {
+    const rowGgr = row.stake - row.payout - row.refunds;
+    const rowCommissionProvision = rowGgr > 0 ? (rowGgr * commissionRate) / 100 : 0;
+    const rowTaxProvision = rowGgr > 0 ? (rowGgr * taxRate) / 100 : 0;
+    const rowSettled = row.won + row.lost;
 
-    if (!bucket) {
-      continue;
-    }
+    return {
+      period: row.period,
+      stake: row.stake,
+      payout: row.payout,
+      refunds: row.refunds,
+      ggr: rowGgr,
+      ngr: rowGgr - rowCommissionProvision - rowTaxProvision,
+      betCount: row.betCount,
+      activeBettors: row.activeBettorIds.size,
+      holdRate: row.stake > 0 ? (rowGgr / row.stake) * 100 : 0,
+      hitRate: rowSettled > 0 ? (row.won / rowSettled) * 100 : 0,
+    };
+  });
 
-    if (transaction.type === "BET_STAKE") {
-      bucket.stake += transaction.amount;
-    }
+  const sports = Array.from(sportsMap.values())
+    .map((row) => {
+      const rowGgr = row.stake - row.payout - row.refunds;
+      const settledForHitRate = row.won + row.lost;
 
-    if (transaction.type === "BET_WIN") {
-      bucket.payout += transaction.amount;
-    }
+      return {
+        sport: row.sport,
+        bets: row.bets,
+        activeBettors: row.activeBettorIds.size,
+        stake: row.stake,
+        payout: row.payout,
+        refunds: row.refunds,
+        ggr: rowGgr,
+        shareOfHandle: totalStake > 0 ? (row.stake / totalStake) * 100 : 0,
+        hitRate: settledForHitRate > 0 ? (row.won / settledForHitRate) * 100 : 0,
+      };
+    })
+    .sort((left, right) => right.stake - left.stake);
 
-    if (transaction.type === "REFUND") {
-      bucket.refunds += transaction.amount;
-    }
+  const leagues = Array.from(leaguesMap.values())
+    .map((row) => ({
+      league: row.league,
+      sport: row.sport,
+      bets: row.bets,
+      activeBettors: row.activeBettorIds.size,
+      stake: row.stake,
+      payout: row.payout,
+      refunds: row.refunds,
+      ggr: row.stake - row.payout - row.refunds,
+      shareOfHandle: totalStake > 0 ? (row.stake / totalStake) * 100 : 0,
+    }))
+    .sort((left, right) => right.stake - left.stake)
+    .slice(0, 10);
 
-    bucket.ggr = bucket.stake - bucket.payout - bucket.refunds;
+  const outcomes = [
+    { status: "Won", count: wonCount },
+    { status: "Lost", count: lostCount },
+    { status: "Void", count: voidCount },
+    { status: "Pending", count: pendingCount },
+  ].map((row) => ({
+    ...row,
+    share: betCount > 0 ? (row.count / betCount) * 100 : 0,
+  }));
+
+  const stakeDistribution = stakeBands.map((band) => ({
+    band: band.label,
+    bets: band.bets,
+    handle: band.handle,
+    share: totalStake > 0 ? (band.handle / totalStake) * 100 : 0,
+  }));
+
+  const oddsPerformance = oddsBands.map((band) => {
+    const bandGgr = band.stake - band.payout;
+    return {
+      band: band.label,
+      bets: band.bets,
+      hitRate: band.bets > 0 ? (band.won / band.bets) * 100 : 0,
+      stake: band.stake,
+      payout: band.payout,
+      ggr: bandGgr,
+      holdRate: band.stake > 0 ? (bandGgr / band.stake) * 100 : 0,
+    };
+  });
+
+  const recommendations: Array<{
+    title: string;
+    priority: "high" | "medium" | "low";
+    insight: string;
+    action: string;
+  }> = [];
+
+  if (holdRate < 3) {
+    recommendations.push({
+      title: "Low betting margin",
+      priority: "high",
+      insight: `Hold rate is ${holdRate.toFixed(1)}%, below healthy threshold for sustained profitability.`,
+      action: "Review high-volume markets and tighten odds margin where exposure is concentrated.",
+    });
   }
 
-  const trend = Array.from(bins.values());
+  if (refundRate > 7) {
+    recommendations.push({
+      title: "High void/refund exposure",
+      priority: "medium",
+      insight: `${refundRate.toFixed(1)}% of handle was refunded through void bets.`,
+      action: "Audit event settlement inputs and suspend markets with frequent result reversals.",
+    });
+  }
+
+  if (percentageChange(activeBettors, previousActiveBettors) < -10) {
+    recommendations.push({
+      title: "Bettor activity is declining",
+      priority: "medium",
+      insight: `Active bettors dropped ${Math.abs(percentageChange(activeBettors, previousActiveBettors)).toFixed(1)}% versus prior window.`,
+      action: "Boost retention campaigns around top leagues and adjust limits for dormant segments.",
+    });
+  }
+
+  const topSport = sports[0];
+  if (topSport && topSport.shareOfHandle > 45) {
+    recommendations.push({
+      title: "Handle concentration risk",
+      priority: "low",
+      insight: `${topSport.sport} contributes ${topSport.shareOfHandle.toFixed(1)}% of total handle.`,
+      action: "Diversify engagement by promoting underrepresented sports and cross-sell live markets.",
+    });
+  }
+
+  if (recommendations.length === 0) {
+    recommendations.push({
+      title: "Portfolio looks balanced",
+      priority: "low",
+      insight: "Current handle mix, hit rate, and hold are within healthy operating ranges.",
+      action: "Maintain current risk controls and continue monitoring at weekly granularity.",
+    });
+  }
 
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
-    range,
-    metrics: [
+    timeframe,
+    groupBy,
+    window: {
+      start: currentStart.toISOString(),
+      end: currentEnd.toISOString(),
+    },
+    financialSummary: {
+      handle: totalStake,
+      payouts: totalPayout,
+      refunds: totalRefunds,
+      ggr,
+      commissionRate,
+      commissionProvision,
+      taxRate,
+      taxProvision,
+      ngr,
+    },
+    operationalSummary: {
+      betCount,
+      settledCount,
+      activeBettors,
+      averageStake,
+      averageOdds,
+      holdRate,
+      payoutRatio,
+      refundRate,
+      hitRate,
+      wonCount,
+      lostCount,
+      voidCount,
+      pendingCount,
+    },
+    growth: {
+      handleChangePct: percentageChange(totalStake, previousStake),
+      ggrChangePct: percentageChange(ggr, previousGgr),
+      activeBettorsChangePct: percentageChange(activeBettors, previousActiveBettors),
+    },
+    signalCards: [
       {
-        label: "Handle",
-        value: formatMoney(totalStake),
-        tone: "accent" as const,
-        helper: `${betCount.toLocaleString()} stake events`,
+        label: "Hold Rate",
+        value: `${holdRate.toFixed(1)}%`,
+        tone: holdRate >= 8 ? ("accent" as const) : holdRate >= 4 ? ("gold" as const) : ("red" as const),
+        helper: "Gross revenue over total handle",
       },
       {
-        label: "Payouts",
-        value: formatMoney(totalPayout),
-        tone: "gold" as const,
-        helper: `${payoutRatio.toFixed(1)}% payout ratio`,
+        label: "Hit Rate",
+        value: `${hitRate.toFixed(1)}%`,
+        tone: hitRate <= 45 ? ("accent" as const) : hitRate <= 55 ? ("blue" as const) : ("gold" as const),
+        helper: "Winning tickets among won/lost",
       },
       {
-        label: "GGR",
-        value: formatMoney(ggr),
-        tone: ggr >= 0 ? ("blue" as const) : ("red" as const),
-        helper: `${formatMoney(totalRefunds)} refunded`,
+        label: "Refund Rate",
+        value: `${refundRate.toFixed(1)}%`,
+        tone: refundRate <= 3 ? ("accent" as const) : refundRate <= 7 ? ("gold" as const) : ("red" as const),
+        helper: "Void volume as share of handle",
       },
       {
-        label: "Active Bettors",
-        value: activeBettorIds.size.toLocaleString(),
+        label: "Average Odds",
+        value: averageOdds > 0 ? averageOdds.toFixed(2) : "0.00",
         tone: "purple" as const,
-        helper: `Across ${range} window`,
-      },
-      {
-        label: "Average Stake",
-        value: formatMoney(Math.round(avgStake)),
-        tone: "blue" as const,
-        helper: "Per settled bet stake",
-      },
-      {
-        label: "Refunds",
-        value: formatMoney(totalRefunds),
-        tone: totalRefunds > 0 ? ("red" as const) : ("muted" as const),
-        helper: "Void or returned stakes",
+        helper: "Mean offered odds in selected window",
       },
     ],
     trend,
+    breakdowns: {
+      sports,
+      leagues,
+      outcomes,
+      stakeDistribution,
+      oddsPerformance,
+    },
+    recommendations,
   });
 }
 
