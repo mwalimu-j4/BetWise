@@ -92,46 +92,6 @@ export default function Analytics() {
         subtitle="Betting economics, game mix, and strategic recommendations."
       />
 
-      <AdminCard className="p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex-1">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
-              Time Period
-            </label>
-            <select
-              value={timeframe}
-              onChange={(e) =>
-                setTimeframe(e.target.value as AnalyticsTimeframe)
-              }
-              className="w-full rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-sm font-medium text-admin-text-primary transition-colors hover:border-admin-accent focus:border-admin-accent focus:outline-none focus:ring-2 focus:ring-admin-accent/20"
-            >
-              {timeframeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex-1">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
-              Group By
-            </label>
-            <select
-              value={groupBy}
-              onChange={(e) => setGroupBy(e.target.value as AnalyticsGroupBy)}
-              className="w-full rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-sm font-medium text-admin-text-primary transition-colors hover:border-admin-gold focus:border-admin-gold focus:outline-none focus:ring-2 focus:ring-admin-gold/20"
-            >
-              {groupByOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </AdminCard>
-
       {isError ? (
         <AdminCard>
           <p className="text-sm text-admin-red">
@@ -142,10 +102,52 @@ export default function Analytics() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <AdminCard className="lg:col-span-2">
-          <AdminCardHeader
-            title="Financial Trend"
-            subtitle="Handle, payouts, and NGR over selected periods"
-          />
+          <div className="mb-4 flex flex-col gap-3 border-b border-admin-border pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-admin-text-primary">
+                Financial Trend
+              </h3>
+              <p className="text-xs text-admin-text-muted">
+                Handle, payouts, and NGR over selected periods
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+              <div className="flex-1 sm:flex-none sm:w-auto">
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
+                  Period
+                </label>
+                <select
+                  value={timeframe}
+                  onChange={(e) =>
+                    setTimeframe(e.target.value as AnalyticsTimeframe)
+                  }
+                  className="w-full rounded border border-admin-border bg-admin-surface px-2 py-1 text-xs font-medium text-admin-text-primary transition-colors hover:border-admin-accent focus:border-admin-accent focus:outline-none focus:ring-2 focus:ring-admin-accent/20 sm:w-auto"
+                >
+                  {timeframeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1 sm:flex-none sm:w-auto">
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
+                  Group
+                </label>
+                <select
+                  value={groupBy}
+                  onChange={(e) => setGroupBy(e.target.value as AnalyticsGroupBy)}
+                  className="w-full rounded border border-admin-border bg-admin-surface px-2 py-1 text-xs font-medium text-admin-text-primary transition-colors hover:border-admin-gold focus:border-admin-gold focus:outline-none focus:ring-2 focus:ring-admin-gold/20 sm:w-auto"
+                >
+                  {groupByOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
           <ResponsiveContainer width="100%" height={320}>
             <AreaChart
               data={data?.trend ?? []}
