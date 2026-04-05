@@ -269,35 +269,55 @@ export default function Analytics() {
               data={sportsChartData}
               margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
             >
+              <defs>
+                <linearGradient id="stakeGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#00e5a0" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#00e5a0" stopOpacity={0.65} />
+                </linearGradient>
+                <linearGradient id="ggrGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#4aa3ff" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#4aa3ff" stopOpacity={0.65} />
+                </linearGradient>
+              </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.07)"
+                stroke="rgba(255,255,255,0.05)"
+                verticalPoints={["syncWithTicks"]}
               />
               <XAxis
                 dataKey="sport"
-                stroke="rgba(255,255,255,0.45)"
+                stroke="rgba(255,255,255,0.35)"
                 fontSize={11}
+                tick={{ fill: "rgba(255,255,255,0.5)" }}
               />
-              <YAxis stroke="rgba(255,255,255,0.45)" fontSize={11} />
+              <YAxis
+                stroke="rgba(255,255,255,0.35)"
+                fontSize={11}
+                tick={{ fill: "rgba(255,255,255,0.5)" }}
+              />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "rgba(20,24,40,0.98)",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  backgroundColor: "rgba(15,20,35,0.95)",
+                  border: "1px solid rgba(0,229,160,0.2)",
                   borderRadius: "10px",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
                 }}
+                cursor={{ fill: "rgba(255,255,255,0.03)" }}
                 formatter={(value: any) => formatCurrency(value ?? 0)}
               />
               <Bar
                 dataKey="stake"
-                fill="#00e5a0"
+                fill="url(#stakeGrad)"
                 name="Handle"
                 radius={[6, 6, 0, 0]}
+                isAnimationActive={true}
               />
               <Bar
                 dataKey="ggr"
-                fill="#4aa3ff"
+                fill="url(#ggrGrad)"
                 name="GGR"
                 radius={[6, 6, 0, 0]}
+                isAnimationActive={true}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -352,33 +372,44 @@ export default function Analytics() {
               data={data?.breakdowns.stakeDistribution ?? []}
               margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
             >
+              <defs>
+                <linearGradient id="handleGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ff9800" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#ff6b6b" stopOpacity={0.5} />
+                </linearGradient>
+              </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.07)"
+                stroke="rgba(255,255,255,0.05)"
+                verticalPoints={["syncWithTicks"]}
               />
               <XAxis
                 dataKey="band"
-                stroke="rgba(255,255,255,0.45)"
+                stroke="rgba(255,255,255,0.35)"
                 fontSize={11}
+                tick={{ fill: "rgba(255,255,255,0.5)" }}
               />
-              <YAxis stroke="rgba(255,255,255,0.45)" fontSize={11} />
+              <YAxis
+                stroke="rgba(255,255,255,0.35)"
+                fontSize={11}
+                tick={{ fill: "rgba(255,255,255,0.5)" }}
+              />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "rgba(20,24,40,0.98)",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  backgroundColor: "rgba(15,20,35,0.95)",
+                  border: "1px solid rgba(255,153,0,0.2)",
                   borderRadius: "10px",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
                 }}
-                formatter={(value: any, name: any) =>
-                  name === "share"
-                    ? `${(value ?? 0).toFixed(1)}%`
-                    : formatCurrency(value ?? 0)
-                }
+                cursor={{ fill: "rgba(255,255,255,0.03)" }}
+                formatter={(value: any) => formatCurrency(value ?? 0)}
               />
               <Bar
                 dataKey="handle"
-                fill="#9f7aea"
+                fill="url(#handleGrad)"
                 name="Handle"
                 radius={[6, 6, 0, 0]}
+                isAnimationActive={true}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -396,36 +427,46 @@ export default function Analytics() {
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.07)"
+                stroke="rgba(255,255,255,0.05)"
+                verticalPoints={["syncWithTicks"]}
               />
               <XAxis
                 dataKey="band"
-                stroke="rgba(255,255,255,0.45)"
+                stroke="rgba(255,255,255,0.35)"
                 fontSize={11}
+                tick={{ fill: "rgba(255,255,255,0.5)" }}
               />
-              <YAxis stroke="rgba(255,255,255,0.45)" fontSize={11} />
+              <YAxis
+                stroke="rgba(255,255,255,0.35)"
+                fontSize={11}
+                tick={{ fill: "rgba(255,255,255,0.5)" }}
+              />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "rgba(20,24,40,0.98)",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  backgroundColor: "rgba(15,20,35,0.95)",
+                  border: "1px solid rgba(0,229,160,0.2)",
                   borderRadius: "10px",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
                 }}
+                cursor={{ fill: "rgba(255,255,255,0.03)" }}
                 formatter={(value: any) => formatPercent(value ?? 0)}
               />
               <Line
-                type="monotone"
+                type="natural"
                 dataKey="hitRate"
                 stroke="#00e5a0"
-                strokeWidth={2.5}
-                dot={{ r: 3 }}
+                strokeWidth={3}
+                dot={{ r: 4, fill: "#00e5a0", stroke: "rgba(255,255,255,0.2)", strokeWidth: 1.5 }}
+                activeDot={{ r: 6 }}
                 name="Hit Rate"
               />
               <Line
-                type="monotone"
+                type="natural"
                 dataKey="holdRate"
                 stroke="#ffbe55"
-                strokeWidth={2.5}
-                dot={{ r: 3 }}
+                strokeWidth={3}
+                dot={{ r: 4, fill: "#ffbe55", stroke: "rgba(255,255,255,0.2)", strokeWidth: 1.5 }}
+                activeDot={{ r: 6 }}
                 name="Hold Rate"
               />
             </LineChart>
