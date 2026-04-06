@@ -685,62 +685,47 @@ eventsAdminRouter.patch("/admin/events/bulk-config", async (req, res, next) => {
     }
 
     const uniqueEventIds = Array.from(new Set(parsedBody.data.eventIds));
+    const eventBatches = chunkArray(uniqueEventIds, BULK_CONFIG_BATCH_SIZE);
 
-    const updatedEvents = await prisma.sportEvent.updateMany({
-      where: { eventId: { in: uniqueEventIds } },
-      data: { houseMargin: parsedBody.data.houseMargin },
-    });
-
-    const displayedOdds = await prisma.displayedOdds.findMany({
-      where: { eventId: { in: uniqueEventIds } },
-      select: {
-        id: true,
-        rawOdds: true,
-      },
-    });
-
-    const oddBatches = chunkArray(displayedOdds, BULK_CONFIG_BATCH_SIZE);
-
-    const batchResults = await Promise.allSettled(
-      oddBatches.map((batch) =>
-        prisma.$transaction(
-          batch.map((odd) =>
-            prisma.displayedOdds.update({
-              where: { id: odd.id },
-              data: {
-                displayOdds: Number(
-                  (
-                    odd.rawOdds /
-                    (1 + parsedBody.data.houseMargin / 100)
-                  ).toFixed(2),
-                ),
-              },
-            }),
-          ),
-        ),
-      ),
-    );
-
+    let updatedEventsCount = 0;
     let updatedOddsCount = 0;
     let failedBatchCount = 0;
 
-    for (const result of batchResults) {
-      if (result.status === "fulfilled") {
-        updatedOddsCount += result.value.length;
-      } else {
+    for (const batchEventIds of eventBatches) {
+      try {
+        const [updatedEvents, updatedOdds] = await prisma.$transaction([
+          prisma.sportEvent.updateMany({
+            where: { eventId: { in: batchEventIds } },
+            data: { houseMargin: parsedBody.data.houseMargin },
+          }),
+          prisma.$executeRaw(Prisma.sql`
+            UPDATE displayed_odds
+            SET display_odds = ROUND(raw_odds::numeric / (1 + ${parsedBody.data.houseMargin} / 100.0), 3),
+                updated_at = NOW()
+            WHERE event_id IN (${Prisma.join(batchEventIds)})
+          `),
+        ]);
+
+        updatedEventsCount += updatedEvents.count;
+        updatedOddsCount += Number(updatedOdds);
+      } catch (batchError) {
         failedBatchCount += 1;
+        console.warn(
+          `[AdminEvents] Bulk config batch failed size=${batchEventIds.length}`,
+          batchError,
+        );
       }
     }
 
     invalidateEventsCache();
     console.log(
-      `[AdminEvents] Bulk config ${parsedBody.data.houseMargin}% events=${updatedEvents.count} oddsUpdated=${updatedOddsCount} failedBatches=${failedBatchCount}`,
+      `[AdminEvents] Bulk config ${parsedBody.data.houseMargin}% events=${updatedEventsCount} oddsUpdated=${updatedOddsCount} failedBatches=${failedBatchCount}`,
     );
 
     const statusCode = failedBatchCount > 0 ? 207 : 200;
 
     return res.status(statusCode).json({
-      updatedCount: updatedEvents.count,
+      updatedCount: updatedEventsCount,
       eventIds: uniqueEventIds,
       houseMargin: parsedBody.data.houseMargin,
       oddsUpdatedCount: updatedOddsCount,
