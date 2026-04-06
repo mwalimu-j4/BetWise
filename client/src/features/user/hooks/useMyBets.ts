@@ -49,6 +49,8 @@ type UseMyBetsArgs = {
 export const myBetsQueryKey = (args: UseMyBetsArgs) =>
   ["my-bets", args.tab, args.filter, args.page, args.hideLost] as const;
 
+export const myBetsNavbarCountQueryKey = ["my-bets", "navbar-count"] as const;
+
 function resolveSocketBaseUrl() {
   const explicitSocketUrl = import.meta.env.VITE_SOCKET_BASE_URL?.trim();
   if (explicitSocketUrl) {
@@ -207,4 +209,27 @@ export function useMyBets(args: UseMyBetsArgs) {
     pageSize: query.data?.pageSize ?? 20,
     lastUpdatedAt,
   };
+}
+
+export function useMyBetsCount() {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: myBetsNavbarCountQueryKey,
+    enabled: isAuthenticated,
+    queryFn: async () => {
+      const { data } = await api.get<MyBetsResponse>("/my-bets", {
+        params: {
+          tab: "normal",
+          filter: "all",
+          page: 1,
+          hideLost: false,
+        },
+      });
+
+      return data.total;
+    },
+    staleTime: 10_000,
+    refetchInterval: 20_000,
+  });
 }

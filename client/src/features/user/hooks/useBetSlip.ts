@@ -4,6 +4,7 @@ import { isAxiosError } from "axios";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
+import { myBetsNavbarCountQueryKey } from "@/features/user/hooks/useMyBets";
 import { walletSummaryQueryKey } from "@/features/user/payments/wallet";
 
 export interface BetSelection {
@@ -285,6 +286,9 @@ export function useBetSlip() {
       clearSlip();
       setIsOpen(true);
       void queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
+      void queryClient.invalidateQueries({
+        queryKey: myBetsNavbarCountQueryKey,
+      });
     } catch (placeError) {
       if (isAxiosError(placeError) && placeError.response?.status === 401) {
         redirectToLogin();

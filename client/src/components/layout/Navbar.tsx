@@ -8,6 +8,7 @@ import {
   useAppNotifications,
   useMarkAllNotificationsRead,
 } from "@/features/notifications/notifications";
+import { useMyBetsCount } from "@/features/user/hooks/useMyBets";
 import { formatMoney } from "@/features/user/payments/data";
 import { useWalletSummary } from "@/features/user/payments/wallet";
 
@@ -89,6 +90,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const { isAuthenticated, openAuthModal } = useAuth();
 
   const { data: walletSummary } = useWalletSummary();
+  const { data: myBetsCount = 0 } = useMyBetsCount();
   const { data: notificationData } = useAppNotifications(12);
   const markAllNotificationsRead = useMarkAllNotificationsRead();
 
@@ -166,6 +168,19 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           >
             Live Bets
           </Link>
+
+          {isAuthenticated && myBetsCount > 0 ? (
+            <Link
+              to="/my-bets"
+              className="bc-my-bets-btn"
+              aria-label={`Open My Bets (${myBetsCount})`}
+            >
+              My Bets
+              <span className="bc-my-bets-badge" aria-hidden="true">
+                {myBetsCount > 99 ? "99+" : myBetsCount}
+              </span>
+            </Link>
+          ) : null}
 
           {isAuthenticated ? (
             <div className="bc-balance-card" aria-label="Wallet Balance">
