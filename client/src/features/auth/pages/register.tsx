@@ -3,13 +3,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
-import {
-  Eye,
-  EyeOff,
-  Loader2,
-  ArrowRight,
-  XCircle,
-} from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowRight, XCircle } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
 import AuthModal from "@/components/auth/AuthModal";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
