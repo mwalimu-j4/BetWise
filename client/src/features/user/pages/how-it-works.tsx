@@ -101,7 +101,7 @@ export default function HowItWorks() {
         {/* Steps Section */}
         <div className="mb-20">
           <h2 className="mb-10 text-3xl font-bold text-center">5 Easy Steps</h2>
-          <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
             {steps.map((step) => {
               const Icon = step.icon;
               const isExpanded = expandedStep === step.number;

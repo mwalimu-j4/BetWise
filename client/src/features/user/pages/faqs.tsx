@@ -158,7 +158,7 @@ export default function FAQs() {
               <h2 className="text-2xl font-bold text-[#f5c518] mb-6">
                 {category}
               </h2>
-              <div className="space-y-3">
+              <div className="grid gap-3 lg:grid-cols-2">
                 {faqs
                   .filter((faq) => faq.category === category)
                   .map((faq) => (
