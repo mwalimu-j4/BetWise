@@ -1,7 +1,8 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
 
 type SidebarProps = {
@@ -24,10 +25,62 @@ type Group = {
   children: Item[];
 };
 
+type LiveSidebarMatch = {
+  id: string;
+  sport: string;
+};
+
+const liveSportsOrder = [
+  "Soccer",
+  "Basketball",
+  "Tennis",
+  "Ice Hockey",
+  "Volleyball",
+  "Cricket",
+  "Handball",
+  "Table Tennis",
+] as const;
+
+function toSidebarSportName(raw: string) {
+  const value = raw.toLowerCase();
+  if (value.includes("soccer") || value.includes("football")) return "Soccer";
+  if (value.includes("basket")) return "Basketball";
+  if (value.includes("tennis") && value.includes("table")) return "Table Tennis";
+  if (value.includes("tennis")) return "Tennis";
+  if (value.includes("hockey")) return "Ice Hockey";
+  if (value.includes("volley")) return "Volleyball";
+  if (value.includes("cricket")) return "Cricket";
+  if (value.includes("handball")) return "Handball";
+  return "Soccer";
+}
+
+function sportIcon(name: string) {
+  switch (name) {
+    case "Soccer":
+      return "SO";
+    case "Basketball":
+      return "BK";
+    case "Tennis":
+      return "TN";
+    case "Ice Hockey":
+      return "IH";
+    case "Volleyball":
+      return "VB";
+    case "Cricket":
+      return "CK";
+    case "Handball":
+      return "HB";
+    case "Table Tennis":
+      return "TT";
+    default:
+      return "SP";
+  }
+}
+
 const sectionOne: Item[] = [
   { label: "Homepage", to: "/user", icon: "H" },
   { label: "Pre-match", to: "/user/payments", icon: "P" },
-  { label: "Live", to: "/user/payments/deposit", icon: "L", liveBadge: "LIVE" },
+  { label: "Live", to: "/user/live", icon: "L", liveBadge: "LIVE" },
   {
     label: "Sports",
     to: "/user/coming-soon?feature=sports",
@@ -337,6 +390,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     football: true,
     basketball: true,
   });
+  const [liveCounts, setLiveCounts] = useState<Record<string, number>>(() => ({
+    Soccer: 0,
+    Basketball: 0,
+    Tennis: 0,
+    "Ice Hockey": 0,
+    Volleyball: 0,
+    Cricket: 0,
+    Handball: 0,
+    "Table Tennis": 0,
+  }));
 
   const accountSection = useMemo(() => {
     if (!isAuthenticated) return [];
@@ -349,10 +412,94 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   }
 
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchLiveCounts = async () => {
+      try {
+        const { data } = await api.get<{ matches: LiveSidebarMatch[] }>(
+          "/live/matches",
+          {
+            params: {
+              highlights: false,
+              market: "1x2",
+              limit: 300,
+            },
+          },
+        );
+
+        if (!mounted) {
+          return;
+        }
+
+        const nextCounts: Record<string, number> = {
+          Soccer: 0,
+          Basketball: 0,
+          Tennis: 0,
+          "Ice Hockey": 0,
+          Volleyball: 0,
+          Cricket: 0,
+          Handball: 0,
+          "Table Tennis": 0,
+        };
+
+        for (const match of data.matches ?? []) {
+          const sportName = toSidebarSportName(match.sport ?? "soccer");
+          nextCounts[sportName] = (nextCounts[sportName] ?? 0) + 1;
+        }
+
+        setLiveCounts(nextCounts);
+      } catch {
+        if (!mounted) {
+          return;
+        }
+      }
+    };
+
+    void fetchLiveCounts();
+    const timer = window.setInterval(() => {
+      void fetchLiveCounts();
+    }, 10_000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
   return (
     <>
       <aside className={`bc-sidebar ${isOpen ? "is-open" : ""}`}>
         <div className="bc-side-scroll">
+          <div className="bc-side-section">
+            <p className="bc-side-heading">Live Sports</p>
+            <div className="overflow-hidden rounded-md border border-[#1a2332]">
+              {liveSportsOrder.map((name) => {
+                return (
+                  <Link
+                    key={name}
+                    to="/user/live"
+                    className={[
+                      "flex items-center gap-2 border-b border-[#1a2332] px-4 py-[7px] text-[12px] text-[#94a3b8] transition-colors",
+                      "hover:bg-[#1e293b] hover:text-white",
+                    ].join(" ")}
+                    onClick={closeIfMobile}
+                  >
+                    <span className="w-[18px] text-center text-[10px] font-semibold text-[#64748b]">{sportIcon(name)}</span>
+                    <span className="flex-1">{name}</span>
+                    <span
+                      className={[
+                        "text-[10px] font-medium text-[#64748b]",
+                      ].join(" ")}
+                    >
+                      {liveCounts[name] ?? 0}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="bc-side-section">
             {sectionOne.map((item) => (
               <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
