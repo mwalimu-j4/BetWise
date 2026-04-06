@@ -35,7 +35,7 @@ const menuGroups: MenuItem[][] = [
     {
       label: "My Bets",
       icon: "t",
-      to: "/my-bets?tab=normal&filter=all&page=1",
+      to: "/user/bets?tab=normal&filter=all&page=1",
     },
     { label: "My Results", icon: "r", to: "/user/payments/history" },
     { label: "My Wallet", icon: "w", to: "/user/payments", warn: true },

@@ -1,23 +1,9 @@
 import {
-  Navigate,
   Outlet,
   createRoute,
   lazyRouteComponent,
 } from "@tanstack/react-router";
 import { userRoute } from "./route";
-
-function LegacyUserBetsRedirect() {
-  return (
-    <Navigate
-      to="/my-bets"
-      search={{
-        tab: "normal",
-        filter: "all",
-        page: "1",
-      }}
-    />
-  );
-}
 
 const userIndexLayoutRoute = createRoute({
   getParentRoute: () => userRoute,
@@ -34,10 +20,18 @@ const userHomePageRoute = createRoute({
 const userBetsPageRoute = createRoute({
   getParentRoute: () => userIndexLayoutRoute,
   path: "/bets",
-  component: LegacyUserBetsRedirect,
+  component: lazyRouteComponent(() => import("@/features/user/pages/my-bets")),
+});
+
+const userBetDetailPageRoute = createRoute({
+  getParentRoute: () => userBetsPageRoute,
+  path: "/$betId",
+  component: lazyRouteComponent(
+    () => import("@/features/user/pages/my-bet-detail"),
+  ),
 });
 
 export const userIndexRoute = userIndexLayoutRoute.addChildren([
   userHomePageRoute,
-  userBetsPageRoute,
+  userBetsPageRoute.addChildren([userBetDetailPageRoute]),
 ]);
