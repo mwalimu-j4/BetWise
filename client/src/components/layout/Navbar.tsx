@@ -86,7 +86,7 @@ function toText(value: unknown, fallback = "") {
 
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, openAuthModal } = useAuth();
 
   const { data: walletSummary } = useWalletSummary();
   const { data: notificationData } = useAppNotifications(12);
@@ -268,12 +268,20 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             </>
           ) : (
             <div className="bc-auth-group">
-              <Link to="/register" className="bc-register-btn">
+              <button
+                type="button"
+                onClick={() => openAuthModal("register")}
+                className="bc-register-btn"
+              >
                 Register
-              </Link>
-              <Link to="/login" className="bc-login-btn">
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="bc-login-btn"
+              >
                 Login
-              </Link>
+              </button>
             </div>
           )}
         </div>
