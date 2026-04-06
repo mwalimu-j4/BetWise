@@ -51,6 +51,7 @@ const myAccount: Item[] = [
   { label: "My Wallet", to: "/user/payments", icon: "W", warn: true },
   { label: "My Bets", to: "/my-bets", icon: "B" },
   { label: "My Results", to: "/user/payments/history", icon: "R" },
+  { label: "Reports", to: "/user/reports", icon: "📊" },
   { label: "Deposit", to: "/user/payments/deposit", icon: "+" },
   { label: "Withdrawal", to: "/user/payments/withdrawal", icon: "^" },
   { label: "Transaction History", to: "/user/payments/history", icon: "T" },

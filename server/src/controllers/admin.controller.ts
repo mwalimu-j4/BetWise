@@ -793,15 +793,6 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
             : "No completed deposits yet",
       },
       {
-        label: "Withdrawals Today",
-        value: formatMoney(todayWithdrawals._sum.amount ?? 0),
-        tone: failedWithdrawals > 0 ? ("red" as const) : ("accent" as const),
-        helper:
-          averageWithdrawal > 0
-            ? `Avg payout ${formatMoney(averageWithdrawal)}`
-            : "No completed withdrawals yet",
-      },
-      {
         label: "Active Risk Alerts",
         value: activeRiskAlerts.toLocaleString(),
         tone: activeRiskAlerts > 0 ? ("red" as const) : ("blue" as const),

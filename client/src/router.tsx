@@ -32,6 +32,7 @@ import { userPaymentsRoute } from "./routes/user/payments";
 import { userPaymentsWithdrawalRoute } from "./routes/user/payments-withdrawal";
 import { userProfileRoute } from "./routes/user/profile";
 import { userRegisterRoute } from "./routes/user/register";
+import { userReportsRoute } from "./routes/user/reports";
 import { userResetPasswordRoute } from "./routes/user/reset-password";
 import { userRoute } from "./routes/user/route";
 
@@ -56,6 +57,7 @@ const routeTree = rootRoute.addChildren([
       userPaymentsWithdrawalRoute,
       userPaymentsHistoryRoute,
     ]),
+    userReportsRoute,
   ]),
   adminRoute.addChildren([
     adminIndexRoute,
