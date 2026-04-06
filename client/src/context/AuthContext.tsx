@@ -46,6 +46,8 @@ type LoginPayload = {
   password: string;
 };
 
+type AuthModal = "none" | "login" | "register";
+
 type AuthContextValue = {
   user: AuthUser | null;
   accessToken: string | null;
@@ -55,6 +57,9 @@ type AuthContextValue = {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<string | null>;
+  authModal: AuthModal;
+  openAuthModal: (modal: AuthModal) => void;
+  closeAuthModal: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -77,6 +82,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessTokenState, setAccessTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authModal, setAuthModal] = useState<AuthModal>("none");
+
+  const openAuthModal = useCallback((modal: AuthModal) => {
+    setAuthModal(modal);
+  }, []);
+
+  const closeAuthModal = useCallback(() => {
+    setAuthModal("none");
+  }, []);
 
   const updateSession = useCallback((data: AuthResponse) => {
     setUser(data.user);
@@ -140,15 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onRefresh: refreshSession,
       onUnauthorized: () => {
         clearAuthState(setUser, setAccessTokenState);
-        if (
-          typeof window !== "undefined" &&
-          window.location.pathname !== "/login"
-        ) {
-          const redirect = `${window.location.pathname}${window.location.search}`;
-          window.location.assign(
-            `/login?redirect=${encodeURIComponent(redirect)}`,
-          );
-        }
+        setAuthModal("login");
       },
     });
   }, [refreshSession]);
@@ -205,6 +211,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       refreshSession,
+      authModal,
+      openAuthModal,
+      closeAuthModal,
     }),
     [
       accessTokenState,
@@ -214,6 +223,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshSession,
       register,
       user,
+      authModal,
+      openAuthModal,
+      closeAuthModal,
     ],
   );
 
