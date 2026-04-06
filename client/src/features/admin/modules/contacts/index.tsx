@@ -1,5 +1,11 @@
 import { useState, useMemo } from "react";
-import { Download, Eye, Loader, Mail, MessageSquare } from "lucide-react";
+import {
+  Download,
+  Loader,
+  Mail,
+  MessageSquare,
+  MoreHorizontal,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/axiosConfig";
@@ -21,8 +27,15 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -30,23 +43,29 @@ export default function Contacts() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<"" | "SUBMITTED" | "READ" | "RESOLVED">("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "" | "SUBMITTED" | "READ" | "RESOLVED"
+  >("");
   const queryClient = useQueryClient();
 
   const itemsPerPage = 20;
 
-  // Fetch contacts
+  // Fetch contacts (Search removed)
   const { data: contactsData, isLoading: isContactsLoading } = useAdminContacts(
     itemsPerPage,
     (currentPage - 1) * itemsPerPage,
     statusFilter,
-    searchQuery,
   );
 
   // Mutation for updating contact status
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ contactId, newStatus }: { contactId: string; newStatus: string }) => {
+    mutationFn: async ({
+      contactId,
+      newStatus,
+    }: {
+      contactId: string;
+      newStatus: string;
+    }) => {
       const { data } = await api.patch(`/admin/contact/${contactId}`, {
         status: newStatus,
       });
@@ -55,10 +74,8 @@ export default function Contacts() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-contacts"] });
       toast.success("Contact status updated");
-      if (selectedContact) {
-        setDetailOpen(false);
-        setSelectedContact(null);
-      }
+      // Keep modal open but update the local selected contact state if needed,
+      // or simply rely on the background refetch to update the table behind it.
     },
     onError: () => {
       toast.error("Failed to update contact status");
@@ -88,7 +105,11 @@ export default function Contacts() {
     const resolved = contacts.filter((c) => c.status === "RESOLVED").length;
 
     return [
-      { label: "Total Messages", value: String(pagination.total), tone: "blue" as const },
+      {
+        label: "Total Messages",
+        value: String(pagination.total),
+        tone: "blue" as const,
+      },
       { label: "Unread", value: String(submitted), tone: "gold" as const },
       { label: "Read", value: String(read), tone: "accent" as const },
       { label: "Resolved", value: String(resolved), tone: "emerald" as const },
@@ -139,10 +160,16 @@ export default function Contacts() {
     toast.success("Contacts exported successfully");
   };
 
-  const setDetailOpen = (open: boolean) => {
-    setDetailsOpen(open);
-    if (!open) {
-      setSelectedContact(null);
+  const handleRowClick = (contact: Contact) => {
+    setSelectedContact(contact);
+    setDetailsOpen(true);
+  };
+
+  const handleStatusUpdate = (contactId: string, newStatus: string) => {
+    updateStatusMutation.mutate({ contactId, newStatus });
+    // Optimistically update the selected contact in the modal if it's open
+    if (selectedContact?.id === contactId) {
+      setSelectedContact({ ...selectedContact, status: newStatus });
     }
   };
 
@@ -153,7 +180,7 @@ export default function Contacts() {
         subtitle="User contact messages and inquiries"
         actions={
           <AdminButton variant="ghost" onClick={handleDownloadCSV}>
-            <Download size={13} />
+            <Download size={13} className="mr-2" />
             Export CSV
           </AdminButton>
         }
@@ -173,24 +200,11 @@ export default function Contacts() {
 
       {/* Filters */}
       <AdminCard>
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <label className="block text-xs font-semibold text-admin-text-muted mb-1.5 uppercase">
-                Search
-              </label>
-              <input
-                type="text"
-                placeholder="Search by name, phone, subject..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-sm text-admin-text-primary placeholder-admin-text-muted focus:outline-none focus:ring-2 focus:ring-admin-accent"
-              />
-            </div>
-
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <label className="text-sm font-semibold text-admin-text-muted uppercase shrink-0">
+              Filter Status:
+            </label>
             <select
               value={statusFilter}
               onChange={(e) => {
@@ -199,7 +213,7 @@ export default function Contacts() {
                 );
                 setCurrentPage(1);
               }}
-              className="rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-sm text-admin-text-primary focus:outline-none focus:ring-2 focus:ring-admin-accent w-full sm:w-auto"
+              className="rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-sm text-admin-text-primary focus:outline-none focus:ring-2 focus:ring-admin-accent flex-1 sm:flex-none min-w-[150px]"
             >
               <option value="">All Statuses</option>
               <option value="SUBMITTED">Unread</option>
@@ -207,9 +221,16 @@ export default function Contacts() {
               <option value="RESOLVED">Resolved</option>
             </select>
           </div>
-
           <div className="text-sm text-admin-text-muted">
-            Showing {contacts.length} of {pagination.total} messages
+            Showing{" "}
+            <span className="font-medium text-admin-text-primary">
+              {contacts.length}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium text-admin-text-primary">
+              {pagination.total}
+            </span>{" "}
+            messages
           </div>
         </div>
       </AdminCard>
@@ -222,33 +243,44 @@ export default function Contacts() {
           </div>
         ) : contacts.length === 0 ? (
           <div className="py-20 text-center">
-            <MessageSquare className="mx-auto h-8 w-8 text-admin-text-muted mb-3" />
-            <p className="text-admin-text-muted">No messages found</p>
+            <MessageSquare className="mx-auto h-8 w-8 text-admin-text-muted mb-3 opacity-50" />
+            <p className="text-admin-text-muted">No messages found.</p>
           </div>
         ) : (
           <TableShell>
             <table className={adminTableClassName}>
               <thead>
                 <tr>
-                  {["Name", "Phone", "Subject", "Status", "Date", "Actions"].map(
-                    (heading) => (
-                      <th className={adminTableHeadCellClassName} key={heading}>
-                        {heading}
-                      </th>
-                    ),
-                  )}
+                  {[
+                    "Name",
+                    "Phone",
+                    "Subject",
+                    "Status",
+                    "Date",
+                    <span key="actions" className="sr-only">
+                      Actions
+                    </span>,
+                  ].map((heading, idx) => (
+                    <th className={adminTableHeadCellClassName} key={idx}>
+                      {heading}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {contacts.map((contact) => (
-                  <tr key={contact.id}>
+                  <tr
+                    key={contact.id}
+                    onClick={() => handleRowClick(contact)}
+                    className="group cursor-pointer hover:bg-admin-bg/50 transition-colors duration-200"
+                  >
                     <td className={adminTableCellClassName}>
                       <div>
-                        <p className="font-semibold text-admin-text-primary">
+                        <p className="font-semibold text-admin-text-primary group-hover:text-admin-accent transition-colors">
                           {contact.fullName}
                         </p>
                         {contact.user?.email && (
-                          <p className="text-xs text-admin-text-muted flex items-center gap-1">
+                          <p className="text-xs text-admin-text-muted flex items-center gap-1 mt-0.5">
                             <Mail size={12} />
                             {contact.user.email}
                           </p>
@@ -261,7 +293,7 @@ export default function Contacts() {
                       </p>
                     </td>
                     <td className={adminTableCellClassName}>
-                      <p className="text-sm text-admin-text-primary truncate max-w-xs">
+                      <p className="text-sm text-admin-text-primary truncate max-w-[200px] xl:max-w-xs">
                         {contact.subject}
                       </p>
                     </td>
@@ -269,137 +301,66 @@ export default function Contacts() {
                       <StatusBadge status={contact.status.toLowerCase()} />
                     </td>
                     <td className={adminTableCellClassName}>
-                      <p className="text-sm text-admin-text-muted">
-                        {new Date(contact.createdAt).toLocaleDateString()}
+                      <p className="text-sm text-admin-text-muted whitespace-nowrap">
+                        {new Date(contact.createdAt).toLocaleDateString(
+                          undefined,
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          },
+                        )}
                       </p>
                     </td>
-                    <td className={adminTableCellClassName}>
-                      <Dialog open={detailsOpen && selectedContact?.id === contact.id} onOpenChange={setDetailOpen}>
-                        <DialogTrigger asChild>
-                          <AdminButton
+                    <td className={`${adminTableCellClassName} text-right`}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          asChild
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button
                             variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedContact(contact);
-                              setDetailsOpen(true);
-                            }}
+                            className="h-8 w-8 p-0 text-admin-text-muted hover:text-admin-text-primary"
                           >
-                            <Eye size={14} />
-                          </AdminButton>
-                        </DialogTrigger>
-                        {selectedContact?.id === contact.id && (
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>Message Details</DialogTitle>
-                              <DialogDescription>
-                                From {selectedContact.fullName}
-                              </DialogDescription>
-                            </DialogHeader>
-
-                            <ScrollArea className="h-[500px] pr-4">
-                              <div className="space-y-6">
-                                {/* Contact Info */}
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-admin-text-muted uppercase mb-1">
-                                      Name
-                                    </p>
-                                    <p className="text-sm text-admin-text-primary">
-                                      {selectedContact.fullName}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-admin-text-muted uppercase mb-1">
-                                      Phone
-                                    </p>
-                                    <p className="text-sm text-admin-text-primary">
-                                      {selectedContact.phone}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-admin-text-muted uppercase mb-1">
-                                      Email
-                                    </p>
-                                    <p className="text-sm text-admin-text-primary">
-                                      {selectedContact.user?.email || "N/A"}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-admin-text-muted uppercase mb-1">
-                                      Status
-                                    </p>
-                                    <StatusBadge
-                                      status={selectedContact.status.toLowerCase()}
-                                    />
-                                  </div>
-                                </div>
-
-                                {/* Subject */}
-                                <div>
-                                  <p className="text-xs font-semibold text-admin-text-muted uppercase mb-2">
-                                    Subject
-                                  </p>
-                                  <p className="text-sm text-admin-text-primary">
-                                    {selectedContact.subject}
-                                  </p>
-                                </div>
-
-                                {/* Message */}
-                                <div>
-                                  <p className="text-xs font-semibold text-admin-text-muted uppercase mb-2">
-                                    Message
-                                  </p>
-                                  <p className="text-sm text-admin-text-primary whitespace-pre-wrap">
-                                    {selectedContact.message}
-                                  </p>
-                                </div>
-
-                                {/* Date */}
-                                <div className="text-xs text-admin-text-muted">
-                                  <p>
-                                    Received:{" "}
-                                    {new Date(selectedContact.createdAt).toLocaleString()}
-                                  </p>
-                                </div>
-                              </div>
-                            </ScrollArea>
-
-                            {/* Status Update Buttons */}
-                            <div className="flex gap-2 pt-4 border-t border-admin-border">
-                              {selectedContact.status !== "READ" && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    updateStatusMutation.mutate({
-                                      contactId: selectedContact.id,
-                                      newStatus: "READ",
-                                    });
-                                  }}
-                                  disabled={updateStatusMutation.isPending}
-                                >
-                                  Mark as Read
-                                </Button>
-                              )}
-                              {selectedContact.status !== "RESOLVED" && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    updateStatusMutation.mutate({
-                                      contactId: selectedContact.id,
-                                      newStatus: "RESOLVED",
-                                    });
-                                  }}
-                                  disabled={updateStatusMutation.isPending}
-                                >
-                                  Mark as Resolved
-                                </Button>
-                              )}
-                            </div>
-                          </DialogContent>
-                        )}
-                      </Dialog>
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-48"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleRowClick(contact)}
+                          >
+                            View Details
+                          </DropdownMenuItem>
+                          {contact.status !== "READ" &&
+                            contact.status !== "RESOLVED" && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleStatusUpdate(contact.id, "READ")
+                                }
+                                className="text-accent"
+                              >
+                                Mark as Read
+                              </DropdownMenuItem>
+                            )}
+                          {contact.status !== "RESOLVED" && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleStatusUpdate(contact.id, "RESOLVED")
+                              }
+                              className="text-emerald-500"
+                            >
+                              Mark as Resolved
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </td>
                   </tr>
                 ))}
@@ -421,7 +382,7 @@ export default function Contacts() {
             >
               Previous
             </Button>
-            <p className="text-sm text-admin-text-muted">
+            <p className="text-sm text-admin-text-muted font-medium">
               Page {currentPage} of {pagination.pages}
             </p>
             <Button
@@ -437,6 +398,131 @@ export default function Contacts() {
           </div>
         </AdminCard>
       )}
+
+      {/* Single Details Modal */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        {selectedContact && (
+          <DialogContent className="max-w-2xl bg-admin-card border-admin-border shadow-2xl">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-xl">Message Details</DialogTitle>
+              <DialogDescription>
+                Submitted by{" "}
+                <span className="font-semibold text-admin-text-primary">
+                  {selectedContact.fullName}
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="space-y-8">
+                {/* Contact Info Grid */}
+                <div className="grid grid-cols-2 gap-y-6 gap-x-4 bg-admin-bg/50 p-4 rounded-lg border border-admin-border/50">
+                  <div>
+                    <p className="text-[10px] font-bold text-admin-text-muted tracking-wider uppercase mb-1">
+                      Full Name
+                    </p>
+                    <p className="text-sm font-medium text-admin-text-primary">
+                      {selectedContact.fullName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-admin-text-muted tracking-wider uppercase mb-1">
+                      Phone Number
+                    </p>
+                    <p className="text-sm font-medium text-admin-text-primary">
+                      {selectedContact.phone}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-admin-text-muted tracking-wider uppercase mb-1">
+                      Email Address
+                    </p>
+                    <p className="text-sm font-medium text-admin-text-primary">
+                      {selectedContact.user?.email || "Not Provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-admin-text-muted tracking-wider uppercase mb-1">
+                      Current Status
+                    </p>
+                    <div className="mt-1">
+                      <StatusBadge
+                        status={selectedContact.status.toLowerCase()}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subject & Message */}
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-[10px] font-bold text-admin-text-muted tracking-wider uppercase mb-2">
+                      Subject
+                    </p>
+                    <h4 className="text-base font-semibold text-admin-text-primary">
+                      {selectedContact.subject}
+                    </h4>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-admin-text-muted tracking-wider uppercase mb-2">
+                      Message Content
+                    </p>
+                    <div className="bg-admin-bg p-4 rounded-lg border border-admin-border/50 text-sm text-admin-text-primary whitespace-pre-wrap leading-relaxed">
+                      {selectedContact.message}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timestamp */}
+                <div className="text-xs font-medium text-admin-text-muted border-t border-admin-border pt-4">
+                  Received on{" "}
+                  {new Date(selectedContact.createdAt).toLocaleString(
+                    undefined,
+                    {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}
+                </div>
+              </div>
+            </ScrollArea>
+
+            {/* Quick Actions Footer */}
+            <div className="flex justify-end gap-3 pt-6 border-t border-admin-border mt-2">
+              <Button variant="ghost" onClick={() => setDetailsOpen(false)}>
+                Close
+              </Button>
+              {selectedContact.status !== "READ" &&
+                selectedContact.status !== "RESOLVED" && (
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      handleStatusUpdate(selectedContact.id, "READ")
+                    }
+                    disabled={updateStatusMutation.isPending}
+                  >
+                    Mark as Read
+                  </Button>
+                )}
+              {selectedContact.status !== "RESOLVED" && (
+                <Button
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={() =>
+                    handleStatusUpdate(selectedContact.id, "RESOLVED")
+                  }
+                  disabled={updateStatusMutation.isPending}
+                >
+                  Resolve Inquiry
+                </Button>
+              )}
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }
