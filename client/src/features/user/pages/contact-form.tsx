@@ -129,7 +129,9 @@ export default function ContactForm({
   return (
     <div className="rounded-2xl border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Send us a Message</h2>
+        <h2 className="text-2xl font-bold text-white mb-2">
+          Send us a Message
+        </h2>
         <p className="text-[#8a9bb0] text-sm">
           Have a question or concern? We'd love to hear from you. Fill out the
           form below and we'll get back to you as soon as possible.
@@ -185,7 +187,8 @@ export default function ContactForm({
             htmlFor="phone"
             className="block text-sm font-semibold text-white mb-2"
           >
-            Phone Number {!isLoggedIn && <span className="text-red-400">*</span>}
+            Phone Number{" "}
+            {!isLoggedIn && <span className="text-red-400">*</span>}
           </label>
           <input
             type="tel"

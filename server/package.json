@@ -21,7 +21,7 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio",
     "prisma:reset": "prisma migrate reset --force && pnpm prisma:seed",
-    "db:deploy": "pnpm prisma:generate && prisma migrate deploy && prisma db seed",
+    "db:deploy": "pnpm prisma:generate && prisma migrate deploy && prisma db seed"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
