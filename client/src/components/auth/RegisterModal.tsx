@@ -117,7 +117,7 @@ export default function RegisterModal() {
 
       toast.success("Account created successfully. Welcome to BetixPro.");
       closeAuthModal();
-      
+
       // Navigate to user dashboard after successful registration
       setEmail("");
       setPhone("");
