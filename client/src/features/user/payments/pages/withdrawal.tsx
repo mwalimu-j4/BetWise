@@ -135,22 +135,22 @@ export default function PaymentsWithdrawalPage() {
   }
 
   return (
-    <section className="mx-auto grid w-full max-w-6xl gap-4 lg:grid-cols-[1.3fr_1fr]">
+    <section className="grid w-full gap-4 lg:grid-cols-[1.3fr_1fr]">
       <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-5 sm:p-6">
-        <div className="mb-4 border-b border-[#23384f] pb-4">
+        <div className="mb-3 border-b border-[#23384f] pb-3">
           <h2 className="text-lg font-bold text-admin-text-primary">
             Withdraw Funds
           </h2>
-          <p className="mt-1 text-sm text-admin-text-muted">
+          <p className="mt-0.5 text-xs text-admin-text-muted">
             Withdraw directly to your M-Pesa number.
           </p>
         </div>
 
-        <form className="grid gap-4" onSubmit={onSubmit}>
-          <div className="grid gap-2">
+        <form className="grid gap-3" onSubmit={onSubmit}>
+          <div className="grid gap-1.5">
             <label
               htmlFor="withdraw-amount"
-              className="text-sm font-semibold text-admin-text-primary"
+              className="text-xs font-semibold text-admin-text-primary"
             >
               Amount
             </label>
@@ -170,7 +170,7 @@ export default function PaymentsWithdrawalPage() {
               />
             </div>
 
-            <div className="mt-1 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {quickAmounts.map((option) => (
                 <button
                   key={option}
@@ -185,12 +185,12 @@ export default function PaymentsWithdrawalPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#23384f] bg-[#101b2b] p-3 sm:p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <Smartphone size={15} className="text-[#8a9bb0]" />
+          <div className="rounded-2xl border border-[#23384f] bg-[#101b2b] p-2.5 sm:p-3">
+            <div className="mb-2 flex items-center gap-2">
+              <Smartphone size={14} className="text-[#8a9bb0]" />
               <label
                 htmlFor="withdraw-phone"
-                className="text-sm font-semibold text-admin-text-primary"
+                className="text-xs font-semibold text-admin-text-primary"
               >
                 M-Pesa Phone Number
               </label>
@@ -211,10 +211,10 @@ export default function PaymentsWithdrawalPage() {
             )}
           </div>
 
-          <div className="rounded-xl border border-[#23384f] bg-[#101b2b] px-3 py-2 text-xs text-admin-text-muted sm:text-sm">
+          <div className="rounded-lg border border-[#23384f] bg-[#101b2b] px-2.5 py-1.5 text-[10px] text-admin-text-muted sm:text-xs">
             <span>Fee: {WITHDRAWAL_FEE_PERCENTAGE}%</span>
-            <span className="mx-2 text-[#294157]">|</span>
-            <span>You receive: {formatMoney(netAmount)}</span>
+            <span className="mx-1.5 text-[#294157]">|</span>
+            <span>You get: {formatMoney(netAmount)}</span>
           </div>
 
           <Button
@@ -232,31 +232,31 @@ export default function PaymentsWithdrawalPage() {
       </article>
 
       <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-4 sm:p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-admin-text-primary">
+        <div className="mb-2.5 flex items-center justify-between">
+          <h3 className="text-xs font-semibold text-admin-text-primary">
             Recent Requests
           </h3>
           <button
             type="button"
-            className="inline-flex items-center gap-1 text-xs font-medium text-[#8a9bb0] transition hover:text-white"
+            className="inline-flex items-center gap-0.5 text-[10px] font-medium text-[#8a9bb0] transition hover:text-white"
             onClick={() => {
               void refetchWallet();
             }}
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-3 w-3" />
             Refresh
           </button>
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           {recentWithdrawals.length > 0 ? (
             recentWithdrawals.slice(0, 3).map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-lg border border-[#23384f] bg-[#101b2b] px-3 py-2.5"
+                className="rounded-lg border border-[#23384f] bg-[#101b2b] px-2.5 py-2"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-admin-text-primary">
+                  <p className="text-xs font-semibold text-admin-text-primary">
                     {formatMoney(entry.amount)}
                   </p>
                   <span
@@ -271,14 +271,14 @@ export default function PaymentsWithdrawalPage() {
                     {entry.status}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-admin-text-muted">
+                <p className="mt-0.5 text-[10px] text-admin-text-muted">
                   {formatDateTime(entry.createdAt)}
                 </p>
               </div>
             ))
           ) : (
-            <div className="rounded-xl border border-[#23384f] bg-[#101b2b] p-4 text-sm text-admin-text-muted">
-              No withdrawal requests yet.
+            <div className="rounded-lg border border-[#23384f] bg-[#101b2b] p-2.5 text-xs text-admin-text-muted">
+              No requests yet.
             </div>
           )}
         </div>
