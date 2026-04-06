@@ -20,12 +20,6 @@ import {
   useMarkAllNotificationsRead,
 } from "@/features/notifications/notifications";
 import { useWalletRealtime } from "@/features/user/payments/wallet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { adminNavigation } from "../config/navigation";
 
 export default function AdminShell() {
@@ -267,7 +261,7 @@ export default function AdminShell() {
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 top-12 z-20 w-48 overflow-hidden rounded-xl border border-admin-border bg-[var(--color-bg-secondary)] shadow-[0_16px_44px_rgba(0,0,0,0.35)]">
+                  <div className="absolute right-0 top-12 z-20 w-56 overflow-hidden rounded-xl border border-admin-border bg-[var(--color-bg-secondary)] shadow-[0_16px_44px_rgba(0,0,0,0.35)]">
                     <button
                       onClick={() => {
                         setUserMenuOpen(false);
@@ -283,15 +277,12 @@ export default function AdminShell() {
                       <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted mb-2">
                         Theme
                       </p>
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <button
-                          onClick={() => {
-                            setTheme("light");
-                            setUserMenuOpen(false);
-                          }}
+                          onClick={() => setTheme("light")}
                           type="button"
                           className={cn(
-                            "flex flex-1 items-center justify-center gap-1 rounded-lg py-2 px-2 text-xs font-medium transition",
+                            "flex flex-col items-center gap-1 rounded-lg py-2 px-2 text-xs font-medium transition",
                             theme === "light"
                               ? "bg-admin-accent text-admin-text-dark"
                               : "text-admin-text-secondary hover:bg-[var(--color-bg-hover)]",
@@ -302,13 +293,10 @@ export default function AdminShell() {
                           <span>Light</span>
                         </button>
                         <button
-                          onClick={() => {
-                            setTheme("dark");
-                            setUserMenuOpen(false);
-                          }}
+                          onClick={() => setTheme("dark")}
                           type="button"
                           className={cn(
-                            "flex flex-1 items-center justify-center gap-1 rounded-lg py-2 px-2 text-xs font-medium transition",
+                            "flex flex-col items-center gap-1 rounded-lg py-2 px-2 text-xs font-medium transition",
                             theme === "dark"
                               ? "bg-admin-accent text-admin-text-dark"
                               : "text-admin-text-secondary hover:bg-[var(--color-bg-hover)]",
@@ -319,13 +307,10 @@ export default function AdminShell() {
                           <span>Dark</span>
                         </button>
                         <button
-                          onClick={() => {
-                            setTheme("system");
-                            setUserMenuOpen(false);
-                          }}
+                          onClick={() => setTheme("system")}
                           type="button"
                           className={cn(
-                            "flex flex-1 items-center justify-center gap-1 rounded-lg py-2 px-2 text-xs font-medium transition",
+                            "flex flex-col items-center gap-1 rounded-lg py-2 px-2 text-xs font-medium transition",
                             theme === "system"
                               ? "bg-admin-accent text-admin-text-dark"
                               : "text-admin-text-secondary hover:bg-[var(--color-bg-hover)]",
