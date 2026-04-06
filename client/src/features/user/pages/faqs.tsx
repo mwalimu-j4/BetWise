@@ -141,53 +141,49 @@ export default function FAQs() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0b1120] to-[#0f172a] text-white">
-      {/* Hero Section */}
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-16 space-y-4 text-center">
-          <h1 className="text-4xl font-bold sm:text-5xl">
-            Frequently Asked Questions
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg text-[#90a2bb]">
-            Find answers to common questions about BetWise, betting, payments,
-            and account management.
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Hero Section */}
+        <div className="mb-10 text-center">
+          <h1 className="text-3xl font-bold mb-2">Frequently Asked Questions</h1>
+          <p className="text-sm text-[#90a2bb] max-w-2xl mx-auto">
+            Find answers to common questions about BetWise, betting, and account management.
           </p>
         </div>
 
         {/* FAQs by Category */}
-        <div className="space-y-12">
+        <div className="space-y-8">
           {categories.map((category) => (
-            <div key={category} className="space-y-4">
-              <h2 className="text-2xl font-bold text-[#f5c518]">{category}</h2>
-              <div className="space-y-3">
+            <div key={category}>
+              <h2 className="text-lg font-bold text-[#f5c518] mb-3">
+                {category}
+              </h2>
+              <div className="space-y-2">
                 {faqs
                   .filter((faq) => faq.category === category)
                   .map((faq) => (
                     <Card
                       key={faq.id}
-                      className={`overflow-hidden border-[#31455f] bg-[#0f172a] transition-all duration-200 ${
-                        expandedFAQ === faq.id ? "" : ""
-                      }`}
+                      className="overflow-hidden border-[#31455f] bg-[#0f172a]"
                     >
                       <button
                         onClick={() => toggleExpand(faq.id)}
-                        className="w-full px-6 py-5 text-left hover:bg-[#1a2a3a] transition-colors"
+                        className="w-full px-4 py-3 text-left hover:bg-[#1a2a3a] transition-colors"
                       >
-                        <div className="flex items-start justify-between gap-4">
-                          <h3 className="text-base font-semibold text-white">
+                        <div className="flex items-center justify-between gap-3">
+                          <h3 className="text-sm font-semibold text-white">
                             {faq.question}
                           </h3>
                           <ChevronDown
-                            className={`h-5 w-5 flex-shrink-0 transition-transform duration-200 text-[#f5c518] ${
+                            className={`h-4 w-4 flex-shrink-0 text-[#f5c518] transition-transform ${
                               expandedFAQ === faq.id ? "rotate-180" : ""
                             }`}
                           />
                         </div>
                       </button>
 
-                      {/* Expanded Answer */}
                       {expandedFAQ === faq.id && (
-                        <div className="border-t border-[#31455f] bg-[#0c1018] px-6 py-5">
-                          <p className="leading-relaxed text-[#90a2bb]">
+                        <div className="border-t border-[#31455f] bg-[#0c1018] px-4 py-3">
+                          <p className="text-xs text-[#90a2bb] leading-relaxed">
                             {faq.answer}
                           </p>
                         </div>
@@ -200,13 +196,12 @@ export default function FAQs() {
         </div>
 
         {/* Still Need Help Section */}
-        <div className="mt-20 rounded-xl border border-[#31455f] bg-gradient-to-r from-[#0f172a] to-[#1a2a3a] p-8 text-center">
-          <h2 className="mb-4 text-2xl font-bold">Still have questions?</h2>
-          <p className="mb-6 text-[#90a2bb]">
-            Can't find the answer you're looking for? Please reach out to our
-            customer support team.
+        <div className="mt-12 rounded-lg border border-[#31455f] bg-[#0f172a] p-6 text-center">
+          <h2 className="text-lg font-bold mb-2">Still have questions?</h2>
+          <p className="text-sm text-[#90a2bb] mb-4">
+            Can't find the answer? Reach out to our support team.
           </p>
-          <button className="inline-block rounded-lg bg-gradient-to-r from-[#f5c518] to-[#d4a500] px-8 py-3 font-bold text-[#0b1120] hover:shadow-lg transition-all duration-200">
+          <button className="inline-block rounded bg-gradient-to-r from-[#f5c518] to-[#d4a500] px-6 py-2 text-sm font-bold text-[#0b1120] hover:shadow-lg transition">
             Contact Support
           </button>
         </div>

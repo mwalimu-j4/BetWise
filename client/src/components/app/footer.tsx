@@ -113,18 +113,18 @@ export default function Footer() {
               >
                 Deposits
               </Link>
-              <a
-                href="#"
+              <Link
+                to="/user/how-it-works"
                 className="text-sm text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
               >
                 How It Works
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/user/faqs"
                 className="text-sm text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
               >
                 FAQ
-              </a>
+              </Link>
             </nav>
           </div>
 
