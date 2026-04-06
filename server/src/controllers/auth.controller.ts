@@ -270,76 +270,83 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function refresh(req: Request, res: Response) {
-  const refreshToken = req.cookies.refreshToken as string | undefined;
-  if (!refreshToken) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+  try {
+    const refreshToken = req.cookies.refreshToken as string | undefined;
+    if (!refreshToken) {
+      res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-  const tokenHash = hashToken(refreshToken, getRefreshTokenSecret());
-  const tokenRecord = await prisma.refreshToken.findFirst({
-    where: {
-      tokenHash,
-      expiresAt: { gt: new Date() },
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          phone: true,
-          role: true,
-          isVerified: true,
-          createdAt: true,
-          accountStatus: true,
+    const tokenHash = hashToken(refreshToken, getRefreshTokenSecret());
+    const tokenRecord = await prisma.refreshToken.findFirst({
+      where: {
+        tokenHash,
+        expiresAt: { gt: new Date() },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            role: true,
+            isVerified: true,
+            createdAt: true,
+            accountStatus: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!tokenRecord?.user) {
+    if (!tokenRecord?.user) {
+      res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (tokenRecord.user.accountStatus === "SUSPENDED") {
+      await prisma.refreshToken.deleteMany({
+        where: { userId: tokenRecord.user.id },
+      });
+      res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
+      return res.status(403).json({ message: "This account has been suspended." });
+    }
+
+    const newRawRefreshToken = createRefreshToken();
+    const newRefreshHash = hashToken(newRawRefreshToken, getRefreshTokenSecret());
+
+    await prisma.$transaction([
+      prisma.refreshToken.delete({ where: { id: tokenRecord.id } }),
+      prisma.refreshToken.create({
+        data: {
+          userId: tokenRecord.userId,
+          tokenHash: newRefreshHash,
+          deviceInfo: req.headers["user-agent"] ?? null,
+          ipAddress: getIpAddress(req),
+          expiresAt: getRefreshExpiryDate(),
+        },
+      }),
+    ]);
+
+    const accessToken = createAccessToken({
+      id: tokenRecord.user.id,
+      role: tokenRecord.user.role,
+    });
+
+    res.cookie(
+      "refreshToken",
+      newRawRefreshToken,
+      getRefreshTokenCookieOptions(),
+    );
+
+    return res.status(200).json({
+      accessToken,
+      user: sanitizeUser(tokenRecord.user),
+    });
+  } catch (error) {
+    console.error("Refresh token error:", error);
     res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
     return res.status(401).json({ message: "Unauthorized" });
   }
-
-  if (tokenRecord.user.accountStatus === "SUSPENDED") {
-    await prisma.refreshToken.deleteMany({
-      where: { userId: tokenRecord.user.id },
-    });
-    res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
-    return res.status(403).json({ message: "This account has been suspended." });
-  }
-
-  const newRawRefreshToken = createRefreshToken();
-  const newRefreshHash = hashToken(newRawRefreshToken, getRefreshTokenSecret());
-
-  await prisma.$transaction([
-    prisma.refreshToken.delete({ where: { id: tokenRecord.id } }),
-    prisma.refreshToken.create({
-      data: {
-        userId: tokenRecord.userId,
-        tokenHash: newRefreshHash,
-        deviceInfo: req.headers["user-agent"] ?? null,
-        ipAddress: getIpAddress(req),
-        expiresAt: getRefreshExpiryDate(),
-      },
-    }),
-  ]);
-
-  const accessToken = createAccessToken({
-    id: tokenRecord.user.id,
-    role: tokenRecord.user.role,
-  });
-
-  res.cookie(
-    "refreshToken",
-    newRawRefreshToken,
-    getRefreshTokenCookieOptions(),
-  );
-
-  return res.status(200).json({
-    accessToken,
-    user: sanitizeUser(tokenRecord.user),
-  });
 }
 
 export async function logout(req: Request, res: Response) {

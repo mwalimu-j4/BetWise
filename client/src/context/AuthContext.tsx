@@ -102,8 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(me.data.user);
       return data.accessToken;
-    } catch {
-      clearAuthState(setUser, setAccessTokenState);
+    } catch (error) {
+      // Don't clear auth state on refresh failure - the user may still have a valid access token.
+      // The access token will be invalidated when it expires and a 401 is received from the API.
       return null;
     }
   }, [updateSession]);
@@ -178,17 +179,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAccessTokenState(persistedToken);
         setAccessToken(persistedToken);
         setUser(persistedUser);
+        setIsLoading(false); // User is restored, stop loading immediately
       } catch {
         // Invalid stored data, clear and fall through to login
         clearAuthState(setUser, setAccessTokenState);
+        setIsLoading(false);
+        return;
       }
+    } else {
+      setIsLoading(false);
+      return;
     }
 
-    // Attempt to refresh and validate session in the background
-    void (async () => {
-      await refreshSession();
-      setIsLoading(false);
-    })();
+    // Attempt to refresh and validate session in the background (don't block UI on this)
+    void refreshSession();
   }, [refreshSession]);
 
   const value = useMemo<AuthContextValue>(
