@@ -29,7 +29,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 
 interface ApiBet {
@@ -83,6 +82,16 @@ function toBadgeStatus(status: ApiBet["status"], stake: number) {
 
 function getUserLabel(bet: ApiBet) {
   return bet.user.email || bet.user.phone;
+}
+
+// Helper to format dates cleanly (e.g., "Apr 6, 10:22 PM")
+function formatCompactDate(dateString: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(dateString));
 }
 
 export default function Bets() {
@@ -212,7 +221,7 @@ export default function Bets() {
           className="even:bg-[var(--color-bg-elevated)]"
           key={`bet-skeleton-${rowIndex}`}
         >
-          {Array.from({ length: 11 }, (_, cellIndex) => (
+          {Array.from({ length: 9 }, (_, cellIndex) => (
             <td className={adminTableCellClassName} key={cellIndex}>
               <div className="h-4 w-full rounded bg-admin-surface animate-pulse" />
             </td>
@@ -230,11 +239,11 @@ export default function Bets() {
         actions={
           <>
             <AdminButton variant="ghost" onClick={() => void loadBets()}>
-              <RefreshCw size={13} />
+              <RefreshCw size={13} className="mr-2" />
               Refresh
             </AdminButton>
             <AdminButton variant="ghost">
-              <Download size={13} />
+              <Download size={13} className="mr-2" />
               Export
             </AdminButton>
           </>
@@ -278,31 +287,33 @@ export default function Bets() {
         </div>
       </div>
 
-      {error ? (
+      {error && (
         <AdminCard>
           <p className="text-sm text-admin-red">{error}</p>
         </AdminCard>
-      ) : null}
+      )}
 
       <AdminCard>
         <TableShell>
-          <table className={adminTableClassName}>
+          <table className={`${adminTableClassName} w-full`}>
             <thead>
               <tr>
                 {[
-                  "Bet ID",
+                  "ID",
                   "User",
-                  "Sport",
-                  "Event",
-                  "Market",
+                  "Event Details",
+                  "Market & Pick",
                   "Odds",
                   "Stake",
-                  "Potential Win",
+                  "To Win",
                   "Status",
-                  "Time",
-                  "Actions",
-                ].map((heading) => (
-                  <th className={adminTableHeadCellClassName} key={heading}>
+                  "Date",
+                  "",
+                ].map((heading, idx) => (
+                  <th
+                    className={`${adminTableHeadCellClassName} whitespace-nowrap`}
+                    key={idx}
+                  >
                     {heading}
                   </th>
                 ))}
@@ -311,15 +322,15 @@ export default function Bets() {
             <tbody>
               {loading ? skeletonRows : null}
 
-              {!loading && visibleBets.length === 0 ? (
+              {!loading && visibleBets.length === 0 && (
                 <tr>
-                  <td className={adminTableCellClassName} colSpan={11}>
-                    <p className="text-sm text-admin-text-muted">
+                  <td className={adminTableCellClassName} colSpan={10}>
+                    <p className="text-sm text-center py-4 text-admin-text-muted">
                       No bets found.
                     </p>
                   </td>
                 </tr>
-              ) : null}
+              )}
 
               {!loading
                 ? visibleBets.map((bet) => {
@@ -331,29 +342,44 @@ export default function Bets() {
 
                     return (
                       <tr
-                        className="even:bg-[var(--color-bg-elevated)]"
+                        className="even:bg-[var(--color-bg-elevated)] hover:bg-admin-surface transition-colors"
                         key={`${bet.id}-management`}
                       >
                         <td
-                          className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
+                          className={`${adminTableCellClassName} text-xs font-mono font-medium text-admin-text-muted`}
                         >
                           {bet.id.slice(0, 8)}
                         </td>
                         <td
-                          className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
+                          className={`${adminTableCellClassName} font-semibold text-admin-text-primary max-w-[150px] truncate`}
+                          title={getUserLabel(bet)}
                         >
                           {getUserLabel(bet)}
                         </td>
-                        <td className={adminTableCellClassName}>
-                          {bet.event.sportKey ?? "Unknown"}
-                        </td>
                         <td
-                          className={`${adminTableCellClassName} max-w-[160px] truncate`}
+                          className={`${adminTableCellClassName} max-w-[200px]`}
                         >
-                          {bet.event.homeTeam} vs {bet.event.awayTeam}
+                          <div className="flex flex-col truncate">
+                            <span
+                              className="font-medium text-admin-text-primary truncate"
+                              title={`${bet.event.homeTeam} vs ${bet.event.awayTeam}`}
+                            >
+                              {bet.event.homeTeam} vs {bet.event.awayTeam}
+                            </span>
+                            <span className="text-xs text-admin-text-muted truncate">
+                              {bet.event.sportKey ?? "Unknown"}
+                            </span>
+                          </div>
                         </td>
                         <td className={adminTableCellClassName}>
-                          {bet.marketType} | {bet.side}
+                          <div className="flex flex-col">
+                            <span className="font-medium text-admin-text-primary">
+                              {bet.side}
+                            </span>
+                            <span className="text-xs text-admin-text-muted">
+                              {bet.marketType}
+                            </span>
+                          </div>
                         </td>
                         <td
                           className={`${adminTableCellClassName} font-semibold text-admin-gold`}
@@ -361,12 +387,12 @@ export default function Bets() {
                           {bet.displayOdds}
                         </td>
                         <td
-                          className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
+                          className={`${adminTableCellClassName} font-medium text-admin-text-primary whitespace-nowrap`}
                         >
                           KES {Math.round(bet.stake).toLocaleString()}
                         </td>
                         <td
-                          className={`${adminTableCellClassName} font-semibold text-admin-accent`}
+                          className={`${adminTableCellClassName} font-semibold text-admin-accent whitespace-nowrap`}
                         >
                           KES {Math.round(bet.potentialPayout).toLocaleString()}
                         </td>
@@ -376,266 +402,173 @@ export default function Bets() {
                           />
                         </td>
                         <td
-                          className={`${adminTableCellClassName} text-xs text-admin-text-muted`}
+                          className={`${adminTableCellClassName} text-xs text-admin-text-muted whitespace-nowrap`}
                         >
-                          {new Date(bet.placedAt).toLocaleString()}
+                          {formatCompactDate(bet.placedAt)}
                         </td>
-                        <td className={adminTableCellClassName}>
-                          <div className={adminCompactActionsClassName}>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <AdminButton
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => setSelectedBet(bet)}
-                                >
-                                  <Eye size={11} />
-                                </AdminButton>
-                              </DialogTrigger>
-                              <DialogContent className="border-admin-border bg-admin-card">
-                                <DialogHeader>
-                                  <DialogTitle>Bet Details</DialogTitle>
-                                  <DialogDescription>
-                                    View complete bet information
-                                  </DialogDescription>
-                                </DialogHeader>
-                                {selectedBet && (
-                                  <ScrollArea className="h-[400px] w-full pr-4">
-                                    <div className="space-y-4">
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          BET ID
-                                        </p>
-                                        <p className="text-sm font-semibold text-admin-blue">
-                                          {selectedBet.id}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          USER
-                                        </p>
-                                        <p className="text-sm text-admin-text-primary">
-                                          {getUserLabel(selectedBet)}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          SPORT
-                                        </p>
-                                        <p className="text-sm text-admin-text-primary">
-                                          {selectedBet.event.sportKey ??
-                                            "Unknown"}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          EVENT
-                                        </p>
-                                        <p className="text-sm text-admin-text-primary">
-                                          {selectedBet.event.homeTeam} vs{" "}
-                                          {selectedBet.event.awayTeam}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          MARKET
-                                        </p>
-                                        <p className="text-sm text-admin-text-primary">
-                                          {selectedBet.marketType}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          SELECTION
-                                        </p>
-                                        <p className="text-sm text-admin-text-primary">
-                                          {selectedBet.side}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          ODDS
-                                        </p>
-                                        <p className="text-sm font-semibold text-admin-gold">
-                                          {selectedBet.displayOdds}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          STAKE
-                                        </p>
-                                        <p className="text-sm font-semibold">
-                                          KES{" "}
-                                          {Math.round(
-                                            selectedBet.stake,
-                                          ).toLocaleString()}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          POTENTIAL WIN
-                                        </p>
-                                        <p className="text-sm font-semibold text-admin-accent">
-                                          KES{" "}
-                                          {Math.round(
-                                            selectedBet.potentialPayout,
-                                          ).toLocaleString()}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          STATUS
-                                        </p>
-                                        <StatusBadge
-                                          status={toBadgeStatus(
-                                            selectedBet.status,
-                                            selectedBet.stake,
-                                          )}
-                                        />
-                                      </div>
-                                      <div>
-                                        <p className="text-xs text-admin-text-muted">
-                                          TIME
-                                        </p>
-                                        <p className="text-sm text-admin-text-primary">
-                                          {new Date(
-                                            selectedBet.placedAt,
-                                          ).toLocaleString()}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </ScrollArea>
-                                )}
-                              </DialogContent>
-                            </Dialog>
+                        <td
+                          className={`${adminTableCellClassName} w-[50px] text-right`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-admin-text-muted hover:text-admin-text-primary hover:bg-admin-surface"
+                              >
+                                <MoreHorizontal size={18} />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem
+                                onSelect={() => setSelectedBet(bet)}
+                              >
+                                <Eye size={14} className="mr-2" />
+                                View details
+                              </DropdownMenuItem>
 
-                            {bet.status === "PENDING" ? (
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <AdminButton
-                                    size="sm"
-                                    className="bg-admin-accent text-black hover:bg-[#00d492]"
-                                    onClick={() => {
-                                      setSettleBet(bet);
-                                      setSettleSelection(bet.event.homeTeam);
-                                    }}
-                                  >
-                                    Settle
-                                  </AdminButton>
-                                </DialogTrigger>
-                                <DialogContent className="border-admin-border bg-admin-card">
-                                  <DialogHeader>
-                                    <DialogTitle>Settle Bet</DialogTitle>
-                                    <DialogDescription>
-                                      Choose the winning side for this event.
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="space-y-3">
-                                    {settleOptions.map((option) => (
-                                      <label
-                                        className="flex items-center gap-2 text-sm text-admin-text-primary"
-                                        key={option}
+                              {bet.status === "PENDING" && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <DropdownMenuItem
+                                        onSelect={(e) => {
+                                          e.preventDefault();
+                                          setSettleBet(bet);
+                                          setSettleSelection(
+                                            bet.event.homeTeam,
+                                          );
+                                        }}
+                                        className="text-green-500 focus:text-green-500 focus:bg-green-500/10 cursor-pointer"
                                       >
-                                        <input
-                                          checked={settleSelection === option}
-                                          name="bet-settle"
-                                          onChange={() =>
-                                            setSettleSelection(option)
+                                        Settle bet
+                                      </DropdownMenuItem>
+                                    </DialogTrigger>
+                                    <DialogContent className="border-admin-border bg-admin-card">
+                                      <DialogHeader>
+                                        <DialogTitle>Settle Bet</DialogTitle>
+                                        <DialogDescription>
+                                          Choose the winning side for this
+                                          event.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-3 py-4">
+                                        {settleOptions.map((option) => (
+                                          <label
+                                            className="flex items-center gap-3 text-sm text-admin-text-primary cursor-pointer p-2 rounded hover:bg-admin-surface transition-colors"
+                                            key={option}
+                                          >
+                                            <input
+                                              checked={
+                                                settleSelection === option
+                                              }
+                                              name="bet-settle"
+                                              onChange={() =>
+                                                setSettleSelection(option)
+                                              }
+                                              type="radio"
+                                              className="accent-admin-accent w-4 h-4"
+                                            />
+                                            {option}
+                                          </label>
+                                        ))}
+                                      </div>
+                                      <div className="flex gap-3">
+                                        <Button
+                                          variant="outline"
+                                          className="flex-1"
+                                          onClick={() => setSettleBet(null)}
+                                        >
+                                          Cancel
+                                        </Button>
+                                        <Button
+                                          className="flex-1 bg-admin-accent text-black hover:bg-[#00d492]"
+                                          onClick={() =>
+                                            settleBet
+                                              ? void settle(
+                                                  settleBet.id,
+                                                  settleSelection,
+                                                )
+                                              : undefined
                                           }
-                                          type="radio"
-                                        />
-                                        {option}
-                                      </label>
-                                    ))}
-                                  </div>
-                                  <div className="flex gap-2 pt-4">
-                                    <Button
-                                      variant="outline"
-                                      className="flex-1"
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      className="flex-1 bg-admin-accent text-black hover:bg-[#00d492]"
-                                      onClick={() =>
-                                        settleBet
-                                          ? void settle(
-                                              settleBet.id,
-                                              settleSelection,
-                                            )
-                                          : undefined
-                                      }
-                                    >
-                                      Confirm Settlement
-                                    </Button>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            ) : null}
-
-                            <Dialog
-                              open={confirmVoid && selectedBet?.id === bet.id}
-                              onOpenChange={(open) => {
-                                if (!open) {
-                                  setConfirmVoid(false);
-                                  setVoidReason("");
-                                }
-                              }}
-                            >
-                              <DialogTrigger asChild>
-                                <AdminButton
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    setSelectedBet(bet);
-                                    setConfirmVoid(true);
-                                  }}
-                                >
-                                  <XCircle size={11} />
-                                </AdminButton>
-                              </DialogTrigger>
-                              <DialogContent className="border-admin-border bg-admin-card">
-                                <DialogHeader>
-                                  <DialogTitle>Void Bet</DialogTitle>
-                                  <DialogDescription>
-                                    This action will refund the stake and mark
-                                    the bet as void.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div>
-                                  <label className="text-sm font-semibold text-admin-text-primary">
-                                    Reason for voiding
-                                  </label>
-                                  <Input
-                                    placeholder="E.g., Event cancelled, Technical error"
-                                    value={voidReason}
-                                    onChange={(event) =>
-                                      setVoidReason(event.target.value)
+                                        >
+                                          Confirm
+                                        </Button>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+                                  <Dialog
+                                    open={
+                                      confirmVoid && selectedBet?.id === bet.id
                                     }
-                                    className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
-                                  />
-                                </div>
-                                <div className="flex gap-2 pt-4">
-                                  <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => {
-                                      setConfirmVoid(false);
-                                      setVoidReason("");
+                                    onOpenChange={(open) => {
+                                      if (!open) {
+                                        setConfirmVoid(false);
+                                        setVoidReason("");
+                                      }
                                     }}
                                   >
-                                    Cancel
-                                  </Button>
-                                  <Button
-                                    className="flex-1 bg-admin-red hover:bg-red-600 text-white"
-                                    onClick={() => void settle(bet.id, "void")}
-                                  >
-                                    Void Bet
-                                  </Button>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          </div>
+                                    <DialogTrigger asChild>
+                                      <DropdownMenuItem
+                                        onSelect={(e) => {
+                                          e.preventDefault();
+                                          setSelectedBet(bet);
+                                          setConfirmVoid(true);
+                                        }}
+                                        className="text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer"
+                                      >
+                                        Void bet
+                                      </DropdownMenuItem>
+                                    </DialogTrigger>
+                                    <DialogContent className="border-admin-border bg-admin-card">
+                                      <DialogHeader>
+                                        <DialogTitle>Void Bet</DialogTitle>
+                                        <DialogDescription>
+                                          This action will refund the stake and
+                                          mark the bet as void.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="py-4">
+                                        <label className="text-sm font-medium text-admin-text-primary">
+                                          Reason for voiding
+                                        </label>
+                                        <Input
+                                          placeholder="E.g., Event cancelled, Technical error"
+                                          value={voidReason}
+                                          onChange={(event) =>
+                                            setVoidReason(event.target.value)
+                                          }
+                                          className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
+                                        />
+                                      </div>
+                                      <div className="flex gap-3">
+                                        <Button
+                                          variant="outline"
+                                          className="flex-1"
+                                          onClick={() => {
+                                            setConfirmVoid(false);
+                                            setVoidReason("");
+                                          }}
+                                        >
+                                          Cancel
+                                        </Button>
+                                        <Button
+                                          className="flex-1 bg-admin-red hover:bg-red-600 text-white"
+                                          onClick={() =>
+                                            void settle(bet.id, "void")
+                                          }
+                                        >
+                                          Void Bet
+                                        </Button>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </tr>
                     );
@@ -646,8 +579,112 @@ export default function Bets() {
         </TableShell>
       </AdminCard>
 
-      {total > 20 ? (
-        <div className="flex items-center justify-between gap-3">
+      {/* REFACTORED MODAL: Uses a clean CSS Grid now */}
+      <Dialog
+        open={selectedBet !== null && !confirmVoid}
+        onOpenChange={(open) => {
+          if (!open) setSelectedBet(null);
+        }}
+      >
+        <DialogContent className="border-admin-border bg-admin-card max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Bet Details</DialogTitle>
+            <DialogDescription>
+              Complete information for this wager
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBet && (
+            <div className="grid grid-cols-2 gap-y-6 gap-x-4 pt-4">
+              <div className="col-span-2 sm:col-span-1">
+                <p className="text-[11px] font-bold tracking-wider text-admin-text-muted uppercase mb-1">
+                  Bet ID
+                </p>
+                <p className="text-sm font-mono text-admin-blue">
+                  {selectedBet.id}
+                </p>
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <p className="text-[11px] font-bold tracking-wider text-admin-text-muted uppercase mb-1">
+                  User
+                </p>
+                <p className="text-sm text-admin-text-primary">
+                  {getUserLabel(selectedBet)}
+                </p>
+              </div>
+
+              <div className="col-span-2 bg-admin-surface p-3 rounded-lg border border-admin-border">
+                <p className="text-[11px] font-bold tracking-wider text-admin-text-muted uppercase mb-1">
+                  Event
+                </p>
+                <p className="text-sm font-medium text-admin-text-primary">
+                  {selectedBet.event.homeTeam} vs {selectedBet.event.awayTeam}
+                </p>
+                <p className="text-xs text-admin-text-muted mt-1">
+                  {selectedBet.event.sportKey ?? "Unknown Sport"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-bold tracking-wider text-admin-text-muted uppercase mb-1">
+                  Selection
+                </p>
+                <p className="text-sm font-medium text-admin-text-primary">
+                  {selectedBet.side}
+                </p>
+                <p className="text-xs text-admin-text-muted mt-0.5">
+                  {selectedBet.marketType}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] font-bold tracking-wider text-admin-text-muted uppercase mb-1">
+                  Status
+                </p>
+                <div className="mt-1">
+                  <StatusBadge
+                    status={toBadgeStatus(
+                      selectedBet.status,
+                      selectedBet.stake,
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-bold tracking-wider text-admin-text-muted uppercase mb-1">
+                  Stake & Odds
+                </p>
+                <p className="text-sm font-semibold text-admin-text-primary">
+                  KES {Math.round(selectedBet.stake).toLocaleString()}{" "}
+                  <span className="text-admin-text-muted font-normal">@</span>{" "}
+                  <span className="text-admin-gold">
+                    {selectedBet.displayOdds}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] font-bold tracking-wider text-admin-text-muted uppercase mb-1">
+                  Potential Win
+                </p>
+                <p className="text-sm font-bold text-admin-accent">
+                  KES {Math.round(selectedBet.potentialPayout).toLocaleString()}
+                </p>
+              </div>
+
+              <div className="col-span-2 border-t border-admin-border pt-4 mt-2">
+                <p className="text-[11px] font-bold tracking-wider text-admin-text-muted uppercase mb-1">
+                  Time Placed
+                </p>
+                <p className="text-sm text-admin-text-primary">
+                  {new Date(selectedBet.placedAt).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {total > 20 && (
+        <div className="flex items-center justify-between gap-3 pt-4">
           <AdminButton
             variant="ghost"
             disabled={page <= 1}
@@ -668,7 +705,7 @@ export default function Bets() {
             Next
           </AdminButton>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

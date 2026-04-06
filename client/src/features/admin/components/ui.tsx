@@ -110,9 +110,9 @@ interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const adminTableClassName = "min-w-[760px] w-full border-collapse";
 export const adminTableHeadCellClassName =
-  "border-b border-admin-border px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted";
+  "border-b border-admin-border px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted";
 export const adminTableCellClassName =
-  "border-b border-admin-border px-3 py-2.5 text-sm text-admin-text-secondary";
+  "border-b border-admin-border px-4 py-4 text-sm text-admin-text-secondary";
 export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
 
