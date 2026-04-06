@@ -101,9 +101,9 @@ export default function BettingHome() {
   }, [heroImages.length]);
 
   return (
-    <div className="space-y-5 bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
+    <div className="space-y-3 bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
       <section className="overflow-hidden rounded-2xl border border-[#23384f] bg-[#101b2b]">
-        <div className="relative h-[220px] w-full sm:h-[280px] md:h-[340px]">
+        <div className="relative h-[80px] w-full sm:h-[100px] md:h-[120px]">
           {heroImages.map((image, index) => (
             <article
               key={`hero-image-${index}`}
@@ -122,19 +122,18 @@ export default function BettingHome() {
             </article>
           ))}
 
-          <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-[#f5c518]">
+          <div className="absolute inset-x-0 bottom-0 p-2 sm:p-3 md:p-4">
+            <p className="text-[9px] uppercase tracking-[0.18em] text-[#f5c518]">
               BetWise Picks
             </p>
-            <h1 className="mt-2 max-w-2xl text-xl font-extrabold text-white sm:text-2xl md:text-3xl">
+            <h1 className="mt-1 max-w-2xl text-sm font-extrabold text-white sm:text-base md:text-lg">
               Bet Smarter, Win Bigger
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-[#d6e0e8]">
-              Explore top fixtures with real-time odds and place your best
-              picks.
+            <p className="mt-1 max-w-xl text-xs text-[#d6e0e8]">
+              Explore top fixtures with real-time odds and place your best picks.
             </p>
 
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-2 flex items-center gap-1.5">
               {heroImages.map((_, index) => (
                 <button
                   key={`hero-dot-${index}`}
@@ -155,7 +154,7 @@ export default function BettingHome() {
 
       <LiveTicker />
 
-      <section className="overflow-x-auto rounded-xl border border-[#23384f] bg-[#101b2b] px-2.5 py-2 app-scrollbar scroll-smooth">
+      <section className="overflow-x-auto rounded-xl border border-[#23384f] bg-[#101b2b] px-2.5 py-1.5 app-scrollbar scroll-smooth">
         <div className="flex min-w-max gap-2.5">
           {tabs.map((tab) => {
             const isActive =
@@ -182,10 +181,10 @@ export default function BettingHome() {
         </div>
       </section>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_350px]">
-        <div className="min-w-0 space-y-5">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_350px]">
+        <div className="min-w-0 space-y-4">
           {liveEvents.length > 0 ? (
-            <section className="space-y-2.5 overflow-hidden rounded-xl border border-[#23384f] bg-[#101b2b] p-3">
+            <section className="space-y-2 overflow-hidden rounded-xl border border-[#23384f] bg-[#101b2b] p-2.5">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-[#22c55e]" />
@@ -223,13 +222,13 @@ export default function BettingHome() {
             </section>
           ) : null}
 
-          <section className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <section className="space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#cfd9e2]">
                   UPCOMING MATCHES
                 </h2>
-                <p className="mt-1 text-[11px] uppercase tracking-[0.12em] text-[#8a9bb0]">
+                <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-[#8a9bb0]">
                   {formatToday()}
                 </p>
               </div>
