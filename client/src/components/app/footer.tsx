@@ -36,64 +36,11 @@ export default function Footer() {
 
   return (
     <footer className="w-full border-t border-[#23384f] bg-[#0b1120]">
-      {/* Newsletter Signup - Full Width Premium Section */}
-      <div className="border-b border-[#23384f] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-[1280px]">
-          <div className="rounded-2xl border border-[#294157] bg-[linear-gradient(135deg,#0f1a2a_0%,#050d15_100%)] px-8 py-10 sm:px-12 sm:py-12">
-            <div className="grid gap-8 md:grid-cols-2 md:items-center">
-              <div>
-                <h2 className="text-3xl font-bold text-white">Stay Updated</h2>
-                <p className="mt-3 text-lg text-[#8a9bb0]">
-                  Get the latest betting tips, exclusive promotions, and insider
-                  updates delivered to your inbox.
-                </p>
-              </div>
-
-              <form
-                onSubmit={handleNewsletterSubmit}
-                className="flex flex-col gap-3"
-              >
-                {isSubscribed ? (
-                  <div className="flex items-center justify-center gap-3 rounded-xl border border-green-500/30 bg-green-500/10 px-6 py-4">
-                    <CheckCircle className="h-6 w-6 text-green-400" />
-                    <span className="text-lg font-bold text-green-400">
-                      Successfully subscribed!
-                    </span>
-                  </div>
-                ) : (
-                  <>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8a9bb0]" />
-                      <input
-                        type="email"
-                        placeholder="your@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="h-14 w-full rounded-xl border border-[#294157] bg-[#0f1a2a] pl-12 pr-4 text-base text-white outline-none transition placeholder:text-[#5a6b7d] focus:border-[#f5c518] focus:shadow-[0_0_0_3px_rgba(245,197,24,0.15)]"
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-[#f5c518] text-base font-bold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {isSubmitting ? "Subscribing..." : "Subscribe Now"}
-                      <ArrowRight className="h-5 w-5" />
-                    </button>
-                  </>
-                )}
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer Content */}
       <div className="mx-auto w-full max-w-[1280px] gap-8 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand Section */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div>
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f5c518]">
                 <span className="text-sm font-bold text-black">B</span>
@@ -201,6 +148,52 @@ export default function Footer() {
               </a>
               <p>Nairobi, Kenya</p>
             </div>
+          </div>
+
+          {/* Stay Updated - Newsletter Card */}
+          <div className="rounded-xl border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-5">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-white">
+              Stay Updated
+            </h4>
+            <p className="mt-2 text-xs text-[#8a9bb0]">
+              Get betting tips & exclusive deals
+            </p>
+
+            <form
+              onSubmit={handleNewsletterSubmit}
+              className="mt-4 flex flex-col gap-2.5"
+            >
+              {isSubscribed ? (
+                <div className="flex items-center justify-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2.5">
+                  <CheckCircle className="h-4 w-4 text-green-400" />
+                  <span className="text-xs font-bold text-green-400">
+                    Subscribed!
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9bb0]" />
+                    <input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="h-10 w-full rounded-lg border border-[#294157] bg-[#0f1a2a] pl-10 pr-3 text-xs text-white outline-none transition placeholder:text-[#5a6b7d] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[#f5c518] text-xs font-bold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isSubmitting ? "..." : "Subscribe"}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </>
+              )}
+            </form>
           </div>
         </div>
 
