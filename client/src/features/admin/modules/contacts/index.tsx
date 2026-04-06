@@ -50,7 +50,7 @@ export default function Contacts() {
 
   const itemsPerPage = 20;
 
-  // Fetch contacts (Search removed)
+  // Fetch contacts
   const { data: contactsData, isLoading: isContactsLoading } = useAdminContacts(
     itemsPerPage,
     (currentPage - 1) * itemsPerPage,
@@ -74,8 +74,6 @@ export default function Contacts() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-contacts"] });
       toast.success("Contact status updated");
-      // Keep modal open but update the local selected contact state if needed,
-      // or simply rely on the background refetch to update the table behind it.
     },
     onError: () => {
       toast.error("Failed to update contact status");
@@ -93,7 +91,7 @@ export default function Contacts() {
   const stats = useMemo(() => {
     if (!contacts.length) {
       return [
-        { label: "Total Messages", value: "0", tone: "blue" as const },
+        { label: "Total", value: "0", tone: "blue" as const },
         { label: "Unread", value: "0", tone: "gold" as const },
         { label: "Read", value: "0", tone: "accent" as const },
         { label: "Resolved", value: "0", tone: "emerald" as const },
@@ -167,14 +165,13 @@ export default function Contacts() {
 
   const handleStatusUpdate = (contactId: string, newStatus: string) => {
     updateStatusMutation.mutate({ contactId, newStatus });
-    // Optimistically update the selected contact in the modal if it's open
     if (selectedContact?.id === contactId) {
       setSelectedContact({ ...selectedContact, status: newStatus });
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <AdminSectionHeader
         title="Messages"
         subtitle="User contact messages and inquiries"
@@ -186,25 +183,26 @@ export default function Contacts() {
         }
       />
 
-      {/* Summary Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Summary Stats - Constrained width and smaller gap to make cards smaller */}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 max-w-5xl">
         {stats.map((stat) => (
           <SummaryCard
             key={stat.label}
             label={stat.label}
             tone={stat.tone}
             value={stat.value}
+            className="py-3 px-4" // Assuming your component accepts className for inner padding
           />
         ))}
       </div>
 
-      {/* Filters */}
-      <AdminCard>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <label className="text-sm font-semibold text-admin-text-muted uppercase shrink-0">
-              Filter Status:
-            </label>
+      <div className="space-y-4">
+        {/* Filters - Stripped of the AdminCard background, minimal layout */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-admin-text-muted">
+              Filter:
+            </span>
             <select
               value={statusFilter}
               onChange={(e) => {
@@ -213,7 +211,7 @@ export default function Contacts() {
                 );
                 setCurrentPage(1);
               }}
-              className="rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-sm text-admin-text-primary focus:outline-none focus:ring-2 focus:ring-admin-accent flex-1 sm:flex-none min-w-[150px]"
+              className="appearance-none cursor-pointer bg-transparent border border-admin-border rounded-md px-3 py-1.5 text-sm text-admin-text-primary hover:bg-admin-bg focus:outline-none focus:ring-1 focus:ring-admin-accent transition-colors"
             >
               <option value="">All Statuses</option>
               <option value="SUBMITTED">Unread</option>
@@ -233,142 +231,142 @@ export default function Contacts() {
             messages
           </div>
         </div>
-      </AdminCard>
 
-      {/* Contacts Table */}
-      <AdminCard>
-        {isContactsLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader className="h-6 w-6 animate-spin text-admin-accent" />
-          </div>
-        ) : contacts.length === 0 ? (
-          <div className="py-20 text-center">
-            <MessageSquare className="mx-auto h-8 w-8 text-admin-text-muted mb-3 opacity-50" />
-            <p className="text-admin-text-muted">No messages found.</p>
-          </div>
-        ) : (
-          <TableShell>
-            <table className={adminTableClassName}>
-              <thead>
-                <tr>
-                  {[
-                    "Name",
-                    "Phone",
-                    "Subject",
-                    "Status",
-                    "Date",
-                    <span key="actions" className="sr-only">
-                      Actions
-                    </span>,
-                  ].map((heading, idx) => (
-                    <th className={adminTableHeadCellClassName} key={idx}>
-                      {heading}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {contacts.map((contact) => (
-                  <tr
-                    key={contact.id}
-                    onClick={() => handleRowClick(contact)}
-                    className="group cursor-pointer hover:bg-admin-bg/50 transition-colors duration-200"
-                  >
-                    <td className={adminTableCellClassName}>
-                      <div>
-                        <p className="font-semibold text-admin-text-primary group-hover:text-admin-accent transition-colors">
-                          {contact.fullName}
-                        </p>
-                        {contact.user?.email && (
-                          <p className="text-xs text-admin-text-muted flex items-center gap-1 mt-0.5">
-                            <Mail size={12} />
-                            {contact.user.email}
+        {/* Contacts Table */}
+        <AdminCard>
+          {isContactsLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader className="h-6 w-6 animate-spin text-admin-accent" />
+            </div>
+          ) : contacts.length === 0 ? (
+            <div className="py-20 text-center">
+              <MessageSquare className="mx-auto h-8 w-8 text-admin-text-muted mb-3 opacity-50" />
+              <p className="text-admin-text-muted">No messages found.</p>
+            </div>
+          ) : (
+            <TableShell>
+              <table className={adminTableClassName}>
+                <thead>
+                  <tr>
+                    {[
+                      "Name",
+                      "Phone",
+                      "Subject",
+                      "Status",
+                      "Date",
+                      <span key="actions" className="sr-only">
+                        Actions
+                      </span>,
+                    ].map((heading, idx) => (
+                      <th className={adminTableHeadCellClassName} key={idx}>
+                        {heading}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {contacts.map((contact) => (
+                    <tr
+                      key={contact.id}
+                      onClick={() => handleRowClick(contact)}
+                      className="group cursor-pointer hover:bg-admin-bg/50 transition-colors duration-200"
+                    >
+                      <td className={adminTableCellClassName}>
+                        <div>
+                          <p className="font-semibold text-admin-text-primary group-hover:text-admin-accent transition-colors">
+                            {contact.fullName}
                           </p>
-                        )}
-                      </div>
-                    </td>
-                    <td className={adminTableCellClassName}>
-                      <p className="text-sm text-admin-text-primary">
-                        {contact.phone}
-                      </p>
-                    </td>
-                    <td className={adminTableCellClassName}>
-                      <p className="text-sm text-admin-text-primary truncate max-w-[200px] xl:max-w-xs">
-                        {contact.subject}
-                      </p>
-                    </td>
-                    <td className={adminTableCellClassName}>
-                      <StatusBadge status={contact.status.toLowerCase()} />
-                    </td>
-                    <td className={adminTableCellClassName}>
-                      <p className="text-sm text-admin-text-muted whitespace-nowrap">
-                        {new Date(contact.createdAt).toLocaleDateString(
-                          undefined,
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          },
-                        )}
-                      </p>
-                    </td>
-                    <td className={`${adminTableCellClassName} text-right`}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          asChild
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Button
-                            variant="ghost"
-                            className="h-8 w-8 p-0 text-admin-text-muted hover:text-admin-text-primary"
+                          {contact.user?.email && (
+                            <p className="text-xs text-admin-text-muted flex items-center gap-1 mt-0.5">
+                              <Mail size={12} />
+                              {contact.user.email}
+                            </p>
+                          )}
+                        </div>
+                      </td>
+                      <td className={adminTableCellClassName}>
+                        <p className="text-sm text-admin-text-primary">
+                          {contact.phone}
+                        </p>
+                      </td>
+                      <td className={adminTableCellClassName}>
+                        <p className="text-sm text-admin-text-primary truncate max-w-[200px] xl:max-w-xs">
+                          {contact.subject}
+                        </p>
+                      </td>
+                      <td className={adminTableCellClassName}>
+                        <StatusBadge status={contact.status.toLowerCase()} />
+                      </td>
+                      <td className={adminTableCellClassName}>
+                        <p className="text-sm text-admin-text-muted whitespace-nowrap">
+                          {new Date(contact.createdAt).toLocaleDateString(
+                            undefined,
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            },
+                          )}
+                        </p>
+                      </td>
+                      <td className={`${adminTableCellClassName} text-right`}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            asChild
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="w-48"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handleRowClick(contact)}
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 p-0 text-admin-text-muted hover:text-admin-text-primary"
+                            >
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-48"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            View Details
-                          </DropdownMenuItem>
-                          {contact.status !== "READ" &&
-                            contact.status !== "RESOLVED" && (
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleRowClick(contact)}
+                            >
+                              View Details
+                            </DropdownMenuItem>
+                            {contact.status !== "READ" &&
+                              contact.status !== "RESOLVED" && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleStatusUpdate(contact.id, "READ")
+                                  }
+                                  className="text-accent"
+                                >
+                                  Mark as Read
+                                </DropdownMenuItem>
+                              )}
+                            {contact.status !== "RESOLVED" && (
                               <DropdownMenuItem
                                 onClick={() =>
-                                  handleStatusUpdate(contact.id, "READ")
+                                  handleStatusUpdate(contact.id, "RESOLVED")
                                 }
-                                className="text-accent"
+                                className="text-emerald-500"
                               >
-                                Mark as Read
+                                Mark as Resolved
                               </DropdownMenuItem>
                             )}
-                          {contact.status !== "RESOLVED" && (
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleStatusUpdate(contact.id, "RESOLVED")
-                              }
-                              className="text-emerald-500"
-                            >
-                              Mark as Resolved
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </TableShell>
-        )}
-      </AdminCard>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableShell>
+          )}
+        </AdminCard>
+      </div>
 
       {/* Pagination */}
       {pagination.pages > 1 && (

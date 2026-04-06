@@ -34,7 +34,10 @@ export type AdminBadgeStatus =
   | "failed"
   | "high"
   | "medium"
-  | "low";
+  | "low"
+  | "submitted"
+  | "read"
+  | "resolved";
 
 export interface AdminMetric {
   label: string;
