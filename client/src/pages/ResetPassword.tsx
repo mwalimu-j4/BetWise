@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
       );
       setSuccessMessage(data.message);
       setTimeout(() => {
-        void navigate({ to: "/login" });
+        void navigate({ to: "/" });
       }, 1200);
     } catch (error: unknown) {
       const apiMessage = (
@@ -57,13 +57,13 @@ export default function ResetPasswordPage() {
     <AuthCard
       title="Reset password"
       subtitle="Set your new password."
-      backTo="/login"
-      backLabel="Back to login"
+      backTo="/"
+      backLabel="Back to home"
       footer={
         <p className="text-center text-xs text-admin-text-muted">
           Back to{" "}
-          <Link className="font-semibold text-admin-accent" to="/login">
-            login
+          <Link className="font-semibold text-admin-accent" to="/">
+            home
           </Link>
         </p>
       }

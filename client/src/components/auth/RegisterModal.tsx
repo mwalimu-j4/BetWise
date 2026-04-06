@@ -9,6 +9,7 @@ import {
   Phone,
   Check,
   X,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -143,7 +144,10 @@ export default function RegisterModal() {
       {authModal === "register" && (
         <>
           {/* Overlay */}
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in" onClick={handleClose} />
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+            onClick={handleClose}
+          />
 
           {/* Modal */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
@@ -154,9 +158,13 @@ export default function RegisterModal() {
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#f5c518] to-[#e6b800]">
                     <Lock size={20} className="text-slate-900" />
                   </div>
-                  <h2 className="text-xl font-bold text-white">Create account</h2>
+                  <h2 className="text-xl font-bold text-white">
+                    Create account
+                  </h2>
                 </div>
-                <p className="text-sm text-slate-400">Join BetWise and start betting smart</p>
+                <p className="text-sm text-slate-400">
+                  Join BetWise and start betting smart
+                </p>
               </div>
 
               <form className="space-y-3" onSubmit={handleSubmit}>
@@ -291,10 +299,16 @@ export default function RegisterModal() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 transition-colors"
                     >
-                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showConfirmPassword ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
                     </button>
                   </div>
                   {confirmPassword.length > 0 && (
@@ -302,12 +316,16 @@ export default function RegisterModal() {
                       {confirmPassword === password ? (
                         <>
                           <Check size={12} className="text-emerald-400" />
-                          <span className="text-emerald-400">Passwords match</span>
+                          <span className="text-emerald-400">
+                            Passwords match
+                          </span>
                         </>
                       ) : (
                         <>
                           <X size={12} className="text-red-400" />
-                          <span className="text-red-400">Passwords don't match</span>
+                          <span className="text-red-400">
+                            Passwords don't match
+                          </span>
                         </>
                       )}
                     </div>

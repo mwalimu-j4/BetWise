@@ -65,7 +65,7 @@ export default function UserProfilePage() {
 
   const handleSignOut = async () => {
     await logout();
-    await navigate({ to: "/login", search: { redirect: "/profile" } });
+    await navigate({ to: "/" });
   };
 
   return (

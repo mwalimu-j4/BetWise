@@ -117,7 +117,9 @@ export default function LoginModal() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">Welcome back</h1>
-                <p className="text-xs text-slate-400 mt-0.5">Access your BetWise account</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Access your BetWise account
+                </p>
               </div>
             </div>
           </div>
@@ -132,11 +134,17 @@ export default function LoginModal() {
 
             {/* Phone field */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300" htmlFor="login-phone">
+              <label
+                className="text-sm font-semibold text-slate-300"
+                htmlFor="login-phone"
+              >
                 Phone number
               </label>
               <div className="relative">
-                <Phone size={16} className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none" />
+                <Phone
+                  size={16}
+                  className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none"
+                />
                 <input
                   id="login-phone"
                   type="tel"
@@ -148,17 +156,25 @@ export default function LoginModal() {
                 />
               </div>
               {!KENYAN_PHONE_REGEX.test(phone.trim()) && phone.length > 0 && (
-                <p className="text-xs text-amber-400 font-medium">✓ Enter a valid Kenyan phone number</p>
+                <p className="text-xs text-amber-400 font-medium">
+                  ✓ Enter a valid Kenyan phone number
+                </p>
               )}
             </div>
 
             {/* Password field */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300" htmlFor="login-password">
+              <label
+                className="text-sm font-semibold text-slate-300"
+                htmlFor="login-password"
+              >
                 Password
               </label>
               <div className="relative">
-                <Lock size={16} className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none" />
+                <Lock
+                  size={16}
+                  className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none"
+                />
                 <input
                   id="login-password"
                   type={showPassword ? "text" : "password"}

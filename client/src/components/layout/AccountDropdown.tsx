@@ -139,7 +139,7 @@ export default function AccountDropdown({
           onClick={async () => {
             await logout();
             onClose();
-            navigate({ to: "/login" });
+            navigate({ to: "/" });
           }}
         >
           <span className="bc-account-item-icon" aria-hidden="true">

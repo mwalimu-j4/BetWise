@@ -23,7 +23,7 @@ export default function Footer() {
           </h4>
           <nav className="mt-3 grid gap-2">
             <Link
-              to="/user"
+              to="/"
               className="text-sm text-admin-text-secondary transition hover:text-admin-accent"
             >
               Home
@@ -33,12 +33,6 @@ export default function Footer() {
               className="text-sm text-admin-text-secondary transition hover:text-admin-accent"
             >
               Deposit
-            </Link>
-            <Link
-              to="/user/login"
-              className="text-sm text-admin-text-secondary transition hover:text-admin-accent"
-            >
-              Login
             </Link>
           </nav>
         </div>

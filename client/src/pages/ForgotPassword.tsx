@@ -43,13 +43,13 @@ export default function ForgotPasswordPage() {
     <AuthCard
       title="Forgot password"
       subtitle="We'll send a secure reset link if your details match."
-      backTo="/login"
-      backLabel="Back to login"
+      backTo="/"
+      backLabel="Back to home"
       footer={
         <p className="text-center text-sm text-admin-text-muted">
           Remembered your password?{" "}
-          <Link className="font-semibold text-admin-accent" to="/login">
-            Go to login
+          <Link className="font-semibold text-admin-accent" to="/">
+            Go to home
           </Link>
         </p>
       }
