@@ -135,19 +135,14 @@ export default function PaymentsWithdrawalPage() {
   }
 
   return (
-    <section className="mx-auto grid w-full max-w-4xl gap-4">
+    <section className="mx-auto grid w-full max-w-6xl gap-4 lg:grid-cols-[1.3fr_1fr]">
       <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-5 sm:p-6">
-        <div className="mb-4 flex items-end justify-between gap-3 border-b border-[#23384f] pb-4">
-          <div>
-            <h2 className="text-lg font-bold text-admin-text-primary">
-              Withdraw Funds
-            </h2>
-            <p className="mt-1 text-sm text-admin-text-muted">
-              Withdraw directly to your M-Pesa number.
-            </p>
-          </div>
-          <p className="text-sm font-semibold text-admin-accent">
-            {formatMoney(balance)}
+        <div className="mb-4 border-b border-[#23384f] pb-4">
+          <h2 className="text-lg font-bold text-admin-text-primary">
+            Withdraw Funds
+          </h2>
+          <p className="mt-1 text-sm text-admin-text-muted">
+            Withdraw directly to your M-Pesa number.
           </p>
         </div>
 
