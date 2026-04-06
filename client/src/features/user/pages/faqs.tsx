@@ -141,9 +141,9 @@ export default function FAQs() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0b1120] to-[#0f172a] text-white">
-      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Hero Section */}
-        <div className="mb-16 text-center">
+        <div className="mb-10 text-center">
           <h1 className="text-4xl font-bold mb-4">
             Frequently Asked Questions
           </h1>

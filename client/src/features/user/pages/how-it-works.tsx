@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   ChevronDown,
   Zap,
@@ -17,6 +18,7 @@ interface Step {
 }
 
 export default function HowItWorks() {
+  const navigate = useNavigate();
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
   const steps: Step[] = [
     {
@@ -58,9 +60,9 @@ export default function HowItWorks() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0b1120] to-[#0f172a] text-white">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Hero Section */}
-        <div className="mb-16 text-center">
+        <div className="mb-10 text-center">
           <h1 className="text-4xl font-bold mb-4">How BetRixPro Works</h1>
           <p className="text-base text-[#90a2bb] max-w-2xl mx-auto leading-relaxed">
             Get started with sports betting in just a few simple steps. Follow
@@ -131,7 +133,7 @@ export default function HowItWorks() {
             today with secure M-Pesa deposits and a world-class betting
             experience on BetRixPro.
           </p>
-          <button className="inline-block rounded-xl bg-gradient-to-r from-[#f5c518] to-[#d4a500] px-10 py-3 font-bold text-[#0b1120] hover:shadow-xl hover:scale-105 transition-all duration-200">
+          <button onClick={() => navigate({ to: "/user" })} className="inline-block rounded-xl bg-gradient-to-r from-[#f5c518] to-[#d4a500] px-10 py-3 font-bold text-[#0b1120] hover:shadow-xl hover:scale-105 transition-all duration-200">
             Start Betting Now
           </button>
         </div>
