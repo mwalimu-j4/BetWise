@@ -26,7 +26,7 @@
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 0;
 }
 
 .bc-navbar {
@@ -240,8 +240,8 @@
 
 .bc-search-row:hover,
 .bc-search-row.is-active {
-  background: var(--color-bg-hover);
-  color: var(--nav-text);
+  background: var(--color-accent-soft);
+  color: var(--nav-accent);
 }
 
 .bc-search-match-icon {
@@ -334,16 +334,6 @@
 }
 
 .bc-nav-links {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.bc-nav-links::-webkit-scrollbar {
   display: none;
 }
 
@@ -411,24 +401,16 @@
 }
 
 .bc-balance-card {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: linear-gradient(
-    135deg,
-    var(--nav-accent) 0%,
-    var(--nav-accent2) 100%
-  );
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  min-width: fit-content;
+  gap: 6px;
+  padding: 0 13px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--nav-surface2);
+  border: 1px solid var(--color-border-primary);
+  min-width: auto;
   transition: all 0.2s ease;
-}
-
-.bc-balance-card:hover {
-  transform: translateY(-0.5px);
-  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.25);
 }
 
 .bc-balance-icon {
@@ -446,29 +428,38 @@
 .bc-balance-content {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  width: 100%;
 }
 
 .bc-balance-label {
   font-size: 9px;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.65);
-  letter-spacing: 1px;
+  color: var(--nav-accent);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin: 0;
+  opacity: 0.9;
 }
 
 .bc-balance-value {
   font-family: "Barlow Condensed", sans-serif;
   font-size: 14px;
   font-weight: 700;
-  color: var(--color-text-dark);
+  background: linear-gradient(135deg, var(--nav-accent), var(--nav-accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+  margin: 0;
 }
 
 .bc-icon-btn {
   width: 36px;
   height: 36px;
   border-radius: 6px;
-  border: 1px solid var(--color-border-primary);
-  background: var(--nav-surface2);
+  border: 0;
+  background: transparent;
   color: var(--nav-text);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -478,8 +469,7 @@
 }
 
 .bc-icon-btn:hover {
-  background: var(--nav-surface);
-  border-color: var(--color-border-accent);
+  background: transparent;
   color: var(--nav-accent);
 }
 
@@ -599,8 +589,8 @@
 }
 
 .bc-notify-item:hover {
-  background: var(--color-bg-hover);
-  color: var(--nav-text);
+  background: var(--color-accent-soft);
+  color: var(--nav-accent);
 }
 
 .bc-notify-item:last-child {
@@ -671,23 +661,39 @@
 }
 
 .bc-account-trigger {
-  height: 44px;
-  border-radius: 20px;
-  border: 1px solid var(--color-border-accent);
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-primary);
   background: var(--nav-surface2);
   color: var(--nav-text);
-  padding: 0 14px 0 10px;
+  padding: 0 12px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.bc-account-trigger.is-open,
 .bc-account-trigger:hover {
   background: var(--nav-surface);
-  border-color: var(--color-border-focus);
+  border-color: var(--nav-accent);
+  color: var(--nav-accent);
+}
+
+.bc-account-trigger.is-open {
+  background: var(--color-accent-soft);
+  border-color: var(--nav-accent);
+  color: var(--nav-accent);
+}
+
+.bc-account-chevron {
+  transition: transform 0.2s ease;
+}
+
+.bc-account-trigger.is-open .bc-account-chevron {
+  transform: rotate(180deg);
 }
 
 .bc-trigger-avatar,
@@ -786,6 +792,8 @@
   border: 0;
   background: transparent;
   text-align: left;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .bc-account-item:hover {
@@ -800,10 +808,26 @@
 
 .bc-account-item-icon {
   width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  flex-shrink: 0;
   opacity: 0.65;
+  transition: all 0.2s ease;
+}
+
+.bc-account-item:hover .bc-account-item-icon {
+  opacity: 0.9;
 }
 
 .bc-account-item.is-logout {
+  color: var(--nav-red);
+}
+
+.bc-account-item.is-logout:hover {
+  background: color-mix(in srgb, var(--nav-red) 15%, transparent);
   color: var(--nav-red);
 }
 
@@ -835,7 +859,7 @@
 
 .bc-deposit-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 5px 16px rgba(212, 175, 55, 0.25);
 }
 
 .bc-auth-group {
@@ -860,8 +884,9 @@
 }
 
 .bc-phone-badge:hover {
-  border-color: var(--color-border-accent);
+  border-color: var(--nav-accent);
   background: var(--nav-surface);
+  color: var(--nav-accent);
 }
 
 .bc-logout-btn,
@@ -888,7 +913,7 @@
 .bc-logout-btn:hover,
 .bc-register-btn:hover {
   background: var(--nav-surface);
-  border-color: var(--color-border-accent);
+  border-color: var(--nav-accent);
   color: var(--nav-accent);
   transform: translateY(-0.5px);
 }
@@ -950,8 +975,8 @@
 }
 
 .bc-league:hover {
-  color: var(--nav-text);
-  background: var(--color-bg-hover);
+  color: var(--nav-accent);
+  background: var(--color-accent-soft);
 }
 
 .bc-league.is-active {
@@ -1136,11 +1161,15 @@
     opacity: 1;
     pointer-events: auto;
   }
+
+  .bc-main-search {
+    max-width: 200px;
+  }
 }
 
 @media (max-width: 600px) {
   .bc-main-search {
-    max-width: 140px;
+    max-width: 120px;
   }
 
   .bc-link-label,
@@ -1151,20 +1180,137 @@
   .bc-nav-link {
     min-width: 44px;
     justify-content: center;
+    padding: 5px 6px;
+  }
+
+  .bc-balance-card {
+    padding: 5px 10px;
+  }
+
+  .bc-balance-label {
+    font-size: 10px;
+  }
+
+  .bc-balance-value {
+    font-size: 11px;
+  }
+
+  .bc-notify {
+    width: 36px;
+  }
+
+  .bc-account-trigger {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .bc-deposit-btn {
+    padding: 0 8px;
+  }
+
+  .bc-deposit-text {
+    display: none;
   }
 }
 
 @media (max-width: 480px) {
-  .bc-main-search,
-  .bc-balance,
-  .bc-deposit-text {
-    display: none;
+  .bc-main-search {
+    max-width: 80px;
+  }
+
+  .bc-nav-links {
+    gap: 0;
+    flex-shrink: 1;
+  }
+
+  .bc-nav-link {
+    min-width: 40px;
+    padding: 5px 4px;
+  }
+
+  .bc-link-icon {
+    font-size: 11px;
+  }
+
+  .bc-balance-card {
+    padding: 4px 8px;
+  }
+
+  .bc-balance-label {
+    font-size: 9px;
+  }
+
+  .bc-balance-value {
+    font-size: 10px;
   }
 
   .bc-deposit-btn {
-    width: 44px;
+    width: 36px;
+    height: 36px;
     justify-content: center;
     padding: 0;
+  }
+
+  .bc-account-trigger {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .bc-account-chevron {
+    display: none;
+  }
+
+  .bc-ticker {
+    display: none;
+  }
+
+  .bc-leagues {
+    height: 32px;
+    padding: 0 8px;
+    gap: 0;
+  }
+
+  .bc-league {
+    padding: 0 6px;
+    font-size: 11px;
+    min-height: 32px;
+  }
+
+  .bc-league-sep {
+    margin: 0 4px;
+  }
+
+  .bc-main-row {
+    height: 52px;
+    padding: 0 12px;
+    gap: 4px;
+  }
+
+  .bc-logo {
+    margin-right: 6px;
+  }
+
+  .bc-logo-text {
+    font-size: 16px;
+  }
+
+  .bc-logo-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .bc-actions {
+    gap: 6px;
+  }
+
+  .bc-icon-btn,
+  .bc-account-trigger {
+    width: auto;
+    height: 36px;
+    border-radius: 5px;
   }
 }
 
