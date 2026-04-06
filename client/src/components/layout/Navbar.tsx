@@ -1,12 +1,5 @@
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import {
-  Bell,
-  ChevronDown,
-  CircleCheck,
-  CircleX,
-  Menu,
-  Plus,
-} from "lucide-react";
+import { Link, useLocation } from "@tanstack/react-router";
+import { Bell, CircleCheck, CircleX, Menu, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
 import SearchBar from "@/components/search/SearchBar";
@@ -22,52 +15,12 @@ type NavbarProps = {
   onToggleSidebar: () => void;
 };
 
-type NavRoute = {
-  label: string;
-  icon: string;
-  to: string;
-  badge?: {
-    text: string;
-    tone: "red" | "gold" | "green";
-  };
-};
-
 const tickerItems = [
   { label: "Arsenal vs Liverpool", odds: "1.85", up: true },
   { label: "PSG vs Bayern", odds: "2.10", up: false },
   { label: "Inter vs Milan", odds: "1.92", up: true },
   { label: "Madrid vs Sevilla", odds: "1.73", up: true },
   { label: "Chelsea vs Villa", odds: "2.40", up: false },
-];
-
-const navLinks: NavRoute[] = [
-  { label: "Home", icon: "#", to: "/user" },
-  {
-    label: "Live",
-    icon: "o",
-    to: "/user/payments/deposit",
-    badge: { text: "24", tone: "red" },
-  },
-  { label: "Upcoming", icon: "*", to: "/user/payments" },
-  {
-    label: "Jackpot",
-    icon: "$",
-    to: "/user/coming-soon?feature=jackpot",
-    badge: { text: "4.2M", tone: "gold" },
-  },
-  {
-    label: "Promotions",
-    icon: "+",
-    to: "/user/coming-soon?feature=promotions",
-    badge: { text: "New", tone: "green" },
-  },
-  { label: "Results", icon: "=", to: "/user/payments/history" },
-  {
-    label: "My Bets",
-    icon: "[]",
-    to: "/my-bets?tab=normal&filter=all&page=1",
-  },
-  { label: "Profile", icon: "U", to: "/user/profile" },
 ];
 
 const leagues = [
@@ -133,8 +86,7 @@ function toText(value: unknown, fallback = "") {
 
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const { data: walletSummary } = useWalletSummary();
   const { data: notificationData } = useAppNotifications(12);
@@ -145,15 +97,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const lastPathRef = useRef(location.pathname);
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
-
-  const initials = useMemo(() => {
-    const source = user?.email?.trim() || user?.phone?.trim() || "User";
-    return source
-      .split(" ")
-      .slice(0, 2)
-      .map((part: string) => part.charAt(0).toUpperCase())
-      .join("");
-  }, [user?.email, user?.phone]);
 
   useEffect(() => {
     if (location.pathname !== lastPathRef.current) {
@@ -215,49 +158,9 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           <SearchBar />
         </div>
 
-        <nav className="bc-nav-links" aria-label="Primary">
-          {navLinks.map((item) => {
-            const itemPath = item.to.split("?")[0] ?? item.to;
-            const isMyBetsLink = itemPath === "/my-bets";
-            const isActive = isMyBetsLink
-              ? location.pathname.startsWith("/my-bets")
-              : location.pathname === itemPath;
-            return (
-              <Link
-                key={item.label}
-                to={item.to as never}
-                className={`bc-nav-link ${isActive ? "is-active" : ""}`}
-                onClick={(event) => {
-                  if (!isMyBetsLink || isAuthenticated) {
-                    return;
-                  }
-
-                  event.preventDefault();
-                  void navigate({
-                    to: "/login",
-                    search: {
-                      redirect: "/my-bets?tab=normal&filter=all&page=1",
-                    },
-                  });
-                }}
-              >
-                <span className="bc-link-icon" aria-hidden="true">
-                  {item.icon}
-                </span>
-                <span className="bc-link-label">{item.label}</span>
-                {item.badge ? (
-                  <span className={`bc-badge ${item.badge.tone}`}>
-                    {item.badge.text}
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
-        </nav>
-
         <div className="bc-actions">
           <div className="bc-balance-card" aria-label="Wallet Balance">
-            <span className="bc-balance-label">BALANCE</span>
+            <span className="bc-balance-label">Balance:</span>
             <span className="bc-balance-value">
               {formatMoney(walletSummary?.wallet.balance ?? 0)}
             </span>
@@ -354,10 +257,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                   className={`bc-account-trigger ${accountOpen ? "is-open" : ""}`}
                   onClick={() => setAccountOpen((prev) => !prev)}
                 >
-                  <span className="bc-trigger-avatar">{initials}</span>
-                  <span className="bc-account-chevron">
-                    <ChevronDown size={14} />
-                  </span>
+                  Account
                 </button>
                 <AccountDropdown
                   open={accountOpen}

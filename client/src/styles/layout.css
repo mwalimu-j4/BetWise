@@ -334,16 +334,6 @@
 }
 
 .bc-nav-links {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.bc-nav-links::-webkit-scrollbar {
   display: none;
 }
 
@@ -411,47 +401,20 @@
 }
 
 .bc-balance-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: linear-gradient(
-    135deg,
-    var(--nav-accent) 0%,
-    var(--nav-accent2) 100%
-  );
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  min-width: 140px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.bc-balance-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: left 0.5s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--nav-surface2);
+  border: 1px solid var(--color-border-primary);
+  min-width: auto;
+  transition: all 0.2s ease;
 }
 
 .bc-balance-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-
-.bc-balance-card:hover::before {
-  left: 100%;
+  border-color: var(--color-border-accent);
+  background: var(--nav-surface);
 }
 
 .bc-balance-icon {
@@ -474,19 +437,19 @@
 }
 
 .bc-balance-label {
-  font-size: 8px;
-  font-weight: 800;
-  color: rgba(0, 0, 0, 0.7);
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--nav-muted);
+  letter-spacing: 0;
+  text-transform: none;
   margin: 0;
 }
 
 .bc-balance-value {
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--color-text-dark);
+  color: var(--nav-text);
   line-height: 1;
   margin: 0;
 }
@@ -699,17 +662,18 @@
 }
 
 .bc-account-trigger {
-  height: 44px;
-  border-radius: 20px;
-  border: 1px solid var(--color-border-accent);
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-primary);
   background: var(--nav-surface2);
   color: var(--nav-text);
-  padding: 0 14px 0 10px;
+  padding: 0 12px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .bc-account-trigger.is-open,
@@ -1187,12 +1151,15 @@
   }
 
   .bc-balance-card {
-    min-width: 120px;
-    padding: 8px 12px;
+    padding: 5px 10px;
+  }
+
+  .bc-balance-label {
+    font-size: 10px;
   }
 
   .bc-balance-value {
-    font-size: 16px;
+    font-size: 11px;
   }
 
   .bc-notify {
@@ -1201,7 +1168,8 @@
 
   .bc-account-trigger {
     height: 36px;
-    padding: 0 8px;
+    padding: 0 10px;
+    font-size: 11px;
   }
 
   .bc-deposit-btn {
@@ -1233,17 +1201,15 @@
   }
 
   .bc-balance-card {
-    min-width: 110px;
-    padding: 7px 10px;
+    padding: 4px 8px;
   }
 
   .bc-balance-label {
-    font-size: 7px;
-    letter-spacing: 0.8px;
+    font-size: 9px;
   }
 
   .bc-balance-value {
-    font-size: 14px;
+    font-size: 10px;
   }
 
   .bc-deposit-btn {
@@ -1255,9 +1221,8 @@
 
   .bc-account-trigger {
     height: 36px;
-    padding: 0;
-    width: 44px;
-    justify-content: center;
+    padding: 0 10px;
+    font-size: 11px;
   }
 
   .bc-account-chevron {
@@ -1310,7 +1275,7 @@
 
   .bc-icon-btn,
   .bc-account-trigger {
-    width: 36px;
+    width: auto;
     height: 36px;
     border-radius: 5px;
   }
