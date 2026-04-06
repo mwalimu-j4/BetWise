@@ -45,6 +45,7 @@ type EventsLeaguesResponse = {
 
 const EVENTS_STATS_CACHE_TTL_MS = 30_000;
 const EVENTS_LEAGUES_CACHE_TTL_MS = 300_000;
+const BULK_CONFIG_BATCH_SIZE = 40;
 
 let eventsStatsCache: { data: EventsStatsResponse; expiresAt: number } | null =
   null;
@@ -685,24 +686,26 @@ eventsAdminRouter.patch("/admin/events/bulk-config", async (req, res, next) => {
 
     const uniqueEventIds = Array.from(new Set(parsedBody.data.eventIds));
 
-    const result = await prisma.$transaction(
-      async (tx: Prisma.TransactionClient) => {
-        const updateResult = await tx.sportEvent.updateMany({
-          where: { eventId: { in: uniqueEventIds } },
-          data: { houseMargin: parsedBody.data.houseMargin },
-        });
+    const updatedEvents = await prisma.sportEvent.updateMany({
+      where: { eventId: { in: uniqueEventIds } },
+      data: { houseMargin: parsedBody.data.houseMargin },
+    });
 
-        const displayedOdds = await tx.displayedOdds.findMany({
-          where: { eventId: { in: uniqueEventIds } },
-          select: {
-            id: true,
-            rawOdds: true,
-          },
-        });
+    const displayedOdds = await prisma.displayedOdds.findMany({
+      where: { eventId: { in: uniqueEventIds } },
+      select: {
+        id: true,
+        rawOdds: true,
+      },
+    });
 
-        await Promise.all(
-          displayedOdds.map((odd) =>
-            tx.displayedOdds.update({
+    const oddBatches = chunkArray(displayedOdds, BULK_CONFIG_BATCH_SIZE);
+
+    const batchResults = await Promise.allSettled(
+      oddBatches.map((batch) =>
+        prisma.$transaction(
+          batch.map((odd) =>
+            prisma.displayedOdds.update({
               where: { id: odd.id },
               data: {
                 displayOdds: Number(
@@ -714,21 +717,34 @@ eventsAdminRouter.patch("/admin/events/bulk-config", async (req, res, next) => {
               },
             }),
           ),
-        );
-
-        return updateResult;
-      },
+        ),
+      ),
     );
+
+    let updatedOddsCount = 0;
+    let failedBatchCount = 0;
+
+    for (const result of batchResults) {
+      if (result.status === "fulfilled") {
+        updatedOddsCount += result.value.length;
+      } else {
+        failedBatchCount += 1;
+      }
+    }
 
     invalidateEventsCache();
     console.log(
-      `[AdminEvents] Bulk config ${parsedBody.data.houseMargin}% for ${result.count} events`,
+      `[AdminEvents] Bulk config ${parsedBody.data.houseMargin}% events=${updatedEvents.count} oddsUpdated=${updatedOddsCount} failedBatches=${failedBatchCount}`,
     );
 
-    return res.status(200).json({
-      updatedCount: result.count,
+    const statusCode = failedBatchCount > 0 ? 207 : 200;
+
+    return res.status(statusCode).json({
+      updatedCount: updatedEvents.count,
       eventIds: uniqueEventIds,
       houseMargin: parsedBody.data.houseMargin,
+      oddsUpdatedCount: updatedOddsCount,
+      failedBatchCount,
     });
   } catch (error) {
     next(error);
