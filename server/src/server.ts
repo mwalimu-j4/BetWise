@@ -1,5 +1,4 @@
-import { config } from "dotenv";
-config({ path: "./.env", override: false });
+import "dotenv/config";
 console.log("[Env Check] ODDS_API_KEY loaded:", !!process.env.ODDS_API_KEY);
 import { app } from "./app";
 import { prisma } from "./lib/prisma";

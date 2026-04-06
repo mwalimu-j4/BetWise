@@ -74,6 +74,34 @@ enum ContactStatus {
   RESOLVED
 }
 
+enum RiskAlertType {
+  HIGH_RISK_BET
+  EXPOSURE_LIMIT_EXCEEDED
+  SUSPICIOUS_PATTERN
+  RAPID_ACCOUNT_ACTIVITY
+  UNUSUAL_ODDS_MOVEMENT
+  SELF_EXCLUSION_BREACH
+  DUPLICATE_ACCOUNT
+  FRAUD_INDICATOR
+  BLACKLIST_MATCH
+  CUSTOM_RULE_VIOLATION
+}
+
+enum RiskSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  IN_REVIEW
+  ESCALATED
+  RESOLVED
+  DISMISSED
+}
+
 model User {
   id            String               @id @default(uuid()) @db.Uuid
   fullName      String?              @map("full_name")
@@ -94,6 +122,7 @@ model User {
   transactions  WalletTransaction[]
   betAuditLogs  BetAuditLog[]
   contacts      Contact[]
+  riskAlerts    RiskAlert[]
 
   @@map("users")
 }
@@ -328,4 +357,130 @@ model Contact {
   @@index([createdAt])
   @@index([phone])
   @@map("contacts")
+}
+
+model AdminSettings {
+  key                               String   @id @default("global")
+  platformName                      String   @default("BetWise") @map("platform_name")
+  environment                       String   @default("sandbox")
+  defaultCurrency                   String   @default("KES") @map("default_currency")
+  timezone                          String   @default("Africa/Nairobi")
+  maintenanceMode                   Boolean  @default(false) @map("maintenance_mode")
+  registrationEnabled               Boolean  @default(true) @map("registration_enabled")
+  defaultWalletBalance              Int      @default(0) @map("default_wallet_balance")
+  minDeposit                        Int      @default(100) @map("min_deposit")
+  maxDeposit                        Int      @default(200000) @map("max_deposit")
+  minWithdrawal                     Int      @default(100) @map("min_withdrawal")
+  maxWithdrawal                     Int      @default(100000) @map("max_withdrawal")
+  dailyTransactionLimit             Int      @default(500000) @map("daily_transaction_limit")
+  maxActiveBetsPerUser              Int      @default(60) @map("max_active_bets_per_user")
+  defaultUserRole                   String   @default("USER") @map("default_user_role")
+  autoVerificationRule              String   @default("email") @map("auto_verification_rule")
+  kycRequired                       Boolean  @default(true) @map("kyc_required")
+  kycRequireId                      Boolean  @default(true) @map("kyc_require_id")
+  kycRequirePhone                   Boolean  @default(true) @map("kyc_require_phone")
+  kycRequireEmail                   Boolean  @default(true) @map("kyc_require_email")
+  withdrawalRequiresKyc             Boolean  @default(true) @map("withdrawal_requires_kyc")
+  minimumAge                        Int      @default(18) @map("minimum_age")
+  allowedCountries                  String[] @default(["KE"]) @map("allowed_countries")
+  paymentMpesaEnabled               Boolean  @default(true) @map("payment_mpesa_enabled")
+  paymentBankTransferEnabled        Boolean  @default(false) @map("payment_bank_transfer_enabled")
+  paymentAirtelMoneyEnabled         Boolean  @default(false) @map("payment_airtel_money_enabled")
+  paymentCardEnabled                Boolean  @default(false) @map("payment_card_enabled")
+  mpesaShortcode                    String   @default("174379") @map("mpesa_shortcode")
+  mpesaConsumerKey                  String   @default("replace-with-consumer-key") @map("mpesa_consumer_key")
+  mpesaConsumerSecret               String   @default("replace-with-consumer-secret") @map("mpesa_consumer_secret")
+  mpesaPasskey                      String   @default("replace-with-passkey") @map("mpesa_passkey")
+  mpesaCallbackUrl                  String   @default("https://example.com/api/mpesa/callback") @map("mpesa_callback_url")
+  mpesaTransactionFeePercent        Float    @default(5) @map("mpesa_transaction_fee_percent")
+  mpesaAutoWithdrawEnabled          Boolean  @default(false) @map("mpesa_auto_withdraw_enabled")
+  mpesaWithdrawalApprovalThreshold  Int      @default(50000) @map("mpesa_withdrawal_approval_threshold")
+  minBetAmount                      Int      @default(10) @map("min_bet_amount")
+  maxBetAmount                      Int      @default(200000) @map("max_bet_amount")
+  maxWinPerBet                      Int      @default(1000000) @map("max_win_per_bet")
+  oddsMarginPercent                 Float    @default(7) @map("odds_margin_percent")
+  betDelayMs                        Int      @default(1500) @map("bet_delay_ms")
+  cashoutEnabled                    Boolean  @default(true) @map("cashout_enabled")
+  cashoutMarginPercent              Float    @default(5) @map("cashout_margin_percent")
+  allowLiveBetting                  Boolean  @default(true) @map("allow_live_betting")
+  maxExposurePerEvent               Int      @default(2000000) @map("max_exposure_per_event")
+  maxExposurePerMarket              Int      @default(800000) @map("max_exposure_per_market")
+  maxPayoutPerDay                   Int      @default(8000000) @map("max_payout_per_day")
+  highRiskBetThreshold              Int      @default(250000) @map("high_risk_bet_threshold")
+  autoBlockSuspiciousUsers          Boolean  @default(true) @map("auto_block_suspicious_users")
+  welcomeBonusEnabled               Boolean  @default(true) @map("welcome_bonus_enabled")
+  bonusMode                         String   @default("percentage") @map("bonus_mode")
+  bonusAmount                       Int      @default(500) @map("bonus_amount")
+  bonusPercent                      Float    @default(100) @map("bonus_percent")
+  wageringRequirementMultiplier     Float    @default(3) @map("wagering_requirement_multiplier")
+  bonusExpiryHours                  Int      @default(168) @map("bonus_expiry_hours")
+  maxBonusPerUser                   Int      @default(3000) @map("max_bonus_per_user")
+  cashbackRule                      String   @default("5% cashback for net losses above KES 2,000, credited weekly.") @map("cashback_rule")
+  smsEnabled                        Boolean  @default(true) @map("sms_enabled")
+  emailEnabled                      Boolean  @default(true) @map("email_enabled")
+  notifyDepositSuccess              Boolean  @default(true) @map("notify_deposit_success")
+  notifyWithdrawalSuccess           Boolean  @default(true) @map("notify_withdrawal_success")
+  notifyBetPlaced                   Boolean  @default(false) @map("notify_bet_placed")
+  notifyBetResult                   Boolean  @default(true) @map("notify_bet_result")
+  notifyAdminAlerts                 Boolean  @default(true) @map("notify_admin_alerts")
+  sportsApiKey                      String   @default("replace-with-sports-api-key") @map("sports_api_key")
+  oddsProviderName                  String   @default("TheOddsAPI") @map("odds_provider_name")
+  primaryWebhookUrl                 String   @default("https://example.com/webhooks/sports") @map("primary_webhook_url")
+  fallbackWebhookUrl                String   @default("https://example.com/webhooks/sports/fallback") @map("fallback_webhook_url")
+  retryAttempts                     Int      @default(3) @map("retry_attempts")
+  retryBackoffMs                    Int      @default(5000) @map("retry_backoff_ms")
+  requestsPerMinute                 Int      @default(600) @map("requests_per_minute")
+  adminTwoFactorRequired            Boolean  @default(true) @map("admin_two_factor_required")
+  passwordMinLength                 Int      @default(8) @map("password_min_length")
+  requireUppercase                  Boolean  @default(true) @map("require_uppercase")
+  requireNumber                     Boolean  @default(true) @map("require_number")
+  requireSpecialChar                Boolean  @default(true) @map("require_special_char")
+  sessionTimeoutMinutes             Int      @default(60) @map("session_timeout_minutes")
+  maxLoginAttempts                  Int      @default(5) @map("max_login_attempts")
+  ipWhitelist                       String[] @default([]) @map("ip_whitelist")
+  ipBlacklist                       String[] @default([]) @map("ip_blacklist")
+  winningsTaxPercent                Float    @default(20) @map("winnings_tax_percent")
+  depositTaxPercent                 Float    @default(0) @map("deposit_tax_percent")
+  commissionPercent                 Float    @default(2) @map("commission_percent")
+  roundingRule                      String   @default("nearest_1") @map("rounding_rule")
+  affiliateCommissionPercent        Float    @default(5) @map("affiliate_commission_percent")
+  multiLevelReferralsEnabled        Boolean  @default(false) @map("multi_level_referrals_enabled")
+  affiliateMinimumPayoutThreshold   Int      @default(1500) @map("affiliate_minimum_payout_threshold")
+  affiliateWithdrawalRule           String   @default("Monthly payouts after reconciliation and KYC check.") @map("affiliate_withdrawal_rule")
+  termsAndConditions                String   @default("By using this platform, you agree to our betting terms, fair usage policies, and anti-fraud controls.") @map("terms_and_conditions")
+  privacyPolicy                     String   @default("We process account and transactional data strictly for service operations, regulatory compliance, and fraud prevention.") @map("privacy_policy")
+  responsibleGamblingMessage        String   @default("Bet responsibly. Set limits and seek support if betting affects your wellbeing.") @map("responsible_gambling_message")
+  supportContactInfo                String   @default("support@betwise.co.ke | +254700000000") @map("support_contact_info")
+  updatedBy                         String?  @map("updated_by")
+  createdAt                         DateTime @default(now()) @map("created_at")
+  updatedAt                         DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_settings")
+}
+
+model RiskAlert {
+  id             String        @id @default(uuid()) @db.Uuid
+  alertType      RiskAlertType
+  severity       RiskSeverity  @default(MEDIUM)
+  status         AlertStatus   @default(OPEN)
+  description    String
+  userId         String?       @db.Uuid @map("user_id")
+  betId          String?       @db.Uuid @map("bet_id")
+  eventId        String?       @map("event_id")
+  triggeredValue Float?        @map("triggered_value")
+  threshold      Float?
+  details        Json?
+  actionTaken    String?       @map("action_taken")
+  resolvedAt     DateTime?     @map("resolved_at")
+  resolvedBy     String?       @map("resolved_by")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([alertType])
+  @@index([severity])
+  @@index([status])
+  @@index([createdAt])
+  @@map("risk_alerts")
 }
