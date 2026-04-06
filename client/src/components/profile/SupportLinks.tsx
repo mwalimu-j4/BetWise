@@ -31,6 +31,7 @@ export default function SupportLinks({ onSignOut }: SupportLinksProps) {
     onSuccess: async () => {
       toast.success("Account deleted successfully.");
       await logout();
+      toast.success("Logged out successfully");
       await navigate({ to: "/" });
     },
     onError: (error: unknown) => {

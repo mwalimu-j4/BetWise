@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import {
   LayoutDashboard,
   CreditCard,
@@ -138,6 +139,7 @@ export default function AccountDropdown({
           className="bc-account-item is-logout"
           onClick={async () => {
             await logout();
+            toast.success("Logged out successfully");
             onClose();
             navigate({ to: "/" });
           }}

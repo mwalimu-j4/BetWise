@@ -65,6 +65,7 @@ export default function UserProfilePage() {
 
   const handleSignOut = async () => {
     await logout();
+    toast.success("Logged out successfully");
     await navigate({ to: "/" });
   };
 
