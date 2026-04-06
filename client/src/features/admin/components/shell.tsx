@@ -170,7 +170,7 @@ export default function AdminShell() {
               {showNavLabels ? (
                 <div>
                   <p className="text-sm font-bold tracking-[0.03em] text-admin-text-primary">
-                    BettCenic
+                    BetixPro
                   </p>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
                     Admin Panel

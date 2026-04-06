@@ -94,9 +94,9 @@ export default function AccountDropdown({
           {initials}
         </div>
         <div className="bc-account-head-meta">
-          <p className="bc-account-name">{user?.phone || "BettCenic User"}</p>
+          <p className="bc-account-name">{user?.phone || "BetixPro User"}</p>
           <p className="bc-account-email">
-            {user?.email || "guest@bettcenic.com"}
+            {user?.email || "guest@BetixPro.com"}
           </p>
         </div>
       </div>
