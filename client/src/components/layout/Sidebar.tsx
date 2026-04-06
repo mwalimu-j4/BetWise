@@ -302,6 +302,8 @@ const quickLinks: Item[] = [
   },
   { label: "My Bets", to: "/user/bets", icon: "B" },
   { label: "Analytics", to: "/user/payments/history", icon: "A" },
+  { label: "How It Works", to: "/user/how-it-works", icon: "?" },
+  { label: "FAQs", to: "/user/faqs", icon: "!" },
   { label: "Responsible Gambling", to: "/user/register", icon: "R" },
 ];
 
