@@ -312,7 +312,7 @@ export default function PaymentsDepositPage() {
               autoComplete="tel"
             />
 
-            {phone && !isPhoneValid && (
+            {phone && !phoneInputValid && (
               <p className="mt-2 text-xs text-red-400">
                 Use format: 2547XXXXXXXX or 07XXXXXXXX.
               </p>
