@@ -1,11 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import {
-  Bell,
-  ChevronDown,
-  CircleCheck,
-  CircleX,
-  Menu,
-} from "lucide-react";
+import { Bell, ChevronDown, CircleCheck, CircleX, Menu } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
 import SearchBar from "@/components/search/SearchBar";
