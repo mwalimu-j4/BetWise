@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, type FormEvent } from "react";
 import { isAxiosError } from "axios";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Eye,
   EyeOff,
@@ -62,6 +63,7 @@ function passwordChecks(password: string) {
 
 export default function RegisterModal() {
   const { register, authModal, closeAuthModal, openAuthModal } = useAuth();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -115,10 +117,13 @@ export default function RegisterModal() {
 
       toast.success("Account created successfully. Welcome to BetixPro.");
       closeAuthModal();
+
+      // Navigate to user dashboard after successful registration
       setEmail("");
       setPhone("");
       setPassword("");
       setConfirmPassword("");
+      await navigate({ to: "/user" });
     } catch (error: unknown) {
       const parsedErrors = extractRegisterErrors(error);
       setErrors(parsedErrors);

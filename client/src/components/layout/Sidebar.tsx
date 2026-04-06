@@ -332,7 +332,7 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, openAuthModal } = useAuth();
   const [openSports, setOpenSports] = useState<Record<string, boolean>>({
     football: true,
     basketball: true,
@@ -431,6 +431,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               onClick={async () => {
                 await logout();
                 toast.success("Logged out successfully");
+                openAuthModal("login");
                 closeIfMobile();
               }}
             >

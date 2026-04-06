@@ -22,7 +22,7 @@ export default function SupportLinks({ onSignOut }: SupportLinksProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, openAuthModal } = useAuth();
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -32,6 +32,7 @@ export default function SupportLinks({ onSignOut }: SupportLinksProps) {
       toast.success("Account deleted successfully.");
       await logout();
       toast.success("Logged out successfully");
+      openAuthModal("login");
       await navigate({ to: "/" });
     },
     onError: (error: unknown) => {

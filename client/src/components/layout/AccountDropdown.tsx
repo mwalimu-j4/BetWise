@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   LayoutDashboard,
@@ -75,8 +75,7 @@ export default function AccountDropdown({
   onClose,
 }: AccountDropdownProps) {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, openAuthModal } = useAuth();
 
   const initials = useMemo(() => {
     const source = user?.email?.trim() || user?.phone?.trim() || "User";
@@ -141,7 +140,7 @@ export default function AccountDropdown({
             await logout();
             toast.success("Logged out successfully");
             onClose();
-            navigate({ to: "/" });
+            openAuthModal("login");
           }}
         >
           <span className="bc-account-item-icon" aria-hidden="true">

@@ -38,7 +38,7 @@ function QuickRow({
 
 export default function UserProfilePage() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, openAuthModal } = useAuth();
   const {
     data: profile,
     isLoading: profileLoading,
@@ -66,6 +66,7 @@ export default function UserProfilePage() {
   const handleSignOut = async () => {
     await logout();
     toast.success("Logged out successfully");
+    openAuthModal("login");
     await navigate({ to: "/" });
   };
 
