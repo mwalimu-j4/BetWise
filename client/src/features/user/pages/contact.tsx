@@ -1,6 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { useCallback, useState } from "react";
-import { CheckCircle2, MessageSquare, AlertCircle } from "lucide-react";
+import { MessageSquare, AlertCircle } from "lucide-react";
 import ContactForm from "./contact-form";
 import { api } from "@/api/axiosConfig";
 import { toast } from "sonner";

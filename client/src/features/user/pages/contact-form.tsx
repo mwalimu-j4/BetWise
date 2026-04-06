@@ -1,23 +1,37 @@
 import { useState } from "react";
-import { z } from "zod";
-import { Mail, MessageSquare, Send } from "lucide-react";
+import { Mail, Send } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
 
-const contactFormSchema = z.object({
-  subject: z
-    .string()
-    .trim()
-    .min(3, "Subject must be at least 3 characters")
-    .max(100, "Subject must not exceed 100 characters"),
-  message: z
-    .string()
-    .trim()
-    .min(10, "Message must be at least 10 characters")
-    .max(2000, "Message must not exceed 2000 characters"),
-});
+interface ContactFormData {
+  subject: string;
+  message: string;
+}
 
-type ContactFormData = z.infer<typeof contactFormSchema>;
+interface FormErrors {
+  subject?: string;
+  message?: string;
+}
+
+const validateForm = (formData: ContactFormData): FormErrors => {
+  const errors: FormErrors = {};
+
+  if (!formData.subject.trim() || formData.subject.trim().length < 3) {
+    errors.subject = "Subject must be at least 3 characters";
+  }
+  if (formData.subject.length > 100) {
+    errors.subject = "Subject must not exceed 100 characters";
+  }
+
+  if (!formData.message.trim() || formData.message.trim().length < 10) {
+    errors.message = "Message must be at least 10 characters";
+  }
+  if (formData.message.length > 2000) {
+    errors.message = "Message must not exceed 2000 characters";
+  }
+
+  return errors;
+};
 
 interface ContactFormProps {
   userEmail?: string;
@@ -33,7 +47,7 @@ export default function ContactForm({
     subject: "",
     message: "",
   });
-  const [errors, setErrors] = useState<Partial<ContactFormData>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -44,7 +58,7 @@ export default function ContactForm({
       [name]: value,
     }));
     // Clear error for this field when user starts typing
-    if (errors[name as keyof ContactFormData]) {
+    if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({
         ...prev,
         [name]: undefined,
@@ -57,19 +71,15 @@ export default function ContactForm({
     setErrors({});
 
     // Validate
-    const result = contactFormSchema.safeParse(formData);
-    if (!result.success) {
-      const fieldErrors: Partial<ContactFormData> = {};
-      result.error.errors.forEach((error) => {
-        fieldErrors[error.path[0] as keyof ContactFormData] = error.message;
-      });
-      setErrors(fieldErrors);
+    const validationErrors = validateForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await api.post("/contact", formData);
+      await api.post("/contact", formData);
 
       toast.success("Your message has been sent successfully!");
       setFormData({ subject: "", message: "" });
