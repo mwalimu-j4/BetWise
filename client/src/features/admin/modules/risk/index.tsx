@@ -69,9 +69,9 @@ export default function Risk() {
   const [selectedAlert, setSelectedAlert] = useState<RiskAlert | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [severityFilter, setSeverityFilter] = useState<string>("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [severityFilter, setSeverityFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
   const itemsPerPage = 20;
 
@@ -79,9 +79,9 @@ export default function Risk() {
   const { data: alertsData, isLoading: isAlertsLoading } = useAdminRiskAlerts(
     currentPage,
     itemsPerPage,
-    statusFilter,
-    severityFilter,
-    typeFilter,
+    statusFilter === "all" ? undefined : statusFilter,
+    severityFilter === "all" ? undefined : severityFilter,
+    typeFilter === "all" ? undefined : typeFilter,
   );
 
   const { data: summaryData, isLoading: isSummaryLoading } =
@@ -175,9 +175,7 @@ export default function Risk() {
             <Loader className="h-6 w-6 animate-spin text-admin-accent" />
           </div>
         ) : (
-          stats.map((stat, idx) => (
-            <SummaryCard key={idx} {...stat} />
-          ))
+          stats.map((stat, idx) => <SummaryCard key={idx} {...stat} />)
         )}
       </div>
 
@@ -200,7 +198,7 @@ export default function Risk() {
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="OPEN">Open</SelectItem>
                   <SelectItem value="IN_REVIEW">In Review</SelectItem>
                   <SelectItem value="ESCALATED">Escalated</SelectItem>
@@ -218,7 +216,7 @@ export default function Risk() {
                   <SelectValue placeholder="All Severities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Severities</SelectItem>
+                  <SelectItem value="all">All Severities</SelectItem>
                   <SelectItem value="CRITICAL">Critical</SelectItem>
                   <SelectItem value="HIGH">High</SelectItem>
                   <SelectItem value="MEDIUM">Medium</SelectItem>
@@ -229,13 +227,15 @@ export default function Risk() {
 
             {/* Alert Type Filter */}
             <div className="space-y-2">
-              <label className="text-sm text-admin-text-muted">Alert Type</label>
+              <label className="text-sm text-admin-text-muted">
+                Alert Type
+              </label>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="HIGH_RISK_BET">High Risk Bet</SelectItem>
                   <SelectItem value="EXPOSURE_LIMIT_EXCEEDED">
                     Exposure Limit Exceeded
@@ -270,15 +270,15 @@ export default function Risk() {
           </div>
 
           {/* Clear Filters */}
-          {(statusFilter || severityFilter || typeFilter) && (
+          {(statusFilter !== "all" || severityFilter !== "all" || typeFilter !== "all") && (
             <div className="flex justify-end">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setStatusFilter("");
-                  setSeverityFilter("");
-                  setTypeFilter("");
+                  setStatusFilter("all");
+                  setSeverityFilter("all");
+                  setTypeFilter("all");
                   setCurrentPage(1);
                 }}
               >
@@ -375,7 +375,10 @@ export default function Risk() {
                         </p>
                       </td>
                       <td className={adminTableCellClassName}>
-                        <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+                        <Dialog
+                          open={detailsOpen}
+                          onOpenChange={setDetailsOpen}
+                        >
                           <DialogTrigger asChild>
                             <AdminButton
                               variant="ghost"

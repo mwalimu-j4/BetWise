@@ -2180,7 +2180,10 @@ export async function getRiskAlerts(req: Request, res: Response) {
   }
 
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
-  const limit = Math.max(1, Math.min(50, parseInt(req.query.limit as string) || 20));
+  const limit = Math.max(
+    1,
+    Math.min(50, parseInt(req.query.limit as string) || 20),
+  );
   const offset = (page - 1) * limit;
 
   const status = req.query.status as string | undefined;
@@ -2263,7 +2266,9 @@ export async function updateRiskAlert(req: Request, res: Response) {
   const { status, actionTaken, resolvedBy } = req.body;
 
   const schema = z.object({
-    status: z.enum(["OPEN", "IN_REVIEW", "ESCALATED", "RESOLVED", "DISMISSED"]).optional(),
+    status: z
+      .enum(["OPEN", "IN_REVIEW", "ESCALATED", "RESOLVED", "DISMISSED"])
+      .optional(),
     actionTaken: z.string().optional(),
     resolvedBy: z.string().optional(),
   });
@@ -2283,8 +2288,10 @@ export async function updateRiskAlert(req: Request, res: Response) {
       updateData.resolvedAt = new Date();
     }
   }
-  if (parsed.data.actionTaken !== undefined) updateData.actionTaken = parsed.data.actionTaken;
-  if (parsed.data.resolvedBy !== undefined) updateData.resolvedBy = parsed.data.resolvedBy;
+  if (parsed.data.actionTaken !== undefined)
+    updateData.actionTaken = parsed.data.actionTaken;
+  if (parsed.data.resolvedBy !== undefined)
+    updateData.resolvedBy = parsed.data.resolvedBy;
 
   const updated = await prisma.riskAlert.update({
     where: { id: alertId },

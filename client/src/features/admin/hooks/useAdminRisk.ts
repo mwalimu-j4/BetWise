@@ -95,14 +95,7 @@ export function useAdminRiskAlerts(
   alertType?: string,
 ) {
   return useQuery({
-    queryKey: [
-      "admin-risk-alerts",
-      page,
-      limit,
-      status,
-      severity,
-      alertType,
-    ],
+    queryKey: ["admin-risk-alerts", page, limit, status, severity, alertType],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
