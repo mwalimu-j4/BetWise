@@ -57,7 +57,7 @@ const navLinks: NavRoute[] = [
   {
     label: "My Bets",
     icon: "[]",
-    to: "/my-bets?tab=normal&filter=all&page=1",
+    to: "/user/bets?tab=normal&filter=all&page=1",
   },
   { label: "Profile", icon: "U", to: "/user/profile" },
 ];
@@ -210,9 +210,9 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         <nav className="bc-nav-links" aria-label="Primary">
           {navLinks.map((item) => {
             const itemPath = item.to.split("?")[0] ?? item.to;
-            const isMyBetsLink = itemPath === "/my-bets";
+            const isMyBetsLink = itemPath === "/user/bets";
             const isActive = isMyBetsLink
-              ? location.pathname.startsWith("/my-bets")
+              ? location.pathname.startsWith("/user/bets")
               : location.pathname === itemPath;
             return (
               <Link
@@ -228,7 +228,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                   void navigate({
                     to: "/login",
                     search: {
-                      redirect: "/my-bets?tab=normal&filter=all&page=1",
+                      redirect: "/user/bets?tab=normal&filter=all&page=1",
                     },
                   });
                 }}

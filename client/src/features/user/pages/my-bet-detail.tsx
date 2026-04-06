@@ -7,15 +7,19 @@ import { useCancelBet } from "@/features/user/hooks/useCancelBet";
 
 export default function MyBetDetailPage() {
   const navigate = useNavigate();
-  const { betId } = useParams({ from: "/my-bets/$betId" });
-  const search = useSearch({ from: "/my-bets/$betId" });
+  const { betId } = useParams({ strict: false }) as { betId: string };
+  const search = useSearch({ strict: false }) as {
+    tab?: string;
+    filter?: string;
+    page?: string;
+  };
 
   const detail = useBetDetail(betId);
   const cancelBet = useCancelBet();
 
   const handleClose = () => {
     void navigate({
-      to: "/my-bets",
+      to: "/user/bets",
       search: {
         tab: search.tab,
         filter: search.filter,

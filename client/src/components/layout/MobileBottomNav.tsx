@@ -54,7 +54,7 @@ export default function MobileBottomNav() {
   const isHomeActive =
     location.pathname === "/" || location.pathname === "/user";
   const isLiveActive = location.pathname.startsWith("/user/payments/deposit");
-  const isMyBetsActive = location.pathname.startsWith("/my-bets");
+  const isMyBetsActive = location.pathname.startsWith("/user/bets");
   const isProfileActive = location.pathname.startsWith("/user/profile");
 
   return (
@@ -101,7 +101,7 @@ export default function MobileBottomNav() {
         </div>
 
         <Link
-          to="/my-bets"
+          to="/user/bets"
           search={{
             tab: "normal",
             filter: "all",

@@ -49,7 +49,7 @@ const myAccount: Item[] = [
     icon: "U",
   },
   { label: "My Wallet", to: "/user/payments", icon: "W", warn: true },
-  { label: "My Bets", to: "/my-bets", icon: "B" },
+  { label: "My Bets", to: "/user/bets", icon: "B" },
   { label: "My Results", to: "/user/payments/history", icon: "R" },
   { label: "Reports", to: "/user/reports", icon: "📊" },
   { label: "Deposit", to: "/user/payments/deposit", icon: "+" },
@@ -299,7 +299,7 @@ const quickLinks: Item[] = [
     icon: "*",
     warn: true,
   },
-  { label: "My Bets", to: "/my-bets", icon: "B" },
+  { label: "My Bets", to: "/user/bets", icon: "B" },
   { label: "Analytics", to: "/user/payments/history", icon: "A" },
   { label: "Responsible Gambling", to: "/user/register", icon: "R" },
 ];
