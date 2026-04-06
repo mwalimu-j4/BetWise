@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { PencilLine, RefreshCw, Smartphone } from "lucide-react";
+import { RefreshCw, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,6 @@ export default function PaymentsWithdrawalPage() {
   const { user } = useAuth();
   const [amount, setAmount] = useState("500");
   const [phone, setPhone] = useState("");
-  const [isPhoneEditing, setIsPhoneEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: walletData, refetch: refetchWallet } = useWalletSummary();
   const queryClient = useQueryClient();
@@ -78,11 +77,10 @@ export default function PaymentsWithdrawalPage() {
   const isPhoneValid = /^(?:\+?254|0)7\d{8}$/.test(phone.replace(/\s+/g, ""));
 
   useEffect(() => {
-    if (user?.phone && !phone && !isPhoneEditing) {
+    if (user?.phone && !phone) {
       setPhone(user.phone);
-      setIsPhoneEditing(false);
     }
-  }, [isPhoneEditing, phone, user?.phone]);
+  }, [phone, user?.phone]);
 
   const canWithdraw = useMemo(() => {
     return (
@@ -138,8 +136,8 @@ export default function PaymentsWithdrawalPage() {
 
   return (
     <section className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
-      <article className="rounded-3xl border border-admin-border bg-[linear-gradient(160deg,var(--color-bg-surface),var(--color-bg-elevated))] p-5 sm:p-6">
-        <div className="mb-5 border-b border-admin-border pb-4">
+      <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-5 sm:p-6">
+        <div className="mb-5 border-b border-[#23384f] pb-4">
           <h2 className="text-lg font-bold text-admin-text-primary">
             Withdraw Funds
           </h2>
@@ -149,7 +147,7 @@ export default function PaymentsWithdrawalPage() {
           </p>
         </div>
 
-        <div className="mb-4 rounded-xl border border-admin-border bg-admin-surface p-3">
+        <div className="mb-4 rounded-xl border border-[#23384f] bg-[#101b2b] p-3">
           <p className="text-[11px] uppercase tracking-[0.08em] text-admin-text-muted">
             Available for withdrawal
           </p>
@@ -166,13 +164,13 @@ export default function PaymentsWithdrawalPage() {
             >
               Amount (KES {MIN_WITHDRAWAL} - {MAX_WITHDRAWAL.toLocaleString()})
             </label>
-            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-admin-surface transition focus-within:border-admin-accent focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]">
-              <span className="flex h-11 items-center border-r border-admin-border px-3 text-[11px] font-bold text-admin-text-muted">
+            <div className="flex w-full items-center overflow-hidden rounded-xl border border-[#294157] bg-[#0f1a2a] transition focus-within:border-[#f5c518] focus-within:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]">
+              <span className="flex h-11 items-center border-r border-[#294157] px-3 text-[11px] font-bold text-[#8a9bb0]">
                 KES
               </span>
               <input
                 id="withdraw-amount"
-                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"
+                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-[#8a9bb0]"
                 type="number"
                 min={MIN_WITHDRAWAL}
                 max={MAX_WITHDRAWAL}
@@ -189,7 +187,7 @@ export default function PaymentsWithdrawalPage() {
                     key={option}
                     type="button"
                     disabled={option > balance}
-                    className="rounded-lg border border-admin-border bg-admin-surface px-2.5 py-1 text-xs font-medium text-admin-text-secondary outline-none transition hover:border-admin-accent hover:text-admin-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-lg border border-[#294157] bg-[#0f1a2a] px-2.5 py-1 text-xs font-medium text-[#8a9bb0] outline-none transition hover:border-[#f5c518]/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={() => setAmount(String(option))}
                   >
                     {formatMoney(option)}
@@ -198,7 +196,7 @@ export default function PaymentsWithdrawalPage() {
             </div>
 
             {numAmount > 0 && (
-              <div className="mt-2 space-y-2 rounded-lg bg-admin-surface p-3 text-xs">
+              <div className="mt-2 space-y-2 rounded-lg bg-[#101b2b] p-3 text-xs">
                 <div className="flex justify-between">
                   <span className="text-admin-text-muted">
                     Withdrawal amount:
@@ -215,7 +213,7 @@ export default function PaymentsWithdrawalPage() {
                     KES {feeAmount.toLocaleString()}
                   </span>
                 </div>
-                <div className="border-t border-admin-border pt-2 flex justify-between font-semibold">
+                <div className="flex justify-between border-t border-[#23384f] pt-2 font-semibold">
                   <span className="text-admin-text-muted">You'll receive:</span>
                   <span className="text-admin-accent">
                     {formatMoney(netAmount)}
@@ -225,41 +223,24 @@ export default function PaymentsWithdrawalPage() {
             )}
           </div>
 
-          <div className="rounded-2xl border border-admin-border bg-admin-surface/80 p-3 sm:p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Smartphone size={15} className="text-admin-text-muted" />
-                <label
-                  htmlFor="withdraw-phone"
-                  className="text-sm font-semibold text-admin-text-primary"
-                >
-                  M-Pesa Phone Number
-                </label>
-              </div>
-              <button
-                type="button"
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-admin-border px-2.5 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent hover:text-admin-text-primary"
-                onClick={() => setIsPhoneEditing((current) => !current)}
+          <div className="rounded-2xl border border-[#23384f] bg-[#101b2b] p-3 sm:p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Smartphone size={15} className="text-[#8a9bb0]" />
+              <label
+                htmlFor="withdraw-phone"
+                className="text-sm font-semibold text-admin-text-primary"
               >
-                <PencilLine size={13} />
-                {isPhoneEditing ? "Done" : "Edit"}
-              </button>
+                M-Pesa Phone Number
+              </label>
             </div>
-
-            {isPhoneEditing || !phone ? (
-              <input
-                id="withdraw-phone"
-                className="h-11 w-full rounded-xl border border-admin-border bg-admin-card px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-admin-accent focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
-                type="tel"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                placeholder="2547XXXXXXXX"
-              />
-            ) : (
-              <div className="rounded-xl border border-admin-border bg-admin-card px-3 py-3 text-sm font-medium text-admin-text-primary">
-                {phone}
-              </div>
-            )}
+            <input
+              id="withdraw-phone"
+              className="h-11 w-full rounded-xl border border-[#294157] bg-[#0f1a2a] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-[#8a9bb0] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]"
+              type="tel"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="2547XXXXXXXX"
+            />
 
             {phone && !isPhoneValid && (
               <p className="mt-2 text-xs text-red-400">
@@ -287,7 +268,7 @@ export default function PaymentsWithdrawalPage() {
         </form>
       </article>
 
-      <article className="rounded-3xl border border-admin-border bg-admin-surface p-5 sm:p-6">
+      <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-5 sm:p-6">
         <h3 className="text-sm font-semibold text-admin-text-primary">
           Recent Requests
         </h3>
@@ -296,7 +277,7 @@ export default function PaymentsWithdrawalPage() {
             recentWithdrawals.map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-lg border border-admin-border bg-admin-card p-3"
+                className="rounded-lg border border-[#23384f] bg-[#101b2b] p-3"
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-semibold text-admin-text-primary">
@@ -323,7 +304,7 @@ export default function PaymentsWithdrawalPage() {
               </div>
             ))
           ) : (
-            <div className="rounded-2xl border border-admin-border bg-[linear-gradient(165deg,#0d2147,#091a36)] p-5 text-center">
+            <div className="rounded-2xl border border-[#23384f] bg-[linear-gradient(165deg,#0d2147,#091a36)] p-5 text-center">
               <p className="text-base font-semibold text-white">
                 No requests available right now
               </p>

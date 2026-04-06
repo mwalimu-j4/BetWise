@@ -63,7 +63,7 @@ export default function PaymentsHistoryPage() {
 
   return (
     <section className="grid gap-2 sm:gap-4">
-      <article className="rounded-2xl border border-admin-border bg-admin-card p-2 sm:p-3">
+      <article className="rounded-2xl border border-[#23384f] bg-[#111d2e] p-2 sm:p-3">
         <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <div className="relative lg:col-span-1">
             <Search
@@ -74,7 +74,7 @@ export default function PaymentsHistoryPage() {
               placeholder="Search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="h-9 rounded-lg text-sm border border-admin-border bg-admin-surface pl-9 text-admin-text-primary placeholder:text-admin-text-muted focus:border-admin-accent focus:shadow-[0_0_0_2px_var(--color-accent-soft)] focus:outline-none transition"
+              className="h-9 rounded-lg border border-[#294157] bg-[#0f1a2a] pl-9 text-sm text-admin-text-primary placeholder:text-[#8a9bb0] transition focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.2)] focus:outline-none"
             />
           </div>
 
@@ -84,13 +84,13 @@ export default function PaymentsHistoryPage() {
               setTypeFilter(value as "all" | TransactionType)
             }
           >
-            <SelectTrigger className="h-9 w-full rounded-lg text-sm border border-admin-border bg-admin-surface text-admin-text-primary font-medium hover:border-admin-accent focus:border-admin-accent focus:shadow-[0_0_0_2px_var(--color-accent-soft)] focus:outline-none transition">
+            <SelectTrigger className="h-9 w-full rounded-lg border border-[#294157] bg-[#0f1a2a] text-sm font-medium text-admin-text-primary transition hover:border-[#f5c518]/60 focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.2)] focus:outline-none">
               <SelectValue
                 placeholder="Type"
                 className="text-admin-text-primary text-sm"
               />
             </SelectTrigger>
-            <SelectContent className="border-admin-border bg-admin-card text-admin-text-primary">
+            <SelectContent className="border-[#23384f] bg-[#111d2e] text-admin-text-primary">
               <SelectItem value="all" className="hover:bg-admin-accent-dim">
                 All types
               </SelectItem>
@@ -127,13 +127,13 @@ export default function PaymentsHistoryPage() {
               setStatusFilter(value as "all" | TransactionStatus)
             }
           >
-            <SelectTrigger className="h-9 w-full rounded-lg text-sm border border-admin-border bg-admin-surface text-admin-text-primary font-medium hover:border-admin-accent focus:border-admin-accent focus:shadow-[0_0_0_2px_var(--color-accent-soft)] focus:outline-none transition">
+            <SelectTrigger className="h-9 w-full rounded-lg border border-[#294157] bg-[#0f1a2a] text-sm font-medium text-admin-text-primary transition hover:border-[#f5c518]/60 focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.2)] focus:outline-none">
               <SelectValue
                 placeholder="Status"
                 className="text-admin-text-primary text-sm"
               />
             </SelectTrigger>
-            <SelectContent className="border-admin-border bg-admin-card text-admin-text-primary">
+            <SelectContent className="border-[#23384f] bg-[#111d2e] text-admin-text-primary">
               <SelectItem value="all" className="hover:bg-admin-accent-dim">
                 All statuses
               </SelectItem>
@@ -161,7 +161,7 @@ export default function PaymentsHistoryPage() {
       </article>
 
       <div className="grid gap-2 sm:grid-cols-3">
-        <article className="rounded-xl border border-admin-border bg-admin-surface p-3 sm:p-4">
+        <article className="rounded-xl border border-[#23384f] bg-[#101b2b] p-3 sm:p-4">
           <p className="text-[10px] sm:text-xs uppercase tracking-[0.08em] text-admin-text-muted font-semibold">
             Records
           </p>
@@ -169,7 +169,7 @@ export default function PaymentsHistoryPage() {
             {filtered.length}
           </p>
         </article>
-        <article className="rounded-xl border border-admin-border bg-admin-surface p-3 sm:p-4">
+        <article className="rounded-xl border border-[#23384f] bg-[#101b2b] p-3 sm:p-4">
           <p className="text-[10px] sm:text-xs uppercase tracking-[0.08em] text-admin-text-muted font-semibold">
             In
           </p>
@@ -177,7 +177,7 @@ export default function PaymentsHistoryPage() {
             {formatMoney(totalIn)}
           </p>
         </article>
-        <article className="rounded-xl border border-admin-border bg-admin-surface p-3 sm:p-4">
+        <article className="rounded-xl border border-[#23384f] bg-[#101b2b] p-3 sm:p-4">
           <p className="text-[10px] sm:text-xs uppercase tracking-[0.08em] text-admin-text-muted font-semibold">
             Out
           </p>
@@ -187,7 +187,7 @@ export default function PaymentsHistoryPage() {
         </article>
       </div>
 
-      <article className="rounded-2xl border border-admin-border bg-admin-card p-2 sm:p-4 overflow-x-auto">
+      <article className="overflow-x-auto rounded-2xl border border-[#23384f] bg-[#111d2e] p-2 sm:p-4">
         <div className="min-w-full">
           <Table>
             <TableHeader>
@@ -213,11 +213,8 @@ export default function PaymentsHistoryPage() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="py-8"
-                  >
-                    <div className="mx-auto max-w-xl rounded-2xl border border-admin-border bg-[linear-gradient(165deg,#0d2147,#091a36)] p-5 text-center">
+                  <TableCell colSpan={6} className="py-8">
+                    <div className="mx-auto max-w-xl rounded-2xl border border-[#23384f] bg-[linear-gradient(165deg,#0d2147,#091a36)] p-5 text-center">
                       <p className="text-xl font-semibold text-white">
                         No matches available right now
                       </p>
@@ -226,7 +223,7 @@ export default function PaymentsHistoryPage() {
                       </p>
                       <Button
                         type="button"
-                        className="mt-4 h-9 rounded-lg bg-admin-accent px-4 text-xs font-semibold text-black hover:opacity-90"
+                        className="mt-4 h-9 rounded-lg bg-[#f5c518] px-4 text-xs font-semibold text-black hover:bg-[#e4b90f]"
                         disabled={isFetching}
                         onClick={() => {
                           void refetch();
@@ -256,7 +253,7 @@ export default function PaymentsHistoryPage() {
                     </TableCell>
                     <TableCell className="font-mono font-bold text-admin-accent">
                       {item.mpesaCode ? (
-                        <span className="bg-admin-surface px-2 py-1 rounded text-sm">
+                        <span className="rounded bg-[#0f1a2a] px-2 py-1 text-sm">
                           {item.mpesaCode}
                         </span>
                       ) : (

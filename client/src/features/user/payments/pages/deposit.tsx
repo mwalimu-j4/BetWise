@@ -5,7 +5,6 @@ import {
   CircleAlert,
   LoaderCircle,
   Check,
-  PencilLine,
   Smartphone,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -42,7 +41,6 @@ export default function PaymentsDepositPage() {
   const { user } = useAuth();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("100");
-  const [isPhoneEditing, setIsPhoneEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<StkPushResponse | null>(null);
   const [submissionStartedAt, setSubmissionStartedAt] = useState<string | null>(
@@ -65,11 +63,10 @@ export default function PaymentsDepositPage() {
   const currentBalance = walletData?.wallet.balance ?? 0;
 
   useEffect(() => {
-    if (user?.phone && !phone && !isPhoneEditing) {
+    if (user?.phone && !phone) {
       setPhone(user.phone);
-      setIsPhoneEditing(false);
     }
-  }, [isPhoneEditing, phone, user?.phone]);
+  }, [phone, user?.phone]);
 
   const sanitizedPhone = phone.replace(/\s+/g, "").replace(/^\+/, "");
   const isPhoneValid = /^(?:254|0)7\d{8}$/.test(sanitizedPhone);
@@ -252,8 +249,8 @@ export default function PaymentsDepositPage() {
   return (
     // Restricted max-width to make it a neat, compact widget instead of a massive spanning grid
     <section className="mx-auto max-w-lg">
-      <article className="rounded-3xl border border-admin-border bg-[linear-gradient(160deg,var(--color-bg-surface),var(--color-bg-elevated))] p-5 shadow-sm sm:p-6">
-        <div className="mb-6 flex items-center justify-between border-b border-admin-border pb-5">
+      <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-5 shadow-sm sm:p-6">
+        <div className="mb-6 flex items-center justify-between border-b border-[#23384f] pb-5">
           <div>
             <h2 className="text-xl font-bold text-admin-text-primary">
               Deposit Funds
@@ -262,7 +259,7 @@ export default function PaymentsDepositPage() {
               Instant M-Pesa Top-up
             </p>
           </div>
-          <div className="flex h-11 w-20 items-center justify-center rounded-xl border border-admin-border bg-[#4CAF50]/10 px-2">
+          <div className="flex h-11 w-20 items-center justify-center rounded-xl border border-[#2f4a62] bg-[#4CAF50]/10 px-2">
             <img
               src="/images/mpesa/logo.png"
               alt="M-Pesa"
@@ -272,41 +269,24 @@ export default function PaymentsDepositPage() {
         </div>
 
         <form className="grid gap-5" onSubmit={handleSubmit}>
-          <div className="rounded-2xl border border-admin-border bg-admin-surface/80 p-3 sm:p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Smartphone size={15} className="text-admin-text-muted" />
-                <label
-                  htmlFor="phone"
-                  className="text-sm font-semibold text-admin-text-primary"
-                >
-                  M-Pesa Phone
-                </label>
-              </div>
-              <button
-                type="button"
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-admin-border px-2.5 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent hover:text-admin-text-primary"
-                onClick={() => setIsPhoneEditing((current) => !current)}
+          <div className="rounded-2xl border border-[#23384f] bg-[#101b2b] p-3 sm:p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Smartphone size={15} className="text-[#8a9bb0]" />
+              <label
+                htmlFor="phone"
+                className="text-sm font-semibold text-admin-text-primary"
               >
-                <PencilLine size={13} />
-                {isPhoneEditing ? "Done" : "Edit"}
-              </button>
+                M-Pesa Phone
+              </label>
             </div>
-
-            {isPhoneEditing || !phone ? (
-              <input
-                id="phone"
-                className="h-11 w-full rounded-xl border border-admin-border bg-admin-card px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-admin-accent focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="2547XXXXXXXX"
-                autoComplete="tel"
-              />
-            ) : (
-              <div className="rounded-xl border border-admin-border bg-admin-card px-3 py-3 text-sm font-medium text-admin-text-primary">
-                {phone}
-              </div>
-            )}
+            <input
+              id="phone"
+              className="h-11 w-full rounded-xl border border-[#294157] bg-[#0f1a2a] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-[#8a9bb0] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="2547XXXXXXXX"
+              autoComplete="tel"
+            />
 
             {phone && !isPhoneValid && (
               <p className="mt-2 text-xs text-red-400">
@@ -325,13 +305,13 @@ export default function PaymentsDepositPage() {
               </label>
             </div>
 
-            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-admin-surface transition focus-within:border-admin-accent focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]">
-              <span className="flex h-11 items-center border-r border-admin-border px-3 text-[11px] font-bold text-admin-text-muted">
+            <div className="flex w-full items-center overflow-hidden rounded-xl border border-[#294157] bg-[#0f1a2a] transition focus-within:border-[#f5c518] focus-within:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]">
+              <span className="flex h-11 items-center border-r border-[#294157] px-3 text-[11px] font-bold text-[#8a9bb0]">
                 KES
               </span>
               <input
                 id="amount"
-                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none"
+                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-[#8a9bb0]"
                 value={amount}
                 type="number"
                 min={1}
@@ -346,7 +326,7 @@ export default function PaymentsDepositPage() {
                 <button
                   key={option}
                   type="button"
-                  className="rounded-lg border border-admin-border bg-admin-surface py-1.5 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent hover:text-admin-text-primary"
+                  className="rounded-lg border border-[#294157] bg-[#0f1a2a] py-1.5 text-xs font-medium text-[#8a9bb0] transition hover:border-[#f5c518]/70 hover:text-white"
                   onClick={() => setAmount(String(option))}
                 >
                   {formatMoney(option)}
@@ -376,7 +356,7 @@ export default function PaymentsDepositPage() {
       >
         <DialogContent
           showCloseButton={false}
-          className="max-w-sm overflow-hidden border-admin-border bg-admin-card p-0 shadow-2xl"
+          className="max-w-sm overflow-hidden border-[#23384f] bg-[#111d2e] p-0 shadow-2xl"
         >
           <div className="p-6">
             <DialogHeader className="items-center text-center">
