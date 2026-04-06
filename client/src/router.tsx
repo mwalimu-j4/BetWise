@@ -35,6 +35,8 @@ import { userResetPasswordRoute } from "./routes/user/reset-password";
 import { userRoute } from "./routes/user/route";
 import { userHowItWorksRoute } from "./routes/user/how-it-works";
 import { userFaqsRoute } from "./routes/user/faqs";
+import { userLiveRoute } from "./routes/user/live";
+import { userLiveMatchRoute } from "./routes/user/live.$matchId";
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -44,6 +46,7 @@ const routeTree = rootRoute.addChildren([
   resetPasswordRoute,
   userRoute.addChildren([
     userIndexRoute,
+    userLiveRoute.addChildren([userLiveMatchRoute]),
     userComingSoonRoute,
     userContactRoute,
     userProfileRoute,
