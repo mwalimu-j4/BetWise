@@ -1,8 +1,9 @@
-import { createRoute, lazyRouteComponent } from "@tanstack/react-router";
+import { createRoute } from "@tanstack/react-router";
 import { userRoute } from "./route";
+import Contact from "@/features/user/pages/contact";
 
 export const userContactRoute = createRoute({
   getParentRoute: () => userRoute,
   path: "/contact",
-  component: lazyRouteComponent(() => import("@/features/user/pages/contact")),
+  component: Contact,
 });

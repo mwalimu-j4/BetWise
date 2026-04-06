@@ -127,9 +127,9 @@ export default function Footer() {
               </Link>
               <Link
                 to="/user/contact"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f5c518]/10 border border-[#f5c518]/30 px-3 py-2 text-xs font-semibold text-[#f5c518] transition hover:bg-[#f5c518]/20 hover:border-[#f5c518] w-fit"
+                className="text-sm text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
               >
-                📧 Contact Us
+                Contact
               </Link>
             </nav>
           </div>
