@@ -1,14 +1,21 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, Menu, Search, Zap, LogOut } from "lucide-react";
+import { Bell, Menu, Search, Zap, LogOut, Sun, Moon, Monitor, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import {
   useAppNotifications,
   useMarkAllNotificationsRead,
 } from "@/features/notifications/notifications";
 import { useWalletRealtime } from "@/features/user/payments/wallet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { adminNavigation } from "../config/navigation";
 
 export default function AdminShell() {
@@ -16,6 +23,7 @@ export default function AdminShell() {
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
   useWalletRealtime();
   const { data: notificationData } = useAppNotifications(10);
   const markAllNotificationsRead = useMarkAllNotificationsRead();
@@ -114,18 +122,20 @@ export default function AdminShell() {
               !sidebarOpen && "lg:justify-center",
             )}
           >
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,var(--admin-purple),var(--admin-blue))] text-[11px] font-bold text-white">
-              SA
-            </div>
+            <button
+              aria-label="Toggle sidebar"
+              aria-expanded={sidebarOpen}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-admin-border bg-[var(--color-bg-hover)] text-admin-text-secondary transition hover:bg-[var(--color-bg-hover)] hover:text-admin-text-primary"
+              onClick={() => setSidebarOpen((current) => !current)}
+              type="button"
+              title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              <Menu size={16} />
+            </button>
             {sidebarOpen ? (
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-admin-text-primary">
-                  Super Admin
-                </p>
-                <p className="truncate text-[11px] text-admin-text-muted">
-                  admin@betforge.io
-                </p>
-              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
+                Collapse
+              </span>
             ) : null}
           </div>
         </aside>
@@ -138,16 +148,6 @@ export default function AdminShell() {
 
           <header className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-admin-border bg-[var(--color-bg-secondary)] px-4 py-4 backdrop-blur-[18px] sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-3">
-              <button
-                aria-label="Toggle sidebar"
-                aria-expanded={sidebarOpen}
-                className="grid h-10 w-10 place-items-center rounded-xl border border-admin-border bg-[var(--color-bg-hover)] text-admin-text-secondary transition hover:bg-[var(--color-bg-hover)] hover:text-admin-text-primary"
-                onClick={() => setSidebarOpen((current) => !current)}
-                type="button"
-              >
-                <Menu size={18} />
-              </button>
-
               <div className="flex h-11 w-full max-w-[560px] flex-1 items-center gap-2 rounded-2xl border border-admin-border bg-[var(--color-bg-elevated)] px-3">
                 <Search size={14} className="text-admin-text-muted" />
                 <input
@@ -237,9 +237,37 @@ export default function AdminShell() {
                 ) : null}
               </div>
 
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-[linear-gradient(135deg,var(--admin-purple),var(--admin-blue))] text-[11px] font-bold text-white">
-                SA
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="grid h-10 w-10 place-items-center rounded-xl border border-admin-border bg-[var(--color-bg-hover)] text-admin-text-secondary transition hover:bg-[var(--color-bg-hover)] hover:text-admin-text-primary"
+                    title="Theme"
+                  >
+                    {theme === "dark" ? (
+                      <Moon size={18} />
+                    ) : theme === "light" ? (
+                      <Sun size={18} />
+                    ) : (
+                      <Monitor size={18} />
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setTheme("light")}>
+                    <Sun size={14} className="mr-2" />
+                    <span>Light</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    <Moon size={14} className="mr-2" />
+                    <span>Dark</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("system")}>
+                    <Monitor size={14} className="mr-2" />
+                    <span>System</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <div className="relative">
                 <button
@@ -263,9 +291,20 @@ export default function AdminShell() {
                 {userMenuOpen && (
                   <div className="absolute right-0 top-12 z-20 w-48 overflow-hidden rounded-xl border border-admin-border bg-[var(--color-bg-secondary)] shadow-[0_16px_44px_rgba(0,0,0,0.35)]">
                     <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        void navigate({ to: "/admin/settings" });
+                      }}
+                      type="button"
+                      className="flex w-full items-center gap-2 border-b border-admin-border px-4 py-3 text-admin-text-primary transition hover:bg-[var(--color-bg-hover)]"
+                    >
+                      <User size={16} />
+                      <span className="text-sm font-medium">Settings</span>
+                    </button>
+                    <button
                       onClick={handleLogout}
                       type="button"
-                      className="flex w-full items-center gap-2 border-b border-admin-border px-4 py-3 text-admin-red transition hover:bg-[var(--color-bg-hover)]"
+                      className="flex w-full items-center gap-2 px-4 py-3 text-admin-red transition hover:bg-[var(--color-bg-hover)]"
                     >
                       <LogOut size={16} />
                       <span className="text-sm font-medium">Logout</span>
