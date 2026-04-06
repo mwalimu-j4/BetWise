@@ -31,6 +31,8 @@ type MeResponse = {
 };
 
 const persistedSessionKey = "betwise-auth-session";
+const persistedTokenKey = "betwise-auth-token";
+const persistedUserKey = "betwise-auth-user";
 
 type RegisterPayload = {
   email: string;
@@ -66,6 +68,8 @@ function clearAuthState(
   setAccessToken(null);
   if (typeof window !== "undefined") {
     window.localStorage.removeItem(persistedSessionKey);
+    window.localStorage.removeItem(persistedTokenKey);
+    window.localStorage.removeItem(persistedUserKey);
   }
 }
 
@@ -80,6 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(data.accessToken);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(persistedSessionKey, "true");
+      window.localStorage.setItem(persistedTokenKey, data.accessToken);
+      window.localStorage.setItem(persistedUserKey, JSON.stringify(data.user));
     }
   }, []);
 
@@ -96,8 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(me.data.user);
       return data.accessToken;
-    } catch {
-      clearAuthState(setUser, setAccessTokenState);
+    } catch (error) {
+      // Don't clear auth state on refresh failure - the user may still have a valid access token.
+      // The access token will be invalidated when it expires and a 401 is received from the API.
       return null;
     }
   }, [updateSession]);
@@ -156,10 +163,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    void (async () => {
-      await refreshSession();
+    // Restore token and user from localStorage immediately
+    const persistedToken =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem(persistedTokenKey)
+        : null;
+    const persistedUserJson =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem(persistedUserKey)
+        : null;
+
+    if (persistedToken && persistedUserJson) {
+      try {
+        const persistedUser = JSON.parse(persistedUserJson) as AuthUser;
+        setAccessTokenState(persistedToken);
+        setAccessToken(persistedToken);
+        setUser(persistedUser);
+        setIsLoading(false); // User is restored, stop loading immediately
+      } catch {
+        // Invalid stored data, clear and fall through to login
+        clearAuthState(setUser, setAccessTokenState);
+        setIsLoading(false);
+        return;
+      }
+    } else {
       setIsLoading(false);
-    })();
+      return;
+    }
+
+    // Attempt to refresh and validate session in the background (don't block UI on this)
+    void refreshSession();
   }, [refreshSession]);
 
   const value = useMemo<AuthContextValue>(
