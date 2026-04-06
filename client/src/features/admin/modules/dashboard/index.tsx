@@ -257,7 +257,7 @@ export default function Dashboard() {
         </div>
 
         {/* Charts */}
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
           <AdminCard>
             <AdminCardHeader
               title="Deposit vs Withdrawal Trend"
@@ -290,7 +290,7 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activity + Quick Links */}
-        <div className="grid gap-4 xl:grid-cols-[1fr_260px]">
+        <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
           {/* Recent Activity */}
           <AdminCard>
             <AdminCardHeader

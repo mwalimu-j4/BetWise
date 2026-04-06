@@ -514,15 +514,15 @@ export function FinancialTrendChart({ data }: { data: any[] }) {
 
 export function DepositWithdrawalChart({ data }: { data: any[] }) {
   return (
-    <ResponsiveContainer width="100%" height={250}>
+    <ResponsiveContainer width="100%" height={160}>
       <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
         <XAxis
           dataKey="period"
           stroke="rgba(255,255,255,0.4)"
-          style={{ fontSize: "12px" }}
+          style={{ fontSize: "11px" }}
         />
-        <YAxis stroke="rgba(255,255,255,0.4)" style={{ fontSize: "12px" }} />
+        <YAxis stroke="rgba(255,255,255,0.4)" style={{ fontSize: "11px" }} />
         <Tooltip
           contentStyle={{
             backgroundColor: "rgba(20,24,40,0.98)",
@@ -530,7 +530,7 @@ export function DepositWithdrawalChart({ data }: { data: any[] }) {
             borderRadius: "8px",
             boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
           }}
-          labelStyle={{ color: "#00e5a0", fontSize: "12px" }}
+          labelStyle={{ color: "#00e5a0", fontSize: "11px" }}
           cursor={{ fill: "rgba(255,255,255,0.05)" }}
         />
         <Legend />
@@ -538,18 +538,18 @@ export function DepositWithdrawalChart({ data }: { data: any[] }) {
           type="monotone"
           dataKey="deposits"
           stroke="#00e5a0"
-          strokeWidth={3}
-          dot={{ r: 3 }}
-          activeDot={{ r: 5 }}
+          strokeWidth={2}
+          dot={{ r: 2 }}
+          activeDot={{ r: 4 }}
           name="Deposits"
         />
         <Line
           type="monotone"
           dataKey="withdrawals"
           stroke="#ff9800"
-          strokeWidth={3}
-          dot={{ r: 3 }}
-          activeDot={{ r: 5 }}
+          strokeWidth={2}
+          dot={{ r: 2 }}
+          activeDot={{ r: 4 }}
           name="Withdrawals"
         />
       </LineChart>

@@ -16,15 +16,20 @@ export const indexRoute = createRoute({
         const user = JSON.parse(persistedUserJson);
         if (user && typeof user === "object" && "role" in user) {
           if (user.role === "ADMIN") {
+            console.log("Redirecting admin to /admin");
             throw redirect({ to: "/admin" });
-          }
-          if (user.role === "USER") {
+          } else if (user.role === "USER") {
+            console.log("Redirecting user to /user");
             throw redirect({ to: "/user" });
           }
         }
-      } catch (error) {
-        // Re-throw redirect errors so they can be handled by the router
-        throw error;
+      } catch (error: any) {
+        // Check if this is a redirect error by looking for common properties
+        if (error?.isRedirect || error?.status === 302) {
+          throw error;
+        }
+        // If it's a JSON parse error or other issue, just continue
+        console.warn("Error parsing user from storage:", error);
       }
     }
     // If not authenticated, stay on home
