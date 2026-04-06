@@ -195,6 +195,39 @@ export default function Footer() {
               )}
             </form>
           </div>
+
+          {/* Why BetWise */}
+          <div className="rounded-xl border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-5">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-white">
+              Why BetWise
+            </h4>
+            <ul className="mt-4 grid gap-2.5">
+              <li className="flex items-center gap-2 text-xs text-[#8a9bb0]">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#f5c518]">
+                  ✓
+                </span>
+                <span>Instant M-Pesa deposits</span>
+              </li>
+              <li className="flex items-center gap-2 text-xs text-[#8a9bb0]">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#f5c518]">
+                  ✓
+                </span>
+                <span>Secure transactions</span>
+              </li>
+              <li className="flex items-center gap-2 text-xs text-[#8a9bb0]">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#f5c518]">
+                  ✓
+                </span>
+                <span>Fast withdrawals</span>
+              </li>
+              <li className="flex items-center gap-2 text-xs text-[#8a9bb0]">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#f5c518]">
+                  ✓
+                </span>
+                <span>24/7 support</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Divider */}
