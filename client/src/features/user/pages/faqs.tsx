@@ -14,7 +14,7 @@ export default function FAQs() {
     {
       id: 1,
       category: "Account & Registration",
-      question: "How do I create a BetWise account?",
+      question: "How do I create a BetRixPro account?",
       answer:
         "Simply click the 'Sign Up' button, enter your email address, create a strong password, and fill in your personal details. Once your account is verified, you can immediately start exploring events and placing bets.",
     },
@@ -148,7 +148,7 @@ export default function FAQs() {
             Frequently Asked Questions
           </h1>
           <p className="text-base text-[#90a2bb] max-w-2xl mx-auto leading-relaxed">
-            Find answers to common questions about BetWise, betting, payments,
+            Find answers to common questions about BetRixPro, betting, payments,
             and account management.
           </p>
         </div>

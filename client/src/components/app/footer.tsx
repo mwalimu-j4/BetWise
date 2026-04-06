@@ -45,7 +45,7 @@ export default function Footer() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f5c518]">
                 <span className="text-sm font-bold text-black">B</span>
               </div>
-              <h3 className="text-lg font-bold text-white">BetWise</h3>
+              <h3 className="text-lg font-bold text-white">BetRixPro</h3>
             </div>
             <p className="mt-3 text-sm text-[#8a9bb0]">
               Smart betting with fast M-Pesa deposits and a secure wallet
@@ -135,10 +135,10 @@ export default function Footer() {
             </h4>
             <div className="mt-4 grid gap-3 text-sm text-[#8a9bb0]">
               <a
-                href="mailto:support@betwise.com"
+                href="mailto:support@betrixpro.com"
                 className="transition hover:text-[#f5c518]"
               >
-                support@betwise.com
+                support@betrixpro.com
               </a>
               <a
                 href="tel:+254700000000"
@@ -196,10 +196,10 @@ export default function Footer() {
             </form>
           </div>
 
-          {/* Why BetWise */}
+          {/* Why BetRixPro */}
           <div className="rounded-xl border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-5">
             <h4 className="text-sm font-bold uppercase tracking-wider text-white">
-              Why BetWise
+              Why BetRixPro
             </h4>
             <ul className="mt-4 grid gap-2.5">
               <li className="flex items-center gap-2 text-xs text-[#8a9bb0]">
@@ -235,7 +235,7 @@ export default function Footer() {
 
         {/* Bottom Footer */}
         <div className="mt-6 flex flex-col gap-3 text-xs text-[#5a6b7d] sm:flex-row sm:items-center sm:justify-between">
-          <p>© {year} BetWise. All rights reserved.</p>
+          <p>© {year} BetRixPro. All rights reserved.</p>
           <div className="flex gap-3 text-xs">
             <a href="#" className="transition hover:text-[#f5c518]">
               Terms

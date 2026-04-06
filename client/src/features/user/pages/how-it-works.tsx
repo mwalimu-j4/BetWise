@@ -16,15 +16,8 @@ interface Step {
   description: string;
 }
 
-interface Feature {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-}
-
 export default function HowItWorks() {
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
-
   const steps: Step[] = [
     {
       number: 1,
@@ -63,39 +56,15 @@ export default function HowItWorks() {
     },
   ];
 
-  const features: Feature[] = [
-    {
-      icon: Zap,
-      title: "Fast & Easy",
-      description:
-        "Quick and intuitive betting interface designed for simplicity.",
-    },
-    {
-      icon: Lock,
-      title: "Secure",
-      description: "Industry-standard SSL encryption protecting your data.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Best Odds",
-      description: "Competitive odds on all events with transparent pricing.",
-    },
-    {
-      icon: Users,
-      title: "Live Betting",
-      description: "Bet on live events in real-time as they unfold.",
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0b1120] to-[#0f172a] text-white">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         {/* Hero Section */}
         <div className="mb-16 text-center">
-          <h1 className="text-4xl font-bold mb-4">How BetWise Works</h1>
+          <h1 className="text-4xl font-bold mb-4">How BetRixPro Works</h1>
           <p className="text-base text-[#90a2bb] max-w-2xl mx-auto leading-relaxed">
             Get started with sports betting in just a few simple steps. Follow
-            our guide to learn how to make the most of your BetWise experience.
+            our guide to learn how to make the most of your BetRixPro experience.
           </p>
         </div>
 
@@ -153,41 +122,13 @@ export default function HowItWorks() {
           </div>
         </div>
 
-        {/* Features Section */}
-        <div className="mb-20">
-          <h2 className="mb-10 text-3xl font-bold text-center">
-            Why Choose BetWise?
-          </h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <Card
-                  key={index}
-                  className="border border-[#31455f] bg-[#0f172a] p-8 rounded-2xl hover:border-[#f5c518]/60 transition-colors duration-300"
-                >
-                  <div className="mb-4 h-14 w-14 rounded-xl bg-[#f5c518] flex items-center justify-center">
-                    <Icon className="h-7 w-7 text-[#0b1120]" />
-                  </div>
-                  <h3 className="mb-2 text-lg font-bold text-white">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-[#90a2bb] leading-relaxed">
-                    {feature.description}
-                  </p>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-
         {/* CTA Section */}
         <div className="text-center rounded-2xl border border-[#31455f] bg-[#0f172a] p-10">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-base text-[#90a2bb] mb-8 max-w-2xl mx-auto leading-relaxed">
             Join thousands of sports enthusiasts. Sign up and start betting
             today with secure M-Pesa deposits and a world-class betting
-            experience.
+            experience on BetRixPro.
           </p>
           <button className="inline-block rounded-xl bg-gradient-to-r from-[#f5c518] to-[#d4a500] px-10 py-3 font-bold text-[#0b1120] hover:shadow-xl hover:scale-105 transition-all duration-200">
             Start Betting Now
