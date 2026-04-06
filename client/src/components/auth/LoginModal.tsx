@@ -72,7 +72,19 @@ export default function LoginModal() {
         password,
       });
 
-      toast.success("Signed in successfully.");
+      // Get user role to show appropriate welcome message
+      const persistedUserJson =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("betixpro-auth-user")
+          : null;
+      const user = persistedUserJson ? JSON.parse(persistedUserJson) : null;
+
+      if (user?.role === "ADMIN") {
+        toast.success("Welcome, Admin! 🎉 Let's manage some magic.");
+      } else {
+        toast.success("Signed in successfully.");
+      }
+
       closeAuthModal();
       setPhone("");
       setPassword("");
