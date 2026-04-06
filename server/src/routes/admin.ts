@@ -12,6 +12,8 @@ import {
   unsuspendUser,
   getAdminPayments,
   getAdminPaymentsStats,
+  getAdminSettings,
+  updateAdminSettings,
 } from "../controllers/admin.controller";
 import { requireAdmin } from "../middleware/requireAdmin";
 
@@ -71,6 +73,20 @@ adminRouter.get(
   authenticate,
   requireAdmin,
   getAdminPaymentsStats,
+);
+
+// Settings Management
+adminRouter.get(
+  "/admin/settings",
+  authenticate,
+  requireAdmin,
+  getAdminSettings,
+);
+adminRouter.put(
+  "/admin/settings",
+  authenticate,
+  requireAdmin,
+  updateAdminSettings,
 );
 
 export { adminRouter };

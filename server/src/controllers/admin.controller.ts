@@ -1,7 +1,13 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
+import {
+  adminSettingsSchema,
+  type AdminSettingsConfig,
+  defaultAdminSettings,
+} from "../lib/adminSettingsConfig";
 
 const RECENT_ACTIVITY_LIMIT = 8;
 const TREND_DAYS = 7;
@@ -25,6 +31,336 @@ function startOfDay(date: Date) {
   const next = new Date(date);
   next.setHours(0, 0, 0, 0);
   return next;
+}
+
+const adminSettingsSelect = {
+  key: true,
+  platformName: true,
+  environment: true,
+  defaultCurrency: true,
+  timezone: true,
+  maintenanceMode: true,
+  registrationEnabled: true,
+  minDeposit: true,
+  maxDeposit: true,
+  minWithdrawal: true,
+  maxWithdrawal: true,
+  dailyTransactionLimit: true,
+  maxActiveBetsPerUser: true,
+  defaultUserRole: true,
+  kycRequired: true,
+  kycRequireId: true,
+  kycRequirePhone: true,
+  kycRequireEmail: true,
+  withdrawalRequiresKyc: true,
+  minimumAge: true,
+  allowedCountries: true,
+  paymentMpesaEnabled: true,
+  paymentBankTransferEnabled: true,
+  mpesaShortcode: true,
+  mpesaConsumerKey: true,
+  mpesaConsumerSecret: true,
+  mpesaPasskey: true,
+  mpesaCallbackUrl: true,
+  mpesaTransactionFeePercent: true,
+  mpesaAutoWithdrawEnabled: true,
+  mpesaWithdrawalApprovalThreshold: true,
+  minBetAmount: true,
+  maxBetAmount: true,
+  maxWinPerBet: true,
+  oddsMarginPercent: true,
+  betDelayMs: true,
+  cashoutEnabled: true,
+  cashoutMarginPercent: true,
+  allowLiveBetting: true,
+  maxExposurePerEvent: true,
+  maxExposurePerMarket: true,
+  maxPayoutPerDay: true,
+  highRiskBetThreshold: true,
+  autoBlockSuspiciousUsers: true,
+  welcomeBonusEnabled: true,
+  bonusMode: true,
+  bonusAmount: true,
+  bonusPercent: true,
+  wageringRequirementMultiplier: true,
+  bonusExpiryHours: true,
+  maxBonusPerUser: true,
+  cashbackRule: true,
+  smsEnabled: true,
+  emailEnabled: true,
+  notifyDepositSuccess: true,
+  notifyWithdrawalSuccess: true,
+  notifyBetPlaced: true,
+  notifyBetResult: true,
+  notifyAdminAlerts: true,
+  sportsApiKey: true,
+  oddsProviderName: true,
+  primaryWebhookUrl: true,
+  fallbackWebhookUrl: true,
+  retryAttempts: true,
+  retryBackoffMs: true,
+  requestsPerMinute: true,
+  adminTwoFactorRequired: true,
+  passwordMinLength: true,
+  requireUppercase: true,
+  requireNumber: true,
+  requireSpecialChar: true,
+  sessionTimeoutMinutes: true,
+  maxLoginAttempts: true,
+  ipWhitelist: true,
+  ipBlacklist: true,
+  winningsTaxPercent: true,
+  depositTaxPercent: true,
+  commissionPercent: true,
+  roundingRule: true,
+  affiliateCommissionPercent: true,
+  multiLevelReferralsEnabled: true,
+  affiliateMinimumPayoutThreshold: true,
+  affiliateWithdrawalRule: true,
+  termsAndConditions: true,
+  privacyPolicy: true,
+  responsibleGamblingMessage: true,
+  supportContactInfo: true,
+  updatedBy: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+type AdminSettingsRecord = Prisma.AdminSettingsGetPayload<{
+  select: typeof adminSettingsSelect;
+}>;
+
+function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
+  return {
+    platformName: config.generalSystemConfig.platformName,
+    environment: config.generalSystemConfig.environment,
+    defaultCurrency: config.generalSystemConfig.defaultCurrency,
+    timezone: config.generalSystemConfig.timezone,
+    maintenanceMode: config.generalSystemConfig.maintenanceMode,
+    registrationEnabled: config.generalSystemConfig.registrationEnabled,
+    minDeposit: config.userDefaultsAndRestrictions.minDeposit,
+    maxDeposit: config.userDefaultsAndRestrictions.maxDeposit,
+    minWithdrawal: config.userDefaultsAndRestrictions.minWithdrawal,
+    maxWithdrawal: config.userDefaultsAndRestrictions.maxWithdrawal,
+    dailyTransactionLimit:
+      config.userDefaultsAndRestrictions.dailyTransactionLimit,
+    maxActiveBetsPerUser:
+      config.userDefaultsAndRestrictions.maxActiveBetsPerUser,
+    defaultUserRole: config.userDefaultsAndRestrictions.defaultUserRole,
+    kycRequired: config.kycAndComplianceConfig.kycRequired,
+    kycRequireId: config.kycAndComplianceConfig.requiredFields.id,
+    kycRequirePhone: config.kycAndComplianceConfig.requiredFields.phone,
+    kycRequireEmail: config.kycAndComplianceConfig.requiredFields.email,
+    withdrawalRequiresKyc: config.kycAndComplianceConfig.withdrawalRequiresKyc,
+    minimumAge: config.kycAndComplianceConfig.minimumAge,
+    allowedCountries: config.kycAndComplianceConfig.allowedCountries,
+    paymentMpesaEnabled: config.paymentsConfig.methods.mpesa,
+    paymentBankTransferEnabled: config.paymentsConfig.methods.bankTransfer,
+    mpesaShortcode: config.paymentsConfig.mpesa.shortcode,
+    mpesaConsumerKey: config.paymentsConfig.mpesa.consumerKey,
+    mpesaConsumerSecret: config.paymentsConfig.mpesa.consumerSecret,
+    mpesaPasskey: config.paymentsConfig.mpesa.passkey,
+    mpesaCallbackUrl: config.paymentsConfig.mpesa.callbackUrl,
+    mpesaTransactionFeePercent:
+      config.paymentsConfig.mpesa.transactionFeePercent,
+    mpesaAutoWithdrawEnabled: config.paymentsConfig.mpesa.autoWithdrawEnabled,
+    mpesaWithdrawalApprovalThreshold:
+      config.paymentsConfig.mpesa.withdrawalApprovalThreshold,
+    minBetAmount: config.bettingEngineConfig.minBetAmount,
+    maxBetAmount: config.bettingEngineConfig.maxBetAmount,
+    maxWinPerBet: config.bettingEngineConfig.maxWinPerBet,
+    oddsMarginPercent: config.bettingEngineConfig.oddsMarginPercent,
+    betDelayMs: config.bettingEngineConfig.betDelayMs,
+    cashoutEnabled: config.bettingEngineConfig.cashoutEnabled,
+    cashoutMarginPercent: config.bettingEngineConfig.cashoutMarginPercent,
+    allowLiveBetting: config.bettingEngineConfig.allowLiveBetting,
+    maxExposurePerEvent: config.riskManagementConfig.maxExposurePerEvent,
+    maxExposurePerMarket: config.riskManagementConfig.maxExposurePerMarket,
+    maxPayoutPerDay: config.riskManagementConfig.maxPayoutPerDay,
+    highRiskBetThreshold: config.riskManagementConfig.highRiskBetThreshold,
+    autoBlockSuspiciousUsers:
+      config.riskManagementConfig.autoBlockSuspiciousUsers,
+    welcomeBonusEnabled: config.bonusesAndPromotionsConfig.welcomeBonusEnabled,
+    bonusMode: config.bonusesAndPromotionsConfig.bonusMode,
+    bonusAmount: config.bonusesAndPromotionsConfig.bonusAmount,
+    bonusPercent: config.bonusesAndPromotionsConfig.bonusPercent,
+    wageringRequirementMultiplier:
+      config.bonusesAndPromotionsConfig.wageringRequirementMultiplier,
+    bonusExpiryHours: config.bonusesAndPromotionsConfig.bonusExpiryHours,
+    maxBonusPerUser: config.bonusesAndPromotionsConfig.maxBonusPerUser,
+    cashbackRule: config.bonusesAndPromotionsConfig.cashbackRule,
+    smsEnabled: config.notificationsConfig.smsEnabled,
+    emailEnabled: config.notificationsConfig.emailEnabled,
+    notifyDepositSuccess: config.notificationsConfig.events.depositSuccess,
+    notifyWithdrawalSuccess:
+      config.notificationsConfig.events.withdrawalSuccess,
+    notifyBetPlaced: config.notificationsConfig.events.betPlaced,
+    notifyBetResult: config.notificationsConfig.events.betResult,
+    notifyAdminAlerts: config.notificationsConfig.events.adminAlerts,
+    sportsApiKey: config.apiAndIntegrationsConfig.sportsApiKey,
+    oddsProviderName: config.apiAndIntegrationsConfig.oddsProviderName,
+    primaryWebhookUrl: config.apiAndIntegrationsConfig.primaryWebhookUrl,
+    fallbackWebhookUrl: config.apiAndIntegrationsConfig.fallbackWebhookUrl,
+    retryAttempts: config.apiAndIntegrationsConfig.retryAttempts,
+    retryBackoffMs: config.apiAndIntegrationsConfig.retryBackoffMs,
+    requestsPerMinute: config.apiAndIntegrationsConfig.requestsPerMinute,
+    adminTwoFactorRequired: config.securityConfig.adminTwoFactorRequired,
+    passwordMinLength: config.securityConfig.passwordMinLength,
+    requireUppercase: config.securityConfig.requireUppercase,
+    requireNumber: config.securityConfig.requireNumber,
+    requireSpecialChar: config.securityConfig.requireSpecialChar,
+    sessionTimeoutMinutes: config.securityConfig.sessionTimeoutMinutes,
+    maxLoginAttempts: config.securityConfig.maxLoginAttempts,
+    ipWhitelist: config.securityConfig.ipWhitelist,
+    ipBlacklist: config.securityConfig.ipBlacklist,
+    winningsTaxPercent: config.taxAndFinancialRules.winningsTaxPercent,
+    depositTaxPercent: config.taxAndFinancialRules.depositTaxPercent,
+    commissionPercent: config.taxAndFinancialRules.commissionPercent,
+    roundingRule: config.taxAndFinancialRules.roundingRule,
+    affiliateCommissionPercent:
+      config.affiliateAndAgentConfig.commissionPercent,
+    multiLevelReferralsEnabled:
+      config.affiliateAndAgentConfig.multiLevelReferralsEnabled,
+    affiliateMinimumPayoutThreshold:
+      config.affiliateAndAgentConfig.minimumPayoutThreshold,
+    affiliateWithdrawalRule: config.affiliateAndAgentConfig.withdrawalRule,
+    termsAndConditions: config.contentAndLegal.termsAndConditions,
+    privacyPolicy: config.contentAndLegal.privacyPolicy,
+    responsibleGamblingMessage:
+      config.contentAndLegal.responsibleGamblingMessage,
+    supportContactInfo: config.contentAndLegal.supportContactInfo,
+    updatedBy,
+  };
+}
+
+function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
+  return {
+    generalSystemConfig: {
+      platformName: record.platformName,
+      environment: record.environment as "sandbox" | "live",
+      defaultCurrency: record.defaultCurrency,
+      timezone: record.timezone,
+      maintenanceMode: record.maintenanceMode,
+      registrationEnabled: record.registrationEnabled,
+    },
+    userDefaultsAndRestrictions: {
+      minDeposit: record.minDeposit,
+      maxDeposit: record.maxDeposit,
+      minWithdrawal: record.minWithdrawal,
+      maxWithdrawal: record.maxWithdrawal,
+      dailyTransactionLimit: record.dailyTransactionLimit,
+      maxActiveBetsPerUser: record.maxActiveBetsPerUser,
+      defaultUserRole: "USER",
+    },
+    kycAndComplianceConfig: {
+      kycRequired: record.kycRequired,
+      requiredFields: {
+        id: record.kycRequireId,
+        phone: record.kycRequirePhone,
+        email: record.kycRequireEmail,
+      },
+      withdrawalRequiresKyc: record.withdrawalRequiresKyc,
+      minimumAge: record.minimumAge,
+      allowedCountries: record.allowedCountries,
+    },
+    paymentsConfig: {
+      methods: {
+        mpesa: record.paymentMpesaEnabled,
+        bankTransfer: record.paymentBankTransferEnabled,
+      },
+      mpesa: {
+        shortcode: record.mpesaShortcode,
+        consumerKey: record.mpesaConsumerKey,
+        consumerSecret: record.mpesaConsumerSecret,
+        passkey: record.mpesaPasskey,
+        callbackUrl: record.mpesaCallbackUrl,
+        transactionFeePercent: record.mpesaTransactionFeePercent,
+        autoWithdrawEnabled: record.mpesaAutoWithdrawEnabled,
+        withdrawalApprovalThreshold: record.mpesaWithdrawalApprovalThreshold,
+      },
+    },
+    bettingEngineConfig: {
+      minBetAmount: record.minBetAmount,
+      maxBetAmount: record.maxBetAmount,
+      maxWinPerBet: record.maxWinPerBet,
+      oddsMarginPercent: record.oddsMarginPercent,
+      betDelayMs: record.betDelayMs,
+      cashoutEnabled: record.cashoutEnabled,
+      cashoutMarginPercent: record.cashoutMarginPercent,
+      allowLiveBetting: record.allowLiveBetting,
+    },
+    riskManagementConfig: {
+      maxExposurePerEvent: record.maxExposurePerEvent,
+      maxExposurePerMarket: record.maxExposurePerMarket,
+      maxPayoutPerDay: record.maxPayoutPerDay,
+      highRiskBetThreshold: record.highRiskBetThreshold,
+      autoBlockSuspiciousUsers: record.autoBlockSuspiciousUsers,
+    },
+    bonusesAndPromotionsConfig: {
+      welcomeBonusEnabled: record.welcomeBonusEnabled,
+      bonusMode: record.bonusMode as "fixed_amount" | "percentage",
+      bonusAmount: record.bonusAmount,
+      bonusPercent: record.bonusPercent,
+      wageringRequirementMultiplier: record.wageringRequirementMultiplier,
+      bonusExpiryHours: record.bonusExpiryHours,
+      maxBonusPerUser: record.maxBonusPerUser,
+      cashbackRule: record.cashbackRule,
+    },
+    notificationsConfig: {
+      smsEnabled: record.smsEnabled,
+      emailEnabled: record.emailEnabled,
+      events: {
+        depositSuccess: record.notifyDepositSuccess,
+        withdrawalSuccess: record.notifyWithdrawalSuccess,
+        betPlaced: record.notifyBetPlaced,
+        betResult: record.notifyBetResult,
+        adminAlerts: record.notifyAdminAlerts,
+      },
+    },
+    apiAndIntegrationsConfig: {
+      sportsApiKey: record.sportsApiKey,
+      oddsProviderName: record.oddsProviderName,
+      primaryWebhookUrl: record.primaryWebhookUrl,
+      fallbackWebhookUrl: record.fallbackWebhookUrl,
+      retryAttempts: record.retryAttempts,
+      retryBackoffMs: record.retryBackoffMs,
+      requestsPerMinute: record.requestsPerMinute,
+    },
+    securityConfig: {
+      adminTwoFactorRequired: record.adminTwoFactorRequired,
+      passwordMinLength: record.passwordMinLength,
+      requireUppercase: record.requireUppercase,
+      requireNumber: record.requireNumber,
+      requireSpecialChar: record.requireSpecialChar,
+      sessionTimeoutMinutes: record.sessionTimeoutMinutes,
+      maxLoginAttempts: record.maxLoginAttempts,
+      ipWhitelist: record.ipWhitelist,
+      ipBlacklist: record.ipBlacklist,
+    },
+    taxAndFinancialRules: {
+      winningsTaxPercent: record.winningsTaxPercent,
+      depositTaxPercent: record.depositTaxPercent,
+      commissionPercent: record.commissionPercent,
+      roundingRule: record.roundingRule as
+        | "nearest_1"
+        | "nearest_5"
+        | "nearest_10"
+        | "floor"
+        | "ceil",
+    },
+    affiliateAndAgentConfig: {
+      commissionPercent: record.affiliateCommissionPercent,
+      multiLevelReferralsEnabled: record.multiLevelReferralsEnabled,
+      minimumPayoutThreshold: record.affiliateMinimumPayoutThreshold,
+      withdrawalRule: record.affiliateWithdrawalRule,
+    },
+    contentAndLegal: {
+      termsAndConditions: record.termsAndConditions,
+      privacyPolicy: record.privacyPolicy,
+      responsibleGamblingMessage: record.responsibleGamblingMessage,
+      supportContactInfo: record.supportContactInfo,
+    },
+  };
 }
 
 const updateUserSchema = z.object({
@@ -1245,6 +1581,102 @@ export async function getAdminPaymentsStats(req: Request, res: Response) {
         totalValue: totalWithdrawalValue._sum.amount ?? 0,
         pendingValue: pendingWithdrawalValue._sum.amount ?? 0,
       },
+    },
+  });
+}
+
+export async function getAdminSettings(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const settings = await prisma.adminSettings.upsert({
+    where: { key: "global" },
+    update: {},
+    create: {
+      key: "global",
+      ...toDbSettingsData(defaultAdminSettings, req.user.id),
+    },
+    select: adminSettingsSelect,
+  });
+
+  const parsedConfig = adminSettingsSchema.safeParse(toConfig(settings));
+
+  if (!parsedConfig.success) {
+    const repaired = await prisma.adminSettings.update({
+      where: { key: "global" },
+      data: {
+        ...toDbSettingsData(defaultAdminSettings, req.user.id),
+      },
+      select: adminSettingsSelect,
+    });
+
+    return res.status(200).json({
+      config: toConfig(repaired),
+      metadata: {
+        key: repaired.key,
+        updatedBy: repaired.updatedBy,
+        createdAt: repaired.createdAt.toISOString(),
+        updatedAt: repaired.updatedAt.toISOString(),
+      },
+    });
+  }
+
+  return res.status(200).json({
+    config: parsedConfig.data,
+    metadata: {
+      key: settings.key,
+      updatedBy: settings.updatedBy,
+      createdAt: settings.createdAt.toISOString(),
+      updatedAt: settings.updatedAt.toISOString(),
+    },
+  });
+}
+
+export async function updateAdminSettings(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const parsedBody = z
+    .object({
+      config: adminSettingsSchema,
+    })
+    .safeParse(req.body);
+
+  if (!parsedBody.success) {
+    return res.status(400).json({
+      message: "Invalid admin settings payload.",
+      issues: parsedBody.error.flatten(),
+    });
+  }
+
+  const updated = await prisma.adminSettings.upsert({
+    where: { key: "global" },
+    update: toDbSettingsData(parsedBody.data.config, req.user.id),
+    create: {
+      key: "global",
+      ...toDbSettingsData(parsedBody.data.config, req.user.id),
+    },
+    select: adminSettingsSelect,
+  });
+
+  return res.status(200).json({
+    message: "Admin settings updated successfully.",
+    config: toConfig(updated),
+    metadata: {
+      key: updated.key,
+      updatedBy: updated.updatedBy,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
     },
   });
 }
