@@ -1,44 +1,83 @@
 import type { Request, Response } from "express";
-import { z } from "zod";
 import { prisma } from "../lib/prisma";
 
-const createContactSchema = z.object({
-  subject: z
-    .string()
-    .trim()
-    .min(3, "Subject must be at least 3 characters")
-    .max(100, "Subject must not exceed 100 characters"),
-  message: z
-    .string()
-    .trim()
-    .min(10, "Message must be at least 10 characters")
-    .max(2000, "Message must not exceed 2000 characters"),
-});
+const createContactSchema = {
+  subject: (val: any) =>
+    typeof val === "string" &&
+    val.trim().length >= 3 &&
+    val.trim().length <= 100,
+  message: (val: any) =>
+    typeof val === "string" &&
+    val.trim().length >= 10 &&
+    val.trim().length <= 2000,
+  fullName: (val: any) =>
+    typeof val === "string" && val.trim().length >= 2 && val.trim().length <= 100,
+  phone: (val: any) =>
+    typeof val === "string" && /^[\d\+\-\(\)\s]{7,20}$/.test(val.trim()),
+};
 
-type CreateContactPayload = z.infer<typeof createContactSchema>;
+type CreateContactPayload = {
+  subject: string;
+  message: string;
+  fullName: string;
+  phone: string;
+};
 
 export async function createContact(req: Request, res: Response) {
   try {
-    if (!req.user?.id) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    const { subject, message, fullName, phone } = req.body;
+    const userId = req.user?.id || null;
 
-    const validationResult = createContactSchema.safeParse(req.body);
-    if (!validationResult.success) {
+    // Validate required fields
+    if (!subject || typeof subject !== "string" || subject.trim().length < 3) {
       return res.status(400).json({
-        message: "Validation failed",
-        errors: validationResult.error.errors,
+        message: "Subject is required and must be at least 3 characters",
       });
     }
 
-    const { subject, message } = validationResult.data as CreateContactPayload;
-    const userId = req.user.id;
+    if (!message || typeof message !== "string" || message.trim().length < 10) {
+      return res.status(400).json({
+        message: "Message is required and must be at least 10 characters",
+      });
+    }
+
+    if (!fullName || typeof fullName !== "string" || fullName.trim().length < 2) {
+      return res.status(400).json({
+        message: "Full name is required and must be at least 2 characters",
+      });
+    }
+
+    if (!phone || typeof phone !== "string" || phone.trim().length < 7) {
+      return res.status(400).json({
+        message: "Phone number is required and must be at least 7 characters",
+      });
+    }
+
+    if (subject.trim().length > 100) {
+      return res.status(400).json({
+        message: "Subject must not exceed 100 characters",
+      });
+    }
+
+    if (message.trim().length > 2000) {
+      return res.status(400).json({
+        message: "Message must not exceed 2000 characters",
+      });
+    }
+
+    if (fullName.trim().length > 100) {
+      return res.status(400).json({
+        message: "Full name must not exceed 100 characters",
+      });
+    }
 
     const contact = await prisma.contact.create({
       data: {
         userId,
-        subject,
-        message,
+        subject: subject.trim(),
+        message: message.trim(),
+        fullName: fullName.trim(),
+        phone: phone.trim(),
         status: "SUBMITTED",
       },
       include: {
@@ -127,8 +166,9 @@ export async function getAllContacts(req: Request, res: Response) {
       where.OR = [
         { subject: { contains: search, mode: "insensitive" } },
         { message: { contains: search, mode: "insensitive" } },
+        { fullName: { contains: search, mode: "insensitive" } },
+        { phone: { contains: search, mode: "insensitive" } },
         { user: { email: { contains: search, mode: "insensitive" } } },
-        { user: { phone: { contains: search, mode: "insensitive" } } },
       ];
     }
 
