@@ -10,9 +10,18 @@ export default function SplashScreen() {
           </h1>
         </div>
         <div className="flex items-center justify-center gap-1.5">
-          <div className="h-2 w-2 bg-[#f5c518] rounded-full animate-bounce" style={{ animationDelay: "0s" }} />
-          <div className="h-2 w-2 bg-[#f5c518] rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
-          <div className="h-2 w-2 bg-[#f5c518] rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
+          <div
+            className="h-2 w-2 bg-[#f5c518] rounded-full animate-bounce"
+            style={{ animationDelay: "0s" }}
+          />
+          <div
+            className="h-2 w-2 bg-[#f5c518] rounded-full animate-bounce"
+            style={{ animationDelay: "0.15s" }}
+          />
+          <div
+            className="h-2 w-2 bg-[#f5c518] rounded-full animate-bounce"
+            style={{ animationDelay: "0.3s" }}
+          />
         </div>
       </div>
     </div>

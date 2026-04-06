@@ -1,14 +1,23 @@
 import { QueryClient } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { useAuth } from "@/context/AuthContext";
 import AuthModals from "@/components/auth/AuthModals";
 import SplashScreen from "@/components/SplashScreen";
+import { useEffect, useState } from "react";
 
 function Root() {
-  const { isLoading } = useAuth();
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  if (isLoading) {
+  useEffect(() => {
+    // Only show splash on initial page load, not on subsequent data fetches
+    const timer = setTimeout(() => {
+      setIsInitializing(false);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isInitializing) {
     return <SplashScreen />;
   }
 
@@ -26,5 +35,3 @@ export const rootRoute = createRootRouteWithContext<{
 }>()({
   component: Root,
 });
-
-
