@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, Menu, Search, Zap } from "lucide-react";
+import { Bell, Menu, Search, Zap, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import {
   useAppNotifications,
@@ -14,15 +15,22 @@ export default function AdminShell() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   useWalletRealtime();
   const { data: notificationData } = useAppNotifications(10);
   const markAllNotificationsRead = useMarkAllNotificationsRead();
+  const { logout, user } = useAuth();
   const pathname = useLocation({
     select: (location) => location.pathname,
   });
   const navigate = useNavigate();
   const notifications = notificationData?.notifications ?? [];
   const unreadCount = notificationData?.unreadCount ?? 0;
+
+  const handleLogout = async () => {
+    await logout();
+    await navigate({ to: "/login" });
+  };
 
   const isWithdrawalNotification = (type: string) =>
     type === "WITHDRAWAL_SUCCESS" || type === "WITHDRAWAL_FAILED";
@@ -231,6 +239,39 @@ export default function AdminShell() {
 
               <div className="grid h-8 w-8 place-items-center rounded-full bg-[linear-gradient(135deg,var(--admin-purple),var(--admin-blue))] text-[11px] font-bold text-white">
                 SA
+              </div>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((prev) => !prev)}
+                  className="flex flex-1 items-center gap-2 rounded-lg p-2 text-left transition hover:bg-[var(--color-bg-hover)]"
+                >
+                  <div className="grid h-8 w-8 place-items-center rounded-full bg-[linear-gradient(135deg,var(--admin-purple),var(--admin-blue))] text-[11px] font-bold text-white">
+                    {user?.email.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-admin-text-primary">
+                      {user?.email.split("@")[0]}
+                    </p>
+                    <p className="truncate text-[11px] text-admin-text-muted">
+                      {user?.role}
+                    </p>
+                  </div>
+                </button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-12 z-20 w-48 overflow-hidden rounded-xl border border-admin-border bg-[var(--color-bg-secondary)] shadow-[0_16px_44px_rgba(0,0,0,0.35)]">
+                    <button
+                      onClick={handleLogout}
+                      type="button"
+                      className="flex w-full items-center gap-2 border-b border-admin-border px-4 py-3 text-admin-red transition hover:bg-[var(--color-bg-hover)]"
+                    >
+                      <LogOut size={16} />
+                      <span className="text-sm font-medium">Logout</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </header>

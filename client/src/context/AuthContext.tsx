@@ -31,6 +31,8 @@ type MeResponse = {
 };
 
 const persistedSessionKey = "betwise-auth-session";
+const persistedTokenKey = "betwise-auth-token";
+const persistedUserKey = "betwise-auth-user";
 
 type RegisterPayload = {
   email: string;
@@ -66,6 +68,8 @@ function clearAuthState(
   setAccessToken(null);
   if (typeof window !== "undefined") {
     window.localStorage.removeItem(persistedSessionKey);
+    window.localStorage.removeItem(persistedTokenKey);
+    window.localStorage.removeItem(persistedUserKey);
   }
 }
 
@@ -80,6 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(data.accessToken);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(persistedSessionKey, "true");
+      window.localStorage.setItem(persistedTokenKey, data.accessToken);
+      window.localStorage.setItem(persistedUserKey, JSON.stringify(data.user));
     }
   }, []);
 
@@ -156,6 +162,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Restore token and user from localStorage immediately
+    const persistedToken =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem(persistedTokenKey)
+        : null;
+    const persistedUserJson =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem(persistedUserKey)
+        : null;
+
+    if (persistedToken && persistedUserJson) {
+      try {
+        const persistedUser = JSON.parse(persistedUserJson) as AuthUser;
+        setAccessTokenState(persistedToken);
+        setAccessToken(persistedToken);
+        setUser(persistedUser);
+      } catch {
+        // Invalid stored data, clear and fall through to login
+        clearAuthState(setUser, setAccessTokenState);
+      }
+    }
+
+    // Attempt to refresh and validate session in the background
     void (async () => {
       await refreshSession();
       setIsLoading(false);
