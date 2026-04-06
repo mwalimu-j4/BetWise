@@ -1,9 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-  Mail,
-  ArrowRight,
-  CheckCircle,
-} from "lucide-react";
+import { Mail, ArrowRight, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -40,28 +36,81 @@ export default function Footer() {
 
   return (
     <footer className="w-full border-t border-[#23384f] bg-[#0b1120]">
+      {/* Newsletter Signup - Full Width Premium Section */}
+      <div className="border-b border-[#23384f] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <div className="rounded-2xl border border-[#294157] bg-[linear-gradient(135deg,#0f1a2a_0%,#050d15_100%)] px-8 py-10 sm:px-12 sm:py-12">
+            <div className="grid gap-8 md:grid-cols-2 md:items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-white">Stay Updated</h2>
+                <p className="mt-3 text-lg text-[#8a9bb0]">
+                  Get the latest betting tips, exclusive promotions, and insider
+                  updates delivered to your inbox.
+                </p>
+              </div>
+
+              <form
+                onSubmit={handleNewsletterSubmit}
+                className="flex flex-col gap-3"
+              >
+                {isSubscribed ? (
+                  <div className="flex items-center justify-center gap-3 rounded-xl border border-green-500/30 bg-green-500/10 px-6 py-4">
+                    <CheckCircle className="h-6 w-6 text-green-400" />
+                    <span className="text-lg font-bold text-green-400">
+                      Successfully subscribed!
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8a9bb0]" />
+                      <input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-14 w-full rounded-xl border border-[#294157] bg-[#0f1a2a] pl-12 pr-4 text-base text-white outline-none transition placeholder:text-[#5a6b7d] focus:border-[#f5c518] focus:shadow-[0_0_0_3px_rgba(245,197,24,0.15)]"
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-[#f5c518] text-base font-bold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isSubmitting ? "Subscribing..." : "Subscribe Now"}
+                      <ArrowRight className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Footer Content */}
-      <div className="mx-auto w-full max-w-[1280px] gap-8 px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto w-full max-w-[1280px] gap-8 px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {/* Brand Section */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f5c518]">
-                <span className="text-lg font-bold text-black">B</span>
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f5c518]">
+                <span className="text-sm font-bold text-black">B</span>
               </div>
-              <h3 className="text-2xl font-bold text-white">BetWise</h3>
+              <h3 className="text-lg font-bold text-white">BetWise</h3>
             </div>
-            <p className="mt-4 text-base leading-relaxed text-[#8a9bb0]">
+            <p className="mt-3 text-sm text-[#8a9bb0]">
               Smart betting with fast M-Pesa deposits and a secure wallet
               experience. Play responsibly.
             </p>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-4 flex gap-2">
               <a
                 href="#"
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#294157] text-[#8a9bb0] transition hover:border-[#f5c518] hover:text-[#f5c518]"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#294157] text-[#8a9bb0] transition hover:border-[#f5c518] hover:text-[#f5c518]"
               >
                 <svg
-                  className="h-5 w-5"
+                  className="h-4 w-4"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -70,10 +119,10 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#294157] text-[#8a9bb0] transition hover:border-[#f5c518] hover:text-[#f5c518]"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#294157] text-[#8a9bb0] transition hover:border-[#f5c518] hover:text-[#f5c518]"
               >
                 <svg
-                  className="h-5 w-5"
+                  className="h-4 w-4"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -82,10 +131,10 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#294157] text-[#8a9bb0] transition hover:border-[#f5c518] hover:text-[#f5c518]"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#294157] text-[#8a9bb0] transition hover:border-[#f5c518] hover:text-[#f5c518]"
               >
                 <svg
-                  className="h-5 w-5"
+                  className="h-4 w-4"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -101,31 +150,31 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-bold uppercase tracking-wider text-white">
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-white">
               Quick Links
             </h4>
-            <nav className="mt-6 grid gap-4">
+            <nav className="mt-4 grid gap-3">
               <Link
                 to="/"
-                className="text-base text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
+                className="text-sm text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
               >
                 Home
               </Link>
               <Link
                 to="/user/payments"
-                className="text-base text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
+                className="text-sm text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
               >
                 Deposits
               </Link>
               <a
                 href="#"
-                className="text-base text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
+                className="text-sm text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
               >
                 How It Works
               </a>
               <a
                 href="#"
-                className="text-base text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
+                className="text-sm text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
               >
                 FAQ
               </a>
@@ -134,10 +183,10 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="text-lg font-bold uppercase tracking-wider text-white">
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-white">
               Contact
             </h4>
-            <div className="mt-6 grid gap-4 text-base text-[#8a9bb0]">
+            <div className="mt-4 grid gap-3 text-sm text-[#8a9bb0]">
               <a
                 href="mailto:support@betwise.com"
                 className="transition hover:text-[#f5c518]"
@@ -153,61 +202,15 @@ export default function Footer() {
               <p>Nairobi, Kenya</p>
             </div>
           </div>
-
-          {/* Newsletter Signup */}
-          <div className="sm:col-span-2 lg:col-span-1 rounded-2xl border border-[#23384f] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-6">
-            <h4 className="text-lg font-bold uppercase tracking-wider text-white">
-              Stay Updated
-            </h4>
-            <p className="mt-2 text-sm text-[#8a9bb0]">
-              Get betting tips & promotions
-            </p>
-
-            <form
-              onSubmit={handleNewsletterSubmit}
-              className="mt-4 flex flex-col gap-3"
-            >
-              {isSubscribed ? (
-                <div className="flex items-center justify-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
-                  <CheckCircle className="h-5 w-5 text-green-400" />
-                  <span className="font-medium text-green-400">
-                    subscribed!
-                  </span>
-                </div>
-              ) : (
-                <>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9bb0]" />
-                    <input
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="h-11 w-full rounded-lg border border-[#294157] bg-[#0f1a2a] pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-[#5a6b7d] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#f5c518] text-sm font-bold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isSubmitting ? "..." : "Subscribe"}
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-            </form>
-          </div>
         </div>
 
         {/* Divider */}
-        <div className="mt-12 border-t border-[#23384f]" />
+        <div className="mt-8 border-t border-[#23384f]" />
 
         {/* Bottom Footer */}
-        <div className="mt-8 flex flex-col gap-4 text-sm text-[#8a9bb0] sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-3 text-xs text-[#5a6b7d] sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} BetWise. All rights reserved.</p>
-          <div className="flex gap-4 text-sm">
+          <div className="flex gap-3 text-xs">
             <a href="#" className="transition hover:text-[#f5c518]">
               Terms
             </a>
@@ -220,7 +223,7 @@ export default function Footer() {
               Cookies
             </a>
           </div>
-          <p className="font-medium text-[#f5c518]">Play Responsibly · 18+</p>
+          <p className="font-medium text-[#8a9bb0]">Play Responsibly · 18+</p>
         </div>
       </div>
     </footer>
