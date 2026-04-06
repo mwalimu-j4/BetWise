@@ -94,8 +94,8 @@ export default function Contacts() {
       return [
         { label: "Total", value: "0", tone: "blue" as const },
         { label: "Unread", value: "0", tone: "gold" as const },
-        { label: "Read", value: "0", tone: "accent" as const },
-        { label: "Resolved", value: "0", tone: "purple" as const },
+        { label: "Read", value: "0", tone: "blue" as const },
+        { label: "Resolved", value: "0", tone: "red" as const },
       ];
     }
 
@@ -110,8 +110,8 @@ export default function Contacts() {
         tone: "blue" as const,
       },
       { label: "Unread", value: String(submitted), tone: "gold" as const },
-      { label: "Read", value: String(read), tone: "accent" as const },
-      { label: "Resolved", value: String(resolved), tone: "purple" as const },
+      { label: "Read", value: String(read), tone: "blue" as const },
+      { label: "Resolved", value: String(resolved), tone: "red" as const },
     ];
   }, [contacts, pagination.total]);
 
