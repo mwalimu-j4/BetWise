@@ -48,13 +48,12 @@ const menuGroups: MenuItem[][] = [
     {
       label: "My Profile",
       icon: <User size={18} />,
-      to: "/user/coming-soon?feature=profile",
-      warn: true,
+      to: "/user/profile",
     },
     {
       label: "My Bets",
       icon: <Ticket size={18} />,
-      to: "/my-bets?tab=normal&filter=all&page=1",
+      to: "/user/bets?tab=normal&filter=all&page=1",
     },
     {
       label: "My Results",

@@ -38,9 +38,11 @@ function isPhoneValid(phone: string) {
   return /^254(7|1)\d{8}$/.test(phone);
 }
 
-export function useWithdrawal() {
+export function useWithdrawal(options?: { sourcePhone?: string | null }) {
   const [amountInput, setAmountInput] = useState("50");
-  const [phoneInput, setPhoneInput] = useState("");
+  const [phoneInput, setPhoneInput] = useState(
+    normalizePhone(options?.sourcePhone ?? ""),
+  );
   const [validationError, setValidationError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -53,6 +55,10 @@ export function useWithdrawal() {
     return Math.ceil((amountValue * TAX_PERCENT) / 100);
   }, [amountValue]);
   const netAmount = Math.max(0, amountValue - feeAmount);
+
+  useEffect(() => {
+    setPhoneInput(normalizePhone(options?.sourcePhone ?? ""));
+  }, [options?.sourcePhone]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -74,8 +80,8 @@ export function useWithdrawal() {
       }
 
       const normalizedPhone = normalizePhone(phoneInput);
-      if (phoneInput.length > 0 && !isPhoneValid(normalizedPhone)) {
-        setValidationError("Use valid M-PESA format e.g. 2547XXXXXXXX.");
+      if (!isPhoneValid(normalizedPhone)) {
+        setValidationError("Your account phone is invalid for M-PESA payouts.");
         return;
       }
 
@@ -102,7 +108,7 @@ export function useWithdrawal() {
         queryClient.invalidateQueries({ queryKey: ["profile-transactions"] }),
       ]);
       setAmountInput("50");
-      setPhoneInput("");
+      setPhoneInput(normalizePhone(options?.sourcePhone ?? ""));
       setValidationError(null);
     },
   });
@@ -121,7 +127,7 @@ export function useWithdrawal() {
     }
 
     if (!isPhoneValid(normalizedPhone)) {
-      throw new Error("Invalid phone number. Use 2547XXXXXXXX format.");
+      throw new Error("Your account phone is invalid for M-PESA payouts.");
     }
 
     await mutation.mutateAsync({

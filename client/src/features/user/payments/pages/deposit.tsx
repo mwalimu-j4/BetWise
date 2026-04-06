@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -30,8 +31,21 @@ const paymentStages = [
   "Wallet updated",
 ] as const;
 
+function normalizePhone(phone: string) {
+  const compact = phone.replace(/\s+/g, "").replace(/^[+]/, "");
+  if (compact.startsWith("0")) {
+    return `254${compact.slice(1)}`;
+  }
+
+  return compact;
+}
+
+function isPhoneValid(phone: string) {
+  return /^254(7|1)\d{8}$/.test(phone);
+}
+
 export default function PaymentsDepositPage() {
-  const [phone, setPhone] = useState("");
+  const { user } = useAuth();
   const [amount, setAmount] = useState("100");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<StkPushResponse | null>(null);
@@ -53,13 +67,16 @@ export default function PaymentsDepositPage() {
   const queryClient = useQueryClient();
   const { data: walletData } = useWalletSummary();
   const currentBalance = walletData?.wallet.balance ?? 0;
+  const accountPhone = useMemo(
+    () => normalizePhone(user?.phone ?? ""),
+    [user?.phone],
+  );
+  const accountPhoneValid = isPhoneValid(accountPhone);
 
   const isFormValid = useMemo(() => {
     const amountValue = Number(amount);
-    return (
-      phone.trim().length >= 10 && amountValue >= 1 && amountValue <= 250000
-    );
-  }, [amount, phone]);
+    return accountPhoneValid && amountValue >= 1 && amountValue <= 250000;
+  }, [accountPhoneValid, amount]);
 
   useEffect(() => {
     if (
@@ -182,7 +199,11 @@ export default function PaymentsDepositPage() {
     event.preventDefault();
 
     if (!isFormValid) {
-      toast.error("Enter a valid phone number and amount.");
+      if (!accountPhoneValid) {
+        toast.error("Your account phone is invalid for M-PESA deposits.");
+      } else {
+        toast.error("Enter a valid deposit amount.");
+      }
       return;
     }
 
@@ -199,7 +220,7 @@ export default function PaymentsDepositPage() {
     try {
       const { data } = await api.post<StkPushResponse>(
         "/payments/mpesa/stk-push",
-        { phone, amount: Number(amount) },
+        { phone: accountPhone, amount: Number(amount) },
       );
 
       setResponse(data);
@@ -251,21 +272,8 @@ export default function PaymentsDepositPage() {
         </div>
 
         <form className="grid gap-5" onSubmit={handleSubmit}>
-          <div className="grid gap-2">
-            <label
-              htmlFor="phone"
-              className="text-sm font-semibold text-admin-text-primary"
-            >
-              Phone Number
-            </label>
-            <input
-              id="phone"
-              className="h-11 w-full rounded-xl border border-admin-border bg-admin-surface px-3 text-sm text-admin-text-primary outline-none transition focus:border-admin-accent focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="2547XXXXXXXX"
-              autoComplete="tel"
-            />
+          <div className="rounded-xl border border-admin-border bg-admin-surface px-3 py-2.5 text-xs text-admin-text-secondary">
+            Using your registered phone number for M-PESA approval.
           </div>
 
           <div className="grid gap-2">

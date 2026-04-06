@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { formatDateTime, formatMoney } from "../data";
 import { useWalletSummary, walletSummaryQueryKey } from "../wallet";
 import { api } from "@/api/axiosConfig";
+import { useAuth } from "@/context/AuthContext";
 
 const quickAmounts = [100, 500, 1000, 2500, 5000, 10000];
 
@@ -27,12 +28,30 @@ type WithdrawalResponse = {
   };
 };
 
+function normalizePhone(phone: string) {
+  const compact = phone.replace(/\s+/g, "").replace(/^\+/, "");
+  if (compact.startsWith("0")) {
+    return `254${compact.slice(1)}`;
+  }
+
+  return compact;
+}
+
+function isPhoneValid(phone: string) {
+  return /^254(7|1)\d{8}$/.test(phone);
+}
+
 export default function PaymentsWithdrawalPage() {
+  const { user } = useAuth();
   const [amount, setAmount] = useState("500");
-  const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: walletData, refetch: refetchWallet } = useWalletSummary();
   const queryClient = useQueryClient();
+  const accountPhone = useMemo(
+    () => normalizePhone(user?.phone ?? ""),
+    [user?.phone],
+  );
+  const accountPhoneValid = isPhoneValid(accountPhone);
 
   const withdrawalMutation = useMutation({
     mutationFn: async (data: { amount: number; phone: string }) => {
@@ -50,7 +69,6 @@ export default function PaymentsWithdrawalPage() {
         data.message || "Withdrawal request submitted successfully!",
       );
       setAmount("500");
-      setPhone("");
       // Refetch wallet summary to get updated balance
       queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
       refetchWallet();
@@ -71,16 +89,14 @@ export default function PaymentsWithdrawalPage() {
   const balance = walletData?.wallet?.balance ?? 0;
   const totalNeeded = numAmount + feeAmount;
 
-  const isPhoneValid = /^(?:\+?254|0)7\d{8}$/.test(phone.replace(/\s+/g, ""));
-
   const canWithdraw = useMemo(() => {
     return (
       numAmount >= MIN_WITHDRAWAL &&
       numAmount <= MAX_WITHDRAWAL &&
       totalNeeded <= balance &&
-      isPhoneValid
+      accountPhoneValid
     );
-  }, [numAmount, balance, isPhoneValid, totalNeeded]);
+  }, [accountPhoneValid, numAmount, balance, totalNeeded]);
 
   const recentWithdrawals = Array.isArray(walletData?.transactions)
     ? walletData.transactions
@@ -92,8 +108,8 @@ export default function PaymentsWithdrawalPage() {
     event.preventDefault();
 
     if (!canWithdraw) {
-      if (!isPhoneValid) {
-        toast.error("Please enter a valid phone in format: 2547XXXXXXXX");
+      if (!accountPhoneValid) {
+        toast.error("Your account phone is invalid for M-PESA withdrawals.");
       } else if (numAmount < MIN_WITHDRAWAL) {
         toast.error(`Minimum withdrawal is KES ${MIN_WITHDRAWAL}.`);
       } else if (numAmount > MAX_WITHDRAWAL) {
@@ -110,15 +126,9 @@ export default function PaymentsWithdrawalPage() {
 
     setIsSubmitting(true);
     try {
-      // Normalize phone to format: 254XXXXXXXXX
-      let normalizedPhone = phone.replace(/\s+/g, "").replace(/^(\+|00)/, "");
-      if (normalizedPhone.startsWith("0")) {
-        normalizedPhone = "254" + normalizedPhone.slice(1);
-      }
-
       await withdrawalMutation.mutateAsync({
         amount: numAmount,
-        phone: normalizedPhone,
+        phone: accountPhone,
       });
     } finally {
       setIsSubmitting(false);
@@ -144,6 +154,9 @@ export default function PaymentsWithdrawalPage() {
           </p>
           <p className="mt-1 text-2xl font-bold text-admin-accent">
             {formatMoney(balance)}
+          </p>
+          <p className="mt-2 text-xs text-admin-text-muted">
+            Withdrawal is sent to your registered account phone automatically.
           </p>
         </div>
 
@@ -211,28 +224,6 @@ export default function PaymentsWithdrawalPage() {
                   </span>
                 </div>
               </div>
-            )}
-          </div>
-
-          <div className="grid gap-2">
-            <label
-              htmlFor="withdraw-phone"
-              className="text-sm font-semibold text-admin-text-primary"
-            >
-              M-Pesa Phone Number
-            </label>
-            <input
-              id="withdraw-phone"
-              className="h-11 w-full rounded-xl border border-admin-border bg-admin-surface px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-admin-text-muted focus:border-admin-accent focus:shadow-[0_0_0_3px_var(--color-accent-soft)]"
-              type="tel"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="2547XXXXXXXX"
-            />
-            {phone && !isPhoneValid && (
-              <p className="text-xs text-red-500">
-                Invalid phone. Use format: 2547XXXXXXXX
-              </p>
             )}
           </div>
 

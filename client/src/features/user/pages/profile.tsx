@@ -71,7 +71,7 @@ export default function UserProfilePage() {
 
   return (
     <ProtectedRoute requireRole="USER" redirectTo="/profile">
-      <section className="mx-auto w-full max-w-[480px] space-y-4 font-admin">
+      <section className="mx-auto w-full max-w-[1120px] space-y-4 px-3 py-3 font-admin sm:px-4 sm:py-4 lg:px-6">
         <ProfileHeader
           avatarLetter={profile?.avatarLetter ?? "U"}
           phoneMasked={profile?.phoneMasked ?? "07******"}
@@ -88,42 +88,72 @@ export default function UserProfilePage() {
               live={profile.live}
             />
 
-            <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
-              <h3 className="text-sm font-semibold text-white">
-                Quick Actions
-              </h3>
-              <div className="mt-3 space-y-2">
-                <QuickRow
-                  label="Free Bets & Promotions"
-                  description="Check active rewards and offers"
-                  to="/user/coming-soon?feature=promotions"
-                />
-                <QuickRow
-                  label="Jackpot Streaks & Token History"
-                  description="Follow streaks and token updates"
-                  to="/user/coming-soon?feature=streaks"
-                />
+            <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+              <div className="space-y-4">
+                <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+                  <h3 className="text-sm font-semibold text-white">
+                    Quick Actions
+                  </h3>
+                  <div className="mt-3 space-y-2">
+                    <QuickRow
+                      label="Free Bets & Promotions"
+                      description="Check active rewards and offers"
+                      to="/user/coming-soon?feature=promotions"
+                    />
+                    <QuickRow
+                      label="Jackpot Streaks & Token History"
+                      description="Follow streaks and token updates"
+                      to="/user/coming-soon?feature=streaks"
+                    />
+                  </div>
+                </section>
+
+                <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+                  <h3 className="text-sm font-semibold text-white">Deposit</h3>
+                  <p className="mt-1 text-xs text-[#95a6be]">
+                    Reuse the existing secure M-PESA deposit flow.
+                  </p>
+                  <Link
+                    to="/user/payments/deposit"
+                    className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-xl bg-[#f5c518] text-sm font-semibold text-[#0d1117]"
+                  >
+                    Open Deposit
+                  </Link>
+                </section>
               </div>
-            </section>
 
-            <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
-              <h3 className="text-sm font-semibold text-white">Deposit</h3>
-              <p className="mt-1 text-xs text-[#95a6be]">
-                Reuse the existing secure M-PESA deposit flow.
-              </p>
-              <Link
-                to="/user/payments/deposit"
-                className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-xl bg-[#f5c518] text-sm font-semibold text-[#0d1117]"
-              >
-                Open Deposit
-              </Link>
-            </section>
+              <div className="space-y-4">
+                <WithdrawalForm
+                  onSuccess={() => {
+                    void refetchTransactions();
+                  }}
+                />
 
-            <WithdrawalForm
-              onSuccess={() => {
-                void refetchTransactions();
-              }}
-            />
+                <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+                  <h3 className="text-sm font-semibold text-white">
+                    Other Info & Preferences
+                  </h3>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-lg border border-[#31455f] bg-[#0f172a] p-3 text-[#9fb0c7]">
+                      <p className="text-[11px] uppercase tracking-[0.1em]">
+                        Wallet
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        Secure
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-[#31455f] bg-[#0f172a] p-3 text-[#9fb0c7]">
+                      <p className="text-[11px] uppercase tracking-[0.1em]">
+                        Session
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {profileRefreshing ? "Syncing" : "Active"}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
 
             <TransactionPreview
               transactions={transactionsData?.transactions ?? []}
@@ -137,34 +167,10 @@ export default function UserProfilePage() {
 
             <PreferencesPanel preferences={profile.preferences} />
 
-            <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
-              <h3 className="text-sm font-semibold text-white">
-                Other Info & Preferences
-              </h3>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-lg border border-[#31455f] bg-[#0f172a] p-3 text-[#9fb0c7]">
-                  <p className="text-[11px] uppercase tracking-[0.1em]">
-                    Wallet
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-white">
-                    Secure
-                  </p>
-                </div>
-                <div className="rounded-lg border border-[#31455f] bg-[#0f172a] p-3 text-[#9fb0c7]">
-                  <p className="text-[11px] uppercase tracking-[0.1em]">
-                    Session
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-white">
-                    {profileRefreshing ? "Syncing" : "Active"}
-                  </p>
-                </div>
-              </div>
-            </section>
-
             <SupportLinks onSignOut={handleSignOut} />
 
             <footer className="pb-20 text-center text-xs text-[#7f93ae] md:pb-4">
-              Betika App 6.01
+              BetixPro App 6.01
             </footer>
           </>
         ) : null}
