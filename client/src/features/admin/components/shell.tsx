@@ -282,7 +282,10 @@ export default function AdminShell() {
                       <span className="text-sm font-medium">Settings</span>
                     </button>
                     <div className="relative border-b border-admin-border px-4 py-2">
-                      <DropdownMenu open={themeDropdownOpen} onOpenChange={setThemeDropdownOpen}>
+                      <DropdownMenu
+                        open={themeDropdownOpen}
+                        onOpenChange={setThemeDropdownOpen}
+                      >
                         <DropdownMenuTrigger asChild>
                           <button
                             type="button"
@@ -301,7 +304,11 @@ export default function AdminShell() {
                             <ChevronRight size={14} />
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" side="left" sideOffset={-8}>
+                        <DropdownMenuContent
+                          align="end"
+                          side="left"
+                          sideOffset={-8}
+                        >
                           <DropdownMenuItem onClick={() => setTheme("light")}>
                             <Sun size={14} className="mr-2" />
                             <span>Light</span>
