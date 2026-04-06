@@ -32,8 +32,16 @@ const menuGroups: MenuItem[][] = [
       to: "/user/coming-soon?feature=dashboard",
       warn: true,
     },
-    { label: "Deposit", icon: <CreditCard size={18} />, to: "/user/payments/deposit" },
-    { label: "Withdrawal", icon: <Send size={18} />, to: "/user/payments/withdrawal" },
+    {
+      label: "Deposit",
+      icon: <CreditCard size={18} />,
+      to: "/user/payments/deposit",
+    },
+    {
+      label: "Withdrawal",
+      icon: <Send size={18} />,
+      to: "/user/payments/withdrawal",
+    },
   ],
   [
     {
@@ -47,8 +55,17 @@ const menuGroups: MenuItem[][] = [
       icon: <Ticket size={18} />,
       to: "/my-bets?tab=normal&filter=all&page=1",
     },
-    { label: "My Results", icon: <TrendingUp size={18} />, to: "/user/payments/history" },
-    { label: "My Wallet", icon: <Wallet size={18} />, to: "/user/payments", warn: true },
+    {
+      label: "My Results",
+      icon: <TrendingUp size={18} />,
+      to: "/user/payments/history",
+    },
+    {
+      label: "My Wallet",
+      icon: <Wallet size={18} />,
+      to: "/user/payments",
+      warn: true,
+    },
   ],
 ];
 

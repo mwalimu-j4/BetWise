@@ -26,7 +26,7 @@
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 0;
 }
 
 .bc-navbar {
@@ -739,30 +739,24 @@
 
 .bc-account-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 8px);
   right: 0;
-  width: 260px;
+  width: 230px;
   background: var(--nav-surface);
-  border: 1px solid color-mix(in srgb, var(--nav-accent) 25%, var(--nav-border));
-  border-radius: 12px;
-  box-shadow: 0 12px 40px color-mix(in srgb, var(--color-bg-deepest) 70%, black 30%);
+  border: 1px solid var(--nav-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px var(--color-bg-deepest);
   z-index: 1001;
   overflow: hidden;
-  animation: bcDropdownIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(2px);
+  animation: bcDropdownIn 0.18s ease;
 }
 
 .bc-account-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 18px;
-  border-bottom: 1px solid color-mix(in srgb, var(--nav-border) 60%, transparent);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--nav-accent) 8%, var(--nav-surface)),
-    color-mix(in srgb, var(--nav-accent2) 4%, var(--nav-surface))
-  );
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-bg-hover);
 }
 
 .bc-account-head-meta {
@@ -773,9 +767,8 @@
   margin: 0;
   color: var(--nav-text);
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.3px;
 }
 
 .bc-account-email {
@@ -795,10 +788,10 @@
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 18px;
-  color: var(--nav-text);
-  font-size: 14px;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--nav-muted);
+  font-size: 13px;
   font-weight: 500;
   text-decoration: none;
   border: 0;
@@ -809,8 +802,8 @@
 }
 
 .bc-account-item:hover {
-  background: var(--color-accent-soft);
-  color: var(--nav-accent);
+  background: var(--color-bg-hover);
+  color: var(--nav-text);
 }
 
 .bc-account-item.is-active {
@@ -819,19 +812,19 @@
 }
 
 .bc-account-item-icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: inherit;
   flex-shrink: 0;
-  opacity: 0.9;
+  opacity: 0.65;
   transition: all 0.2s ease;
 }
 
 .bc-account-item:hover .bc-account-item-icon {
-  opacity: 1;
+  opacity: 0.9;
 }
 
 .bc-account-item.is-logout {
