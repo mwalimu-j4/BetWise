@@ -3,6 +3,7 @@
   "author": "Dickens Omondi, Joshua Mwalimu and Hellen Mochama",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "pnpm@9.15.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -45,5 +46,10 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.0",
     "vite": "^8.0.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
