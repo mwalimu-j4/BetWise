@@ -69,18 +69,12 @@ export default function LoginModal() {
     setErrorMessage("");
 
     try {
-      await login({
+      const user = await login({
         phone,
         password,
       });
 
-      // Get user role and navigate accordingly
-      const persistedUserJson =
-        typeof window !== "undefined"
-          ? window.localStorage.getItem("betixpro-auth-user")
-          : null;
-      const user = persistedUserJson ? JSON.parse(persistedUserJson) : null;
-
+      // Navigate based on user role
       if (user?.role === "ADMIN") {
         toast.success("Admin access granted. Welcome to the control center.");
         closeAuthModal();

@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   LayoutDashboard,
@@ -75,7 +75,6 @@ export default function AccountDropdown({
   onClose,
 }: AccountDropdownProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const { user, logout, openAuthModal } = useAuth();
 
   const initials = useMemo(() => {
