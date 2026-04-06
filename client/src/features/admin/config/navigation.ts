@@ -3,6 +3,7 @@ import {
   BarChart3,
   CreditCard,
   LayoutDashboard,
+  Mail,
   MessageSquare,
   Settings,
   Shield,
@@ -25,6 +26,7 @@ export type AdminNavId =
   | "withdrawals"
   | "risk"
   | "reports"
+  | "newsletter"
   | "settings";
 
 export type AdminNavCategory = "core" | "operations" | "insights" | "system";
@@ -46,6 +48,7 @@ export interface AdminNavSection {
     | "/admin/withdrawals"
     | "/admin/risk"
     | "/admin/reports"
+    | "/admin/newsletter"
     | "/admin/settings";
 }
 
@@ -126,6 +129,13 @@ export const adminNavigation: AdminNavSection[] = [
     category: "insights",
     icon: MessageSquare,
     to: "/admin/contacts",
+  },
+  {
+    id: "newsletter",
+    label: "Newsletter",
+    category: "operations",
+    icon: Mail,
+    to: "/admin/newsletter",
   },
   {
     id: "settings",
