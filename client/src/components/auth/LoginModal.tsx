@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, type FormEvent } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
 import { Eye, EyeOff, Loader2, Lock, Phone, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ function getLoginErrorMessage(error: unknown) {
 
 export default function LoginModal() {
   const { login, authModal, closeAuthModal, openAuthModal } = useAuth();
+  const navigate = useNavigate();
 
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -67,13 +69,22 @@ export default function LoginModal() {
     setErrorMessage("");
 
     try {
-      await login({
+      const user = await login({
         phone,
         password,
       });
 
-      toast.success("Signed in successfully.");
-      closeAuthModal();
+      // Navigate based on user role
+      if (user?.role === "ADMIN") {
+        toast.success("Admin access granted. Welcome to the control center.");
+        closeAuthModal();
+        await navigate({ to: "/admin" });
+      } else {
+        toast.success("Signed in successfully.");
+        closeAuthModal();
+        await navigate({ to: "/user" });
+      }
+
       setPhone("");
       setPassword("");
     } catch (error: unknown) {

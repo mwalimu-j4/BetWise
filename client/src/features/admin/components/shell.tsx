@@ -3,15 +3,15 @@ import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   Bell,
-  ChevronRight,
-  LogOut,
   Menu,
-  Monitor,
-  Moon,
   Search,
-  Sun,
-  User,
   Zap,
+  LogOut,
+  User,
+  Moon,
+  Sun,
+  Monitor,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";

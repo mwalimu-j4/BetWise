@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { RefreshCw, Smartphone, ArrowUpRight, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { useWalletSummary, walletSummaryQueryKey } from "../wallet";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
 
-const quickAmounts = [100, 500, 1000, 2500, 5000, 10000];
+const quickAmounts = [500, 1000, 2500, 5000];
 
 const MAX_WITHDRAWAL = 500000;
 const WITHDRAWAL_FEE_PERCENTAGE = 5;
@@ -89,6 +90,12 @@ export default function PaymentsWithdrawalPage() {
   const balance = walletData?.wallet?.balance ?? 0;
   const totalNeeded = numAmount + feeAmount;
 
+  useEffect(() => {
+    if (accountPhone && !phone) {
+      setPhone(accountPhone);
+    }
+  }, [accountPhone, phone]);
+
   const canWithdraw = useMemo(() => {
     return (
       numAmount >= MIN_WITHDRAWAL &&
@@ -136,100 +143,96 @@ export default function PaymentsWithdrawalPage() {
   }
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-      <article className="rounded-2xl border border-admin-border bg-admin-card p-5">
-        <div className="mb-5 border-b border-admin-border pb-4">
-          <h2 className="text-lg font-bold text-admin-text-primary">
-            Withdraw Funds
-          </h2>
-          <p className="mt-1 text-sm text-admin-text-muted">
-            Transfer your winnings to M-Pesa. Withdrawals require admin
-            approval.
-          </p>
+    <section className="grid w-full gap-4 lg:grid-cols-[1.3fr_1fr]">
+      <article className="rounded-2xl border border-[#23384f] bg-[linear-gradient(135deg,#111d2e,#0f1a2a)] p-5 sm:p-6">
+        <div className="mb-3 flex items-start justify-between gap-3 border-b border-[#23384f] pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#294157] bg-[#0f1a2a]">
+                <ArrowUpRight size={16} className="text-[#f5c518]" />
+              </div>
+              <h2 className="text-lg font-bold text-white">Withdraw</h2>
+            </div>
+            <p className="mt-0.5 text-xs text-[#8a9bb0]">
+              Quick & secure M-Pesa transfer
+            </p>
+          </div>
         </div>
 
-        <div className="mb-4 rounded-xl border border-admin-border bg-admin-surface p-3">
-          <p className="text-[11px] uppercase tracking-[0.08em] text-admin-text-muted">
-            Available for withdrawal
-          </p>
-          <p className="mt-1 text-2xl font-bold text-admin-accent">
-            {formatMoney(balance)}
-          </p>
-          <p className="mt-2 text-xs text-admin-text-muted">
-            Withdrawal is sent to your registered account phone automatically.
-          </p>
-        </div>
-
-        <form className="grid gap-4" onSubmit={onSubmit}>
-          <div className="grid gap-2">
+        <form className="grid gap-3" onSubmit={onSubmit}>
+          <div className="grid gap-1.5">
             <label
               htmlFor="withdraw-amount"
-              className="text-sm font-semibold text-admin-text-primary"
+              className="text-xs font-semibold text-admin-text-primary"
             >
-              Amount (KES {MIN_WITHDRAWAL} - {MAX_WITHDRAWAL.toLocaleString()})
+              Amount
             </label>
-            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-admin-surface transition focus-within:border-admin-accent focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]">
-              <span className="flex h-11 items-center border-r border-admin-border px-3 text-[11px] font-bold text-admin-text-muted">
+            <div className="flex w-full items-center overflow-hidden rounded-xl border border-[#294157] bg-[#0f1a2a] transition focus-within:border-[#f5c518] focus-within:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]">
+              <span className="flex h-11 items-center border-r border-[#294157] px-3 text-[11px] font-bold text-[#8a9bb0]">
                 KES
               </span>
               <input
                 id="withdraw-amount"
-                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"
+                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-[#8a9bb0]"
                 type="number"
                 min={MIN_WITHDRAWAL}
                 max={MAX_WITHDRAWAL}
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
-                placeholder="0.00"
+                placeholder={`Min ${MIN_WITHDRAWAL}`}
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {Array.isArray(quickAmounts) &&
-                quickAmounts.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    disabled={option > balance}
-                    className="rounded-lg border border-admin-border bg-admin-surface px-2.5 py-1 text-xs font-medium text-admin-text-secondary outline-none transition hover:border-admin-accent hover:text-admin-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={() => setAmount(String(option))}
-                  >
-                    {formatMoney(option)}
-                  </button>
-                ))}
+            <div className="flex flex-wrap gap-1.5">
+              {quickAmounts.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  disabled={option + Math.ceil((option * WITHDRAWAL_FEE_PERCENTAGE) / 100) > balance}
+                  className="rounded-lg border border-[#294157] bg-[#0f1a2a] px-3 py-1.5 text-xs font-medium text-[#8a9bb0] transition hover:border-[#f5c518]/70 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => setAmount(String(option))}
+                >
+                  {formatMoney(option)}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {numAmount > 0 && (
-              <div className="mt-2 space-y-2 rounded-lg bg-admin-surface p-3 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-admin-text-muted">
-                    Withdrawal amount:
-                  </span>
-                  <span className="text-admin-text-primary font-medium">
-                    KES {numAmount.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-admin-text-muted">
-                    Fee ({WITHDRAWAL_FEE_PERCENTAGE}%):
-                  </span>
-                  <span className="text-admin-text-primary font-medium">
-                    KES {feeAmount.toLocaleString()}
-                  </span>
-                </div>
-                <div className="border-t border-admin-border pt-2 flex justify-between font-semibold">
-                  <span className="text-admin-text-muted">You'll receive:</span>
-                  <span className="text-admin-accent">
-                    {formatMoney(netAmount)}
-                  </span>
-                </div>
-              </div>
+          <div className="rounded-2xl border border-[#23384f] bg-[#101b2b] p-2.5 sm:p-3">
+            <div className="mb-2 flex items-center gap-2">
+              <Smartphone size={14} className="text-[#8a9bb0]" />
+              <label
+                htmlFor="withdraw-phone"
+                className="text-xs font-semibold text-admin-text-primary"
+              >
+                M-Pesa Phone Number
+              </label>
+            </div>
+            <input
+              id="withdraw-phone"
+              className="h-11 w-full rounded-xl border border-[#294157] bg-[#0f1a2a] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-[#8a9bb0] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]"
+              type="tel"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="2547XXXXXXXX"
+            />
+
+            {phone && !isPhoneValid(normalizePhone(phone)) && (
+              <p className="mt-2 text-xs text-red-400">
+                Invalid phone. Use format: 2547XXXXXXXX.
+              </p>
             )}
+          </div>
+
+          <div className="rounded-lg border border-[#23384f] bg-[#101b2b] px-2.5 py-1.5 text-[10px] text-admin-text-muted sm:text-xs">
+            <span>Fee: {WITHDRAWAL_FEE_PERCENTAGE}%</span>
+            <span className="mx-1.5 text-[#294157]">|</span>
+            <span>You get: {formatMoney(netAmount)}</span>
           </div>
 
           <Button
             type="submit"
-            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-black hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-11 rounded-xl bg-admin-accent text-sm font-bold text-black hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={
               !canWithdraw || isSubmitting || withdrawalMutation.isPending
             }
@@ -238,53 +241,60 @@ export default function PaymentsWithdrawalPage() {
               ? "Submitting..."
               : "Request Withdrawal"}
           </Button>
-
-          <p className="text-xs text-admin-text-muted">
-            Your withdrawal will be processed after admin approval, typically
-            within 1-2 hours.
-          </p>
         </form>
       </article>
 
-      <article className="rounded-2xl border border-admin-border bg-admin-surface p-5">
-        <h3 className="text-sm font-semibold text-admin-text-primary">
-          Recent Requests
-        </h3>
-        <div className="mt-3 grid gap-2">
-          {Array.isArray(recentWithdrawals) && recentWithdrawals.length > 0 ? (
-            recentWithdrawals.map((entry) => (
+      <article className="rounded-2xl border border-[#23384f] bg-[linear-gradient(135deg,#111d2e,#0f1a2a)] p-4 sm:p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white">Recent Requests</h3>
+          <button
+            type="button"
+            className="inline-flex items-center gap-0.5 text-xs font-medium text-[#8a9bb0] transition hover:text-[#f5c518]"
+            onClick={() => {
+              void refetchWallet();
+            }}
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Refresh
+          </button>
+        </div>
+
+        <div className="grid gap-1.5">
+          {recentWithdrawals.length > 0 ? (
+            recentWithdrawals.slice(0, 3).map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-lg border border-admin-border bg-admin-card p-3"
+                className="rounded-lg border border-[#23384f] bg-[#101b2b] px-2.5 py-2 transition hover:border-[#f5c518]/30"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-admin-text-primary">
+                  <p className="text-xs font-semibold text-white">
                     {formatMoney(entry.amount)}
                   </p>
                   <span
                     className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase ${
                       entry.status === "completed"
-                        ? "border-green-500/30 bg-green-500/10 text-green-600"
+                        ? "border-green-500/30 bg-green-500/10 text-green-400"
                         : entry.status === "pending"
-                          ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-600"
-                          : "border-red-500/30 bg-red-500/10 text-red-600"
+                          ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-400"
+                          : "border-red-500/30 bg-red-500/10 text-red-400"
                     }`}
                   >
                     {entry.status}
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-admin-text-secondary">
+                <p className="mt-0.5 text-[10px] text-[#8a9bb0]">
                   {formatDateTime(entry.createdAt)}
-                </p>
-                <p className="mt-1 text-[10px] text-admin-text-muted">
-                  Ref: {entry.reference}
                 </p>
               </div>
             ))
           ) : (
-            <div className="rounded-lg border border-admin-border bg-admin-card p-3">
-              <p className="text-sm text-admin-text-muted">
-                No withdrawal requests yet.
+            <div className="rounded-lg border border-[#294157] bg-[#101b2b] p-4 text-center">
+              <Inbox className="mx-auto h-8 w-8 text-[#294157]" />
+              <p className="mt-2 text-xs font-medium text-[#8a9bb0]">
+                No withdrawal requests yet
+              </p>
+              <p className="mt-0.5 text-[10px] text-[#5a6b7d]">
+                Your requests will appear here
               </p>
             </div>
           )}

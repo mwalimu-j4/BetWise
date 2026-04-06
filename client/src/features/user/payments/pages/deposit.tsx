@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { CheckCircle2, CircleAlert, LoaderCircle, Check } from "lucide-react";
+import {
+  CheckCircle2,
+  CircleAlert,
+  LoaderCircle,
+  Check,
+  Smartphone,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
@@ -46,6 +52,7 @@ function isPhoneValid(phone: string) {
 
 export default function PaymentsDepositPage() {
   const { user } = useAuth();
+  const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("100");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<StkPushResponse | null>(null);
@@ -73,10 +80,19 @@ export default function PaymentsDepositPage() {
   );
   const accountPhoneValid = isPhoneValid(accountPhone);
 
+  useEffect(() => {
+    if (user?.phone && !phone) {
+      setPhone(user.phone);
+    }
+  }, [phone, user?.phone]);
+
+  const sanitizedPhone = normalizePhone(phone);
+  const phoneInputValid = phone ? isPhoneValid(sanitizedPhone) : true;
+
   const isFormValid = useMemo(() => {
     const amountValue = Number(amount);
-    return accountPhoneValid && amountValue >= 1 && amountValue <= 250000;
-  }, [accountPhoneValid, amount]);
+    return phoneInputValid && amountValue >= 1 && amountValue <= 250000;
+  }, [amount, phoneInputValid]);
 
   useEffect(() => {
     if (
@@ -217,10 +233,14 @@ export default function PaymentsDepositPage() {
     setSubmissionAmount(Number(amount));
     setSubmittedTransactionId(null);
 
+    const normalizedPhone = sanitizedPhone.startsWith("0")
+      ? `254${sanitizedPhone.slice(1)}`
+      : sanitizedPhone;
+
     try {
       const { data } = await api.post<StkPushResponse>(
         "/payments/mpesa/stk-push",
-        { phone: accountPhone, amount: Number(amount) },
+        { phone: normalizedPhone, amount: Number(amount) },
       );
 
       setResponse(data);
@@ -250,30 +270,53 @@ export default function PaymentsDepositPage() {
 
   return (
     // Restricted max-width to make it a neat, compact widget instead of a massive spanning grid
-    <section className="mx-auto max-w-md">
-      <article className="rounded-2xl border border-admin-border bg-admin-card p-5 shadow-sm">
-        <div className="mb-6 flex items-center justify-between border-b border-admin-border pb-4">
+    <section className="mx-auto max-w-xl">
+      <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-5 shadow-sm sm:p-6">
+        <div className="mb-6 flex items-center justify-between border-b border-[#23384f] pb-5">
           <div>
-            <h2 className="text-lg font-bold text-admin-text-primary">
+            <h2 className="text-xl font-bold text-admin-text-primary">
               Deposit Funds
             </h2>
-            <p className="mt-1 text-xs text-admin-text-muted">
+            <p className="mt-1 text-sm text-admin-text-muted">
               Instant M-Pesa Top-up
             </p>
           </div>
-          {/* Online high-res M-Pesa SVG Logo */}
-          <div className="flex h-10 w-16 items-center justify-center rounded-lg bg-[#4CAF50]/10 px-2">
+          <div className="flex h-11 w-20 items-center justify-center rounded-xl border border-[#2f4a62] bg-[#4CAF50]/10 px-2">
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
               alt="M-Pesa"
               className="h-full w-full object-contain drop-shadow-sm"
+              loading="lazy"
+              referrerPolicy="no-referrer"
             />
           </div>
         </div>
 
         <form className="grid gap-5" onSubmit={handleSubmit}>
-          <div className="rounded-xl border border-admin-border bg-admin-surface px-3 py-2.5 text-xs text-admin-text-secondary">
-            Using your registered phone number for M-PESA approval.
+          <div className="rounded-2xl border border-[#23384f] bg-[#101b2b] p-3 sm:p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Smartphone size={15} className="text-[#8a9bb0]" />
+              <label
+                htmlFor="phone"
+                className="text-sm font-semibold text-admin-text-primary"
+              >
+                M-Pesa Phone
+              </label>
+            </div>
+            <input
+              id="phone"
+              className="h-11 w-full rounded-xl border border-[#294157] bg-[#0f1a2a] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-[#8a9bb0] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="2547XXXXXXXX"
+              autoComplete="tel"
+            />
+
+            {phone && !phoneInputValid && (
+              <p className="mt-2 text-xs text-red-400">
+                Use format: 2547XXXXXXXX or 07XXXXXXXX.
+              </p>
+            )}
           </div>
 
           <div className="grid gap-2">
@@ -286,13 +329,13 @@ export default function PaymentsDepositPage() {
               </label>
             </div>
 
-            <div className="flex w-full items-center overflow-hidden rounded-xl border border-admin-border bg-admin-surface transition focus-within:border-admin-accent focus-within:shadow-[0_0_0_3px_var(--color-accent-soft)]">
-              <span className="flex h-11 items-center border-r border-admin-border px-3 text-[11px] font-bold text-admin-text-muted">
+            <div className="flex w-full items-center overflow-hidden rounded-xl border border-[#294157] bg-[#0f1a2a] transition focus-within:border-[#f5c518] focus-within:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]">
+              <span className="flex h-11 items-center border-r border-[#294157] px-3 text-[11px] font-bold text-[#8a9bb0]">
                 KES
               </span>
               <input
                 id="amount"
-                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none"
+                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-[#8a9bb0]"
                 value={amount}
                 type="number"
                 min={1}
@@ -302,12 +345,12 @@ export default function PaymentsDepositPage() {
               />
             </div>
 
-            <div className="mt-1 grid grid-cols-4 gap-2">
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {quickAmounts.map((option) => (
                 <button
                   key={option}
                   type="button"
-                  className="rounded-lg border border-admin-border bg-admin-surface py-1.5 text-xs font-medium text-admin-text-secondary transition hover:border-admin-accent hover:text-admin-text-primary"
+                  className="rounded-lg border border-[#294157] bg-[#0f1a2a] py-1.5 text-xs font-medium text-[#8a9bb0] transition hover:border-[#f5c518]/70 hover:text-white"
                   onClick={() => setAmount(String(option))}
                 >
                   {formatMoney(option)}
@@ -337,7 +380,7 @@ export default function PaymentsDepositPage() {
       >
         <DialogContent
           showCloseButton={false}
-          className="max-w-[400px] overflow-hidden border-admin-border bg-admin-card p-0 shadow-2xl"
+          className="max-w-sm overflow-hidden border-[#23384f] bg-[#111d2e] p-0 shadow-2xl"
         >
           <div className="p-6">
             <DialogHeader className="items-center text-center">
@@ -392,7 +435,7 @@ export default function PaymentsDepositPage() {
                         }`}
                       >
                         {isCompleted ? (
-                          <Check className="h-3 w-3 stroke-[3]" />
+                          <Check className="h-3 w-3 stroke-3" />
                         ) : (
                           <span className="text-[10px] font-bold">
                             {index + 1}

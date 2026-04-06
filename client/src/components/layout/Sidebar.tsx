@@ -356,6 +356,8 @@ const quickLinks: Item[] = [
   },
   { label: "My Bets", to: "/user/bets", icon: "B" },
   { label: "Analytics", to: "/user/payments/history", icon: "A" },
+  { label: "How It Works", to: "/user/how-it-works", icon: "?" },
+  { label: "FAQs", to: "/user/faqs", icon: "!" },
   { label: "Responsible Gambling", to: "/user/register", icon: "R" },
 ];
 
@@ -386,7 +388,7 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, openAuthModal } = useAuth();
   const [openSports, setOpenSports] = useState<Record<string, boolean>>({
     football: true,
     basketball: true,
@@ -581,6 +583,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               onClick={async () => {
                 await logout();
                 toast.success("Logged out successfully");
+                openAuthModal("login");
                 closeIfMobile();
               }}
             >
