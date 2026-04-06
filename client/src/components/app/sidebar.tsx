@@ -77,7 +77,7 @@ const sportGroups: SportGroup[] = [
     label: "Basketball",
     icon: Volleyball,
     children: [
-      { label: "NCAAB", to: "/user/login" },
+      { label: "NCAAB", to: "/user/coming-soon" },
       { label: "NBA", to: "/user/payments" },
       { label: "Basketball Euroleague", to: "/user" },
       { label: "NBL", to: "/user/coming-soon" },
@@ -88,7 +88,7 @@ const sportGroups: SportGroup[] = [
     key: "american-football",
     label: "American Football",
     icon: Shield,
-    children: [{ label: "NCAAF", to: "/user/login" }],
+    children: [{ label: "NCAAF", to: "/user/coming-soon" }],
   },
   {
     key: "baseball",
@@ -105,7 +105,7 @@ const sportGroups: SportGroup[] = [
     label: "Ice Hockey",
     icon: Cherry,
     children: [
-      { label: "SHL", to: "/user/login" },
+      { label: "SHL", to: "/user/coming-soon" },
       { label: "NHL", to: "/user/payments" },
       { label: "AHL", to: "/user/coming-soon" },
       { label: "Liiga", to: "/user" },
@@ -127,7 +127,7 @@ const sportGroups: SportGroup[] = [
     key: "mma",
     label: "MMA",
     icon: Swords,
-    children: [{ label: "MMA", to: "/user/login" }],
+    children: [{ label: "MMA", to: "/user/coming-soon" }],
   },
 ];
 
