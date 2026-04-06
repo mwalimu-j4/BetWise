@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { useMemo, useState, useCallback } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
 import {
@@ -8,7 +8,6 @@ import {
   EyeOff,
   Loader2,
   ArrowRight,
-  CheckCircle2,
   XCircle,
 } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -134,18 +133,19 @@ export default function Register() {
       <AuthModal
         title="Create your account"
         subtitle="Join BetixPro and start betting smart"
-        backTo="/login"
-        backLabel="Back to login"
+        backTo="/"
+        backLabel="Back to home"
         footer={
           <div className="text-center">
             <p className="text-xs text-slate-400">
               Already have an account?{" "}
-              <Link
-                className="font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+              <button
+                type="button"
+                className="font-semibold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer"
                 onClick={() => openAuthModal("login")}
               >
                 Sign in
-              </Link>
+              </button>
             </p>
           </div>
         }
