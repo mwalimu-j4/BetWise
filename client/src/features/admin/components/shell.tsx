@@ -11,7 +11,6 @@ import {
   Moon,
   Sun,
   Monitor,
-  ChevronLeft,
   ChevronRight,
   SidebarOpen,
   SidebarClose,
@@ -289,10 +288,16 @@ export default function AdminShell() {
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--color-accent-soft),transparent_28%),linear-gradient(180deg,var(--color-bg-elevated),var(--color-bg-primary)_180px)]"
           />
 
-          <header className="sticky top-0 z-10 flex flex-wrap items-center gap-4 border-b border-admin-border bg-[var(--color-bg-secondary)] px-4 py-4 backdrop-blur-[18px] sm:px-6">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="flex h-11 w-full max-w-[560px] flex-1 items-center gap-2 rounded-2xl border border-admin-border bg-[var(--color-bg-elevated)] px-3">
-                <Search size={14} className="text-admin-text-muted" />
+          <header
+            className={cn(
+              "sticky top-0 z-10 flex flex-wrap items-center gap-3 border-b border-admin-border bg-[var(--color-bg-secondary)] px-4 py-4 backdrop-blur-[18px] sm:px-6",
+              !mobileSidebarOpen && "pl-16",
+              "lg:pl-6",
+            )}
+          >
+            <div className="order-2  hidden md:flex min-w-0 basis-full items-center gap-3 lg:order-1 lg:basis-auto lg:flex-1">
+              <div className="flex h-11 w-full max-w-full flex-1 items-center gap-2 rounded-2xl border border-admin-border bg-[var(--color-bg-elevated)] px-3 lg:max-w-[560px]">
+                <Search size={14} className=" text-admin-text-muted" />
                 <input
                   className="w-full min-w-0 border-0 bg-transparent text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"
                   onChange={(event) => setSearchQuery(event.target.value)}
@@ -302,7 +307,7 @@ export default function AdminShell() {
               </div>
             </div>
 
-            <div className="ml-auto flex flex-wrap items-center gap-3">
+            <div className="order-1 ml-auto flex w-full items-center justify-end gap-2 sm:gap-3 lg:order-2 lg:w-auto">
               <div className="relative">
                 <button
                   type="button"
@@ -328,7 +333,7 @@ export default function AdminShell() {
                 </button>
 
                 {notificationsOpen ? (
-                  <div className="absolute right-0 top-12 z-20 w-[360px] overflow-hidden rounded-2xl border border-admin-border bg-[var(--color-bg-secondary)] shadow-[0_16px_44px_rgba(0,0,0,0.35)]">
+                  <div className="absolute right-0 top-12 z-20 w-[min(360px,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-admin-border bg-[var(--color-bg-secondary)] shadow-[0_16px_44px_rgba(0,0,0,0.35)]">
                     <div className="border-b border-admin-border px-4 py-3">
                       <p className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
                         Admin Notifications
@@ -379,12 +384,12 @@ export default function AdminShell() {
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen((prev) => !prev)}
-                  className="flex flex-1 items-center gap-2 rounded-lg p-2 text-left transition hover:bg-[var(--color-bg-hover)]"
+                  className="flex max-w-[160px] items-center gap-2 rounded-lg p-2 text-left transition hover:bg-[var(--color-bg-hover)] sm:max-w-none"
                 >
                   <div className="grid h-8 w-8 place-items-center rounded-full bg-[linear-gradient(135deg,var(--admin-purple),var(--admin-blue))] text-[11px] font-bold text-white">
                     {user?.email.charAt(0).toUpperCase()}
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="hidden min-w-0 flex-1 sm:block">
                     <p className="text-xs font-semibold text-admin-text-primary">
                       {user?.email.split("@")[0]}
                     </p>
@@ -395,7 +400,7 @@ export default function AdminShell() {
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 top-12 z-20 w-64 overflow-hidden rounded-2xl border border-admin-border bg-[var(--color-bg-secondary)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+                  <div className="absolute right-0 top-12 z-20 w-[min(320px,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-admin-border bg-[var(--color-bg-secondary)] shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
                     {/* Profile Section */}
                     <div className="border-b border-admin-border px-5 py-4">
                       <div className="flex items-center gap-3">
