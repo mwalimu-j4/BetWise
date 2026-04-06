@@ -248,7 +248,7 @@ export default function PaymentsDepositPage() {
 
   return (
     // Restricted max-width to make it a neat, compact widget instead of a massive spanning grid
-    <section className="mx-auto max-w-lg">
+    <section className="mx-auto max-w-xl">
       <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-5 shadow-sm sm:p-6">
         <div className="mb-6 flex items-center justify-between border-b border-[#23384f] pb-5">
           <div>
@@ -261,9 +261,11 @@ export default function PaymentsDepositPage() {
           </div>
           <div className="flex h-11 w-20 items-center justify-center rounded-xl border border-[#2f4a62] bg-[#4CAF50]/10 px-2">
             <img
-              src="/images/mpesa/logo.png"
+              src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
               alt="M-Pesa"
               className="h-full w-full object-contain drop-shadow-sm"
+              loading="lazy"
+              referrerPolicy="no-referrer"
             />
           </div>
         </div>
