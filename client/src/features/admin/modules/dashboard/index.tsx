@@ -159,140 +159,140 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="space-y-6">
-          {pendingCount > 0 ? (
-            <Alert className="border-amber-400/30 bg-amber-400/10">
-              <TriangleAlert className="h-4 w-4 text-amber-300" />
-              <AlertTitle className="text-amber-200">
-                Pending Withdrawal Requests
-              </AlertTitle>
-              <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-amber-100/90">
-                <span>
-                  You have {pendingCount} withdrawal request
-                  {pendingCount === 1 ? "" : "s"} waiting for review.
-                </span>
-                <Link
-                  to="/admin/withdrawals"
-                  className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-amber-100 transition hover:bg-amber-300/20"
-                >
-                  Review Requests
-                </Link>
-              </AlertDescription>
-            </Alert>
-          ) : null}
+        {pendingCount > 0 ? (
+          <Alert className="border-amber-400/30 bg-amber-400/10">
+            <TriangleAlert className="h-4 w-4 text-amber-300" />
+            <AlertTitle className="text-amber-200">
+              Pending Withdrawal Requests
+            </AlertTitle>
+            <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-amber-100/90">
+              <span>
+                You have {pendingCount} withdrawal request
+                {pendingCount === 1 ? "" : "s"} waiting for review.
+              </span>
+              <Link
+                to="/admin/withdrawals"
+                className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-amber-100 transition hover:bg-amber-300/20"
+              >
+                Review Requests
+              </Link>
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
-          {/* Stat Cards - Compact */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {isLoading && metrics.length === 0
-              ? Array.from({ length: 6 }).map((_, index) => (
-                  <AdminCard key={index} className="animate-pulse">
-                    <div className="h-4 w-20 rounded bg-admin-surface" />
-                    <div className="mt-2 h-6 w-24 rounded bg-admin-surface" />
-                    <div className="mt-1 h-2 w-16 rounded bg-admin-surface" />
-                  </AdminCard>
-                ))
-              : metrics.slice(0, 6).map((metric) => {
-                  // Assign colors based on tone
-                  const colorMap: Record<
-                    string,
-                    { bg: string; text: string; icon: string; border: string }
-                  > = {
-                    accent: {
-                      bg: "bg-admin-accent/5",
-                      text: "text-admin-accent",
-                      icon: "bg-admin-accent/15 text-admin-accent",
-                      border: "border-admin-accent/20",
-                    },
-                    blue: {
-                      bg: "bg-admin-blue/5",
-                      text: "text-admin-blue",
-                      icon: "bg-admin-blue/15 text-admin-blue",
-                      border: "border-admin-blue/20",
-                    },
-                    gold: {
-                      bg: "bg-admin-gold/5",
-                      text: "text-admin-gold",
-                      icon: "bg-admin-gold/15 text-admin-gold",
-                      border: "border-admin-gold/20",
-                    },
-                    red: {
-                      bg: "bg-red-500/5",
-                      text: "text-red-500",
-                      icon: "bg-red-500/15 text-red-500",
-                      border: "border-red-500/20",
-                    },
-                  };
+        {/* Stat Cards - Compact */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {isLoading && metrics.length === 0
+            ? Array.from({ length: 6 }).map((_, index) => (
+                <AdminCard key={index} className="animate-pulse">
+                  <div className="h-4 w-20 rounded bg-admin-surface" />
+                  <div className="mt-2 h-6 w-24 rounded bg-admin-surface" />
+                  <div className="mt-1 h-2 w-16 rounded bg-admin-surface" />
+                </AdminCard>
+              ))
+            : metrics.slice(0, 6).map((metric) => {
+                // Assign colors based on tone
+                const colorMap: Record<
+                  string,
+                  { bg: string; text: string; icon: string; border: string }
+                > = {
+                  accent: {
+                    bg: "bg-admin-accent/5",
+                    text: "text-admin-accent",
+                    icon: "bg-admin-accent/15 text-admin-accent",
+                    border: "border-admin-accent/20",
+                  },
+                  blue: {
+                    bg: "bg-admin-blue/5",
+                    text: "text-admin-blue",
+                    icon: "bg-admin-blue/15 text-admin-blue",
+                    border: "border-admin-blue/20",
+                  },
+                  gold: {
+                    bg: "bg-admin-gold/5",
+                    text: "text-admin-gold",
+                    icon: "bg-admin-gold/15 text-admin-gold",
+                    border: "border-admin-gold/20",
+                  },
+                  red: {
+                    bg: "bg-red-500/5",
+                    text: "text-red-500",
+                    icon: "bg-red-500/15 text-red-500",
+                    border: "border-red-500/20",
+                  },
+                };
 
-                  const colors = colorMap[metric.tone] || colorMap.accent;
+                const colors = colorMap[metric.tone] || colorMap.accent;
 
-                  return (
-                    <AdminCard
-                      key={metric.label}
-                      className={`border ${colors.border} transition hover:border-opacity-50 p-3`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
-                            {metric.label}
-                          </p>
-                          <div
-                            className={`rounded p-1 flex-shrink-0 ${colors.icon}`}
-                          >
-                            <div className="h-3 w-3" />
-                          </div>
-                        </div>
-                        <div>
-                          <p className={`text-lg font-bold ${colors.text}`}>
-                            {metric.value}
-                          </p>
-                          {metric.helper && (
-                            <p className="mt-1 text-[9px] text-admin-text-muted line-clamp-1">
-                              {metric.helper}
-                            </p>
-                          )}
+                return (
+                  <AdminCard
+                    key={metric.label}
+                    className={`border ${colors.border} transition hover:border-opacity-50 p-3`}
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
+                          {metric.label}
+                        </p>
+                        <div
+                          className={`rounded p-1 flex-shrink-0 ${colors.icon}`}
+                        >
+                          <div className="h-3 w-3" />
                         </div>
                       </div>
-                    </AdminCard>
-                  );
-                })}
-          </div>
+                      <div>
+                        <p className={`text-lg font-bold ${colors.text}`}>
+                          {metric.value}
+                        </p>
+                        {metric.helper && (
+                          <p className="mt-1 text-[9px] text-admin-text-muted line-clamp-1">
+                            {metric.helper}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </AdminCard>
+                );
+              })}
+        </div>
 
-          {/* Charts */}
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
-            <AdminCard>
-              <AdminCardHeader
-                title="Deposit vs Withdrawal Trend"
-                subtitle="Completed transactions over last 7 days"
-              />
-              <DepositWithdrawalChart data={chartData} />
-            </AdminCard>
+        {/* Charts */}
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+          <AdminCard>
+            <AdminCardHeader
+              title="Deposit vs Withdrawal Trend"
+              subtitle="Completed transactions over last 7 days"
+            />
+            <DepositWithdrawalChart data={chartData} />
+          </AdminCard>
 
-            <AdminCard>
-              <AdminCardHeader title="7 Day Totals" subtitle="Liquidity" />
-              <div className="space-y-2.5 pt-2">
-                <div className="rounded-lg border border-admin-border bg-admin-surface/60 p-2.5">
-                  <p className="text-[9px] uppercase tracking-[0.08em] text-admin-text-muted">
-                    Deposits
-                  </p>
-                  <p className="mt-1 text-lg font-bold text-admin-accent">
-                    {formatCurrency(data?.charts.totals.deposits7d ?? 0)}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-admin-border bg-admin-surface/60 p-2.5">
-                  <p className="text-[9px] uppercase tracking-[0.08em] text-admin-text-muted">
-                    Withdrawals
-                  </p>
-                  <p className="mt-1 text-lg font-bold text-admin-gold">
-                    {formatCurrency(data?.charts.totals.withdrawals7d ?? 0)}
-                  </p>
-                </div>
+          <AdminCard>
+            <AdminCardHeader title="7 Day Totals" subtitle="Liquidity" />
+            <div className="space-y-2.5 pt-2">
+              <div className="rounded-lg border border-admin-border bg-admin-surface/60 p-2.5">
+                <p className="text-[9px] uppercase tracking-[0.08em] text-admin-text-muted">
+                  Deposits
+                </p>
+                <p className="mt-1 text-lg font-bold text-admin-accent">
+                  {formatCurrency(data?.charts.totals.deposits7d ?? 0)}
+                </p>
               </div>
-            </AdminCard>
-          </div>
+              <div className="rounded-lg border border-admin-border bg-admin-surface/60 p-2.5">
+                <p className="text-[9px] uppercase tracking-[0.08em] text-admin-text-muted">
+                  Withdrawals
+                </p>
+                <p className="mt-1 text-lg font-bold text-admin-gold">
+                  {formatCurrency(data?.charts.totals.withdrawals7d ?? 0)}
+                </p>
+              </div>
+            </div>
+          </AdminCard>
+        </div>
 
-          {/* Recent Activity + Quick Links */}
-          <div className="grid gap-4 xl:grid-cols-[1fr_260px]">
-            {/* Recent Activity */}
-            <AdminCard>
+        {/* Recent Activity + Quick Links */}
+        <div className="grid gap-4 xl:grid-cols-[1fr_260px]">
+          {/* Recent Activity */}
+          <AdminCard>
             <AdminCardHeader
               title="Recent Activity"
               subtitle="Live wallet and withdrawal flow"
@@ -442,77 +442,81 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </TableShell>
-            </AdminCard>
+          </AdminCard>
 
-            {/* Quick Links */}
-            <AdminCard>
-              <div className="space-y-2.5">
-                <h3 className="text-sm font-semibold text-admin-text">Quick Links</h3>
-                <div className="space-y-2">
-            <Link
-              to="/admin/withdrawals"
-              className="group flex items-center gap-2 rounded-lg border border-admin-border bg-admin-surface/40 p-2 text-xs transition hover:border-admin-gold hover:bg-admin-surface/60"
-            >
-              <div className="rounded bg-admin-gold/10 p-1 text-admin-gold group-hover:bg-admin-gold/20 flex-shrink-0">
-                <CreditCard size={12} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-admin-text text-[10px] truncate">
-                  Pending: {pendingCount}
-                </p>
-                <p className="text-[9px] text-admin-text-muted">Payouts</p>
-              </div>
-            </Link>
+          {/* Quick Links */}
+          <AdminCard>
+            <div className="space-y-2.5">
+              <h3 className="text-sm font-semibold text-admin-text">
+                Quick Links
+              </h3>
+              <div className="space-y-2">
+                <Link
+                  to="/admin/withdrawals"
+                  className="group flex items-center gap-2 rounded-lg border border-admin-border bg-admin-surface/40 p-2 text-xs transition hover:border-admin-gold hover:bg-admin-surface/60"
+                >
+                  <div className="rounded bg-admin-gold/10 p-1 text-admin-gold group-hover:bg-admin-gold/20 flex-shrink-0">
+                    <CreditCard size={12} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-admin-text text-[10px] truncate">
+                      Pending: {pendingCount}
+                    </p>
+                    <p className="text-[9px] text-admin-text-muted">Payouts</p>
+                  </div>
+                </Link>
 
-            <Link
-              to="/admin/users"
-              className="group flex items-center gap-2 rounded-lg border border-admin-border bg-admin-surface/40 p-2 text-xs transition hover:border-admin-accent hover:bg-admin-surface/60"
-            >
-              <div className="rounded bg-admin-accent/10 p-1 text-admin-accent group-hover:bg-admin-accent/20 flex-shrink-0">
-                <Users size={12} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-admin-text text-[10px] truncate">
-                  Users
-                </p>
-                <p className="text-[9px] text-admin-text-muted">Manage</p>
-              </div>
-            </Link>
+                <Link
+                  to="/admin/users"
+                  className="group flex items-center gap-2 rounded-lg border border-admin-border bg-admin-surface/40 p-2 text-xs transition hover:border-admin-accent hover:bg-admin-surface/60"
+                >
+                  <div className="rounded bg-admin-accent/10 p-1 text-admin-accent group-hover:bg-admin-accent/20 flex-shrink-0">
+                    <Users size={12} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-admin-text text-[10px] truncate">
+                      Users
+                    </p>
+                    <p className="text-[9px] text-admin-text-muted">Manage</p>
+                  </div>
+                </Link>
 
-            <Link
-              to="/admin/analytics"
-              className="group flex items-center gap-2 rounded-lg border border-admin-border bg-admin-surface/40 p-2 text-xs transition hover:border-admin-blue hover:bg-admin-surface/60"
-            >
-              <div className="rounded bg-admin-blue/10 p-1 text-admin-blue group-hover:bg-admin-blue/20 flex-shrink-0">
-                <TrendingUp size={12} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-admin-text text-[10px] truncate">
-                  Reports
-                </p>
-                <p className="text-[9px] text-admin-text-muted">Analytics</p>
-              </div>
-            </Link>
+                <Link
+                  to="/admin/analytics"
+                  className="group flex items-center gap-2 rounded-lg border border-admin-border bg-admin-surface/40 p-2 text-xs transition hover:border-admin-blue hover:bg-admin-surface/60"
+                >
+                  <div className="rounded bg-admin-blue/10 p-1 text-admin-blue group-hover:bg-admin-blue/20 flex-shrink-0">
+                    <TrendingUp size={12} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-admin-text text-[10px] truncate">
+                      Reports
+                    </p>
+                    <p className="text-[9px] text-admin-text-muted">
+                      Analytics
+                    </p>
+                  </div>
+                </Link>
 
-            <Link
-              to="/admin/settings"
-              className="group flex items-center gap-2 rounded-lg border border-admin-border bg-admin-surface/40 p-2 text-xs transition hover:border-admin-text-secondary hover:bg-admin-surface/60"
-            >
-              <div className="rounded bg-admin-text-secondary/10 p-1 text-admin-text-secondary group-hover:bg-admin-text-secondary/20 flex-shrink-0">
-                <Sliders size={12} />
+                <Link
+                  to="/admin/settings"
+                  className="group flex items-center gap-2 rounded-lg border border-admin-border bg-admin-surface/40 p-2 text-xs transition hover:border-admin-text-secondary hover:bg-admin-surface/60"
+                >
+                  <div className="rounded bg-admin-text-secondary/10 p-1 text-admin-text-secondary group-hover:bg-admin-text-secondary/20 flex-shrink-0">
+                    <Sliders size={12} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-admin-text text-[10px] truncate">
+                      Settings
+                    </p>
+                    <p className="text-[9px] text-admin-text-muted">Config</p>
+                  </div>
+                </Link>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-admin-text text-[10px] truncate">
-                  Settings
-                </p>
-                <p className="text-[9px] text-admin-text-muted">Config</p>
-              </div>
-            </Link>
-                </div>
-              </div>
-            </AdminCard>
-          </div>
+            </div>
+          </AdminCard>
         </div>
+      </div>
 
       {selectedTransaction && (
         <Dialog
