@@ -40,6 +40,36 @@ const resetPasswordSchema = z.object({
   confirmPassword: z.string(),
 });
 
+function validatePassword(password: string) {
+  const errors: string[] = [];
+
+  if (password.length < 8) {
+    errors.push("Password must be at least 8 characters long.");
+  }
+
+  if (password.length > 128) {
+    errors.push("Password must be at most 128 characters long.");
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push("Password must include at least one uppercase letter.");
+  }
+
+  if (!/[a-z]/.test(password)) {
+    errors.push("Password must include at least one lowercase letter.");
+  }
+
+  if (!/\d/.test(password)) {
+    errors.push("Password must include at least one number.");
+  }
+
+  if (!/[!@#$%^&*(),.?":{}|<>\[\]\\\/`~;'+\-=_]/.test(password)) {
+    errors.push("Password must include at least one special character.");
+  }
+
+  return errors;
+}
+
 function normalizeKenyanPhone(rawPhone: string) {
   const trimmed = rawPhone.trim();
   if (!KENYAN_PHONE_REGEX.test(trimmed)) {
@@ -127,6 +157,11 @@ export async function register(req: Request, res: Response) {
     fieldErrors.confirmPassword = [
       "Confirm password must exactly match password.",
     ];
+  }
+
+  const passwordErrors = validatePassword(parsed.data.password);
+  if (passwordErrors.length > 0) {
+    fieldErrors.password = passwordErrors;
   }
 
   const [existingEmail, existingPhone] = await Promise.all([

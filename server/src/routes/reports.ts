@@ -230,7 +230,7 @@ reportsRouter.get(
       const query = DateRangeSchema.parse(req.query);
       const { startDate, endDate } = getDateRange(query);
 
-      const [totalUsers, newUsers, activeUsers, userBetting] =
+      const [totalUsers, newUsers, activeUsers, totalBetsInRange] =
         await Promise.all([
           prisma.user.count(),
           prisma.user.count({
@@ -247,15 +247,10 @@ reportsRouter.get(
               },
             },
           }),
-          prisma.user.aggregate({
+          prisma.bet.count({
             where: {
-              bets: {
-                some: {
-                  placedAt: { gte: startDate, lte: endDate },
-                },
-              },
+              placedAt: { gte: startDate, lte: endDate },
             },
-            _count: { bets: true },
           }),
         ]);
 
@@ -284,7 +279,7 @@ reportsRouter.get(
         activeUsers,
         averageBetsPerActiveUser:
           activeUsers > 0
-            ? Math.round(userBetting._count.bets / activeUsers)
+            ? Math.round(totalBetsInRange / activeUsers)
             : 0,
         topBettors: topBettors.map((u) => ({
           id: u.id,
