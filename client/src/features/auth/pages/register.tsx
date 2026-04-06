@@ -44,10 +44,6 @@ function extractRegisterErrors(error: unknown) {
   return { general: ["Registration failed. Please try again."] };
 }
 
-function isPasswordValid(password: string): boolean {
-  return password.length >= 6;
-}
-
 export default function Register() {
   const { register, openAuthModal } = useAuth();
   const navigate = useNavigate();
@@ -64,11 +60,10 @@ export default function Register() {
 
   const emailValid = isValidEmail(email);
   const phoneValid = KENYAN_PHONE_REGEX.test(phone.trim());
-  const passwordValid = isPasswordValid(password);
   const confirmValid =
-    confirmPassword.length > 0 && confirmPassword === password;
+    password.length > 0 && confirmPassword.length > 0 && confirmPassword === password;
 
-  const formValid = emailValid && phoneValid && passwordValid && confirmValid;
+  const formValid = emailValid && phoneValid && confirmValid;
 
   const clearFieldError = useCallback((field: string) => {
     setErrors((previous) => ({
@@ -222,7 +217,7 @@ export default function Register() {
                   setPassword((e.target as HTMLInputElement).value);
                   clearFieldError("password");
                 }}
-                placeholder="Minimum 6 characters"
+                placeholder="Enter your password"
                 className="w-full px-4 py-2.5 pr-10 rounded-lg border border-white/10 bg-white/5 text-sm text-white placeholder-slate-500 outline-none transition-all duration-200 hover:border-white/20 focus:border-cyan-500/50 focus:bg-white/10 focus:ring-2 focus:ring-cyan-500/20 backdrop-blur-sm"
                 required
               />
@@ -235,12 +230,6 @@ export default function Register() {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {password.length > 0 && !passwordValid && (
-              <p className="text-xs text-amber-400 flex items-center gap-1">
-                <XCircle size={13} />
-                Password must be at least 6 characters
-              </p>
-            )}
             {errors.password?.map((message) => (
               <p key={message} className="text-xs text-red-400">
                 {message}
