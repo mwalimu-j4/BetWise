@@ -58,32 +58,6 @@ function normalizeKenyanPhone(rawPhone: string) {
   return null;
 }
 
-function validatePassword(password: string) {
-  const errors: string[] = [];
-
-  if (password.length < 8) {
-    errors.push("Password must be at least 8 characters long.");
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push("Password must include at least one uppercase letter.");
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push("Password must include at least one lowercase letter.");
-  }
-
-  if (!/[0-9]/.test(password)) {
-    errors.push("Password must include at least one number.");
-  }
-
-  if (!/[^A-Za-z0-9]/.test(password)) {
-    errors.push("Password must include at least one special character.");
-  }
-
-  return errors;
-}
-
 function sanitizeUser(user: {
   id: string;
   email: string;
@@ -147,11 +121,6 @@ export async function register(req: Request, res: Response) {
     fieldErrors.phone = [
       "Phone must match Kenyan format: 07XXXXXXXX, 01XXXXXXXX, or +2547XXXXXXXX.",
     ];
-  }
-
-  const passwordErrors = validatePassword(parsed.data.password);
-  if (passwordErrors.length > 0) {
-    fieldErrors.password = passwordErrors;
   }
 
   if (parsed.data.password !== parsed.data.confirmPassword) {

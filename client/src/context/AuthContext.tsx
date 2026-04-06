@@ -16,6 +16,7 @@ type AuthUser = {
   id: string;
   email: string;
   phone: string;
+  fullName?: string;
   role: Role;
   isVerified: boolean;
   createdAt: string;

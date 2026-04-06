@@ -125,6 +125,12 @@ export default function Footer() {
               >
                 FAQ
               </Link>
+              <Link
+                to="/user/contact"
+                className="text-sm text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5"
+              >
+                Contact
+              </Link>
             </nav>
           </div>
 

@@ -10,7 +10,7 @@ import {
   Phone,
   Check,
   X,
-  ArrowRight,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -51,16 +51,6 @@ function extractRegisterErrors(error: unknown) {
   return { general: ["Registration failed. Please try again."] };
 }
 
-function passwordChecks(password: string) {
-  return {
-    length: password.length >= 8,
-    uppercase: /[A-Z]/.test(password),
-    lowercase: /[a-z]/.test(password),
-    number: /[0-9]/.test(password),
-    special: /[^A-Za-z0-9]/.test(password),
-  };
-}
-
 export default function RegisterModal() {
   const { register, authModal, closeAuthModal, openAuthModal } = useAuth();
   const navigate = useNavigate();
@@ -75,10 +65,10 @@ export default function RegisterModal() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Simplified Validation Logic
   const emailValid = isValidEmail(email);
   const phoneValid = KENYAN_PHONE_REGEX.test(phone.trim());
-  const passwordRules = passwordChecks(password);
-  const passwordValid = Object.values(passwordRules).every(Boolean);
+  const passwordValid = password.length >= 6;
   const confirmValid =
     confirmPassword.length > 0 && confirmPassword === password;
 
@@ -213,6 +203,7 @@ export default function RegisterModal() {
                         clearFieldError("email");
                       }}
                       placeholder="you@example.com"
+                      autoComplete="off"
                       className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#3d6ba3]/40 bg-[#1a3a6b]/50 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30"
                       required
                     />
@@ -244,6 +235,7 @@ export default function RegisterModal() {
                         clearFieldError("phone");
                       }}
                       placeholder="0712345678"
+                      autoComplete="username"
                       className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#3d6ba3]/40 bg-[#1a3a6b]/50 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30"
                       required
                     />
@@ -274,7 +266,8 @@ export default function RegisterModal() {
                         setPassword(e.target.value);
                         clearFieldError("password");
                       }}
-                      placeholder="Min. 8 characters"
+                      placeholder="Min. 6 characters"
+                      autoComplete="new-password"
                       className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-[#3d6ba3]/40 bg-[#1a3a6b]/50 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30"
                       required
                     />
@@ -286,6 +279,11 @@ export default function RegisterModal() {
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+                  {!passwordValid && password.length > 0 && (
+                    <p className="text-xs text-red-400">
+                      Password must be at least 6 characters
+                    </p>
+                  )}
                 </div>
 
                 {/* Confirm Password field */}
@@ -310,6 +308,7 @@ export default function RegisterModal() {
                         clearFieldError("confirmPassword");
                       }}
                       placeholder="Confirm your password"
+                      autoComplete="new-password"
                       className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-[#3d6ba3]/40 bg-[#1a3a6b]/50 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30"
                       required
                     />
@@ -352,7 +351,7 @@ export default function RegisterModal() {
                 <button
                   type="submit"
                   disabled={!formValid || isSubmitting}
-                  className="w-full py-3 mt-5 rounded-lg bg-gradient-to-r from-[#f5c518] to-[#e6b800] font-semibold text-slate-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-[#f5c518]/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                  className="w-full py-3 mt-5 rounded-lg bg-[#f5c518] hover:bg-[#e6b800] font-semibold text-slate-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-[#f5c518]/40 hover:-translate-y-0.5 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -361,8 +360,8 @@ export default function RegisterModal() {
                     </>
                   ) : (
                     <>
+                      <UserPlus size={16} />
                       Create account
-                      <ArrowRight size={16} />
                     </>
                   )}
                 </button>

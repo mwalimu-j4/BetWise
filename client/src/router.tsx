@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { adminBetsRoute } from "./routes/admin/bets";
 import { adminAnalyticsRoute } from "./routes/admin/analytics";
+import { adminContactsRoute } from "./routes/admin/contacts";
 import { adminDashboardRoute } from "./routes/admin/dashboard";
 import { adminEventsRoute } from "./routes/admin/events";
 import { adminIndexRoute } from "./routes/admin";
@@ -22,8 +23,7 @@ import { resetPasswordRoute } from "./routes/reset-password";
 import { rootRoute } from "./routes/root";
 import { userIndexRoute } from "./routes/user";
 import { userComingSoonRoute } from "./routes/user/coming-soon";
-import { userLiveMatchRoute } from "./routes/user/live.$matchId";
-import { userLiveRoute } from "./routes/user/live";
+import { userContactRoute } from "./routes/user/contact";
 import { userForgotPasswordRoute } from "./routes/user/forgot-password";
 import { userPaymentsDepositRoute } from "./routes/user/payments-deposit";
 import { userPaymentsHistoryRoute } from "./routes/user/payments-history";
@@ -45,7 +45,7 @@ const routeTree = rootRoute.addChildren([
   userRoute.addChildren([
     userIndexRoute,
     userComingSoonRoute,
-    userLiveRoute.addChildren([userLiveMatchRoute]),
+    userContactRoute,
     userProfileRoute,
     userForgotPasswordRoute,
     userResetPasswordRoute,
@@ -64,6 +64,7 @@ const routeTree = rootRoute.addChildren([
     adminAnalyticsRoute,
     adminUsersRoute,
     adminBetsRoute,
+    adminContactsRoute,
     adminEventsRoute,
     adminOddsRoute,
     adminTransactionsRoute,

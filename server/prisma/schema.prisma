@@ -68,6 +68,12 @@ enum BetAuditAction {
   INTEGRITY_ERROR
 }
 
+enum ContactStatus {
+  SUBMITTED
+  READ
+  RESOLVED
+}
+
 model User {
   id            String               @id @default(uuid()) @db.Uuid
   fullName      String?              @map("full_name")
@@ -80,14 +86,14 @@ model User {
   role          UserRole             @default(USER)
   createdAt     DateTime             @default(now()) @map("created_at")
   updatedAt     DateTime             @updatedAt @map("updated_at")
+  wallet        Wallet?
   bets          Bet[]
   notifications Notification[]
   resetTokens   PasswordResetToken[]
   refreshTokens RefreshToken[]
   transactions  WalletTransaction[]
-  notifications Notification[]
-  bets          Bet[]
   betAuditLogs  BetAuditLog[]
+  contacts      Contact[]
 
   @@map("users")
 }
@@ -303,4 +309,23 @@ model BetAuditLog {
   @@index([userId, createdAt(sort: Desc)])
   @@index([betId, createdAt(sort: Desc)])
   @@map("bet_audit_log")
+}
+
+model Contact {
+  id        String        @id @default(uuid()) @db.Uuid
+  userId    String?       @map("user_id") @db.Uuid
+  fullName  String        @map("full_name")
+  phone     String
+  subject   String
+  message   String
+  status    ContactStatus @default(SUBMITTED)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([phone])
+  @@map("contacts")
 }

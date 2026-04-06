@@ -95,6 +95,10 @@ const statusConfig: Record<
   high: { tone: "red", icon: AlertTriangle },
   medium: { tone: "gold", icon: AlertTriangle },
   low: { tone: "blue", icon: CheckCircle },
+  // Contact message statuses
+  submitted: { tone: "gold", icon: Clock },
+  read: { tone: "blue", icon: CheckCircle },
+  resolved: { tone: "red", icon: CheckCircle },
 };
 
 interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

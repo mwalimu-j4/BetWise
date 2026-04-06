@@ -3,6 +3,7 @@ import {
   BarChart3,
   CreditCard,
   LayoutDashboard,
+  MessageSquare,
   Settings,
   Shield,
   SlidersHorizontal,
@@ -17,6 +18,7 @@ export type AdminNavId =
   | "users"
   | "analytics"
   | "bets"
+  | "contacts"
   | "events"
   | "odds"
   | "transactions"
@@ -34,6 +36,7 @@ export interface AdminNavSection {
     | "/admin/users"
     | "/admin/analytics"
     | "/admin/bets"
+    | "/admin/contacts"
     | "/admin/events"
     | "/admin/odds"
     | "/admin/transactions"
@@ -67,6 +70,12 @@ export const adminNavigation: AdminNavSection[] = [
     label: "Bets",
     icon: Target,
     to: "/admin/bets",
+  },
+  {
+    id: "contacts",
+    label: "Messages",
+    icon: MessageSquare,
+    to: "/admin/contacts",
   },
   {
     id: "events",
