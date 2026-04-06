@@ -113,66 +113,70 @@ function MyBetsPageContent() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-[900px] rounded-2xl border border-[#1f2a3a] bg-[#0d1117] shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
-      <header className="flex items-center justify-between border-b border-[#243247] px-3 py-3">
+    <div className="px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
+      <section className="mx-auto w-full max-w-[1180px] overflow-hidden rounded-2xl border border-[#1f2a3a] bg-[#0d1117] shadow-[0_20px_70px_rgba(0,0,0,0.35)] md:rounded-3xl">
+        <header className="flex items-center justify-between border-b border-[#243247] px-3 py-3 md:px-5 md:py-4">
         <button
           type="button"
           onClick={() => {
             void navigate({ to: "/user" });
           }}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#2b3a4f] bg-[#111827] px-3 py-1.5 text-sm text-[#c6d6ea] transition hover:border-[#3a506a]"
+          className="inline-flex items-center gap-2 rounded-lg border border-[#2b3a4f] bg-[#111827] px-3 py-1.5 text-sm text-[#c6d6ea] transition hover:border-[#3a506a] md:px-4"
         >
           <ArrowLeft size={16} />
           Back
         </button>
-        <h1 className="text-sm font-semibold text-white">My Bets</h1>
+        <h1 className="text-sm font-semibold text-white md:text-base">
+          My Bets
+        </h1>
         <span className="w-16" aria-hidden="true" />
       </header>
 
-      <BetsTabs
-        activeTab={tab}
-        onTabChange={(nextTab) => {
-          updateSearch({ tab: nextTab, page: 1 });
-        }}
-      />
+        <BetsTabs
+          activeTab={tab}
+          onTabChange={(nextTab) => {
+            updateSearch({ tab: nextTab, page: 1 });
+          }}
+        />
 
-      <BetsFilterBar
-        filter={filter}
-        hideLost={hideLost}
-        onFilterChange={(nextFilter) => {
-          updateSearch({ filter: nextFilter, page: 1 });
-        }}
-        onHideLostChange={(value) => {
-          setHideLost(value);
-          updateSearch({ page: 1 });
-        }}
-        lastUpdated={formattedLastUpdated}
-      />
+        <BetsFilterBar
+          filter={filter}
+          hideLost={hideLost}
+          onFilterChange={(nextFilter) => {
+            updateSearch({ filter: nextFilter, page: 1 });
+          }}
+          onHideLostChange={(value) => {
+            setHideLost(value);
+            updateSearch({ page: 1 });
+          }}
+          lastUpdated={formattedLastUpdated}
+        />
 
-      <BetsList
-        items={bets.items}
-        isLoading={bets.isLoading}
-        isFetching={bets.isFetching}
-        total={bets.total}
-        page={bets.page}
-        pageSize={bets.pageSize}
-        totalPages={bets.totalPages}
-        onOpenBet={(betId) => {
-          void navigate({
-            to: "/user/bets/$betId",
-            params: { betId },
-            search: {
-              tab,
-              filter,
-              page: String(page),
-            },
-          });
-        }}
-        onPageChange={(nextPage) => updateSearch({ page: nextPage })}
-      />
+        <BetsList
+          items={bets.items}
+          isLoading={bets.isLoading}
+          isFetching={bets.isFetching}
+          total={bets.total}
+          page={bets.page}
+          pageSize={bets.pageSize}
+          totalPages={bets.totalPages}
+          onOpenBet={(betId) => {
+            void navigate({
+              to: "/user/bets/$betId",
+              params: { betId },
+              search: {
+                tab,
+                filter,
+                page: String(page),
+              },
+            });
+          }}
+          onPageChange={(nextPage) => updateSearch({ page: nextPage })}
+        />
 
-      <Outlet />
-    </section>
+        <Outlet />
+      </section>
+    </div>
   );
 }
 

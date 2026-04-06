@@ -29,13 +29,30 @@ type WithdrawalResponse = {
   };
 };
 
+function normalizePhone(phone: string) {
+  const compact = phone.replace(/\s+/g, "").replace(/^\+/, "");
+  if (compact.startsWith("0")) {
+    return `254${compact.slice(1)}`;
+  }
+
+  return compact;
+}
+
+function isPhoneValid(phone: string) {
+  return /^254(7|1)\d{8}$/.test(phone);
+}
+
 export default function PaymentsWithdrawalPage() {
   const { user } = useAuth();
   const [amount, setAmount] = useState("500");
-  const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: walletData, refetch: refetchWallet } = useWalletSummary();
   const queryClient = useQueryClient();
+  const accountPhone = useMemo(
+    () => normalizePhone(user?.phone ?? ""),
+    [user?.phone],
+  );
+  const accountPhoneValid = isPhoneValid(accountPhone);
 
   const withdrawalMutation = useMutation({
     mutationFn: async (data: { amount: number; phone: string }) => {
@@ -53,7 +70,6 @@ export default function PaymentsWithdrawalPage() {
         data.message || "Withdrawal request submitted successfully!",
       );
       setAmount("500");
-      setPhone("");
       // Refetch wallet summary to get updated balance
       queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
       refetchWallet();
@@ -87,9 +103,9 @@ export default function PaymentsWithdrawalPage() {
       numAmount >= MIN_WITHDRAWAL &&
       numAmount <= MAX_WITHDRAWAL &&
       totalNeeded <= balance &&
-      isPhoneValid
+      accountPhoneValid
     );
-  }, [numAmount, balance, isPhoneValid, totalNeeded]);
+  }, [accountPhoneValid, numAmount, balance, totalNeeded]);
 
   const recentWithdrawals = Array.isArray(walletData?.transactions)
     ? walletData.transactions
@@ -101,8 +117,8 @@ export default function PaymentsWithdrawalPage() {
     event.preventDefault();
 
     if (!canWithdraw) {
-      if (!isPhoneValid) {
-        toast.error("Please enter a valid phone in format: 2547XXXXXXXX");
+      if (!accountPhoneValid) {
+        toast.error("Your account phone is invalid for M-PESA withdrawals.");
       } else if (numAmount < MIN_WITHDRAWAL) {
         toast.error(`Minimum withdrawal is KES ${MIN_WITHDRAWAL}.`);
       } else if (numAmount > MAX_WITHDRAWAL) {
@@ -119,15 +135,9 @@ export default function PaymentsWithdrawalPage() {
 
     setIsSubmitting(true);
     try {
-      // Normalize phone to format: 254XXXXXXXXX
-      let normalizedPhone = phone.replace(/\s+/g, "").replace(/^(\+|00)/, "");
-      if (normalizedPhone.startsWith("0")) {
-        normalizedPhone = "254" + normalizedPhone.slice(1);
-      }
-
       await withdrawalMutation.mutateAsync({
         amount: numAmount,
-        phone: normalizedPhone,
+        phone: accountPhone,
       });
     } finally {
       setIsSubmitting(false);

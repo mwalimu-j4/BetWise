@@ -1,17 +1,17 @@
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { useWithdrawal } from "@/hooks/useWithdrawal";
+import { useAuth } from "@/context/AuthContext";
 
 type WithdrawalFormProps = {
   onSuccess?: () => void;
 };
 
 export default function WithdrawalForm({ onSuccess }: WithdrawalFormProps) {
+  const { user } = useAuth();
   const {
     amountInput,
     setAmountInput,
-    phoneInput,
-    setPhoneInput,
     feeAmount,
     netAmount,
     taxPercent,
@@ -21,7 +21,7 @@ export default function WithdrawalForm({ onSuccess }: WithdrawalFormProps) {
     isSubmitting,
     apiError,
     submit,
-  } = useWithdrawal();
+  } = useWithdrawal({ sourcePhone: user?.phone ?? "" });
 
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -61,13 +61,9 @@ export default function WithdrawalForm({ onSuccess }: WithdrawalFormProps) {
           placeholder="Enter amount to withdraw"
         />
 
-        <input
-          type="tel"
-          value={phoneInput}
-          onChange={(event) => setPhoneInput(event.target.value)}
-          className="h-11 w-full rounded-xl border border-[#31455f] bg-[#0f172a] px-3 text-sm text-white outline-none focus:border-[#f5c518]"
-          placeholder="M-PESA phone e.g. 2547XXXXXXXX"
-        />
+        <div className="rounded-xl border border-[#31455f] bg-[#0f172a] px-3 py-2 text-xs text-[#9fb0c7]">
+          Phone linked from your account is used automatically for payout.
+        </div>
 
         <div className="rounded-xl border border-[#31455f] bg-[#0f172a] px-3 py-2 text-xs text-[#b7c5d7]">
           <p>

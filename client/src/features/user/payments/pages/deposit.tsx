@@ -11,6 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,19 @@ const paymentStages = [
   "Wallet updated",
 ] as const;
 
+function normalizePhone(phone: string) {
+  const compact = phone.replace(/\s+/g, "").replace(/^[+]/, "");
+  if (compact.startsWith("0")) {
+    return `254${compact.slice(1)}`;
+  }
+
+  return compact;
+}
+
+function isPhoneValid(phone: string) {
+  return /^254(7|1)\d{8}$/.test(phone);
+}
+
 export default function PaymentsDepositPage() {
   const { user } = useAuth();
   const [phone, setPhone] = useState("");
@@ -61,6 +75,11 @@ export default function PaymentsDepositPage() {
   const queryClient = useQueryClient();
   const { data: walletData } = useWalletSummary();
   const currentBalance = walletData?.wallet.balance ?? 0;
+  const accountPhone = useMemo(
+    () => normalizePhone(user?.phone ?? ""),
+    [user?.phone],
+  );
+  const accountPhoneValid = isPhoneValid(accountPhone);
 
   useEffect(() => {
     if (user?.phone && !phone) {
@@ -197,7 +216,11 @@ export default function PaymentsDepositPage() {
     event.preventDefault();
 
     if (!isFormValid) {
-      toast.error("Enter a valid phone number and amount.");
+      if (!accountPhoneValid) {
+        toast.error("Your account phone is invalid for M-PESA deposits.");
+      } else {
+        toast.error("Enter a valid deposit amount.");
+      }
       return;
     }
 
