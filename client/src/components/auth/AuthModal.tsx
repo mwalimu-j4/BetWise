@@ -52,9 +52,7 @@ export default function AuthModal({
 
       {/* Footer */}
       {footer ? (
-        <div className="border-t border-white/10 pt-6">
-          {footer}
-        </div>
+        <div className="border-t border-white/10 pt-6">{footer}</div>
       ) : null}
     </div>
   );
