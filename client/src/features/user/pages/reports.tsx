@@ -23,12 +23,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Pagination,
   PaginationContent,
@@ -69,18 +64,18 @@ function StatCard({
             {label}
           </p>
           <p className="text-xl md:text-2xl font-bold text-white">{value}</p>
-          {subtext && (
-            <p className="text-xs text-slate-500 mt-1">{subtext}</p>
-          )}
+          {subtext && <p className="text-xs text-slate-500 mt-1">{subtext}</p>}
         </div>
         <div className="rounded-lg bg-slate-800 p-2 md:p-3">
           <Icon className="h-5 w-5 md:h-6 md:w-6 text-blue-400" />
         </div>
       </div>
       {trend && (
-        <div className={`mt-2 flex items-center text-xs ${
-          trend === "up" ? "text-green-400" : "text-red-400"
-        }`}>
+        <div
+          className={`mt-2 flex items-center text-xs ${
+            trend === "up" ? "text-green-400" : "text-red-400"
+          }`}
+        >
           {trend === "up" ? (
             <TrendingUp className="h-3 w-3 mr-1" />
           ) : (
@@ -105,7 +100,10 @@ function PersonalReportTab() {
     );
   }
 
-  if (!data) return <div className="p-4 text-center text-slate-400">No data available</div>;
+  if (!data)
+    return (
+      <div className="p-4 text-center text-slate-400">No data available</div>
+    );
 
   const betResultsData = data.detailedResults.map((r) => ({
     name: r.status,
@@ -211,13 +209,15 @@ function RecentBetsTab() {
                 </p>
               </div>
               <div className="md:table-cell px-4 py-3">
-                <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                  bet.status === "WON"
-                    ? "bg-green-500/20 text-green-400"
-                    : bet.status === "LOST"
-                      ? "bg-red-500/20 text-red-400"
-                      : "bg-yellow-500/20 text-yellow-400"
-                }`}>
+                <span
+                  className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                    bet.status === "WON"
+                      ? "bg-green-500/20 text-green-400"
+                      : bet.status === "LOST"
+                        ? "bg-red-500/20 text-red-400"
+                        : "bg-yellow-500/20 text-yellow-400"
+                  }`}
+                >
                   {bet.status}
                 </span>
               </div>
@@ -230,9 +230,11 @@ function RecentBetsTab() {
                 </p>
               </div>
               <div className="md:table-cell px-4 py-3 text-right">
-                <p className={`font-semibold ${
-                  bet.profit > 0 ? "text-green-400" : "text-red-400"
-                }`}>
+                <p
+                  className={`font-semibold ${
+                    bet.profit > 0 ? "text-green-400" : "text-red-400"
+                  }`}
+                >
                   {bet.profit > 0 ? "+" : ""}KES {bet.profit.toFixed(0)}
                 </p>
                 <p className="text-xs text-slate-400">
@@ -272,7 +274,7 @@ function RecentBetsTab() {
                     {p}
                   </PaginationLink>
                 </PaginationItem>
-              )
+              ),
             )}
             {page < pagination.pages && (
               <PaginationItem>
@@ -304,7 +306,10 @@ function FinancialReportTab() {
     );
   }
 
-  if (!data) return <div className="p-4 text-center text-slate-400">No data available</div>;
+  if (!data)
+    return (
+      <div className="p-4 text-center text-slate-400">No data available</div>
+    );
 
   const stats = [
     {
@@ -404,7 +409,9 @@ export default function ReportsPage() {
         <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-slate-700 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-slate-300">Report Period</p>
+              <p className="text-sm font-medium text-slate-300">
+                Report Period
+              </p>
             </div>
             <Select
               value={period}
