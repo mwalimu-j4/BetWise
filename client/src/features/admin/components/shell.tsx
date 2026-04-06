@@ -1,7 +1,18 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Bell, Menu, Search, Zap, LogOut } from "lucide-react";
+import {
+  Bell,
+  ChevronRight,
+  LogOut,
+  Menu,
+  Monitor,
+  Moon,
+  Search,
+  Sun,
+  User,
+  Zap,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
