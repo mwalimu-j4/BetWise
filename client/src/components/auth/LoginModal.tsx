@@ -173,6 +173,7 @@ export default function LoginModal() {
                   value={phone}
                   onChange={(e) => handlePhoneChange(e.target.value)}
                   placeholder="0712345678"
+                  autoComplete="username"
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#3d6ba3]/40 bg-[#1a3a6b]/60 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/70 focus:bg-[#1a3a6b] focus:ring-2 focus:ring-[#f5c518]/30"
                   required
                 />
@@ -203,6 +204,7 @@ export default function LoginModal() {
                   value={password}
                   onChange={(e) => handlePasswordChange(e.target.value)}
                   placeholder="Your password"
+                  autoComplete="current-password"
                   className="w-full pl-11 pr-11 py-3 rounded-xl border border-[#3d6ba3]/40 bg-[#1a3a6b]/60 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/70 focus:bg-[#1a3a6b] focus:ring-2 focus:ring-[#f5c518]/30"
                   required
                 />
