@@ -159,6 +159,14 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
 
         <div className="bc-actions">
+          <Link
+            to="/user/live"
+            className="bc-deposit-btn"
+            aria-label="Open live bets"
+          >
+            Live Bets
+          </Link>
+
           {isAuthenticated ? (
             <div className="bc-balance-card" aria-label="Wallet Balance">
               <span className="bc-balance-label">Balance:</span>

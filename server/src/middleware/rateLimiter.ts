@@ -86,3 +86,36 @@ export const cancelBetRateLimiter = rateLimit({
   message:
     "Too many cancellation attempts. Please wait a minute and try again.",
 });
+
+export const liveMatchesRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many live match requests. Please wait and retry.",
+});
+
+export const liveOddsRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many live update requests. Please wait and retry.",
+});
+
+export const placeBetRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  keyGenerator: userOrIpKeyGenerator,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many bet placements. Please wait a minute and try again.",
+});
+
+export const loadBetSlipRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many shared betslip load attempts. Please wait and retry.",
+});

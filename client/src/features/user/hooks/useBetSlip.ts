@@ -28,6 +28,13 @@ type PlaceBetResponse = {
   newBalance: number;
 };
 
+type PlaceBetErrorResponse = {
+  error?: string;
+  message?: string;
+  code?: string;
+  newOdds?: number | null;
+};
+
 type StoredSlip = {
   selections: BetSelection[];
   stake: number;
@@ -177,15 +184,64 @@ export function useBetSlip() {
       let latestBalance: number | null = null;
 
       for (const selection of selections) {
-        const { data } = await api.post<PlaceBetResponse>("/user/bets/place", {
-          eventId: selection.eventId,
-          marketType: selection.marketType,
-          side: selection.side,
-          stake,
-          odds: selection.odds,
-        });
+        try {
+          const { data } = await api.post<PlaceBetResponse>(
+            "/user/bets/place",
+            {
+              eventId: selection.eventId,
+              marketType: selection.marketType,
+              side: selection.side,
+              stake,
+              odds: selection.odds,
+              confirmOddsChange: false,
+            },
+          );
 
-        latestBalance = data.newBalance;
+          latestBalance = data.newBalance;
+        } catch (attemptError) {
+          if (isAxiosError<PlaceBetErrorResponse>(attemptError)) {
+            if (attemptError.response?.status === 401) {
+              redirectToLogin();
+              return;
+            }
+
+            const payload = attemptError.response?.data;
+            if (
+              attemptError.response?.status === 409 &&
+              payload?.code === "ODDS_CHANGED" &&
+              typeof payload.newOdds === "number"
+            ) {
+              const confirmed = window.confirm(
+                payload.error ??
+                  `Odds have changed. New odds: ${payload.newOdds.toFixed(2)}. Do you want to proceed?`,
+              );
+
+              if (!confirmed) {
+                setError(
+                  "Bet placement cancelled. Please review updated odds.",
+                );
+                return;
+              }
+
+              const { data } = await api.post<PlaceBetResponse>(
+                "/user/bets/place",
+                {
+                  eventId: selection.eventId,
+                  marketType: selection.marketType,
+                  side: selection.side,
+                  stake,
+                  odds: payload.newOdds,
+                  confirmOddsChange: true,
+                },
+              );
+
+              latestBalance = data.newBalance;
+              continue;
+            }
+          }
+
+          throw attemptError;
+        }
       }
 
       if (latestBalance !== null) {

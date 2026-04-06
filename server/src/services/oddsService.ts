@@ -1,6 +1,8 @@
 import { prisma } from "../lib/prisma";
 
-const ODDS_API_KEY = process.env.ODDS_API_KEY;
+function getOddsApiKey(): string {
+  return process.env.ODDS_API_KEY?.trim() ?? "";
+}
 
 const SPORTS = [
   "soccer_epl",
@@ -12,15 +14,19 @@ const SPORTS = [
 ];
 
 export async function fetchAndSaveOdds(): Promise<void> {
-  if (!ODDS_API_KEY) {
+  const oddsApiKey = getOddsApiKey();
+  if (!oddsApiKey) {
     console.warn("[Odds] ODDS_API_KEY is not configured.");
     return;
   }
 
+  let failedRequests = 0;
+  let savedEvents = 0;
+
   const results = await Promise.allSettled(
     SPORTS.map((sport) =>
       fetch(
-        `https://api.the-odds-api.com/v4/sports/${sport}/odds?apiKey=${ODDS_API_KEY}&regions=eu&markets=h2h,spreads,totals&oddsFormat=decimal`,
+        `https://api.the-odds-api.com/v4/sports/${sport}/odds?apiKey=${oddsApiKey}&regions=eu&markets=h2h,spreads,totals&oddsFormat=decimal`,
       ),
     ),
   );
@@ -31,7 +37,11 @@ export async function fetchAndSaveOdds(): Promise<void> {
     }
 
     if (!result.value.ok) {
-      console.warn(`[Odds] Request failed with status ${result.value.status}.`);
+      const details = await result.value.text();
+      console.warn(
+        `[Odds] Request failed with status ${result.value.status}: ${details.slice(0, 180)}`,
+      );
+      failedRequests += 1;
       continue;
     }
 
@@ -68,6 +78,7 @@ export async function fetchAndSaveOdds(): Promise<void> {
     }>;
 
     for (const event of events) {
+      savedEvents += 1;
       const existingEvent = await prisma.sportEvent.findUnique({
         where: { eventId: event.id },
         select: { houseMargin: true },
@@ -144,5 +155,14 @@ export async function fetchAndSaveOdds(): Promise<void> {
     }
   }
 
-  console.log(`[Odds] Saved - ${new Date().toISOString()}`);
+  if (savedEvents === 0) {
+    console.warn(
+      `[Odds] No odds saved. failedRequests=${failedRequests} sportsChecked=${SPORTS.length}`,
+    );
+    return;
+  }
+
+  console.log(
+    `[Odds] Saved events=${savedEvents} failedRequests=${failedRequests} - ${new Date().toISOString()}`,
+  );
 }

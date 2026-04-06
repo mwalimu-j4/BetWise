@@ -116,21 +116,21 @@ function MyBetsPageContent() {
     <div className="px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
       <section className="mx-auto w-full max-w-[1180px] overflow-hidden rounded-2xl border border-[#1f2a3a] bg-[#0d1117] shadow-[0_20px_70px_rgba(0,0,0,0.35)] md:rounded-3xl">
         <header className="flex items-center justify-between border-b border-[#243247] px-3 py-3 md:px-5 md:py-4">
-        <button
-          type="button"
-          onClick={() => {
-            void navigate({ to: "/user" });
-          }}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#2b3a4f] bg-[#111827] px-3 py-1.5 text-sm text-[#c6d6ea] transition hover:border-[#3a506a] md:px-4"
-        >
-          <ArrowLeft size={16} />
-          Back
-        </button>
-        <h1 className="text-sm font-semibold text-white md:text-base">
-          My Bets
-        </h1>
-        <span className="w-16" aria-hidden="true" />
-      </header>
+          <button
+            type="button"
+            onClick={() => {
+              void navigate({ to: "/user" });
+            }}
+            className="inline-flex items-center gap-2 rounded-lg border border-[#2b3a4f] bg-[#111827] px-3 py-1.5 text-sm text-[#c6d6ea] transition hover:border-[#3a506a] md:px-4"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+          <h1 className="text-sm font-semibold text-white md:text-base">
+            My Bets
+          </h1>
+          <span className="w-16" aria-hidden="true" />
+        </header>
 
         <BetsTabs
           activeTab={tab}
