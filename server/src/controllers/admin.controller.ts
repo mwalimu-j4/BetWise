@@ -876,7 +876,7 @@ export async function getBettingAnalytics(req: Request, res: Response) {
   const previousEnd = new Date(currentStart.getTime() - 1);
   const previousStart = new Date(previousEnd.getTime() - currentDurationMs);
 
-  const [bets, previousBets, settings] = await Promise.all([
+  const [bets, previousBets, settings, walletTransactions] = await Promise.all([
     prisma.bet.findMany({
       where: {
         placedAt: { gte: currentStart, lte: currentEnd },
@@ -915,6 +915,18 @@ export async function getBettingAnalytics(req: Request, res: Response) {
         winningsTaxPercent: true,
       },
     }),
+    prisma.walletTransaction.findMany({
+      where: {
+        createdAt: { gte: currentStart, lte: currentEnd },
+        status: "COMPLETED",
+      },
+      select: {
+        type: true,
+        amount: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "asc" },
+    }),
   ]);
 
   const commissionRate =
@@ -923,6 +935,19 @@ export async function getBettingAnalytics(req: Request, res: Response) {
   const taxRate =
     settings?.winningsTaxPercent ??
     defaultAdminSettings.taxAndFinancialRules.winningsTaxPercent;
+
+  const walletDeposits = walletTransactions
+    .filter((tx) => tx.type === "DEPOSIT")
+    .reduce((sum, tx) => sum + tx.amount, 0);
+  const walletWithdrawals = walletTransactions
+    .filter((tx) => tx.type === "WITHDRAWAL")
+    .reduce((sum, tx) => sum + tx.amount, 0);
+  const walletDepositCount = walletTransactions.filter(
+    (tx) => tx.type === "DEPOSIT",
+  ).length;
+  const walletWithdrawalCount = walletTransactions.filter(
+    (tx) => tx.type === "WITHDRAWAL",
+  ).length;
 
   const totalStake = bets.reduce((sum, bet) => sum + bet.stake, 0);
   const totalPayout = bets
@@ -1416,6 +1441,13 @@ export async function getBettingAnalytics(req: Request, res: Response) {
       outcomes,
       stakeDistribution,
       oddsPerformance,
+    },
+    walletSummary: {
+      totalDeposits: walletDeposits,
+      totalWithdrawals: walletWithdrawals,
+      depositCount: walletDepositCount,
+      withdrawalCount: walletWithdrawalCount,
+      netFlow: walletDeposits - walletWithdrawals,
     },
     recommendations,
   });

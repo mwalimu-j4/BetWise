@@ -275,6 +275,61 @@ export default function Analytics() {
         ))}
       </div>
 
+      {(data?.walletSummary?.totalDeposits ?? 0) > 0 ||
+      (data?.walletSummary?.totalWithdrawals ?? 0) > 0 ? (
+        <div className="grid gap-4 xl:grid-cols-2">
+          <AdminCard>
+            <AdminCardHeader
+              title="Payment Activity"
+              subtitle="Deposits and withdrawals summary"
+            />
+            <div className="space-y-3 text-sm">
+              <div className="rounded-lg border border-admin-border bg-admin-surface/40 p-3">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
+                  Total Deposits
+                </p>
+                <p className="mt-1 text-lg font-bold text-admin-accent">
+                  {formatCurrency(data?.walletSummary.totalDeposits ?? 0)}
+                </p>
+                <p className="mt-1 text-[10px] text-admin-text-muted">
+                  {data?.walletSummary.depositCount ?? 0} transaction
+                  {(data?.walletSummary.depositCount ?? 0) !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="rounded-lg border border-admin-border bg-admin-surface/40 p-3">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
+                  Total Withdrawals
+                </p>
+                <p className="mt-1 text-lg font-bold text-admin-gold">
+                  {formatCurrency(data?.walletSummary.totalWithdrawals ?? 0)}
+                </p>
+                <p className="mt-1 text-[10px] text-admin-text-muted">
+                  {data?.walletSummary.withdrawalCount ?? 0} transaction
+                  {(data?.walletSummary.withdrawalCount ?? 0) !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="rounded-lg border border-admin-border bg-admin-surface/40 p-3">
+                <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
+                  Net Flow
+                </p>
+                <p
+                  className={`mt-1 text-lg font-bold ${
+                    (data?.walletSummary.netFlow ?? 0) >= 0
+                      ? "text-admin-accent"
+                      : "text-admin-red"
+                  }`}
+                >
+                  {formatCurrency(data?.walletSummary.netFlow ?? 0)}
+                </p>
+                <p className="mt-1 text-[10px] text-admin-text-muted">
+                  {(data?.walletSummary.netFlow ?? 0) >= 0 ? "Inflow" : "Outflow"}
+                </p>
+              </div>
+            </div>
+          </AdminCard>
+        </div>
+      ) : null}
+
       <div className="grid gap-4 xl:grid-cols-2">
         <AdminCard>
           <AdminCardHeader

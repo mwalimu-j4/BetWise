@@ -105,6 +105,13 @@ export interface AnalyticsResponse {
       holdRate: number;
     }>;
   };
+  walletSummary: {
+    totalDeposits: number;
+    totalWithdrawals: number;
+    depositCount: number;
+    withdrawalCount: number;
+    netFlow: number;
+  };
   recommendations: Array<{
     title: string;
     priority: "high" | "medium" | "low";
