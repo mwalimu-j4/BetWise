@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { ChevronDown, Zap, Users, TrendingUp, Lock, Smartphone } from "lucide-react";
+import {
+  ChevronDown,
+  Zap,
+  Users,
+  TrendingUp,
+  Lock,
+  Smartphone,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface Step {
@@ -169,7 +176,9 @@ export default function HowItWorks() {
                   <h3 className="mb-2 text-lg font-bold text-white">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-[#90a2bb]">{feature.description}</p>
+                  <p className="text-sm text-[#90a2bb]">
+                    {feature.description}
+                  </p>
                 </Card>
               );
             })}
@@ -178,7 +187,9 @@ export default function HowItWorks() {
 
         {/* Tips Section */}
         <div className="mb-20 rounded-xl border border-[#31455f] bg-gradient-to-r from-[#0f172a] to-[#1a2a3a] p-8">
-          <h2 className="mb-6 text-2xl font-bold">Pro Tips for Better Betting</h2>
+          <h2 className="mb-6 text-2xl font-bold">
+            Pro Tips for Better Betting
+          </h2>
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <h3 className="mb-2 font-bold text-[#f5c518]">
@@ -190,7 +201,9 @@ export default function HowItWorks() {
               </p>
             </div>
             <div>
-              <h3 className="mb-2 font-bold text-[#f5c518]">Manage Your Bankroll</h3>
+              <h3 className="mb-2 font-bold text-[#f5c518]">
+                Manage Your Bankroll
+              </h3>
               <p className="text-sm text-[#90a2bb]">
                 Set a budget and stick to it. Only bet what you can afford to
                 lose and avoid chasing losses.
@@ -206,7 +219,9 @@ export default function HowItWorks() {
               </p>
             </div>
             <div>
-              <h3 className="mb-2 font-bold text-[#f5c518]">Use Live Betting</h3>
+              <h3 className="mb-2 font-bold text-[#f5c518]">
+                Use Live Betting
+              </h3>
               <p className="text-sm text-[#90a2bb]">
                 Take advantage of live betting to place bets as events unfold.
                 This allows you to react to real-time developments.

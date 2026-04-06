@@ -31,6 +31,8 @@ import { userProfileRoute } from "./routes/user/profile";
 import { userReportsRoute } from "./routes/user/reports";
 import { userResetPasswordRoute } from "./routes/user/reset-password";
 import { userRoute } from "./routes/user/route";
+import { userHowItWorksRoute } from "./routes/user/how-it-works";
+import { userFaqsRoute } from "./routes/user/faqs";
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -50,6 +52,8 @@ const routeTree = rootRoute.addChildren([
       userPaymentsHistoryRoute,
     ]),
     userReportsRoute,
+    userHowItWorksRoute,
+    userFaqsRoute,
   ]),
   adminRoute.addChildren([
     adminIndexRoute,
