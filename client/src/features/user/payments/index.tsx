@@ -37,46 +37,42 @@ export default function PaymentsModule() {
 
   return (
     <ProtectedRoute>
-      <div className="px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
-        <section className="animate-lift-in mx-auto grid w-full max-w-[1180px] gap-4 xl:grid-cols-[240px_1fr]">
-          <aside className="h-fit rounded-3xl border border-admin-border bg-admin-card p-3 xl:sticky xl:top-[95px]">
-            <div className="mb-3 rounded-2xl border border-admin-border bg-[var(--color-bg-elevated)] p-3">
-              <h1 className="text-base font-semibold text-admin-text-primary">
-                Payments Center
-              </h1>
-              <p className="mt-1 text-xs text-admin-text-muted">
-                Manage your wallet, history, and cash-out in one place.
-              </p>
-            </div>
-
-            <nav className="grid gap-1">
-              {paymentPages.map((item) => {
-                const isActive = pathname.startsWith(item.to);
-
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className={cn(
-                      "flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition",
-                      isActive
-                        ? "border-admin-accent/25 bg-admin-accent-dim text-admin-accent"
-                        : "border-transparent text-admin-text-secondary hover:border-admin-border hover:bg-white/3 hover:text-admin-text-primary",
-                    )}
-                  >
-                    <item.icon size={14} />
-                    <span>{item.title}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </aside>
-
-          <div className="rounded-3xl border border-admin-border bg-[var(--color-bg-surface)] p-4 sm:p-5">
-            <Outlet />
+      <section className="animate-lift-in min-h-screen bg-[#0b1120] px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl space-y-3">
+          <div>
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">
+              Payments Center
+            </h1>
+            <p className="mt-1.5 text-sm text-[#8a9bb0]">
+              Manage your wallet, deposits, and withdrawals.
+            </p>
           </div>
-        </section>
-      </div>
+
+          <nav className="flex flex-wrap gap-2">
+            {paymentPages.map((item) => {
+              const isActive = pathname.startsWith(item.to);
+
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-semibold transition",
+                    isActive
+                      ? "border-[#f5c518] bg-[#f5c518]/20 text-[#f5c518]"
+                      : "border-[#294157] text-[#8a9bb0] hover:border-[#f5c518]/60 hover:text-white",
+                  )}
+                >
+                  <item.icon size={13} />
+                  <span>{item.title}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <Outlet />
+        </div>
+      </section>
     </ProtectedRoute>
   );
 }
