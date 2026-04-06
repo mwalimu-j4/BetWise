@@ -1,4 +1,14 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  LayoutDashboard,
+  CreditCard,
+  LogOut,
+  Send,
+  User,
+  Ticket,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 import { useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -9,7 +19,7 @@ type AccountDropdownProps = {
 
 type MenuItem = {
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   to: string;
   warn?: boolean;
 };
@@ -18,27 +28,27 @@ const menuGroups: MenuItem[][] = [
   [
     {
       label: "Dashboard",
-      icon: "d",
+      icon: <LayoutDashboard size={18} />,
       to: "/user/coming-soon?feature=dashboard",
       warn: true,
     },
-    { label: "Deposit", icon: "+", to: "/user/payments/deposit" },
-    { label: "Withdrawal", icon: "^", to: "/user/payments/withdrawal" },
+    { label: "Deposit", icon: <CreditCard size={18} />, to: "/user/payments/deposit" },
+    { label: "Withdrawal", icon: <Send size={18} />, to: "/user/payments/withdrawal" },
   ],
   [
     {
       label: "My Profile",
-      icon: "u",
+      icon: <User size={18} />,
       to: "/user/coming-soon?feature=profile",
       warn: true,
     },
     {
       label: "My Bets",
-      icon: "t",
+      icon: <Ticket size={18} />,
       to: "/my-bets?tab=normal&filter=all&page=1",
     },
-    { label: "My Results", icon: "r", to: "/user/payments/history" },
-    { label: "My Wallet", icon: "w", to: "/user/payments", warn: true },
+    { label: "My Results", icon: <TrendingUp size={18} />, to: "/user/payments/history" },
+    { label: "My Wallet", icon: <Wallet size={18} />, to: "/user/payments", warn: true },
   ],
 ];
 
@@ -116,7 +126,7 @@ export default function AccountDropdown({
           }}
         >
           <span className="bc-account-item-icon" aria-hidden="true">
-            x
+            <LogOut size={18} />
           </span>
           <span>Logout</span>
         </button>
