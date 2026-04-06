@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { TrendingUp, TrendingDown, DollarSign, Users, Zap } from "lucide-react";
 import {
   useAdminFinancialReport,
@@ -12,7 +12,12 @@ import {
   AdminSectionHeader,
   SummaryCard,
 } from "../../components/ui";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -20,10 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,
@@ -33,19 +35,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import { Loader } from "lucide-react";
-
-const COLORS = [
-  "#3b82f6",
-  "#ef4444",
-  "#10b981",
-  "#f59e0b",
-  "#8b5cf6",
-  "#ec4899",
-];
 
 const PERIOD_OPTIONS: { value: ReportPeriod; label: string }[] = [
   { value: "7d", label: "Last 7 Days" },
@@ -58,7 +50,7 @@ const PERIOD_OPTIONS: { value: ReportPeriod; label: string }[] = [
 ];
 
 function FinancialReportsTab() {
-  const [period, setPeriod] = useState<ReportPeriod>("30d");
+  const [period] = useState<ReportPeriod>("30d");
   const { data, isLoading } = useAdminFinancialReport(period);
 
   if (isLoading) {
@@ -83,7 +75,7 @@ function FinancialReportsTab() {
       value: `${data.deposits.count}`,
       subtext: `KES ${(data.deposits.totalAmount / 1000).toFixed(1)}K`,
       icon: TrendingUp,
-      tone: "green" as const,
+      tone: "accent" as const,
     },
     {
       label: "Withdrawals",
@@ -149,7 +141,7 @@ function FinancialReportsTab() {
 }
 
 function BettingReportsTab() {
-  const [period, setPeriod] = useState<ReportPeriod>("30d");
+  const [period] = useState<ReportPeriod>("30d");
   const { data, isLoading } = useAdminBettingReport(period);
 
   if (isLoading) {
@@ -173,7 +165,7 @@ function BettingReportsTab() {
       label: "Total Staked",
       value: `KES ${(data.totalStaked / 1000).toFixed(1)}K`,
       icon: DollarSign,
-      tone: "green" as const,
+      tone: "accent" as const,
     },
     {
       label: "Win Rate",
@@ -258,7 +250,9 @@ function BettingReportsTab() {
         </AdminCard>
 
         <AdminCard className="space-y-4">
-          <h3 className="font-semibold text-admin-text-primary">Top Markets</h3>
+          <h3 className="font-semibold text-admin-text-primary">
+            Top Markets
+          </h3>
           <div className="space-y-3">
             {data.topMarkets.slice(0, 5).map((market) => (
               <div
@@ -286,7 +280,7 @@ function BettingReportsTab() {
 }
 
 function UsersReportsTab() {
-  const [period, setPeriod] = useState<ReportPeriod>("30d");
+  const [period] = useState<ReportPeriod>("30d");
   const { data, isLoading } = useAdminUsersReport(period);
 
   if (isLoading) {
@@ -310,7 +304,7 @@ function UsersReportsTab() {
       label: "New Users",
       value: `${data.newUsers}`,
       icon: TrendingUp,
-      tone: "green" as const,
+      tone: "accent" as const,
     },
     {
       label: "Active Users",
@@ -322,7 +316,7 @@ function UsersReportsTab() {
       label: "Avg Bets/User",
       value: `${data.averageBetsPerActiveUser}`,
       icon: DollarSign,
-      tone: "orange" as const,
+      tone: "gold" as const,
     },
   ];
 
@@ -383,7 +377,7 @@ function UsersReportsTab() {
 }
 
 function RiskReportsTab() {
-  const [period, setPeriod] = useState<ReportPeriod>("30d");
+  const [period] = useState<ReportPeriod>("30d");
   const { data, isLoading } = useAdminRiskReport(period);
 
   if (isLoading) {
@@ -583,10 +577,7 @@ export default function Reports() {
             Report Period
           </p>
         </div>
-        <Select
-          value={period}
-          onValueChange={(v) => setPeriod(v as ReportPeriod)}
-        >
+        <Select value={period} onValueChange={(v) => setPeriod(v as ReportPeriod)}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue />
           </SelectTrigger>

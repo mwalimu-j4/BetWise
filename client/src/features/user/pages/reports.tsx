@@ -1,12 +1,5 @@
 import { Card } from "@/components/ui/card";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
+
 import {
     Select,
     SelectContent,
@@ -38,6 +31,7 @@ import {
     useUserRecentBets,
     type ReportPeriod,
 } from "../hooks/useUserReports";
+import { Pagination, PaginationContent, PaginationItem, PaginationPrevious } from "@/components/ui/pagination";
 
 const PERIOD_OPTIONS: { value: ReportPeriod; label: string }[] = [
   { value: "7d", label: "Last 7 Days" },
