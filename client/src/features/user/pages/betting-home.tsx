@@ -101,7 +101,8 @@ export default function BettingHome() {
   }, [heroImages.length]);
 
   return (
-    <div className="space-y-3 bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
+    <div className="min-h-screen bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
+      <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 sm:px-6 lg:px-8">
       <section className="overflow-hidden rounded-2xl border border-[#23384f] bg-[#101b2b]">
         <div className="relative h-[80px] w-full sm:h-[100px] md:h-[120px]">
           {heroImages.map((image, index) => (
@@ -155,8 +156,8 @@ export default function BettingHome() {
 
       <LiveTicker />
 
-      <section className="overflow-x-auto rounded-xl border border-[#23384f] bg-[#101b2b] px-2.5 py-1.5 app-scrollbar scroll-smooth">
-        <div className="flex min-w-max gap-2.5">
+      <section className="overflow-x-auto rounded-xl border border-[#23384f] bg-[#101b2b] px-4 py-3 app-scrollbar scroll-smooth">
+        <div className="flex min-w-max gap-3">
           {tabs.map((tab) => {
             const isActive =
               selectedSport === tab.sportKey && selectedLeague === tab.league;
@@ -169,9 +170,9 @@ export default function BettingHome() {
                   setSelectedSport(tab.sportKey);
                   setSelectedLeague(tab.league);
                 }}
-                className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-xs font-semibold uppercase tracking-wide transition ${
                   isActive
-                    ? "border-[#f5c518] bg-[#f5c518]/12 text-[#f5c518]"
+                    ? "border-[#f5c518] bg-[#f5c518]/15 text-[#f5c518]"
                     : "border-[#294157] text-[#8a9bb0] hover:border-[#f5c518]/60 hover:text-white"
                 }`}
               >
@@ -182,14 +183,14 @@ export default function BettingHome() {
         </div>
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_350px]">
-        <div className="min-w-0 space-y-4">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="min-w-0 space-y-5">
           {liveEvents.length > 0 ? (
-            <section className="space-y-2 overflow-hidden rounded-xl border border-[#23384f] bg-[#101b2b] p-2.5">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-[#22c55e]" />
-                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
+            <section className="space-y-3 overflow-hidden rounded-xl border border-[#23384f] bg-[#101b2b] p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#22c55e]" />
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-white">
                     LIVE NOW
                   </h2>
                   <span className="rounded-full bg-[#18283b] px-2 py-1 text-[10px] font-semibold text-[#f5c518]">
@@ -223,13 +224,13 @@ export default function BettingHome() {
             </section>
           ) : null}
 
-          <section className="space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          <section className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#cfd9e2]">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-[#cfd9e2]">
                   UPCOMING MATCHES
                 </h2>
-                <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-[#8a9bb0]">
+                <p className="mt-1.5 text-[11px] uppercase tracking-wide text-[#8a9bb0]">
                   {formatToday()}
                 </p>
               </div>
@@ -293,6 +294,7 @@ export default function BettingHome() {
         <div className="relative min-w-0">
           <BetSlip {...betSlip} />
         </div>
+      </div>
       </div>
     </div>
   );
