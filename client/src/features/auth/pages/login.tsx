@@ -59,15 +59,21 @@ export default function Login() {
     }
   }, [isAuthenticated, user, navigate, search.redirect]);
 
-  const handlePhoneChange = useCallback((value: string) => {
-    setPhone(normalizePhoneInput(value));
-    if (errorMessage) setErrorMessage("");
-  }, [errorMessage]);
+  const handlePhoneChange = useCallback(
+    (value: string) => {
+      setPhone(normalizePhoneInput(value));
+      if (errorMessage) setErrorMessage("");
+    },
+    [errorMessage],
+  );
 
-  const handlePasswordChange = useCallback((value: string) => {
-    setPassword(value);
-    if (errorMessage) setErrorMessage("");
-  }, [errorMessage]);
+  const handlePasswordChange = useCallback(
+    (value: string) => {
+      setPassword(value);
+      if (errorMessage) setErrorMessage("");
+    },
+    [errorMessage],
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -106,7 +112,10 @@ export default function Login() {
           <div className="text-center">
             <p className="text-xs text-slate-400">
               Don&apos;t have an account?{" "}
-              <Link className="font-semibold text-cyan-400 hover:text-cyan-300 transition-colors" to="/register">
+              <Link
+                className="font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                to="/register"
+              >
                 Create one
               </Link>
             </p>

@@ -1,10 +1,11 @@
 import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react";
-import AuthCard from "@/components/auth/AuthCard";
+import { Eye, EyeOff, Loader2, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
+import AuthLayout from "@/components/auth/AuthLayout";
+import AuthModal from "@/components/auth/AuthModal";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 import { useAuth } from "@/context/AuthContext";
 
@@ -36,7 +37,7 @@ function extractRegisterErrors(error: unknown) {
 
     if (!error.response) {
       return {
-        general: ["Unable to reach server. Check your internet or API server."],
+        general: ["Unable to reach server. Check your internet connection."],
       };
     }
   }
@@ -65,7 +66,6 @@ export default function Register() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Hellen's password visibility state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -81,13 +81,13 @@ export default function Register() {
     [confirmValid, emailValid, passwordValid, phoneValid],
   );
 
-  function clearFieldError(field: string) {
+  const clearFieldError = useCallback((field: string) => {
     setErrors((previous) => ({
       ...previous,
       [field]: undefined,
       general: undefined,
     }));
-  }
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
