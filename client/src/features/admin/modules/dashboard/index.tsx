@@ -24,7 +24,7 @@ import {
   Sliders,
   TrendingUp,
   TriangleAlert,
-  Users
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -167,7 +167,9 @@ export default function Dashboard() {
             <CreditCard size={14} />
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-admin-text">Pending: {pendingCount}</p>
+            <p className="font-semibold text-admin-text">
+              Pending: {pendingCount}
+            </p>
             <p className="text-[11px] text-admin-text-muted">Withdrawals</p>
           </div>
         </Link>
@@ -244,37 +246,43 @@ export default function Dashboard() {
             ))
           : metrics.slice(0, 6).map((metric) => {
               // Assign colors based on tone
-              const colorMap: Record<string, { bg: string; text: string; icon: string; border: string }> = {
+              const colorMap: Record<
+                string,
+                { bg: string; text: string; icon: string; border: string }
+              > = {
                 accent: {
-                  bg: 'bg-admin-accent/5',
-                  text: 'text-admin-accent',
-                  icon: 'bg-admin-accent/15 text-admin-accent',
-                  border: 'border-admin-accent/20',
+                  bg: "bg-admin-accent/5",
+                  text: "text-admin-accent",
+                  icon: "bg-admin-accent/15 text-admin-accent",
+                  border: "border-admin-accent/20",
                 },
                 blue: {
-                  bg: 'bg-admin-blue/5',
-                  text: 'text-admin-blue',
-                  icon: 'bg-admin-blue/15 text-admin-blue',
-                  border: 'border-admin-blue/20',
+                  bg: "bg-admin-blue/5",
+                  text: "text-admin-blue",
+                  icon: "bg-admin-blue/15 text-admin-blue",
+                  border: "border-admin-blue/20",
                 },
                 gold: {
-                  bg: 'bg-admin-gold/5',
-                  text: 'text-admin-gold',
-                  icon: 'bg-admin-gold/15 text-admin-gold',
-                  border: 'border-admin-gold/20',
+                  bg: "bg-admin-gold/5",
+                  text: "text-admin-gold",
+                  icon: "bg-admin-gold/15 text-admin-gold",
+                  border: "border-admin-gold/20",
                 },
                 red: {
-                  bg: 'bg-red-500/5',
-                  text: 'text-red-500',
-                  icon: 'bg-red-500/15 text-red-500',
-                  border: 'border-red-500/20',
+                  bg: "bg-red-500/5",
+                  text: "text-red-500",
+                  icon: "bg-red-500/15 text-red-500",
+                  border: "border-red-500/20",
                 },
               };
-              
+
               const colors = colorMap[metric.tone] || colorMap.accent;
-              
+
               return (
-                <AdminCard key={metric.label} className={`border ${colors.border} transition hover:border-opacity-50`}>
+                <AdminCard
+                  key={metric.label}
+                  className={`border ${colors.border} transition hover:border-opacity-50`}
+                >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
