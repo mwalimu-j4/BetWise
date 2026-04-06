@@ -5,7 +5,6 @@ import {
   CircleCheck,
   CircleX,
   Menu,
-  Plus,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
@@ -282,17 +281,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                 Login
               </Link>
             </div>
-          )}
-
-          {!isAuthenticated && (
-            <Link
-              to="/user/payments/deposit"
-              className="bc-deposit-btn"
-              aria-label="Deposit funds"
-            >
-              <Plus size={14} />
-              <span className="bc-deposit-text">Deposit</span>
-            </Link>
           )}
         </div>
       </div>
