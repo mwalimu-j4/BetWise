@@ -45,7 +45,8 @@ function toSidebarSportName(raw: string) {
   const value = raw.toLowerCase();
   if (value.includes("soccer") || value.includes("football")) return "Soccer";
   if (value.includes("basket")) return "Basketball";
-  if (value.includes("tennis") && value.includes("table")) return "Table Tennis";
+  if (value.includes("tennis") && value.includes("table"))
+    return "Table Tennis";
   if (value.includes("tennis")) return "Tennis";
   if (value.includes("hockey")) return "Ice Hockey";
   if (value.includes("volley")) return "Volleyball";
@@ -487,7 +488,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     ].join(" ")}
                     onClick={closeIfMobile}
                   >
-                    <span className="w-[18px] text-center text-[10px] font-semibold text-[#64748b]">{sportIcon(name)}</span>
+                    <span className="w-[18px] text-center text-[10px] font-semibold text-[#64748b]">
+                      {sportIcon(name)}
+                    </span>
                     <span className="flex-1">{name}</span>
                     <span
                       className={[

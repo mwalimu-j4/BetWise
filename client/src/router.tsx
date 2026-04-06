@@ -22,6 +22,8 @@ import { resetPasswordRoute } from "./routes/reset-password";
 import { rootRoute } from "./routes/root";
 import { userIndexRoute } from "./routes/user";
 import { userComingSoonRoute } from "./routes/user/coming-soon";
+import { userLiveMatchRoute } from "./routes/user/live.$matchId";
+import { userLiveRoute } from "./routes/user/live";
 import { userForgotPasswordRoute } from "./routes/user/forgot-password";
 import { userPaymentsDepositRoute } from "./routes/user/payments-deposit";
 import { userPaymentsHistoryRoute } from "./routes/user/payments-history";
@@ -43,6 +45,7 @@ const routeTree = rootRoute.addChildren([
   userRoute.addChildren([
     userIndexRoute,
     userComingSoonRoute,
+    userLiveRoute.addChildren([userLiveMatchRoute]),
     userProfileRoute,
     userForgotPasswordRoute,
     userResetPasswordRoute,

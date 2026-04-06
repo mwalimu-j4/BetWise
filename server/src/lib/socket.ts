@@ -44,11 +44,28 @@ export type BetRealtimeEvent = {
 };
 
 const USER_ROOM_PREFIX = "user:";
+const LIVE_NAMESPACE = "/ws/live";
 
 let ioInstance: Server | null = null;
+let liveNamespaceInstance: ReturnType<Server["of"]> | null = null;
 
 function getFrontendOrigin() {
   return process.env.FRONTEND_URL ?? "http://localhost:5173";
+}
+
+function getAllowedOrigins() {
+  return getFrontendOrigin()
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+function isOriginAllowed(originHeader: unknown) {
+  if (typeof originHeader !== "string" || !originHeader.trim()) {
+    return false;
+  }
+
+  return getAllowedOrigins().some((origin) => origin === originHeader);
 }
 
 export function createHttpServerWithSockets(app: Express) {
@@ -63,6 +80,11 @@ export function createHttpServerWithSockets(app: Express) {
   });
 
   io.use((socket, next) => {
+    if (socket.nsp.name === LIVE_NAMESPACE) {
+      next();
+      return;
+    }
+
     const authToken = socket.handshake.auth?.token;
     const token = typeof authToken === "string" ? authToken : null;
 
@@ -90,7 +112,59 @@ export function createHttpServerWithSockets(app: Express) {
     socket.join(`${USER_ROOM_PREFIX}${userId}`);
   });
 
+  const liveNamespace = io.of(LIVE_NAMESPACE);
+  liveNamespace.use((socket, next) => {
+    const origin = socket.handshake.headers.origin;
+    if (!isOriginAllowed(origin)) {
+      next(new Error("Forbidden origin"));
+      return;
+    }
+
+    next();
+  });
+
+  liveNamespace.on("connection", (socket) => {
+    socket.join("live:matches");
+
+    socket.on("live:subscribe", (payload: unknown) => {
+      if (
+        !payload ||
+        typeof payload !== "object" ||
+        !("channel" in payload) ||
+        typeof (payload as { channel?: unknown }).channel !== "string"
+      ) {
+        return;
+      }
+
+      const channel = (payload as { channel: string }).channel.trim();
+      if (!channel.startsWith("live:")) {
+        return;
+      }
+
+      socket.join(channel);
+    });
+
+    socket.on("live:unsubscribe", (payload: unknown) => {
+      if (
+        !payload ||
+        typeof payload !== "object" ||
+        !("channel" in payload) ||
+        typeof (payload as { channel?: unknown }).channel !== "string"
+      ) {
+        return;
+      }
+
+      const channel = (payload as { channel: string }).channel.trim();
+      if (!channel.startsWith("live:")) {
+        return;
+      }
+
+      socket.leave(channel);
+    });
+  });
+
   ioInstance = io;
+  liveNamespaceInstance = liveNamespace;
   return httpServer;
 }
 
@@ -124,4 +198,58 @@ export function emitBetUpdate(userId: string, event: BetRealtimeEvent) {
   ioInstance
     .to(`${USER_ROOM_PREFIX}${userId}`)
     .emit(`user:${userId}:bets`, event);
+}
+
+export function emitLiveMatches(payload: unknown) {
+  if (!liveNamespaceInstance) {
+    return;
+  }
+
+  liveNamespaceInstance.to("live:matches").emit("live:matches", payload);
+}
+
+export function emitLiveOddsUpdate(matchId: string, payload: unknown) {
+  if (!liveNamespaceInstance) {
+    return;
+  }
+
+  liveNamespaceInstance
+    .to(`live:odds:${matchId}`)
+    .emit("live:odds:update", payload);
+}
+
+export function emitLiveScoreUpdate(matchId: string, payload: unknown) {
+  if (!liveNamespaceInstance) {
+    return;
+  }
+
+  liveNamespaceInstance
+    .to(`live:score:${matchId}`)
+    .emit("live:score:update", payload);
+}
+
+export function emitLiveMatchStatus(matchId: string, payload: unknown) {
+  if (!liveNamespaceInstance) {
+    return;
+  }
+
+  liveNamespaceInstance
+    .to(`live:score:${matchId}`)
+    .emit("live:match:status", payload);
+}
+
+export function emitLiveMatchAdded(payload: unknown) {
+  if (!liveNamespaceInstance) {
+    return;
+  }
+
+  liveNamespaceInstance.emit("live:match:added", payload);
+}
+
+export function emitLiveMatchRemoved(payload: unknown) {
+  if (!liveNamespaceInstance) {
+    return;
+  }
+
+  liveNamespaceInstance.emit("live:match:removed", payload);
 }

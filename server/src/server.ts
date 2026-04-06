@@ -4,6 +4,7 @@ console.log("[Env Check] ODDS_API_KEY loaded:", !!process.env.ODDS_API_KEY);
 import { app } from "./app";
 import { prisma } from "./lib/prisma";
 import { createHttpServerWithSockets } from "./lib/socket";
+import { startLiveFeed } from "./services/liveFeed";
 import "./services/scheduler";
 
 const port = Number(process.env.PORT ?? 5000);
@@ -14,6 +15,7 @@ async function startServer() {
     console.log("Database connected successfully.");
 
     const server = createHttpServerWithSockets(app);
+    startLiveFeed();
 
     server.listen(port, () => {
       console.log(`Server listening on http://localhost:${port}`);
