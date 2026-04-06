@@ -30,11 +30,12 @@ export default function Layout() {
       <Navbar onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
       <div className="bc-layout-body">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        {/* Added bottom padding so the mobile nav doesn't cover content */}
+        {/* Main content with proper flex layout to push footer down */}
         <main className="bc-layout-main pb-[80px] md:pb-0">
           <div className="bc-page-wrap">
             <Outlet />
           </div>
+          {/* Footer positioned after content, will always be at bottom */}
           <Footer />
         </main>
       </div>
