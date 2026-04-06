@@ -86,7 +86,7 @@ function toText(value: unknown, fallback = "") {
 
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, openAuthModal } = useAuth();
 
   const { data: walletSummary } = useWalletSummary();
   const { data: notificationData } = useAppNotifications(12);
@@ -159,12 +159,18 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
 
         <div className="bc-actions">
-          <div className="bc-balance-card" aria-label="Wallet Balance">
-            <span className="bc-balance-label">Balance:</span>
-            <span className="bc-balance-value">
-              {formatMoney(walletSummary?.wallet.balance ?? 0)}
+          {isAuthenticated ? (
+            <div className="bc-balance-card" aria-label="Wallet Balance">
+              <span className="bc-balance-label">Balance:</span>
+              <span className="bc-balance-value">
+                {formatMoney(walletSummary?.wallet.balance ?? 0)}
+              </span>
+            </div>
+          ) : (
+            <span className="text-xs text-[#a8c4e0] font-medium">
+              Login to view balance
             </span>
-          </div>
+          )}
 
           {isAuthenticated ? (
             <>
@@ -268,12 +274,20 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             </>
           ) : (
             <div className="bc-auth-group">
-              <Link to="/register" className="bc-register-btn">
+              <button
+                type="button"
+                onClick={() => openAuthModal("register")}
+                className="bc-register-btn"
+              >
                 Register
-              </Link>
-              <Link to="/login" className="bc-login-btn">
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="bc-login-btn"
+              >
                 Login
-              </Link>
+              </button>
             </div>
           )}
         </div>

@@ -36,7 +36,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
   await transporter.sendMail({
     from: `no-reply <${getRequiredEnv("EMAIL_USER")}>`,
     to: email,
-    subject: "Reset your BetWise password",
+    subject: "Reset your BetixPro password",
     text: `Use this link to reset your password. It expires in 15 minutes: ${resetUrl}`,
     html: `<p>Use this link to reset your password. It expires in 15 minutes:</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
   });

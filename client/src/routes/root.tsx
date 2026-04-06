@@ -1,12 +1,14 @@
 import { QueryClient } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { Toaster } from "sonner";
+import AuthModals from "@/components/auth/AuthModals";
 
 function Root() {
   return (
     <>
       <Outlet />
-      <Toaster  richColors position="bottom-right" />
+      <AuthModals />
+      <Toaster richColors position="bottom-right" />
     </>
   );
 }

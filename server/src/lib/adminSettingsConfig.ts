@@ -144,7 +144,7 @@ export type AdminSettingsConfig = z.infer<typeof adminSettingsSchema>;
 
 export const defaultAdminSettings: AdminSettingsConfig = {
   generalSystemConfig: {
-    platformName: "BetWise",
+    platformName: "BetixPro",
     environment: "sandbox",
     defaultCurrency: "KES",
     timezone: "Africa/Nairobi",
@@ -265,6 +265,6 @@ export const defaultAdminSettings: AdminSettingsConfig = {
       "We process account and transactional data strictly for service operations, regulatory compliance, and fraud prevention.",
     responsibleGamblingMessage:
       "Bet responsibly. Set limits and seek support if betting affects your wellbeing.",
-    supportContactInfo: "support@betwise.co.ke | +254700000000",
+    supportContactInfo: "support@betixpro.com | +254700000000",
   },
 };

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/axiosConfig";
 
-const csrfStorageKey = "betwise-csrf-token";
+const csrfStorageKey = "betixpro-csrf-token";
 
 function getCsrfToken() {
   if (typeof window === "undefined") {

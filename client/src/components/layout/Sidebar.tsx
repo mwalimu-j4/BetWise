@@ -1,4 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -429,6 +430,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               className="bc-side-logout"
               onClick={async () => {
                 await logout();
+                toast.success("Logged out successfully");
                 closeIfMobile();
               }}
             >

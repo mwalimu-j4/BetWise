@@ -30,7 +30,7 @@ export default function AuthCard({
           <span>{backLabel}</span>
         </Link>
         <span className="rounded-full border border-[var(--color-border-accent)] bg-admin-accent-dim px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-admin-accent">
-          BetWise Secure
+          BetixPro Secure
         </span>
       </div>
 

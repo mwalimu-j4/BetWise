@@ -1,17 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import {
-  Bell,
-  Menu,
-  Search,
-  Zap,
-  LogOut,
-  Sun,
-  Moon,
-  Monitor,
-  User,
-  ChevronRight,
-} from "lucide-react";
+import { toast } from "sonner";
+import { Bell, Menu, Search, Zap, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -49,7 +39,8 @@ export default function AdminShell() {
 
   const handleLogout = async () => {
     await logout();
-    await navigate({ to: "/login" });
+    toast.success("Logged out successfully");
+    await navigate({ to: "/" });
   };
 
   const isWithdrawalNotification = (type: string) =>

@@ -42,10 +42,10 @@ type WalletSummaryCache = {
   transactions?: unknown[];
 };
 
-const pendingSlipStorageKey = "betwise.pending-bet-slip";
-export const betSlipCountStorageKey = "betwise.bet-slip-count";
-export const betSlipCountEventName = "betwise:slip-count-changed";
-export const betSlipToggleEventName = "betwise:toggle-betslip";
+const pendingSlipStorageKey = "betixpro.pending-bet-slip";
+export const betSlipCountStorageKey = "betixpro.bet-slip-count";
+export const betSlipCountEventName = "betixpro:slip-count-changed";
+export const betSlipToggleEventName = "betixpro:toggle-betslip";
 
 function getErrorMessage(error: unknown) {
   if (isAxiosError<{ error?: string; message?: string }>(error)) {

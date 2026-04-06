@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/context/AuthContext";
 
 type ProtectedRouteProps = {
@@ -11,36 +11,28 @@ type ProtectedRouteProps = {
 export default function ProtectedRoute({
   children,
   requireRole,
-  redirectTo,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const location = useLocation();
+  const { isAuthenticated, isLoading, user, openAuthModal } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isLoading) return;
 
     if (!isAuthenticated) {
-      void navigate({
-        to: "/login",
-        search: {
-          redirect: redirectTo ?? location.pathname,
-        },
-      });
+      openAuthModal("login");
       return;
     }
 
     if (requireRole && user?.role !== requireRole) {
-      void navigate({ to: "/user" });
+      void navigate({ to: "/" });
     }
   }, [
     isAuthenticated,
     isLoading,
-    location.pathname,
     navigate,
     requireRole,
-    redirectTo,
     user?.role,
+    openAuthModal,
   ]);
 
   if (isLoading) {

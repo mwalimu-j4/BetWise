@@ -315,3 +315,42 @@ html.light {
     box-shadow: 0 0 0 14px rgba(245, 197, 24, 0);
   }
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation utilities */
+.animate-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.slide-in-from-bottom-4 {
+  animation: slideInFromBottom 0.5s ease-out;
+}
+
+.duration-500 {
+  animation-duration: 500ms;
+}

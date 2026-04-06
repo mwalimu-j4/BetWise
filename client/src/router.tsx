@@ -15,41 +15,33 @@ import { adminWithdrawalsRoute } from "./routes/admin/withdrawals";
 import { adminUsersRoute } from "./routes/admin/users";
 import { forgotPasswordRoute } from "./routes/forgot-password";
 import { indexRoute } from "./routes";
-import { loginRoute } from "./routes/login";
 import { myBetDetailRoute } from "./routes/my-bets.$betId";
 import { myBetsRoute } from "./routes/my-bets";
 import { profileRoute } from "./routes/profile";
-import { registerRoute } from "./routes/register";
 import { resetPasswordRoute } from "./routes/reset-password";
 import { rootRoute } from "./routes/root";
 import { userIndexRoute } from "./routes/user";
 import { userComingSoonRoute } from "./routes/user/coming-soon";
 import { userForgotPasswordRoute } from "./routes/user/forgot-password";
-import { userLoginRoute } from "./routes/user/login";
 import { userPaymentsDepositRoute } from "./routes/user/payments-deposit";
 import { userPaymentsHistoryRoute } from "./routes/user/payments-history";
 import { userPaymentsRoute } from "./routes/user/payments";
 import { userPaymentsWithdrawalRoute } from "./routes/user/payments-withdrawal";
 import { userProfileRoute } from "./routes/user/profile";
-import { userRegisterRoute } from "./routes/user/register";
 import { userReportsRoute } from "./routes/user/reports";
 import { userResetPasswordRoute } from "./routes/user/reset-password";
 import { userRoute } from "./routes/user/route";
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  loginRoute,
   myBetsRoute.addChildren([myBetDetailRoute]),
   profileRoute,
-  registerRoute,
   forgotPasswordRoute,
   resetPasswordRoute,
   userRoute.addChildren([
     userIndexRoute,
     userComingSoonRoute,
     userProfileRoute,
-    userLoginRoute,
-    userRegisterRoute,
     userForgotPasswordRoute,
     userResetPasswordRoute,
     userPaymentsRoute.addChildren([

@@ -125,7 +125,7 @@ export default function BettingHome() {
 
             <div className="absolute inset-x-0 bottom-0 p-2 sm:p-3 md:p-4">
               <p className="text-[9px] uppercase tracking-[0.18em] text-[#f5c518]">
-                BetWise Picks
+                BetixPro Picks
               </p>
               <h1 className="mt-1 max-w-2xl text-sm font-extrabold text-white sm:text-base md:text-lg">
                 Bet Smarter, Win Bigger
