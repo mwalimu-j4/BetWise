@@ -15,6 +15,10 @@ import {
   getAdminPaymentsStats,
   getAdminSettings,
   updateAdminSettings,
+  getRiskAlerts,
+  getRiskAlertDetail,
+  updateRiskAlert,
+  getRiskSummary,
 } from "../controllers/admin.controller";
 import { requireAdmin } from "../middleware/requireAdmin";
 
@@ -80,6 +84,32 @@ adminRouter.get(
   authenticate,
   requireAdmin,
   getAdminPaymentsStats,
+);
+
+// Risk Management
+adminRouter.get(
+  "/admin/risk/alerts",
+  authenticate,
+  requireAdmin,
+  getRiskAlerts,
+);
+adminRouter.get(
+  "/admin/risk/alerts/:alertId",
+  authenticate,
+  requireAdmin,
+  getRiskAlertDetail,
+);
+adminRouter.patch(
+  "/admin/risk/alerts/:alertId",
+  authenticate,
+  requireAdmin,
+  updateRiskAlert,
+);
+adminRouter.get(
+  "/admin/risk/summary",
+  authenticate,
+  requireAdmin,
+  getRiskSummary,
 );
 
 // Settings Management

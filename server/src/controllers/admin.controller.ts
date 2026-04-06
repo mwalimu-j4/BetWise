@@ -2171,3 +2171,232 @@ export async function updateAdminSettings(req: Request, res: Response) {
     },
   });
 }
+
+// Risk Management Functions
+
+export async function getRiskAlerts(req: Request, res: Response) {
+  if (!req.user?.id || req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.max(1, Math.min(50, parseInt(req.query.limit as string) || 20));
+  const offset = (page - 1) * limit;
+
+  const status = req.query.status as string | undefined;
+  const severity = req.query.severity as string | undefined;
+  const alertType = req.query.alertType as string | undefined;
+
+  const where: Prisma.RiskAlertWhereInput = {};
+  if (status) where.status = status as any;
+  if (severity) where.severity = severity as any;
+  if (alertType) where.alertType = alertType as any;
+
+  const [alerts, total] = await Promise.all([
+    prisma.riskAlert.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: offset,
+      take: limit,
+    }),
+    prisma.riskAlert.count({ where }),
+  ]);
+
+  return res.status(200).json({
+    alerts,
+    pagination: {
+      total,
+      limit,
+      offset,
+      pages: Math.ceil(total / limit),
+      page,
+    },
+  });
+}
+
+export async function getRiskAlertDetail(req: Request, res: Response) {
+  if (!req.user?.id || req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const { alertId } = req.params as { alertId: string };
+
+  const alert = await prisma.riskAlert.findUnique({
+    where: { id: alertId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          phone: true,
+          accountStatus: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+
+  if (!alert) {
+    return res.status(404).json({ message: "Risk alert not found." });
+  }
+
+  return res.status(200).json({ alert });
+}
+
+export async function updateRiskAlert(req: Request, res: Response) {
+  if (!req.user?.id || req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const { alertId } = req.params as { alertId: string };
+  const { status, actionTaken, resolvedBy } = req.body;
+
+  const schema = z.object({
+    status: z.enum(["OPEN", "IN_REVIEW", "ESCALATED", "RESOLVED", "DISMISSED"]).optional(),
+    actionTaken: z.string().optional(),
+    resolvedBy: z.string().optional(),
+  });
+
+  const parsed = schema.safeParse({ status, actionTaken, resolvedBy });
+  if (!parsed.success) {
+    return res.status(400).json({
+      message: "Invalid request body.",
+      issues: parsed.error.flatten(),
+    });
+  }
+
+  const updateData: any = {};
+  if (parsed.data.status) {
+    updateData.status = parsed.data.status;
+    if (parsed.data.status === "RESOLVED") {
+      updateData.resolvedAt = new Date();
+    }
+  }
+  if (parsed.data.actionTaken !== undefined) updateData.actionTaken = parsed.data.actionTaken;
+  if (parsed.data.resolvedBy !== undefined) updateData.resolvedBy = parsed.data.resolvedBy;
+
+  const updated = await prisma.riskAlert.update({
+    where: { id: alertId },
+    data: updateData,
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          phone: true,
+        },
+      },
+    },
+  });
+
+  return res.status(200).json({
+    message: "Risk alert updated successfully.",
+    alert: updated,
+  });
+}
+
+export async function getRiskSummary(req: Request, res: Response) {
+  if (!req.user?.id || req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const [
+    openCount,
+    inReviewCount,
+    escalatedCount,
+    criticalCount,
+    highCount,
+    mediumCount,
+    lowCount,
+    alertsByType,
+  ] = await Promise.all([
+    prisma.riskAlert.count({ where: { status: "OPEN" } }),
+    prisma.riskAlert.count({ where: { status: "IN_REVIEW" } }),
+    prisma.riskAlert.count({ where: { status: "ESCALATED" } }),
+    prisma.riskAlert.count({ where: { severity: "CRITICAL" } }),
+    prisma.riskAlert.count({ where: { severity: "HIGH" } }),
+    prisma.riskAlert.count({ where: { severity: "MEDIUM" } }),
+    prisma.riskAlert.count({ where: { severity: "LOW" } }),
+    prisma.riskAlert.groupBy({
+      by: ["alertType"],
+      _count: true,
+      orderBy: { _count: { alertType: "desc" } },
+    }),
+  ]);
+
+  // Get recent alerts (last 7 days)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const recentAlerts = await prisma.riskAlert.findMany({
+    where: { createdAt: { gte: sevenDaysAgo } },
+    select: { createdAt: true, severity: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Group by date
+  const alertsByDate: Record<string, number> = {};
+  recentAlerts.forEach((alert) => {
+    const date = alert.createdAt.toISOString().split("T")[0];
+    alertsByDate[date] = (alertsByDate[date] || 0) + 1;
+  });
+
+  // Get high-risk users
+  const highRiskUsers = await prisma.riskAlert.groupBy({
+    by: ["userId"],
+    _count: true,
+    where: { userId: { not: null } },
+    orderBy: { _count: { userId: "desc" } },
+    take: 5,
+  });
+
+  const userIds = highRiskUsers.filter((u) => u.userId).map((u) => u.userId!);
+  const users = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, email: true, fullName: true },
+  });
+
+  const highRiskUsersWithDetails = highRiskUsers
+    .filter((u) => u.userId)
+    .map((item) => {
+      const user = users.find((u) => u.id === item.userId);
+      return {
+        userId: item.userId,
+        email: user?.email,
+        fullName: user?.fullName,
+        alertCount: item._count,
+      };
+    });
+
+  return res.status(200).json({
+    summary: {
+      byStatus: {
+        open: openCount,
+        inReview: inReviewCount,
+        escalated: escalatedCount,
+      },
+      bySeverity: {
+        critical: criticalCount,
+        high: highCount,
+        medium: mediumCount,
+        low: lowCount,
+      },
+    },
+    alertsByType: alertsByType.map((item) => ({
+      type: item.alertType,
+      count: item._count,
+    })),
+    alertsByDate,
+    highRiskUsers: highRiskUsersWithDetails,
+  });
+}

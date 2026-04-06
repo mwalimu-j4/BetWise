@@ -25,6 +25,7 @@ model User {
   refreshTokens RefreshToken[]
   transactions  WalletTransaction[]
   wallet        Wallet?
+  riskAlerts    RiskAlert[]
 
   @@map("users")
 }
@@ -213,6 +214,33 @@ model Bet {
   @@map("bets")
 }
 
+model RiskAlert {
+  id              String       @id @default(uuid()) @db.Uuid
+  alertType       RiskAlertType
+  severity        RiskSeverity @default(MEDIUM)
+  status          AlertStatus  @default(OPEN)
+  description     String
+  userId          String?      @map("user_id") @db.Uuid
+  betId           String?      @map("bet_id") @db.Uuid
+  eventId         String?      @map("event_id")
+  triggeredValue  Float?       @map("triggered_value")
+  threshold       Float?
+  details         Json?
+  actionTaken     String?      @map("action_taken")
+  resolvedAt      DateTime?    @map("resolved_at")
+  resolvedBy      String?      @map("resolved_by")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  user            User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([alertType])
+  @@index([severity])
+  @@index([status])
+  @@index([createdAt])
+  @@map("risk_alerts")
+}
+
 model AdminSettings {
   key                                       String   @id @default("global")
   platformName                              String   @default("BetWise") @map("platform_name")
@@ -377,3 +405,32 @@ enum BetStatus {
   LOST
   VOID
 }
+
+enum RiskAlertType {
+  HIGH_RISK_BET
+  EXPOSURE_LIMIT_EXCEEDED
+  SUSPICIOUS_PATTERN
+  RAPID_ACCOUNT_ACTIVITY
+  UNUSUAL_ODDS_MOVEMENT
+  SELF_EXCLUSION_BREACH
+  DUPLICATE_ACCOUNT
+  FRAUD_INDICATOR
+  BLACKLIST_MATCH
+  CUSTOM_RULE_VIOLATION
+}
+
+enum RiskSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  IN_REVIEW
+  ESCALATED
+  RESOLVED
+  DISMISSED
+}
+
