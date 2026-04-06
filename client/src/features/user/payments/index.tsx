@@ -37,39 +37,41 @@ export default function PaymentsModule() {
 
   return (
     <ProtectedRoute>
-      <section className="animate-lift-in mx-auto w-full max-w-6xl space-y-4 px-4 py-6">
-        <div>
-          <h1 className="text-xl font-semibold text-admin-text-primary sm:text-2xl">
-            Payments Center
-          </h1>
-          <p className="mt-1 text-sm text-admin-text-muted">
-            Manage your wallet, deposits, and withdrawals.
-          </p>
+      <section className="animate-lift-in min-h-screen bg-[#0b1120] px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl space-y-3">
+          <div>
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">
+              Payments Center
+            </h1>
+            <p className="mt-1.5 text-sm text-[#8a9bb0]">
+              Manage your wallet, deposits, and withdrawals.
+            </p>
+          </div>
+
+          <nav className="flex flex-wrap gap-2">
+            {paymentPages.map((item) => {
+              const isActive = pathname.startsWith(item.to);
+
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-semibold transition",
+                    isActive
+                      ? "border-[#f5c518] bg-[#f5c518]/20 text-[#f5c518]"
+                      : "border-[#294157] text-[#8a9bb0] hover:border-[#f5c518]/60 hover:text-white",
+                  )}
+                >
+                  <item.icon size={13} />
+                  <span>{item.title}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <Outlet />
         </div>
-
-        <nav className="flex flex-wrap gap-2">
-          {paymentPages.map((item) => {
-            const isActive = pathname.startsWith(item.to);
-
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] transition",
-                  isActive
-                    ? "border-[#f5c518] bg-[#f5c518]/15 text-[#f5c518]"
-                    : "border-[#294157] text-[#8a9bb0] hover:border-[#f5c518]/50 hover:text-white",
-                )}
-              >
-                <item.icon size={14} />
-                <span>{item.title}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <Outlet />
       </section>
     </ProtectedRoute>
   );

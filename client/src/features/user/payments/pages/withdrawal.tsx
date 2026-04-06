@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { RefreshCw, Smartphone } from "lucide-react";
+import { RefreshCw, Smartphone, ArrowUpRight, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -136,14 +136,21 @@ export default function PaymentsWithdrawalPage() {
 
   return (
     <section className="grid w-full gap-4 lg:grid-cols-[1.3fr_1fr]">
-      <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-5 sm:p-6">
-        <div className="mb-3 border-b border-[#23384f] pb-3">
-          <h2 className="text-lg font-bold text-admin-text-primary">
-            Withdraw Funds
-          </h2>
-          <p className="mt-0.5 text-xs text-admin-text-muted">
-            Withdraw directly to your M-Pesa number.
-          </p>
+      <article className="rounded-2xl border border-[#23384f] bg-[linear-gradient(135deg,#111d2e,#0f1a2a)] p-5 sm:p-6">
+        <div className="mb-3 flex items-start justify-between gap-3 border-b border-[#23384f] pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#294157] bg-[#0f1a2a]">
+                <ArrowUpRight size={16} className="text-[#f5c518]" />
+              </div>
+              <h2 className="text-lg font-bold text-white">
+                Withdraw
+              </h2>
+            </div>
+            <p className="mt-0.5 text-xs text-[#8a9bb0]">
+              Quick & secure M-Pesa transfer
+            </p>
+          </div>
         </div>
 
         <form className="grid gap-3" onSubmit={onSubmit}>
@@ -231,19 +238,19 @@ export default function PaymentsWithdrawalPage() {
         </form>
       </article>
 
-      <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-4 sm:p-5">
-        <div className="mb-2.5 flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-admin-text-primary">
+      <article className="rounded-2xl border border-[#23384f] bg-[linear-gradient(135deg,#111d2e,#0f1a2a)] p-4 sm:p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-white">
             Recent Requests
           </h3>
           <button
             type="button"
-            className="inline-flex items-center gap-0.5 text-[10px] font-medium text-[#8a9bb0] transition hover:text-white"
+            className="inline-flex items-center gap-0.5 text-xs font-medium text-[#8a9bb0] transition hover:text-[#f5c518]"
             onClick={() => {
               void refetchWallet();
             }}
           >
-            <RefreshCw className="h-3 w-3" />
+            <RefreshCw className="h-3.5 w-3.5" />
             Refresh
           </button>
         </div>
@@ -253,32 +260,38 @@ export default function PaymentsWithdrawalPage() {
             recentWithdrawals.slice(0, 3).map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-lg border border-[#23384f] bg-[#101b2b] px-2.5 py-2"
+                className="rounded-lg border border-[#23384f] bg-[#101b2b] px-2.5 py-2 transition hover:border-[#f5c518]/30"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold text-admin-text-primary">
+                  <p className="text-xs font-semibold text-white">
                     {formatMoney(entry.amount)}
                   </p>
                   <span
                     className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase ${
                       entry.status === "completed"
-                        ? "border-green-500/30 bg-green-500/10 text-green-500"
+                        ? "border-green-500/30 bg-green-500/10 text-green-400"
                         : entry.status === "pending"
-                          ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-500"
-                          : "border-red-500/30 bg-red-500/10 text-red-500"
+                          ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-400"
+                          : "border-red-500/30 bg-red-500/10 text-red-400"
                     }`}
                   >
                     {entry.status}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-admin-text-muted">
+                <p className="mt-0.5 text-[10px] text-[#8a9bb0]">
                   {formatDateTime(entry.createdAt)}
                 </p>
               </div>
             ))
           ) : (
-            <div className="rounded-lg border border-[#23384f] bg-[#101b2b] p-2.5 text-xs text-admin-text-muted">
-              No requests yet.
+            <div className="rounded-lg border border-[#294157] bg-[#101b2b] p-4 text-center">
+              <Inbox className="mx-auto h-8 w-8 text-[#294157]" />
+              <p className="mt-2 text-xs font-medium text-[#8a9bb0]">
+                No withdrawal requests yet
+              </p>
+              <p className="mt-0.5 text-[10px] text-[#5a6b7d]">
+                Your requests will appear here
+              </p>
             </div>
           )}
         </div>
