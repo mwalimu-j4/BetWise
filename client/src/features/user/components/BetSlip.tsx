@@ -1,10 +1,11 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Copy, Loader2, MessageCircle, Share2, X } from "lucide-react";
 import type { UseBetSlipReturn } from "../hooks/useBetSlip";
 import { betSlipToggleEventName } from "../hooks/useBetSlip";
 
-function formatCurrency(value: number) {
-  return `KES ${value.toLocaleString(undefined, {
+function formatCurrency(value?: number) {
+  const safeValue = Number(value) || 0;
+  return `KES ${safeValue.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -40,7 +41,8 @@ function BetSlipPanel({
   onClose,
   compactActions = false,
 }: UseBetSlipReturn & { onClose?: () => void; compactActions?: boolean }) {
-  const totalStake = stake * selections.length;
+  const safeStake = stake || 0;
+  const totalStake = safeStake * selections.length;
   const [copySuccess, setCopySuccess] = useState(false);
 
   const totalOdds = useMemo(() => {
@@ -109,7 +111,7 @@ function BetSlipPanel({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden mt-14 rounded-2xl border border-[#2a3f55] bg-[#0d1820] text-white shadow-2xl">
+    <div className="mt-14 flex h-full flex-col overflow-hidden rounded-2xl border border-[#2a3f55] bg-[#0d1820] text-white shadow-2xl">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between border-b border-[#2a3f55] bg-[#111f2f] px-4 py-3">
         <div className="flex items-center gap-2">
@@ -194,7 +196,7 @@ function BetSlipPanel({
               <button
                 key={amount}
                 type="button"
-                onClick={() => setStake(stake + amount)}
+                onClick={() => setStake(safeStake + amount)}
                 className="flex h-8 items-center justify-center rounded border border-[#2a3f55] bg-[#1a2940] text-[11px] font-medium text-[#8fa3b1] transition hover:border-[#f5a623] hover:bg-[#20324c] hover:text-white"
               >
                 +{amount}
@@ -214,7 +216,7 @@ function BetSlipPanel({
             </div>
             <div className="text-right">
               <p className="text-[10px] text-[#8fa3b1]">
-                Pick: {formatCurrency(stake || 0)}
+                Pick: {formatCurrency(safeStake)}
               </p>
               <p className="text-[10px] text-[#8fa3b1]">
                 Total: {formatCurrency(totalStake)}
@@ -254,7 +256,7 @@ function BetSlipPanel({
             <p className="text-xs font-semibold text-[#00c853]">
               ✓ Bet Placed Successfully!
             </p>
-            {newBalance !== null && (
+            {newBalance !== null && newBalance !== undefined && (
               <p className="mt-0.5 text-[11px] text-[#00c853]/80">
                 New balance: {formatCurrency(newBalance)}
               </p>
