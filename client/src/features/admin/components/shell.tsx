@@ -46,7 +46,7 @@ export default function AdminShell() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
-  
+
   const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const seenNotificationIdsRef = useRef<Set<string>>(new Set());
@@ -101,12 +101,15 @@ export default function AdminShell() {
     await navigate({ to: "/" });
   };
 
-  const isNewWithdrawalRequestNotification = (notification: AppNotification) => {
+  const isNewWithdrawalRequestNotification = (
+    notification: AppNotification,
+  ) => {
     if (notification.audience !== "ADMIN" || notification.type !== "SYSTEM") {
       return false;
     }
 
-    const haystack = `${notification.title} ${notification.message}`.toLowerCase();
+    const haystack =
+      `${notification.title} ${notification.message}`.toLowerCase();
     return (
       haystack.includes("new withdrawal request") ||
       haystack.includes("requested a withdrawal")
@@ -119,9 +122,12 @@ export default function AdminShell() {
     isNewWithdrawalRequestNotification(notification);
 
   const getNotificationIcon = (notification: AppNotification) => {
-    if (notification.type === "WITHDRAWAL_SUCCESS") return <CheckCircle2 size={20} className="text-emerald-500" />;
-    if (notification.type === "WITHDRAWAL_FAILED") return <XCircle size={20} className="text-red-500" />;
-    if (isWithdrawalNotification(notification)) return <Activity size={20} className="text-blue-400" />;
+    if (notification.type === "WITHDRAWAL_SUCCESS")
+      return <CheckCircle2 size={20} className="text-emerald-500" />;
+    if (notification.type === "WITHDRAWAL_FAILED")
+      return <XCircle size={20} className="text-red-500" />;
+    if (isWithdrawalNotification(notification))
+      return <Activity size={20} className="text-blue-400" />;
     return <Bell size={20} className="text-admin-text-secondary" />;
   };
 
@@ -140,7 +146,9 @@ export default function AdminShell() {
       return;
     }
 
-    const incomingNotifications = notifications.filter((item) => !seen.has(item.id));
+    const incomingNotifications = notifications.filter(
+      (item) => !seen.has(item.id),
+    );
 
     if (!incomingNotifications.length) {
       return;
@@ -182,10 +190,16 @@ export default function AdminShell() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target as Node)
+      ) {
         setNotificationsOpen(false);
       }
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
         setUserMenuOpen(false);
       }
     };
@@ -235,18 +249,30 @@ export default function AdminShell() {
             "shadow-[4px_0_24px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0 lg:shadow-none",
-            sidebarExpanded ? "lg:w-[260px] lg:min-w-[260px]" : "lg:w-[80px] lg:min-w-[80px]"
+            sidebarExpanded
+              ? "lg:w-[260px] lg:min-w-[260px]"
+              : "lg:w-[80px] lg:min-w-[80px]",
           )}
         >
           {/* Sidebar Header */}
-          <div className={cn(
+          <div
+            className={cn(
               "flex h-16 shrink-0 items-center border-b border-admin-border px-4 transition-all",
-              showNavLabels ? "justify-between" : "justify-center"
+              showNavLabels ? "justify-between" : "justify-center",
             )}
           >
-            <div className={cn("flex items-center gap-3", !showNavLabels && "lg:hidden")}>
+            <div
+              className={cn(
+                "flex items-center gap-3",
+                !showNavLabels && "lg:hidden",
+              )}
+            >
               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-dark)] shadow-sm">
-                <Zap size={16} color="var(--color-text-dark)" className="animate-pulse" />
+                <Zap
+                  size={16}
+                  color="var(--color-text-dark)"
+                  className="animate-pulse"
+                />
               </div>
               {showNavLabels && (
                 <div className="flex flex-col">
@@ -266,14 +292,21 @@ export default function AdminShell() {
               onClick={toggleSidebar}
               type="button"
             >
-              {showNavLabels ? <SidebarClose size={18} /> : <SidebarOpen size={18} />}
+              {showNavLabels ? (
+                <SidebarClose size={18} />
+              ) : (
+                <SidebarOpen size={18} />
+              )}
             </button>
           </div>
 
           {/* Navigation Items */}
           <div className="app-scrollbar flex-1 overflow-y-auto px-3 py-6">
             {groupedNavigation.map((group, idx) => (
-              <section className={cn("mb-6", idx !== 0 && "pt-2")} key={group.title}>
+              <section
+                className={cn("mb-6", idx !== 0 && "pt-2")}
+                key={group.title}
+              >
                 {showNavLabels && (
                   <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-admin-text-muted">
                     {group.title}
@@ -282,7 +315,9 @@ export default function AdminShell() {
                 <div className="space-y-1">
                   {group.items.map((item) => {
                     const Icon = item.icon;
-                    const isActive = pathname === item.to || pathname.startsWith(`${item.to}/`);
+                    const isActive =
+                      pathname === item.to ||
+                      pathname.startsWith(`${item.to}/`);
 
                     return (
                       <Link
@@ -292,15 +327,20 @@ export default function AdminShell() {
                         title={!showNavLabels ? item.label : undefined}
                         className={cn(
                           "group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 active:scale-[0.98]",
-                          showNavLabels ? "justify-start" : "justify-center px-0 lg:px-0",
+                          showNavLabels
+                            ? "justify-start"
+                            : "justify-center px-0 lg:px-0",
                           isActive
                             ? "bg-admin-accent/10 font-medium text-admin-accent"
-                            : "text-admin-text-secondary hover:bg-admin-border/40 hover:text-admin-text-primary"
+                            : "text-admin-text-secondary hover:bg-admin-border/40 hover:text-admin-text-primary",
                         )}
                       >
-                        <Icon 
-                          size={18} 
-                          className={cn("shrink-0 transition-transform duration-200 group-hover:scale-110", isActive && "text-admin-accent")} 
+                        <Icon
+                          size={18}
+                          className={cn(
+                            "shrink-0 transition-transform duration-200 group-hover:scale-110",
+                            isActive && "text-admin-accent",
+                          )}
                         />
                         {showNavLabels && (
                           <span className="truncate text-sm">{item.label}</span>
@@ -322,13 +362,19 @@ export default function AdminShell() {
                 title={!showNavLabels ? settingsItem.label : undefined}
                 className={cn(
                   "group flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-200 active:scale-[0.98]",
-                  showNavLabels ? "justify-start" : "justify-center px-0 lg:px-0",
-                  pathname === settingsItem.to || pathname.startsWith(`${settingsItem.to}/`)
+                  showNavLabels
+                    ? "justify-start"
+                    : "justify-center px-0 lg:px-0",
+                  pathname === settingsItem.to ||
+                    pathname.startsWith(`${settingsItem.to}/`)
                     ? "bg-admin-accent/10 font-medium text-admin-accent"
-                    : "text-admin-text-secondary hover:bg-admin-border/40 hover:text-admin-text-primary"
+                    : "text-admin-text-secondary hover:bg-admin-border/40 hover:text-admin-text-primary",
                 )}
               >
-                <Settings size={18} className="shrink-0 transition-transform duration-500 group-hover:rotate-45" />
+                <Settings
+                  size={18}
+                  className="shrink-0 transition-transform duration-500 group-hover:rotate-45"
+                />
                 {showNavLabels && (
                   <span className="truncate text-sm">{settingsItem.label}</span>
                 )}
@@ -360,7 +406,10 @@ export default function AdminShell() {
             {/* Search Bar - Updated for contrast */}
             <div className="hidden max-w-md flex-1 items-center md:flex">
               <div className="group flex h-10 w-full items-center gap-2.5 rounded-full border border-admin-border bg-admin-bg/50 px-4 transition-all focus-within:border-admin-accent/50 focus-within:bg-admin-bg focus-within:ring-4 focus-within:ring-admin-accent/10 hover:bg-admin-bg/80">
-                <Search size={16} className="text-admin-text-muted transition-colors group-focus-within:text-admin-accent" />
+                <Search
+                  size={16}
+                  className="text-admin-text-muted transition-colors group-focus-within:text-admin-accent"
+                />
                 <input
                   className="w-full bg-transparent text-sm text-admin-text-primary outline-none placeholder:text-admin-text-muted"
                   onChange={(event) => setSearchQuery(event.target.value)}
@@ -375,7 +424,6 @@ export default function AdminShell() {
 
             {/* Right Actions */}
             <div className="ml-auto flex items-center gap-2.5 sm:gap-4">
-              
               {/* Notifications Dropdown */}
               <div className="relative" ref={notificationsRef}>
                 <button
@@ -383,18 +431,27 @@ export default function AdminShell() {
                   aria-label="View notifications"
                   className={cn(
                     "relative grid h-10 w-10 place-items-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-admin-accent/50",
-                    notificationsOpen ? "bg-admin-border text-admin-text-primary" : "bg-admin-bg/50 border border-admin-border text-admin-text-secondary hover:bg-admin-border/50 hover:text-admin-text-primary"
+                    notificationsOpen
+                      ? "bg-admin-border text-admin-text-primary"
+                      : "bg-admin-bg/50 border border-admin-border text-admin-text-secondary hover:bg-admin-border/50 hover:text-admin-text-primary",
                   )}
                   onClick={() => {
                     setNotificationsOpen((prev) => {
                       const next = !prev;
-                      if (next && unreadCount > 0) void markAllNotificationsRead();
+                      if (next && unreadCount > 0)
+                        void markAllNotificationsRead();
                       if (next) setUserMenuOpen(false);
                       return next;
                     });
                   }}
                 >
-                  <Bell size={18} className={cn("transition-transform", notificationsOpen && "scale-110")} />
+                  <Bell
+                    size={18}
+                    className={cn(
+                      "transition-transform",
+                      notificationsOpen && "scale-110",
+                    )}
+                  />
                   {unreadCount > 0 && (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-admin-card bg-admin-red px-1 text-[9px] font-bold text-white shadow-sm">
                       {Math.min(unreadCount, 99)}
@@ -405,14 +462,16 @@ export default function AdminShell() {
                 {notificationsOpen && (
                   <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(380px,calc(100vw-2rem))] origin-top-right overflow-hidden rounded-2xl border border-admin-border bg-admin-card shadow-[0_16px_40px_-10px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center justify-between border-b border-admin-border/50 px-5 py-4">
-                      <h3 className="text-sm font-semibold text-admin-text-primary">Notifications</h3>
+                      <h3 className="text-sm font-semibold text-admin-text-primary">
+                        Notifications
+                      </h3>
                       {unreadCount > 0 && (
                         <span className="rounded-full bg-admin-accent/10 px-2.5 py-0.5 text-[10px] font-bold text-admin-accent">
                           {unreadCount} New
                         </span>
                       )}
                     </div>
-                    
+
                     <div className="app-scrollbar max-h-[400px] overflow-y-auto p-2">
                       {notifications.length > 0 ? (
                         <div className="space-y-1">
@@ -425,7 +484,8 @@ export default function AdminShell() {
                                 if (isWithdrawalNotification(notification)) {
                                   void navigate({
                                     to: "/admin/withdrawals",
-                                    hash: notification.transactionId ?? "latest",
+                                    hash:
+                                      notification.transactionId ?? "latest",
                                   });
                                 }
                               }}
@@ -443,8 +503,13 @@ export default function AdminShell() {
                                 </p>
                                 <p className="flex items-center gap-1.5 text-[10px] font-medium text-admin-text-muted">
                                   <Clock size={10} />
-                                  {new Date(notification.createdAt).toLocaleString(undefined, {
-                                    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+                                  {new Date(
+                                    notification.createdAt,
+                                  ).toLocaleString(undefined, {
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "numeric",
+                                    minute: "2-digit",
                                   })}
                                 </p>
                               </div>
@@ -454,18 +519,25 @@ export default function AdminShell() {
                       ) : (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                           <div className="mb-4 grid h-12 w-12 place-items-center rounded-full border border-admin-border/50 bg-admin-bg/50">
-                            <Bell className="text-admin-text-muted/50" size={20} />
+                            <Bell
+                              className="text-admin-text-muted/50"
+                              size={20}
+                            />
                           </div>
-                          <p className="text-sm font-medium text-admin-text-primary">All caught up!</p>
-                          <p className="mt-1 text-xs text-admin-text-muted">You have no new notifications.</p>
+                          <p className="text-sm font-medium text-admin-text-primary">
+                            All caught up!
+                          </p>
+                          <p className="mt-1 text-xs text-admin-text-muted">
+                            You have no new notifications.
+                          </p>
                         </div>
                       )}
                     </div>
                     {notifications.length > 0 && (
                       <div className="border-t border-admin-border/50 p-2">
-                         <button className="w-full rounded-lg py-2 text-xs font-semibold text-admin-text-secondary transition-colors hover:bg-admin-border/50 hover:text-admin-text-primary">
-                            View all history
-                         </button>
+                        <button className="w-full rounded-lg py-2 text-xs font-semibold text-admin-text-secondary transition-colors hover:bg-admin-border/50 hover:text-admin-text-primary">
+                          View all history
+                        </button>
                       </div>
                     )}
                   </div>
@@ -482,7 +554,9 @@ export default function AdminShell() {
                   }}
                   className={cn(
                     "flex items-center gap-2.5 rounded-full border p-1 pl-1.5 pr-3 transition-all focus:outline-none focus:ring-2 focus:ring-admin-accent/50",
-                    userMenuOpen ? "border-admin-border bg-admin-border/30" : "border-transparent hover:bg-admin-bg/50 hover:border-admin-border/80"
+                    userMenuOpen
+                      ? "border-admin-border bg-admin-border/30"
+                      : "border-transparent hover:bg-admin-bg/50 hover:border-admin-border/80",
                   )}
                 >
                   <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-[11px] font-bold text-white shadow-inner">
@@ -532,24 +606,59 @@ export default function AdminShell() {
                         <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-admin-text-muted">
                           Theme
                         </p>
-                        <DropdownMenu open={themeDropdownOpen} onOpenChange={setThemeDropdownOpen}>
+                        <DropdownMenu
+                          open={themeDropdownOpen}
+                          onOpenChange={setThemeDropdownOpen}
+                        >
                           <DropdownMenuTrigger asChild>
                             <button className="flex w-full items-center justify-between rounded-lg border border-admin-border/50 bg-admin-bg/50 px-3 py-2 text-sm font-medium text-admin-text-primary transition-colors hover:bg-admin-border/80">
                               <div className="flex items-center gap-2.5">
-                                {theme === "dark" ? <Moon size={14} className="text-admin-text-secondary" /> : theme === "light" ? <Sun size={14} className="text-admin-text-secondary" /> : <Monitor size={14} className="text-admin-text-secondary" />}
+                                {theme === "dark" ? (
+                                  <Moon
+                                    size={14}
+                                    className="text-admin-text-secondary"
+                                  />
+                                ) : theme === "light" ? (
+                                  <Sun
+                                    size={14}
+                                    className="text-admin-text-secondary"
+                                  />
+                                ) : (
+                                  <Monitor
+                                    size={14}
+                                    className="text-admin-text-secondary"
+                                  />
+                                )}
                                 <span className="capitalize">{theme}</span>
                               </div>
-                              <ChevronRight size={14} className="text-admin-text-muted" />
+                              <ChevronRight
+                                size={14}
+                                className="text-admin-text-muted"
+                              />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" side="left" sideOffset={12} className="min-w-[140px] rounded-xl shadow-xl">
-                            <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer gap-2 py-2">
+                          <DropdownMenuContent
+                            align="end"
+                            side="left"
+                            sideOffset={12}
+                            className="min-w-[140px] rounded-xl shadow-xl"
+                          >
+                            <DropdownMenuItem
+                              onClick={() => setTheme("light")}
+                              className="cursor-pointer gap-2 py-2"
+                            >
                               <Sun size={14} /> Light
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setTheme("dark")} className="cursor-pointer gap-2 py-2">
+                            <DropdownMenuItem
+                              onClick={() => setTheme("dark")}
+                              className="cursor-pointer gap-2 py-2"
+                            >
                               <Moon size={14} /> Dark
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setTheme("system")} className="cursor-pointer gap-2 py-2">
+                            <DropdownMenuItem
+                              onClick={() => setTheme("system")}
+                              className="cursor-pointer gap-2 py-2"
+                            >
                               <Monitor size={14} /> System
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -562,7 +671,10 @@ export default function AdminShell() {
                         onClick={handleLogout}
                         className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-admin-red transition-all hover:bg-admin-red/10 active:scale-[0.98]"
                       >
-                        <LogOut size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <LogOut
+                          size={16}
+                          className="transition-transform group-hover:-translate-x-1"
+                        />
                         <span>Sign Out</span>
                       </button>
                     </div>
