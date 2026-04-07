@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Download, Eye, Loader } from "lucide-react";
+import { Download, Eye, Loader, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import {
   useAdminPayments,
@@ -27,6 +27,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -140,7 +146,7 @@ export default function Transactions() {
   };
 
   const getToneForType = (type: "deposit" | "withdrawal") => {
-    return type === "deposit" ? "accent" : "red";
+    return type === "deposit" ? "live" : "gold";
   };
 
   const getStatusForBadge = (
@@ -300,8 +306,12 @@ export default function Transactions() {
               <tbody>
                 {transactions.map((transaction) => (
                   <tr
-                    className="even:bg-[var(--color-bg-elevated)]"
+                    className="even:bg-[var(--color-bg-elevated)] hover:bg-admin-surface/60 cursor-pointer transition-colors"
                     key={transaction.id}
+                    onClick={() => {
+                      setSelectedTxn(transaction);
+                      setDetailsOpen(true);
+                    }}
                   >
                     <td
                       className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
@@ -352,22 +362,30 @@ export default function Transactions() {
                     </td>
                     <td
                       className={`${adminTableCellClassName} ${adminCompactActionsClassName}`}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-                        <DialogTrigger asChild>
-                          <button
-                            className="text-admin-accent hover:text-admin-accent-dark transition"
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <AdminButton
+                            size="sm"
+                            variant="ghost"
+                            aria-label="Row actions"
+                          >
+                            <MoreHorizontal size={16} />
+                          </AdminButton>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuItem
                             onClick={() => {
                               setSelectedTxn(transaction);
                               setDetailsOpen(true);
                             }}
                           >
-                            <Eye size={16} />
-                          </button>
-                        </DialogTrigger>
-                        {selectedTxn && selectedTxn.id === transaction.id && (
-                          <DialogContent className="max-w-lg border-admin-border bg-admin-card text-admin-text-primary">
-                            <DialogHeader>
+                            View details
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
                               <DialogTitle>Transaction Details</DialogTitle>
                               <DialogDescription className="text-admin-text-muted">
                                 Review complete transaction information

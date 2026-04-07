@@ -448,8 +448,9 @@ export default function Dashboard() {
                         )
                         .map((transaction, index) => (
                           <tr
-                            className="even:bg-admin-surface/45 h-8"
+                            className="even:bg-admin-surface/45 h-8 hover:bg-admin-surface/60 cursor-pointer transition-colors"
                             key={transaction.id}
+                            onClick={() => handleViewDetails(transaction)}
                           >
                             <td
                               className={`${adminTableCellClassName} text-xs font-semibold text-admin-text-muted w-8 px-1.5 py-1 align-middle`}
@@ -479,7 +480,7 @@ export default function Dashboard() {
                                 label={transaction.type}
                                 tone={
                                   transaction.type === "deposit"
-                                    ? "accent"
+                                    ? "live"
                                     : "gold"
                                 }
                               />
@@ -525,6 +526,7 @@ export default function Dashboard() {
                             </td>
                             <td
                               className={`${adminTableCellClassName} whitespace-nowrap px-1 py-1 align-middle`}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
