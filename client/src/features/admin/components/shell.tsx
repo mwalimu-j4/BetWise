@@ -27,8 +27,10 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import {
   useAppNotifications,
   useMarkAllNotificationsRead,
+  type AppNotification,
 } from "@/features/notifications/notifications";
 import { useWalletRealtime } from "@/features/user/payments/wallet";
+import { useAdminSettings } from "../hooks/useAdminSettings";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,10 +49,13 @@ export default function AdminShell() {
   
   const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const seenNotificationIdsRef = useRef<Set<string>>(new Set());
+  const hasHydratedNotificationsRef = useRef(false);
 
   const { theme, setTheme } = useTheme();
   useWalletRealtime();
   const { data: notificationData } = useAppNotifications(10);
+  const { data: adminSettingsData } = useAdminSettings();
   const markAllNotificationsRead = useMarkAllNotificationsRead();
   const { logout, user } = useAuth();
   const pathname = useLocation({
@@ -59,6 +64,13 @@ export default function AdminShell() {
   const navigate = useNavigate();
   const notifications = notificationData?.notifications ?? [];
   const unreadCount = notificationData?.unreadCount ?? 0;
+  const withdrawalSoundEnabled =
+    adminSettingsData?.config.adminQuickSettings.withdrawalSoundEnabled ?? true;
+  const withdrawalSoundTone =
+    adminSettingsData?.config.adminQuickSettings.withdrawalSoundTone ??
+    "/sounds/universfield-new-notification-010-352755.mp3";
+  const withdrawalSoundVolume =
+    adminSettingsData?.config.adminQuickSettings.withdrawalSoundVolume ?? 80;
 
   const groupedNavigation = useMemo(
     () => [
@@ -89,15 +101,78 @@ export default function AdminShell() {
     await navigate({ to: "/" });
   };
 
-  const isWithdrawalNotification = (type: string) =>
-    type === "WITHDRAWAL_SUCCESS" || type === "WITHDRAWAL_FAILED";
+  const isNewWithdrawalRequestNotification = (notification: AppNotification) => {
+    if (notification.audience !== "ADMIN" || notification.type !== "SYSTEM") {
+      return false;
+    }
 
-  const getNotificationIcon = (type: string) => {
-    if (type === "WITHDRAWAL_SUCCESS") return <CheckCircle2 size={20} className="text-emerald-500" />;
-    if (type === "WITHDRAWAL_FAILED") return <XCircle size={20} className="text-red-500" />;
-    if (isWithdrawalNotification(type)) return <Activity size={20} className="text-blue-400" />;
+    const haystack = `${notification.title} ${notification.message}`.toLowerCase();
+    return (
+      haystack.includes("new withdrawal request") ||
+      haystack.includes("requested a withdrawal")
+    );
+  };
+
+  const isWithdrawalNotification = (notification: AppNotification) =>
+    notification.type === "WITHDRAWAL_SUCCESS" ||
+    notification.type === "WITHDRAWAL_FAILED" ||
+    isNewWithdrawalRequestNotification(notification);
+
+  const getNotificationIcon = (notification: AppNotification) => {
+    if (notification.type === "WITHDRAWAL_SUCCESS") return <CheckCircle2 size={20} className="text-emerald-500" />;
+    if (notification.type === "WITHDRAWAL_FAILED") return <XCircle size={20} className="text-red-500" />;
+    if (isWithdrawalNotification(notification)) return <Activity size={20} className="text-blue-400" />;
     return <Bell size={20} className="text-admin-text-secondary" />;
   };
+
+  useEffect(() => {
+    if (!notifications.length) {
+      return;
+    }
+
+    const seen = seenNotificationIdsRef.current;
+
+    if (!hasHydratedNotificationsRef.current) {
+      for (const item of notifications) {
+        seen.add(item.id);
+      }
+      hasHydratedNotificationsRef.current = true;
+      return;
+    }
+
+    const incomingNotifications = notifications.filter((item) => !seen.has(item.id));
+
+    if (!incomingNotifications.length) {
+      return;
+    }
+
+    for (const item of incomingNotifications) {
+      seen.add(item.id);
+    }
+
+    if (!withdrawalSoundEnabled) {
+      return;
+    }
+
+    const hasNewWithdrawalRequest = incomingNotifications.some(
+      isNewWithdrawalRequestNotification,
+    );
+
+    if (!hasNewWithdrawalRequest) {
+      return;
+    }
+
+    const audio = new Audio(withdrawalSoundTone);
+    audio.volume = Math.max(0, Math.min(1, withdrawalSoundVolume / 100));
+    void audio.play().catch(() => {
+      // Ignore autoplay failures silently to avoid noisy toasts.
+    });
+  }, [
+    notifications,
+    withdrawalSoundEnabled,
+    withdrawalSoundTone,
+    withdrawalSoundVolume,
+  ]);
 
   useEffect(() => {
     setMobileSidebarOpen(false);
@@ -347,7 +422,7 @@ export default function AdminShell() {
                               type="button"
                               onClick={() => {
                                 setNotificationsOpen(false);
-                                if (isWithdrawalNotification(notification.type)) {
+                                if (isWithdrawalNotification(notification)) {
                                   void navigate({
                                     to: "/admin/withdrawals",
                                     hash: notification.transactionId ?? "latest",
@@ -357,7 +432,7 @@ export default function AdminShell() {
                               className="group flex w-full items-start gap-3.5 rounded-xl px-3 py-3.5 text-left transition-all hover:bg-admin-border/40 active:scale-[0.98]"
                             >
                               <div className="mt-0.5 flex shrink-0 items-center justify-center">
-                                {getNotificationIcon(notification.type)}
+                                {getNotificationIcon(notification)}
                               </div>
                               <div className="flex-1 space-y-1.5 pr-1">
                                 <p className="text-[13px] font-semibold leading-tight text-admin-text-primary transition-colors group-hover:text-admin-accent">
