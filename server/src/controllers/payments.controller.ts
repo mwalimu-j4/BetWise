@@ -164,6 +164,10 @@ function getNestedObject(value: unknown) {
   return value as Record<string, unknown>;
 }
 
+function getMpesaWithdrawalConfigErrorMessage(missingVars: string[]) {
+  return `M-Pesa withdrawal is not configured. Missing: ${missingVars.join(", ")}.`;
+}
+
 async function getWithdrawalSettings(): Promise<WithdrawalSettings> {
   const settings = await prisma.adminSettings.findUnique({
     where: { key: "global" },
@@ -446,24 +450,57 @@ async function initiateWithdrawalDisbursement(args: {
   adminUserId: string;
   approvalMode: "AUTO" | "MANUAL";
 }) {
+  const existingTransaction = await prisma.walletTransaction.findUnique({
+    where: { id: args.transactionId },
+  });
+
+  if (!existingTransaction) {
+    return { ok: false as const, code: 404, message: "Withdrawal not found." };
+  }
+
+  if (existingTransaction.type !== "WITHDRAWAL") {
+    return {
+      ok: false as const,
+      code: 400,
+      message: "This is not a withdrawal transaction.",
+    };
+  }
+
+  if (existingTransaction.status !== "PENDING") {
+    return {
+      ok: false as const,
+      code: 409,
+      message: `Cannot approve a ${existingTransaction.status.toLowerCase()} withdrawal.`,
+    };
+  }
+
+  const config = getMpesaB2CConfig();
+  if (!config.isConfigured) {
+    return {
+      ok: false as const,
+      code: 500,
+      message: getMpesaWithdrawalConfigErrorMessage(config.missingVars),
+    };
+  }
+
   const transaction = await prisma.$transaction(async (tx) => {
-    const existingTransaction = await tx.walletTransaction.findUnique({
+    const latestTransaction = await tx.walletTransaction.findUnique({
       where: { id: args.transactionId },
     });
 
-    if (!existingTransaction || existingTransaction.type !== "WITHDRAWAL") {
+    if (!latestTransaction || latestTransaction.type !== "WITHDRAWAL") {
       return null;
     }
 
-    if (existingTransaction.status !== "PENDING") {
-      return existingTransaction;
+    if (latestTransaction.status !== "PENDING") {
+      return latestTransaction;
     }
 
     return tx.walletTransaction.update({
-      where: { id: existingTransaction.id },
+      where: { id: latestTransaction.id },
       data: {
         status: "PROCESSING",
-        providerCallback: mergeProviderMeta(existingTransaction.providerCallback, {
+        providerCallback: mergeProviderMeta(latestTransaction.providerCallback, {
           approvedAt: new Date().toISOString(),
           approvedBy: args.adminUserId,
           approvalMode: args.approvalMode,
@@ -478,36 +515,11 @@ async function initiateWithdrawalDisbursement(args: {
     return { ok: false as const, code: 404, message: "Withdrawal not found." };
   }
 
-  if (transaction.type !== "WITHDRAWAL") {
-    return {
-      ok: false as const,
-      code: 400,
-      message: "This is not a withdrawal transaction.",
-    };
-  }
-
   if (transaction.status !== "PROCESSING") {
     return {
       ok: false as const,
       code: 409,
       message: `Cannot approve a ${transaction.status.toLowerCase()} withdrawal.`,
-    };
-  }
-
-  const config = getMpesaB2CConfig();
-  if (!config.isConfigured) {
-    const failureMessage = `M-Pesa withdrawal is not configured. Missing: ${config.missingVars.join(", ")}.`;
-    await settleFailedWithdrawal({
-      transactionId: transaction.id,
-      failureReason: failureMessage,
-      failureStage: "APPROVAL",
-      providerResponseDescription: failureMessage,
-    });
-
-    return {
-      ok: false as const,
-      code: 500,
-      message: failureMessage,
     };
   }
 
@@ -665,6 +677,15 @@ export async function createWithdrawalRequest(
     if (!settings.mpesaEnabled) {
       return res.status(403).json({
         message: "M-Pesa withdrawals are currently disabled.",
+      });
+    }
+
+    const payoutConfig = getMpesaB2CConfig();
+    if (!payoutConfig.isConfigured) {
+      return res.status(500).json({
+        message: getMpesaWithdrawalConfigErrorMessage(
+          payoutConfig.missingVars,
+        ),
       });
     }
 
