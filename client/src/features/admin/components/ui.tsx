@@ -353,9 +353,20 @@ export function InlinePill({
   );
 }
 
-export function TableShell({ children }: { children: ReactNode }) {
+export function TableShell({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-admin-border/70 bg-admin-surface/20 sm:rounded-xl">
+    <div
+      className={cn(
+        "w-full overflow-x-auto overscroll-x-contain rounded-lg border border-admin-border/70 bg-admin-surface/20 [scrollbar-width:thin] sm:rounded-xl",
+        className,
+      )}
+    >
       {children}
     </div>
   );

@@ -39,7 +39,6 @@ import {
   adminTableCellClassName,
   adminTableClassName,
   adminTableHeadCellClassName,
-  truncateEmailForTable,
 } from "../../components/ui";
 
 type DashboardMetric = {
@@ -321,20 +320,32 @@ export default function Dashboard() {
               subtitle="Live wallet and withdrawal flow"
               actions={
                 <>
-                  <AdminButton variant="ghost" className="px-2.5 sm:px-3.5">
+                  <AdminButton
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-accent/10"
+                  >
                     <Filter size={13} />
-                    <span className="hidden sm:inline">Filter</span>
+                    <span>Filters</span>
                   </AdminButton>
-                  <AdminButton variant="ghost" className="px-2.5 sm:px-3.5">
+                  <AdminButton
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-blue/50 hover:bg-admin-blue/10"
+                  >
                     <Download size={13} />
-                    <span className="hidden sm:inline">Export</span>
+                    <span>Export</span>
                   </AdminButton>
                 </>
               }
             />
 
-            <TableShell>
-              <table className={adminTableClassName}>
+            <p className="mt-2 text-[11px] text-admin-text-muted">
+              Swipe the table left and right on mobile to view every column.
+            </p>
+
+            <TableShell className="mt-2">
+              <table className={`${adminTableClassName} min-w-220`}>
                 <thead>
                   <tr>
                     {[
@@ -376,7 +387,7 @@ export default function Dashboard() {
                         key={transaction.id}
                       >
                         <td
-                          className={`${adminTableCellClassName} max-w-[110px] truncate text-xs font-semibold text-admin-blue`}
+                          className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
                           title={transaction.mpesaCode ?? transaction.reference}
                         >
                           {transaction.mpesaCode ?? transaction.reference}
@@ -386,12 +397,12 @@ export default function Dashboard() {
                         >
                           <div>
                             <p
-                              className="max-w-[92px] truncate text-xs"
+                              className="text-xs break-all"
                               title={transaction.userEmail}
                             >
-                              {truncateEmailForTable(transaction.userEmail)}
+                              {transaction.userEmail}
                             </p>
-                            <p className="text-[10px] text-admin-text-muted">
+                            <p className="text-[10px] text-admin-text-muted break-all">
                               {transaction.userPhone}
                             </p>
                           </div>
@@ -418,7 +429,7 @@ export default function Dashboard() {
                           <StatusBadge status={transaction.status} />
                         </td>
                         <td
-                          className={`${adminTableCellClassName} text-xs text-admin-text-muted`}
+                          className={`${adminTableCellClassName} whitespace-nowrap text-xs text-admin-text-muted`}
                         >
                           {new Date(transaction.createdAt).toLocaleString(
                             "en-KE",
@@ -431,7 +442,7 @@ export default function Dashboard() {
                             },
                           )}
                         </td>
-                        <td className={adminTableCellClassName}>
+                        <td className={`${adminTableCellClassName} whitespace-nowrap`}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <AdminButton

@@ -545,13 +545,15 @@ export default function Odds() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <AdminSectionHeader
         title="Odds Control"
         subtitle="Real-time odds monitoring and best-price curation"
         actions={
           <AdminButton
+            size="sm"
             variant="ghost"
+            className="w-full rounded-full border-admin-border/70 bg-admin-surface/65 text-[11px] font-semibold text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-accent/10 sm:w-auto"
             onClick={() => void handleSyncFeed()}
             disabled={syncing}
           >
@@ -565,14 +567,14 @@ export default function Odds() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
         <button
-          className="text-left"
+          className="h-full w-full text-left"
           type="button"
           onClick={() => setFilter("configured")}
         >
           <AdminCard
-            className={`p-3 transition sm:p-4 ${
+            className={`h-full p-3 transition sm:p-4 ${
               activeFilter === "configured"
                 ? "border-admin-accent ring-1 ring-admin-accent"
                 : ""
@@ -589,12 +591,12 @@ export default function Odds() {
           </AdminCard>
         </button>
         <button
-          className="text-left"
+          className="h-full w-full text-left"
           type="button"
           onClick={() => setFilter("configured-with-odds")}
         >
           <AdminCard
-            className={`p-3 transition sm:p-4 ${
+            className={`h-full p-3 transition sm:p-4 ${
               activeFilter === "configured-with-odds"
                 ? "border-admin-accent ring-1 ring-admin-accent"
                 : ""
@@ -613,12 +615,12 @@ export default function Odds() {
           </AdminCard>
         </button>
         <button
-          className="text-left"
+          className="h-full w-full text-left"
           type="button"
           onClick={() => setFilter("all-with-odds")}
         >
           <AdminCard
-            className={`p-3 transition sm:p-4 ${
+            className={`h-full p-3 transition sm:p-4 ${
               activeFilter === "all-with-odds"
                 ? "border-admin-accent ring-1 ring-admin-accent"
                 : ""
@@ -636,7 +638,7 @@ export default function Odds() {
             </p>
           </AdminCard>
         </button>
-        <AdminCard className="p-3 sm:p-4" interactive>
+        <AdminCard className="h-full p-3 sm:p-4" interactive>
           <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
             Bookmakers
           </p>
@@ -648,7 +650,7 @@ export default function Odds() {
       </div>
 
       <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:gap-3">
-        <AdminCard className="space-y-2.5">
+        <AdminCard className="space-y-3">
           <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
             Select Odds
           </p>
@@ -687,7 +689,7 @@ export default function Odds() {
           )}
         </AdminCard>
 
-        <AdminCard className="space-y-2.5">
+        <AdminCard className="space-y-3">
           <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
             Configured Games
           </p>
@@ -735,7 +737,7 @@ export default function Odds() {
         </AdminCard>
       </div>
 
-      <AdminCard className="space-y-2.5">
+      <AdminCard className="space-y-3 p-3 sm:p-4">
         <div className="relative">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-admin-text-muted"
@@ -749,7 +751,7 @@ export default function Odds() {
           />
         </div>
 
-        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <div className="flex flex-col gap-2.5 sm:gap-3 lg:flex-row lg:items-center lg:justify-between">
           <label className="inline-flex items-center gap-2 text-xs text-admin-text-muted">
             <input
               checked={allOnPageSelected}
@@ -801,10 +803,10 @@ export default function Odds() {
               return (
                 <AdminCard
                   key={event.eventId}
-                  className="space-y-2.5 border-admin-border bg-admin-surface"
+                  className="space-y-3 border-admin-border bg-admin-surface p-3 sm:p-4"
                 >
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="flex min-w-0 flex-1 items-start gap-3">
                       <input
                         checked={selectedEventIds.includes(event.eventId)}
                         className="h-4 w-4 rounded border-admin-border bg-admin-surface"
@@ -816,7 +818,7 @@ export default function Odds() {
                         }
                         type="checkbox"
                       />
-                      <div>
+                      <div className="min-w-0">
                         <div className="mb-1 flex flex-wrap items-center gap-2">
                           <StatusBadge status={toBadgeStatus(event.status)} />
                           <span className="rounded-lg bg-admin-accent-dim px-2 py-1 text-[11px] font-semibold text-admin-accent">
@@ -826,7 +828,7 @@ export default function Odds() {
                             {event.leagueName ?? "Unknown league"}
                           </span>
                         </div>
-                        <p className="text-base font-semibold text-admin-text-primary">
+                        <p className="text-sm font-semibold leading-snug text-admin-text-primary sm:text-base">
                           {event.homeTeam}{" "}
                           <span className="text-admin-text-muted">vs</span>{" "}
                           {event.awayTeam}
@@ -836,10 +838,10 @@ export default function Odds() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end">
                       <AdminButton
                         size="sm"
-                        className="px-2.5 sm:px-3.5"
+                        className="w-full px-2.5 sm:w-auto sm:px-3.5"
                         variant="ghost"
                         onClick={() => void handleViewOdds(event.eventId)}
                       >
@@ -852,7 +854,7 @@ export default function Odds() {
                       </AdminButton>
                       <AdminButton
                         size="sm"
-                        className="px-2.5 sm:px-3.5"
+                        className="w-full px-2.5 sm:w-auto sm:px-3.5"
                         onClick={() => void handleBookmarkSingle(event.eventId)}
                         disabled={Boolean(bookmarkingEventIds[event.eventId])}
                       >
@@ -893,7 +895,7 @@ export default function Odds() {
                         </p>
                       ) : (
                         <TableShell>
-                          <table className={adminTableClassName}>
+                          <table className={`${adminTableClassName} min-w-170`}>
                             <thead>
                               <tr>
                                 {[
@@ -958,8 +960,9 @@ export default function Odds() {
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="w-full overflow-x-auto pb-1 [scrollbar-width:thin]">
+            <div className="inline-flex min-w-max items-center gap-2">
             <AdminButton
               variant="ghost"
               size="sm"
@@ -999,10 +1002,11 @@ export default function Odds() {
             >
               Next →
             </AdminButton>
+            </div>
           </div>
 
           <form
-            className="flex items-center gap-2"
+            className="flex w-full items-center gap-2 md:w-auto"
             onSubmit={(event) => {
               event.preventDefault();
               const pageNumber = Number(jumpInput);
@@ -1025,7 +1029,7 @@ export default function Odds() {
             <Input
               value={jumpInput}
               onChange={(event) => setJumpInput(event.target.value)}
-              className="h-8 w-20 border-admin-border bg-admin-surface text-admin-text-primary"
+              className="h-8 w-full border-admin-border bg-admin-surface text-admin-text-primary sm:w-20"
             />
             <AdminButton size="sm" type="submit">
               Go
