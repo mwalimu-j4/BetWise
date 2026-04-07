@@ -40,7 +40,7 @@ export default function Transactions() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<
-    "" | "pending" | "completed" | "failed" | "reversed"
+    "" | "pending" | "processing" | "completed" | "failed" | "reversed"
   >("");
   const [typeFilter, setTypeFilter] = useState<"" | "deposit" | "withdrawal">(
     "",
@@ -149,8 +149,8 @@ export default function Transactions() {
   };
 
   const getStatusForBadge = (
-    status: "pending" | "completed" | "failed" | "reversed",
-  ): "pending" | "completed" | "failed" => {
+    status: "pending" | "processing" | "completed" | "failed" | "reversed",
+  ): "pending" | "processing" | "completed" | "failed" => {
     if (status === "reversed") return "failed";
     return status;
   };
@@ -237,6 +237,7 @@ export default function Transactions() {
                   e.target.value as
                     | ""
                     | "pending"
+                    | "processing"
                     | "completed"
                     | "failed"
                     | "reversed",
@@ -247,6 +248,7 @@ export default function Transactions() {
             >
               <option value="">All Statuses</option>
               <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
               <option value="completed">Completed</option>
               <option value="failed">Failed</option>
               <option value="reversed">Reversed</option>

@@ -40,7 +40,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 // --- Types ---
-type WithdrawalStatus = "pending" | "completed" | "failed";
+type WithdrawalStatus = "pending" | "processing" | "completed" | "failed";
 
 type Withdrawal = {
   id: string;
@@ -52,6 +52,9 @@ type Withdrawal = {
   totalDebit: number;
   phone: string;
   status: WithdrawalStatus;
+  reference?: string;
+  mpesaCode?: string | null;
+  providerMessage?: string | null;
   createdAt: string;
   processedAt: string | null;
 };
@@ -60,7 +63,7 @@ type WithdrawalsResponse = {
   withdrawals: Withdrawal[];
 };
 
-type FilterStatus = "PENDING" | "COMPLETED" | "FAILED";
+type FilterStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export default function WithdrawalsAdmin() {
   // --- State ---
@@ -101,7 +104,7 @@ export default function WithdrawalsAdmin() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success("Withdrawal approved successfully");
+      toast.success("Withdrawal approved and payout initiated");
       handleCloseDetails();
       queryClient.invalidateQueries({ queryKey: ["admin-withdrawals"] });
     },
@@ -139,13 +142,19 @@ export default function WithdrawalsAdmin() {
 
   // Optimized stats calculation (Single pass instead of 4 filter/reduce loops)
   const stats = useMemo(() => {
-    const { pendingCount, pendingAmount, pendingFees, completedCount } =
+    const {
+      pendingCount,
+      pendingAmount,
+      processingCount,
+      completedCount,
+    } =
       withdrawals.reduce(
         (acc, w) => {
           if (w.status === "pending") {
             acc.pendingCount++;
             acc.pendingAmount += w.amount;
-            acc.pendingFees += w.fee;
+          } else if (w.status === "processing") {
+            acc.processingCount++;
           } else if (w.status === "completed") {
             acc.completedCount++;
           }
@@ -154,7 +163,7 @@ export default function WithdrawalsAdmin() {
         {
           pendingCount: 0,
           pendingAmount: 0,
-          pendingFees: 0,
+          processingCount: 0,
           completedCount: 0,
         },
       );
@@ -171,14 +180,14 @@ export default function WithdrawalsAdmin() {
         tone: "accent" as const,
       },
       {
-        label: "Total Fees (Pending)",
-        value: `KES ${pendingFees.toLocaleString()}`,
-        tone: "red" as const,
+        label: "Processing",
+        value: String(processingCount),
+        tone: "blue" as const,
       },
       {
         label: "Completed",
         value: String(completedCount),
-        tone: "blue" as const,
+        tone: "accent" as const,
       },
     ];
   }, [withdrawals]);
@@ -292,6 +301,7 @@ export default function WithdrawalsAdmin() {
               className="rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text-primary outline-none transition hover:border-admin-accent"
             >
               <option value="PENDING">Pending</option>
+              <option value="PROCESSING">Processing</option>
               <option value="COMPLETED">Completed</option>
               <option value="FAILED">Failed</option>
             </select>
@@ -589,6 +599,26 @@ export default function WithdrawalsAdmin() {
                           </p>
                           <p className="mt-1 text-xs text-admin-text-secondary">
                             {formatDateTime(selectedWithdrawal.processedAt)}
+                          </p>
+                        </div>
+                      )}
+                      {selectedWithdrawal.reference && (
+                        <div className="col-span-2">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                            Reference
+                          </p>
+                          <p className="mt-1 text-xs text-admin-text-secondary">
+                            {selectedWithdrawal.reference}
+                          </p>
+                        </div>
+                      )}
+                      {selectedWithdrawal.providerMessage && (
+                        <div className="col-span-2">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                            Provider Message
+                          </p>
+                          <p className="mt-1 text-xs text-admin-text-secondary">
+                            {selectedWithdrawal.providerMessage}
                           </p>
                         </div>
                       )}

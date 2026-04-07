@@ -156,6 +156,14 @@ function mergeProviderMeta(
   } as never;
 }
 
+function getNestedObject(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return value as Record<string, unknown>;
+}
+
 async function getWithdrawalSettings(): Promise<WithdrawalSettings> {
   const settings = await prisma.adminSettings.findUnique({
     where: { key: "global" },
@@ -288,10 +296,16 @@ async function settleFailedWithdrawal(args: {
         providerResponseCode: args.providerResponseCode ?? undefined,
         providerResponseDescription:
           args.providerResponseDescription ?? args.failureReason,
-        providerCallback: mergeProviderMeta(args.providerCallback ?? transaction.providerCallback, {
+        providerCallback: mergeProviderMeta(transaction.providerCallback, {
           finalizedAt: new Date().toISOString(),
           disbursementState: "FAILED",
           failureStage: args.failureStage,
+          mpesa: {
+            ...getNestedObject(meta.mpesa),
+            failure: args.providerCallback
+              ? getJsonObject(args.providerCallback)
+              : undefined,
+          },
         }),
       },
     });
@@ -364,6 +378,7 @@ async function finalizeSuccessfulWithdrawal(args: {
     }
 
     const wallet = await getOrCreateWallet(transaction.userId, tx);
+    const meta = getWithdrawalProviderMeta(transaction.providerCallback);
     const updatedTransaction = await tx.walletTransaction.update({
       where: { id: transaction.id },
       data: {
@@ -375,9 +390,15 @@ async function finalizeSuccessfulWithdrawal(args: {
         providerResponseCode: args.providerResponseCode ?? undefined,
         providerResponseDescription:
           args.providerResponseDescription ?? transaction.providerResponseDescription ?? undefined,
-        providerCallback: mergeProviderMeta(args.providerCallback ?? transaction.providerCallback, {
+        providerCallback: mergeProviderMeta(transaction.providerCallback, {
           finalizedAt: new Date().toISOString(),
           disbursementState: "COMPLETED",
+          mpesa: {
+            ...getNestedObject(meta.mpesa),
+            success: args.providerCallback
+              ? getJsonObject(args.providerCallback)
+              : undefined,
+          },
         }),
       },
     });
@@ -490,49 +511,112 @@ async function initiateWithdrawalDisbursement(args: {
     };
   }
 
-  const tokenData = await getMpesaAccessToken(config);
-  const payoutPayload = {
-    OriginatorConversationID: transaction.id,
-    InitiatorName: config.initiatorName,
-    SecurityCredential: config.securityCredential,
-    CommandID: config.commandId,
-    Amount: transaction.amount,
-    PartyA: config.shortcode,
-    PartyB: transaction.phone,
-    Remarks: transaction.description ?? "BetWise withdrawal payout",
-    QueueTimeOutURL: config.timeoutUrl,
-    ResultURL: config.resultUrl,
-    Occasion: transaction.reference,
-  };
+  try {
+    const tokenData = await getMpesaAccessToken(config);
+    const payoutPayload = {
+      OriginatorConversationID: transaction.id,
+      InitiatorName: config.initiatorName,
+      SecurityCredential: config.securityCredential,
+      CommandID: config.commandId,
+      Amount: transaction.amount,
+      PartyA: config.shortcode,
+      PartyB: transaction.phone,
+      Remarks: transaction.description ?? "BetWise withdrawal payout",
+      QueueTimeOutURL: config.timeoutUrl,
+      ResultURL: config.resultUrl,
+      Occasion: transaction.reference,
+    };
 
-  const payoutResponse = await fetch(
-    `${config.baseUrl}/mpesa/b2c/v3/paymentrequest`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${tokenData.access_token}`,
-        "Content-Type": "application/json",
+    const payoutResponse = await fetch(
+      `${config.baseUrl}/mpesa/b2c/v3/paymentrequest`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payoutPayload),
       },
-      body: JSON.stringify(payoutPayload),
-    },
-  );
+    );
 
-  const payoutData = (await payoutResponse.json()) as MpesaB2CResponse;
+    const payoutData = (await payoutResponse.json()) as MpesaB2CResponse;
 
-  if (!payoutResponse.ok || payoutData.ResponseCode !== "0") {
+    if (!payoutResponse.ok || payoutData.ResponseCode !== "0") {
+      const failureMessage =
+        payoutData.errorMessage ??
+        payoutData.ResponseDescription ??
+        "M-Pesa rejected the withdrawal payout request.";
+
+      await settleFailedWithdrawal({
+        transactionId: transaction.id,
+        failureReason: failureMessage,
+        failureStage: "B2C_REQUEST",
+        providerResponseCode: payoutData.ResponseCode ?? null,
+        providerResponseDescription:
+          payoutData.ResponseDescription ?? failureMessage,
+        providerCallback: payoutData as never,
+      });
+
+      return {
+        ok: false as const,
+        code: 502,
+        message: failureMessage,
+      };
+    }
+
+    const currentMeta = getWithdrawalProviderMeta(transaction.providerCallback);
+    const updatedTransaction = await prisma.walletTransaction.update({
+      where: { id: transaction.id },
+      data: {
+        checkoutRequestId:
+          payoutData.ConversationID ?? transaction.checkoutRequestId,
+        merchantRequestId:
+          payoutData.OriginatorConversationID ?? transaction.merchantRequestId,
+        providerResponseCode: payoutData.ResponseCode ?? undefined,
+        providerResponseDescription:
+          payoutData.ResponseDescription ??
+          "Withdrawal payout accepted by M-Pesa.",
+        providerCallback: mergeProviderMeta(transaction.providerCallback, {
+          requestedPayoutAt: new Date().toISOString(),
+          disbursementState: "PROCESSING",
+          mpesa: {
+            ...getNestedObject(currentMeta.mpesa),
+            request: payoutPayload,
+            response: payoutData,
+          },
+        }),
+      },
+    });
+
+    const wallet = await getOrCreateWallet(updatedTransaction.userId);
+    emitWalletEvent({
+      userId: updatedTransaction.userId,
+      transactionId: updatedTransaction.id,
+      checkoutRequestId: updatedTransaction.checkoutRequestId,
+      merchantRequestId: updatedTransaction.merchantRequestId,
+      status: "PROCESSING",
+      message: "Withdrawal approved and payout request sent to M-Pesa.",
+      balance: wallet.balance,
+      amount: updatedTransaction.amount,
+    });
+
+    return {
+      ok: true as const,
+      code: 200,
+      message: "Withdrawal approved and payout initiated successfully.",
+      transaction: updatedTransaction,
+    };
+  } catch (error) {
     const failureMessage =
-      payoutData.errorMessage ??
-      payoutData.ResponseDescription ??
-      "M-Pesa rejected the withdrawal payout request.";
+      error instanceof Error
+        ? error.message
+        : "Failed to initiate the M-Pesa withdrawal payout.";
 
     await settleFailedWithdrawal({
       transactionId: transaction.id,
       failureReason: failureMessage,
       failureStage: "B2C_REQUEST",
-      providerResponseCode: payoutData.ResponseCode ?? null,
-      providerResponseDescription:
-        payoutData.ResponseDescription ?? failureMessage,
-      providerCallback: payoutData as never,
+      providerResponseDescription: failureMessage,
     });
 
     return {
@@ -541,45 +625,6 @@ async function initiateWithdrawalDisbursement(args: {
       message: failureMessage,
     };
   }
-
-  const updatedTransaction = await prisma.walletTransaction.update({
-    where: { id: transaction.id },
-    data: {
-      checkoutRequestId: payoutData.ConversationID ?? transaction.checkoutRequestId,
-      merchantRequestId:
-        payoutData.OriginatorConversationID ?? transaction.merchantRequestId,
-      providerResponseCode: payoutData.ResponseCode ?? undefined,
-      providerResponseDescription:
-        payoutData.ResponseDescription ?? "Withdrawal payout accepted by M-Pesa.",
-      providerCallback: mergeProviderMeta(transaction.providerCallback, {
-        requestedPayoutAt: new Date().toISOString(),
-        disbursementState: "PROCESSING",
-        mpesa: {
-          request: payoutPayload,
-          response: payoutData,
-        },
-      }),
-    },
-  });
-
-  const wallet = await getOrCreateWallet(updatedTransaction.userId);
-  emitWalletEvent({
-    userId: updatedTransaction.userId,
-    transactionId: updatedTransaction.id,
-    checkoutRequestId: updatedTransaction.checkoutRequestId,
-    merchantRequestId: updatedTransaction.merchantRequestId,
-    status: "PROCESSING",
-    message: "Withdrawal approved and payout request sent to M-Pesa.",
-    balance: wallet.balance,
-    amount: updatedTransaction.amount,
-  });
-
-  return {
-    ok: true as const,
-    code: 200,
-    message: "Withdrawal approved and payout initiated successfully.",
-    transaction: updatedTransaction,
-  };
 }
 
 export async function createWithdrawalRequest(

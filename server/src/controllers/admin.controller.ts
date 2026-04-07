@@ -2017,7 +2017,7 @@ export async function getAdminPayments(req: Request, res: Response) {
     userName: transaction.user.fullName,
     type: transaction.type.toLowerCase(),
     amount: transaction.amount,
-    status: transaction.status.toLowerCase(),
+    status: toAdminStatus(transaction.status),
     reference:
       transaction.providerReceiptNumber ??
       transaction.checkoutRequestId ??

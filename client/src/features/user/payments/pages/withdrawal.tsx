@@ -279,6 +279,8 @@ export default function PaymentsWithdrawalPage() {
                     className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase ${
                       entry.status === "completed"
                         ? "border-green-500/30 bg-green-500/10 text-green-400"
+                        : entry.status === "processing"
+                          ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
                         : entry.status === "pending"
                           ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-400"
                           : "border-red-500/30 bg-red-500/10 text-red-400"
