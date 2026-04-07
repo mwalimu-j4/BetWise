@@ -317,12 +317,8 @@ function UsersReportsTab() {
           <table className={adminTableClassName}>
             <thead>
               <tr className="border-b border-admin-border">
-                <th className={adminTableHeadCellClassName}>
-                  Email
-                </th>
-                <th className={adminTableHeadCellClassName}>
-                  Name
-                </th>
+                <th className={adminTableHeadCellClassName}>Email</th>
+                <th className={adminTableHeadCellClassName}>Name</th>
                 <th className={`${adminTableHeadCellClassName} text-right`}>
                   Bets Placed
                 </th>
@@ -334,9 +330,7 @@ function UsersReportsTab() {
                   key={bettor.id}
                   className="border-b border-admin-border/50 hover:bg-admin-surface/50"
                 >
-                  <td className={adminTableCellClassName}>
-                    {bettor.email}
-                  </td>
+                  <td className={adminTableCellClassName}>{bettor.email}</td>
                   <td className={adminTableCellClassName}>
                     {bettor.name || "-"}
                   </td>
@@ -477,21 +471,11 @@ function RiskReportsTab() {
             <table className={adminTableClassName}>
               <thead>
                 <tr className="border-b border-admin-border">
-                  <th className={adminTableHeadCellClassName}>
-                    Type
-                  </th>
-                  <th className={adminTableHeadCellClassName}>
-                    Severity
-                  </th>
-                  <th className={adminTableHeadCellClassName}>
-                    User
-                  </th>
-                  <th className={adminTableHeadCellClassName}>
-                    Status
-                  </th>
-                  <th className={adminTableHeadCellClassName}>
-                    Date
-                  </th>
+                  <th className={adminTableHeadCellClassName}>Type</th>
+                  <th className={adminTableHeadCellClassName}>Severity</th>
+                  <th className={adminTableHeadCellClassName}>User</th>
+                  <th className={adminTableHeadCellClassName}>Status</th>
+                  <th className={adminTableHeadCellClassName}>Date</th>
                 </tr>
               </thead>
               <tbody>

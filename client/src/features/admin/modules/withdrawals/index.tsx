@@ -79,10 +79,7 @@ export default function WithdrawalsAdmin() {
   });
 
   // --- Queries & Mutations ---
-  const {
-    data: withdrawalsData,
-    isLoading,
-  } = useQuery({
+  const { data: withdrawalsData, isLoading } = useQuery({
     queryKey: ["admin-withdrawals", statusFilter],
     queryFn: async () => {
       const response = await api.get<WithdrawalsResponse>(
