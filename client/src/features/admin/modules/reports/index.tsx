@@ -56,6 +56,18 @@ function FinancialReportsTab({ period }: { period: ReportPeriod }) {
   const { data, isLoading, isError, error } = useAdminFinancialReport(period);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
+  const transactionData = useMemo(
+    () =>
+      data?.transactionsByType
+        ?.filter((t) => t._sum.amount)
+        .map((t) => ({
+          name: `${t.type} (${t.status})`,
+          value: (t._sum.amount || 0) / 1000,
+          count: t._count,
+        })) ?? [],
+    [data?.transactionsByType],
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -103,18 +115,6 @@ function FinancialReportsTab({ period }: { period: ReportPeriod }) {
       tone: "purple" as const,
     },
   ];
-
-  const transactionData = useMemo(
-    () =>
-      data.transactionsByType
-        .filter((t) => t._sum.amount)
-        .map((t) => ({
-          name: `${t.type} (${t.status})`,
-          value: (t._sum.amount || 0) / 1000,
-          count: t._count,
-        })),
-    [data.transactionsByType],
-  );
 
   return (
     <div className="space-y-6">
