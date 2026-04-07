@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback, type FormEvent } from "react";
-import { isAxiosError } from "axios";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "@tanstack/react-router";
+import { isAxiosError } from "axios";
 import {
   Eye,
   EyeOff,
@@ -8,12 +8,10 @@ import {
   Lock,
   Mail,
   Phone,
-  Check,
-  X,
-  UserPlus,
+  UserPlus
 } from "lucide-react";
+import { useCallback, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@/context/AuthContext";
 
 type FormErrors = Partial<Record<string, string[]>>;
 
