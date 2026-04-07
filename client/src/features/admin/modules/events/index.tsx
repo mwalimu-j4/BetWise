@@ -717,12 +717,36 @@ export default function Events() {
       {/* Stat Cards */}
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-6">
         {[
-          { label: "Live", value: (stats?.liveCount ?? 0).toString(), tone: "red" as const },
-          { label: "Upcoming", value: (stats?.upcomingCount ?? 0).toString(), tone: "blue" as const },
-          { label: "Active", value: (stats?.activeCount ?? 0).toString(), tone: "accent" as const },
-          { label: "Configured", value: (stats?.configuredCount ?? 0).toString(), tone: "gold" as const },
-          { label: "No Odds", value: (stats?.noOddsCount ?? 0).toString(), tone: "gold" as const },
-          { label: "Finished", value: (stats?.finishedToday ?? 0).toString(), tone: "blue" as const },
+          {
+            label: "Live",
+            value: (stats?.liveCount ?? 0).toString(),
+            tone: "red" as const,
+          },
+          {
+            label: "Upcoming",
+            value: (stats?.upcomingCount ?? 0).toString(),
+            tone: "blue" as const,
+          },
+          {
+            label: "Active",
+            value: (stats?.activeCount ?? 0).toString(),
+            tone: "accent" as const,
+          },
+          {
+            label: "Configured",
+            value: (stats?.configuredCount ?? 0).toString(),
+            tone: "gold" as const,
+          },
+          {
+            label: "No Odds",
+            value: (stats?.noOddsCount ?? 0).toString(),
+            tone: "gold" as const,
+          },
+          {
+            label: "Finished",
+            value: (stats?.finishedToday ?? 0).toString(),
+            tone: "blue" as const,
+          },
         ].map((metric) => {
           const colorMap: Record<
             string,
@@ -770,9 +794,7 @@ export default function Events() {
                     <div className="h-3 w-3" />
                   </div>
                 </div>
-                <p
-                  className={`text-base font-bold sm:text-lg ${colors.text}`}
-                >
+                <p className={`text-base font-bold sm:text-lg ${colors.text}`}>
                   {statsLoading ? "—" : metric.value}
                 </p>
               </div>
