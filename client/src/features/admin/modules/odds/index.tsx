@@ -861,7 +861,9 @@ export default function Odds() {
                         ) : bookmarkedEventIds[event.eventId] ? (
                           <>
                             <span className="sm:hidden">Saved ✓</span>
-                            <span className="hidden sm:inline">Bookmarked ✓</span>
+                            <span className="hidden sm:inline">
+                              Bookmarked ✓
+                            </span>
                           </>
                         ) : (
                           <>
