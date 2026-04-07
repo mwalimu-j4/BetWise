@@ -714,6 +714,73 @@ export default function Events() {
         }
       />
 
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-6">
+        {[
+          { label: "Live", value: (stats?.liveCount ?? 0).toString(), tone: "red" as const },
+          { label: "Upcoming", value: (stats?.upcomingCount ?? 0).toString(), tone: "blue" as const },
+          { label: "Active", value: (stats?.activeCount ?? 0).toString(), tone: "accent" as const },
+          { label: "Configured", value: (stats?.configuredCount ?? 0).toString(), tone: "gold" as const },
+          { label: "No Odds", value: (stats?.noOddsCount ?? 0).toString(), tone: "gold" as const },
+          { label: "Finished", value: (stats?.finishedToday ?? 0).toString(), tone: "blue" as const },
+        ].map((metric) => {
+          const colorMap: Record<
+            string,
+            { bg: string; text: string; icon: string; border: string }
+          > = {
+            accent: {
+              bg: "bg-admin-accent/5",
+              text: "text-admin-accent",
+              icon: "bg-admin-accent/15 text-admin-accent",
+              border: "border-admin-accent/20",
+            },
+            blue: {
+              bg: "bg-admin-blue/5",
+              text: "text-admin-blue",
+              icon: "bg-admin-blue/15 text-admin-blue",
+              border: "border-admin-blue/20",
+            },
+            gold: {
+              bg: "bg-admin-gold/5",
+              text: "text-admin-gold",
+              icon: "bg-admin-gold/15 text-admin-gold",
+              border: "border-admin-gold/20",
+            },
+            red: {
+              bg: "bg-red-500/5",
+              text: "text-red-500",
+              icon: "bg-red-500/15 text-red-500",
+              border: "border-red-500/20",
+            },
+          };
+
+          const colors = colorMap[metric.tone] || colorMap.accent;
+
+          return (
+            <AdminCard
+              key={metric.label}
+              className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3`}
+            >
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
+                    {metric.label}
+                  </p>
+                  <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
+                    <div className="h-3 w-3" />
+                  </div>
+                </div>
+                <p
+                  className={`text-base font-bold sm:text-lg ${colors.text}`}
+                >
+                  {statsLoading ? "—" : metric.value}
+                </p>
+              </div>
+            </AdminCard>
+          );
+        })}
+      </div>
+
       <div className="space-y-2">
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
           {filterOptions.map((filter) => (

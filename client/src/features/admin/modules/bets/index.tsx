@@ -254,7 +254,7 @@ export default function Bets() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
         {betStats.map((metric) => {
           const colorMap: Record<
             string,
