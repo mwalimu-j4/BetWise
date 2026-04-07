@@ -88,6 +88,11 @@ export interface AdminSettingsConfig {
       adminAlerts: boolean;
     };
   };
+  adminQuickSettings: {
+    withdrawalSoundEnabled: boolean;
+    withdrawalSoundTone: string;
+    withdrawalSoundVolume: number;
+  };
   apiAndIntegrationsConfig: {
     sportsApiKey: string;
     oddsProviderName: string;

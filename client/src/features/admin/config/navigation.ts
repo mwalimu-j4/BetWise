@@ -27,6 +27,7 @@ export type AdminNavId =
   | "risk"
   | "reports"
   | "newsletter"
+  | "quick-settings"
   | "settings";
 
 export type AdminNavCategory = "core" | "operations" | "insights" | "system";
@@ -49,6 +50,7 @@ export interface AdminNavSection {
     | "/admin/risk"
     | "/admin/reports"
     | "/admin/newsletter"
+    | "/admin/quick-settings"
     | "/admin/settings";
 }
 
@@ -136,6 +138,13 @@ export const adminNavigation: AdminNavSection[] = [
     category: "operations",
     icon: Mail,
     to: "/admin/newsletter",
+  },
+  {
+    id: "quick-settings",
+    label: "Quick Settings",
+    category: "core",
+    icon: Settings,
+    to: "/admin/quick-settings",
   },
   {
     id: "settings",

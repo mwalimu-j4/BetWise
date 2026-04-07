@@ -207,8 +207,7 @@ function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
     adminWithdrawalSoundEnabled:
       config.adminQuickSettings.withdrawalSoundEnabled,
     adminWithdrawalSoundTone: config.adminQuickSettings.withdrawalSoundTone,
-    adminWithdrawalSoundVolume:
-      config.adminQuickSettings.withdrawalSoundVolume,
+    adminWithdrawalSoundVolume: config.adminQuickSettings.withdrawalSoundVolume,
     sportsApiKey: config.apiAndIntegrationsConfig.sportsApiKey,
     oddsProviderName: config.apiAndIntegrationsConfig.oddsProviderName,
     primaryWebhookUrl: config.apiAndIntegrationsConfig.primaryWebhookUrl,
