@@ -1,44 +1,44 @@
-import { useEffect, useMemo, useState, useRef } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
-import {
-  Bell,
-  Menu,
-  Search,
-  Zap,
-  LogOut,
-  User,
-  Moon,
-  Sun,
-  Monitor,
-  ChevronRight,
-  SidebarOpen,
-  SidebarClose,
-  Clock,
-  Activity,
-  CheckCircle2,
-  XCircle,
-  Settings,
-  SlidersHorizontal,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import {
-  useAppNotifications,
-  useMarkAllNotificationsRead,
-  type AppNotification,
-} from "@/features/notifications/notifications";
-import { useWalletRealtime } from "@/features/user/payments/wallet";
-import { useAdminPersonalQuickSettings } from "../hooks/useAdminPersonalQuickSettings";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import {
+  useAppNotifications,
+  useMarkAllNotificationsRead,
+  type AppNotification,
+} from "@/features/notifications/notifications";
+import { useWalletRealtime } from "@/features/user/payments/wallet";
+import { cn } from "@/lib/utils";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  Activity,
+  Bell,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  LogOut,
+  Menu,
+  Monitor,
+  Moon,
+  Search,
+  Settings,
+  SidebarClose,
+  SidebarOpen,
+  SlidersHorizontal,
+  Sun,
+  User,
+  XCircle,
+  Zap,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { adminNavigation } from "../config/navigation";
+import { useAdminPersonalQuickSettings } from "../hooks/useAdminPersonalQuickSettings";
 
 export default function AdminShell() {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);

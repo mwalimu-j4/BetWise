@@ -17,7 +17,6 @@ import {
 export type AdminNavId =
   | "dashboard"
   | "users"
-  | "analytics"
   | "bets"
   | "contacts"
   | "events"
@@ -39,7 +38,6 @@ export interface AdminNavSection {
   to:
     | "/admin/dashboard"
     | "/admin/users"
-    | "/admin/analytics"
     | "/admin/bets"
     | "/admin/contacts"
     | "/admin/events"
@@ -108,13 +106,6 @@ export const adminNavigation: AdminNavSection[] = [
     category: "operations",
     icon: Shield,
     to: "/admin/risk",
-  },
-  {
-    id: "analytics",
-    label: "Analytics",
-    category: "insights",
-    icon: BarChart3,
-    to: "/admin/analytics",
   },
   {
     id: "reports",

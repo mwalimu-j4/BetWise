@@ -240,33 +240,32 @@ function BettingReportsTab({ period }: { period: ReportPeriod }) {
         <h3 className="font-semibold text-admin-text-primary">Top Markets</h3>
         <div className="space-y-2">
           {topMarketsData.map((market) => (
-              <div
-                key={market.marketType}
-                className="flex items-center justify-between rounded-lg bg-admin-surface/50 p-3 hover:bg-admin-surface/70 transition-colors"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-admin-text-primary truncate">
-                    {market.marketType}
-                  </p>
-                  <p className="text-xs text-admin-text-muted">
-                    {market.count} bets
-                  </p>
-                </div>
-                <div className="ml-2 text-right flex-shrink-0">
-                  <p className="font-semibold text-admin-accent">
-                    KES {(market.totalStaked / 1000).toFixed(1)}K
-                  </p>
-                </div>
+            <div
+              key={market.marketType}
+              className="flex items-center justify-between rounded-lg bg-admin-surface/50 p-3 hover:bg-admin-surface/70 transition-colors"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-admin-text-primary truncate">
+                  {market.marketType}
+                </p>
+                <p className="text-xs text-admin-text-muted">
+                  {market.count} bets
+                </p>
               </div>
-            ))}
-            {topMarketsData.length === 0 && (
-              <p className="text-sm text-admin-text-muted text-center py-6">
-                No market data
-              </p>
-            )}
-          </div>
-        </AdminCard>
-
+              <div className="ml-2 text-right flex-shrink-0">
+                <p className="font-semibold text-admin-accent">
+                  KES {(market.totalStaked / 1000).toFixed(1)}K
+                </p>
+              </div>
+            </div>
+          ))}
+          {topMarketsData.length === 0 && (
+            <p className="text-sm text-admin-text-muted text-center py-6">
+              No market data
+            </p>
+          )}
+        </div>
+      </AdminCard>
 
       <AdminCard className="space-y-4">
         <h3 className="font-semibold text-admin-text-primary">
@@ -499,25 +498,25 @@ function RiskReportsTab({ period }: { period: ReportPeriod }) {
         {topAlertTypes.length > 0 ? (
           <div className="space-y-2">
             {topAlertTypes.map((alert) => (
-                <div
-                  key={alert.alertType}
-                  className="flex items-center justify-between rounded-lg bg-admin-surface/50 p-3 hover:bg-admin-surface/70 transition-colors"
-                >
-                  <p className="text-sm font-medium text-admin-text-primary truncate">
-                    {alert.alertType.replace(/_/g, " ")}
-                  </p>
-                  <span className="rounded-full bg-admin-accent/20 px-3 py-1 text-xs font-semibold text-admin-accent whitespace-nowrap ml-2">
-                    {alert._count}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="py-8 text-center text-sm text-admin-text-muted">
-              No alert types
-            </p>
-          )}
-        </AdminCard>
+              <div
+                key={alert.alertType}
+                className="flex items-center justify-between rounded-lg bg-admin-surface/50 p-3 hover:bg-admin-surface/70 transition-colors"
+              >
+                <p className="text-sm font-medium text-admin-text-primary truncate">
+                  {alert.alertType.replace(/_/g, " ")}
+                </p>
+                <span className="rounded-full bg-admin-accent/20 px-3 py-1 text-xs font-semibold text-admin-accent whitespace-nowrap ml-2">
+                  {alert._count}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="py-8 text-center text-sm text-admin-text-muted">
+            No alert types
+          </p>
+        )}
+      </AdminCard>
 
       {recentAlerts.length > 0 && (
         <AdminCard className="space-y-4">
