@@ -12,7 +12,6 @@ import {
   AdminSectionHeader,
   InlinePill,
   StatusBadge,
-  SummaryCard,
   TableShell,
   adminCompactActionsClassName,
   adminTableCellClassName,
@@ -165,15 +164,63 @@ export default function Transactions() {
       />
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        {stats.map((stat) => (
-          <SummaryCard
-            key={stat.label}
-            label={stat.label}
-            tone={stat.tone}
-            value={stat.value}
-          />
-        ))}
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
+        {stats.map((metric) => {
+          const colorMap: Record<
+            string,
+            { bg: string; text: string; icon: string; border: string }
+          > = {
+            accent: {
+              bg: "bg-admin-accent/5",
+              text: "text-admin-accent",
+              icon: "bg-admin-accent/15 text-admin-accent",
+              border: "border-admin-accent/20",
+            },
+            blue: {
+              bg: "bg-admin-blue/5",
+              text: "text-admin-blue",
+              icon: "bg-admin-blue/15 text-admin-blue",
+              border: "border-admin-blue/20",
+            },
+            gold: {
+              bg: "bg-admin-gold/5",
+              text: "text-admin-gold",
+              icon: "bg-admin-gold/15 text-admin-gold",
+              border: "border-admin-gold/20",
+            },
+            red: {
+              bg: "bg-red-500/5",
+              text: "text-red-500",
+              icon: "bg-red-500/15 text-red-500",
+              border: "border-red-500/20",
+            },
+          };
+
+          const colors = colorMap[metric.tone] || colorMap.accent;
+
+          return (
+            <AdminCard
+              key={metric.label}
+              className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3`}
+            >
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
+                    {metric.label}
+                  </p>
+                  <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
+                    <div className="h-3 w-3" />
+                  </div>
+                </div>
+                <p
+                  className={`text-base font-bold sm:text-lg ${colors.text}`}
+                >
+                  {metric.value}
+                </p>
+              </div>
+            </AdminCard>
+          );
+        })}
       </div>
 
       {/* Filters */}
