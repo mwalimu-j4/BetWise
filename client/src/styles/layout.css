@@ -1,7 +1,7 @@
 .bc-layout-root {
   min-height: 100vh;
   overflow-x: hidden;
-  background: var(--nav-bg);
+  background: transparent;
   color: var(--nav-text);
   font-family: "Barlow", sans-serif;
 }
@@ -9,6 +9,8 @@
 .bc-layout-body {
   margin-top: var(--navbar-height);
   min-height: calc(100vh - var(--navbar-height));
+  background: var(--color-bg-primary);
+  padding-top: 8px;
 }
 
 .bc-layout-main {

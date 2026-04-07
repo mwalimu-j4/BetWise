@@ -222,7 +222,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               </span>
             </button>
           ) : (
-            <span className="text-xs text-[#a8c4e0] font-medium">
+            <span className="hidden md:inline-block text-xs text-[#a8c4e0] font-medium">
               Login to view balance
             </span>
           )}
