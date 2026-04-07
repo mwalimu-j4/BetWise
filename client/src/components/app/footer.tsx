@@ -4,6 +4,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 
+// Assuming logo.png is in your assets folder
+import logo from "@/assets/logo.png";
+
 export default function Footer() {
   const year = new Date().getFullYear();
   const [email, setEmail] = useState("");
@@ -22,7 +25,7 @@ export default function Footer() {
     try {
       await api.post("/newsletter/subscribe", { email });
       toast.success("Successfully subscribed to newsletter!");
-      setIsSubscribed(true);
+      setIsSubscribed(true); 
       setEmail("");
 
       // Reset subscription state after 5 seconds
@@ -42,13 +45,17 @@ export default function Footer() {
       {/* Main Footer Content */}
       <div className="mx-auto w-full max-w-[1280px] gap-8 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          
           {/* Brand Section */}
           <div>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f5c518]">
-                <span className="text-sm font-bold text-black">B</span>
-              </div>
-              <h3 className="text-lg font-bold text-white">BetRixPro</h3>
+              <Link to="/">
+                <img
+                  src={logo}
+                  alt="BetRixPro Logo"
+                  className="h-8 w-auto"
+                />
+              </Link>
             </div>
             <p className="mt-3 text-sm text-[#8a9bb0]">
               Smart betting with fast M-Pesa deposits and a secure wallet
@@ -245,7 +252,7 @@ export default function Footer() {
         <div className="mt-5 border-t border-[#23384f] sm:mt-8" />
 
         {/* Bottom Footer */}
-        <div className="mt-3 -mb-4 flex flex-col gap-1.5 text-[11px]  text-[#5a6b7d] sm:mt-6 sm:gap-3 sm:text-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-3 -mb-4 flex flex-col gap-1.5 text-[11px] text-[#5a6b7d] sm:mt-6 sm:gap-3 sm:text-xs sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} BetRixPro. All rights reserved.</p>
           <div className="flex gap-2 text-[11px] sm:gap-3 sm:text-xs">
             <a href="#" className="transition hover:text-[#f5c518]">
