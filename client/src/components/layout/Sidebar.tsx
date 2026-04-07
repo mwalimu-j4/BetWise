@@ -475,7 +475,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <>
       <aside className={`bc-sidebar ${isOpen ? "is-open" : ""}`}>
         <div className="bc-side-scroll">
-          <div className="bc-side-section">
+          <div className="bc-side-section max-md:mt-12">
             <button
               type="button"
               className="bc-live-sports-toggle"
