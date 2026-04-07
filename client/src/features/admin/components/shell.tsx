@@ -65,11 +65,9 @@ export default function AdminShell() {
   const navigate = useNavigate();
   const notifications = notificationData?.notifications ?? [];
   const unreadCount = notificationData?.unreadCount ?? 0;
-  const withdrawalSoundEnabled =
-    personalQuickSettings.withdrawalSoundEnabled;
+  const withdrawalSoundEnabled = personalQuickSettings.withdrawalSoundEnabled;
   const withdrawalSoundTone = personalQuickSettings.withdrawalSoundTone;
-  const withdrawalSoundVolume =
-    personalQuickSettings.withdrawalSoundVolume;
+  const withdrawalSoundVolume = personalQuickSettings.withdrawalSoundVolume;
   const playSoundOnlyWhenPageVisible =
     personalQuickSettings.playSoundOnlyWhenPageVisible;
 
