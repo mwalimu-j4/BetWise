@@ -17,21 +17,18 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   AlertCircle,
-  BarChart3,
-  CreditCard,
+  ChevronLeft,
+  ChevronRight,
   Download,
   Filter,
   Loader,
   MessageSquare,
   MoreHorizontal,
   Settings,
-  Shield,
-  Sliders,
   TrendingUp,
   TriangleAlert,
   Users,
   Wallet,
-  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -97,6 +94,8 @@ export default function Dashboard() {
     useState<DashboardTransaction | null>(null);
   const [viewDetailsDialogOpen, setViewDetailsDialogOpen] = useState(false);
   const [showAllStatsMobile, setShowAllStatsMobile] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-dashboard-summary"],
@@ -354,7 +353,7 @@ export default function Dashboard() {
             <TableShell className="mt-2 w-full border-t border-admin-border/40">
               <div className="w-full overflow-x-auto pb-2 -webkit-overflow-scrolling-touch">
                 <table
-                  className={`${adminTableClassName} w-full min-w-[700px]`}
+                  className={`${adminTableClassName} w-full min-w-175`}
                 >
                   <thead>
                     <tr>
@@ -394,21 +393,25 @@ export default function Dashboard() {
                         </td>
                       </tr>
                     ) : (
-                      // Added index parameter to the map function
-                      recentTransactions.map((transaction, index) => (
-                        <tr
-                          className="even:bg-admin-surface/45"
-                          key={transaction.id}
-                        >
+                      // Paginate transactions - 5 per page
+                      recentTransactions
+                        .slice(
+                          (currentPage - 1) * itemsPerPage,
+                          currentPage * itemsPerPage,
+                        )
+                        .map((transaction, index) => (
+                          <tr
+                            className="even:bg-admin-surface/45 h-10"
+                            key={transaction.id}
+                          >
                           <td
-                            className={`${adminTableCellClassName} text-xs font-semibold text-admin-text-muted w-10`}
+                            className={`${adminTableCellClassName} text-xs font-semibold text-admin-text-muted w-10 py-1.5 sm:py-2`}
                           >
                             {/* Render row index instead of reference */}
                             {index + 1}
                           </td>
                           <td
-                            // Added max-w to contain the text and force truncation
-                            className={`${adminTableCellClassName} font-semibold text-admin-text-primary max-w-[140px]`}
+                            className={`${adminTableCellClassName} font-semibold text-admin-text-primary max-w-35 py-1.5 sm:py-2`}
                           >
                             <div className="w-full">
                               <p
@@ -425,7 +428,7 @@ export default function Dashboard() {
                               </p>
                             </div>
                           </td>
-                          <td className={adminTableCellClassName}>
+                          <td className={`${adminTableCellClassName} py-1.5 sm:py-2`}>
                             <InlinePill
                               label={transaction.type}
                               tone={
@@ -436,7 +439,7 @@ export default function Dashboard() {
                             />
                           </td>
                           <td
-                            className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
+                            className={`${adminTableCellClassName} font-semibold text-admin-text-primary py-1.5 sm:py-2`}
                           >
                             {formatCurrency(transaction.amount)}
                             {transaction.type === "withdrawal" ? (
@@ -445,11 +448,11 @@ export default function Dashboard() {
                               </span>
                             ) : null}
                           </td>
-                          <td className={adminTableCellClassName}>
+                          <td className={`${adminTableCellClassName} py-1.5 sm:py-2`}>
                             <StatusBadge status={transaction.status} />
                           </td>
                           <td
-                            className={`${adminTableCellClassName} whitespace-nowrap text-xs text-admin-text-muted`}
+                            className={`${adminTableCellClassName} whitespace-nowrap text-xs text-admin-text-muted py-1.5 sm:py-2`}
                           >
                             {new Date(transaction.createdAt).toLocaleString(
                               "en-KE",
@@ -463,7 +466,7 @@ export default function Dashboard() {
                             )}
                           </td>
                           <td
-                            className={`${adminTableCellClassName} whitespace-nowrap`}
+                            className={`${adminTableCellClassName} whitespace-nowrap py-1.5 sm:py-2`}
                           >
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -504,6 +507,63 @@ export default function Dashboard() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {recentTransactions.length > itemsPerPage && (
+                <div className="flex items-center justify-between border-t border-admin-border/40 px-4 py-2.5">
+                  <div className="text-xs text-admin-text-muted">
+                    Showing {Math.min((currentPage - 1) * itemsPerPage + 1, recentTransactions.length)} to{" "}
+                    {Math.min(currentPage * itemsPerPage, recentTransactions.length)} of{" "}
+                    {recentTransactions.length} transactions
+                  </div>
+                  <div className="flex gap-2">
+                    <AdminButton
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft size={16} />
+                    </AdminButton>
+                    <div className="flex items-center gap-1">
+                      {Array.from(
+                        { length: Math.ceil(recentTransactions.length / itemsPerPage) },
+                        (_, i) => i + 1,
+                      ).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`h-7 w-7 rounded text-xs font-medium transition ${
+                            currentPage === page
+                              ? "bg-admin-accent text-admin-bg"
+                              : "border border-admin-border/50 bg-admin-surface/50 text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-surface/80"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    <AdminButton
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(
+                            Math.ceil(recentTransactions.length / itemsPerPage),
+                            prev + 1,
+                          ),
+                        )
+                      }
+                      disabled={
+                        currentPage ===
+                        Math.ceil(recentTransactions.length / itemsPerPage)
+                      }
+                    >
+                      <ChevronRight size={16} />
+                    </AdminButton>
+                  </div>
+                </div>
+              )}
             </TableShell>
           </AdminCard>
 
@@ -600,7 +660,7 @@ export default function Dashboard() {
 
                 {/* Contact Messages */}
                 <Link
-                  to="/admin/contact"
+                  to="/admin/contacts"
                   className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-purple-500/60 hover:bg-admin-surface/80 hover:shadow-md hover:shadow-purple-500/10"
                 >
                   <div className="rounded-md bg-purple-500/20 p-1.5 text-purple-500 transition-colors duration-200 group-hover:bg-purple-500/30">
