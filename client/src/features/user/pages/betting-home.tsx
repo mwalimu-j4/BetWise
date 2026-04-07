@@ -49,7 +49,8 @@ export default function BettingHome() {
     () =>
       new Set(
         betSlip.selections.map(
-          (selection) => `${selection.eventId}:${selection.side}`,
+          (selection) =>
+            `${selection.eventId}:${selection.marketType}:${selection.side}:${selection.odds.toFixed(2)}`,
         ),
       ),
     [betSlip.selections],
