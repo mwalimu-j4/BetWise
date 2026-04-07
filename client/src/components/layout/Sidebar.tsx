@@ -488,7 +488,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 className={`bc-live-sports-chevron ${liveSportsOpen ? "is-open" : ""}`}
               />
             </button>
-            <div className={`bc-live-sports-list ${liveSportsOpen ? "is-open" : ""}`}>
+            <div
+              className={`bc-live-sports-list ${liveSportsOpen ? "is-open" : ""}`}
+            >
               {liveSportsOrder.map((name) => {
                 const count = liveCounts[name] ?? 0;
                 return (
@@ -503,7 +505,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     </span>
                     <span className="bc-live-sport-name">{name}</span>
                     {count > 0 ? (
-                      <span className="bc-live-sport-count">{count > 99 ? "99+" : count}</span>
+                      <span className="bc-live-sport-count">
+                        {count > 99 ? "99+" : count}
+                      </span>
                     ) : null}
                   </Link>
                 );

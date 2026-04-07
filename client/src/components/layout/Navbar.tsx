@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronDown, CircleCheck, CircleX, Menu } from "lucide-react";
+import { Bell, ChevronDown, CircleCheck, CircleX, Menu, Zap } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
 import SearchBar from "@/components/search/SearchBar";
@@ -97,9 +97,11 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [liveGamesOpen, setLiveGamesOpen] = useState(false);
   const lastPathRef = useRef(location.pathname);
   const notifyRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
+  const liveGamesRef = useRef<HTMLDivElement>(null);
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
 
@@ -108,6 +110,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       lastPathRef.current = location.pathname;
       setNotificationsOpen(false);
       setAccountOpen(false);
+      setLiveGamesOpen(false);
     }
   }, [location.pathname]);
 
@@ -125,15 +128,20 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       if (accountRef.current && !accountRef.current.contains(target)) {
         setAccountOpen(false);
       }
+
+      // Close live games dropdown if clicking outside
+      if (liveGamesRef.current && !liveGamesRef.current.contains(target)) {
+        setLiveGamesOpen(false);
+      }
     }
 
-    if (notificationsOpen || accountOpen) {
+    if (notificationsOpen || accountOpen || liveGamesOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }
-  }, [notificationsOpen, accountOpen]);
+  }, [notificationsOpen, accountOpen, liveGamesOpen]);
 
   const notifications = notificationData?.notifications ?? [];
   const unreadCount = notificationData?.unreadCount ?? 0;
@@ -188,6 +196,70 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
 
         <div className="bc-actions">
+          <div className="bc-live-games-dropdown hidden md:block" ref={liveGamesRef}>
+            <button
+              type="button"
+              className={`bc-live-games-trigger ${liveGamesOpen ? "is-open" : ""}`}
+              aria-label="Open live games"
+              onClick={() => setLiveGamesOpen((prev) => !prev)}
+            >
+              <Zap size={14} />
+              <span>Live Games</span>
+            </button>
+            {liveGamesOpen ? (
+              <div className="bc-live-games-menu">
+                <div className="bc-live-games-header">
+                  <h3 className="bc-live-games-title">Live Games</h3>
+                </div>
+                <div className="bc-live-games-content">
+                  <Link
+                    to="/user/live"
+                    onClick={() => setLiveGamesOpen(false)}
+                    className="bc-live-game-item"
+                  >
+                    <div className="bc-live-game-info">
+                      <div className="bc-live-game-match">Arsenal vs Liverpool</div>
+                      <div className="bc-live-game-league">Premier League</div>
+                    </div>
+                    <span className="bc-live-game-badge">LIVE</span>
+                  </Link>
+                  <Link
+                    to="/user/live"
+                    onClick={() => setLiveGamesOpen(false)}
+                    className="bc-live-game-item"
+                  >
+                    <div className="bc-live-game-info">
+                      <div className="bc-live-game-match">Manchester City vs Chelsea</div>
+                      <div className="bc-live-game-league">Premier League</div>
+                    </div>
+                    <span className="bc-live-game-badge">LIVE</span>
+                  </Link>
+                  <Link
+                    to="/user/live"
+                    onClick={() => setLiveGamesOpen(false)}
+                    className="bc-live-game-item"
+                  >
+                    <div className="bc-live-game-info">
+                      <div className="bc-live-game-match">PSG vs AS Monaco</div>
+                      <div className="bc-live-game-league">Ligue 1</div>
+                    </div>
+                    <span className="bc-live-game-badge">LIVE</span>
+                  </Link>
+                  <Link
+                    to="/user/live"
+                    onClick={() => setLiveGamesOpen(false)}
+                    className="bc-live-game-item"
+                  >
+                    <div className="bc-live-game-info">
+                      <div className="bc-live-game-match">Real Madrid vs Barcelona</div>
+                      <div className="bc-live-game-league">La Liga</div>
+                    </div>
+                    <span className="bc-live-game-badge">LIVE</span>
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+          </div>
           {isAuthenticated && myBetsCount > 0 ? (
             <Link
               to="/my-bets"
