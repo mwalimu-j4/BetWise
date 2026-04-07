@@ -1,16 +1,18 @@
 import rateLimit from "express-rate-limit";
-import type { Request } from "express";
+import type { Request, Response } from "express";
 
-const standardRateLimitHandler = {
-  message: "Too many requests. Please try again later.",
-};
+function createRateLimitHandler(message: string) {
+  return (_req: Request, res: Response) => {
+    res.status(429).json({ message });
+  };
+}
 
 export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  ...standardRateLimitHandler,
+  handler: createRateLimitHandler("Too many login attempts. Please try again in 15 minutes."),
 });
 
 export const registerRateLimiter = rateLimit({
@@ -18,7 +20,7 @@ export const registerRateLimiter = rateLimit({
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  ...standardRateLimitHandler,
+  handler: createRateLimitHandler("Too many registration attempts. Please try again in 1 hour."),
 });
 
 export const forgotPasswordRateLimiter = rateLimit({
@@ -26,7 +28,7 @@ export const forgotPasswordRateLimiter = rateLimit({
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  ...standardRateLimitHandler,
+  handler: createRateLimitHandler("Too many password reset requests. Please try again in 1 hour."),
 });
 
 export const authGeneralRateLimiter = rateLimit({
@@ -34,7 +36,7 @@ export const authGeneralRateLimiter = rateLimit({
   max: 50,
   standardHeaders: true,
   legacyHeaders: false,
-  ...standardRateLimitHandler,
+  handler: createRateLimitHandler("Too many requests. Please try again later."),
 });
 
 function userOrIpKeyGenerator(req: Request) {
@@ -47,7 +49,7 @@ export const withdrawalRateLimiter = rateLimit({
   keyGenerator: userOrIpKeyGenerator,
   standardHeaders: true,
   legacyHeaders: false,
-  message: "Too many withdrawal requests. Please wait a minute and try again.",
+  handler: createRateLimitHandler("Too many withdrawal requests. Please wait a minute and try again."),
 });
 
 export const profileUpdateRateLimiter = rateLimit({
@@ -56,7 +58,7 @@ export const profileUpdateRateLimiter = rateLimit({
   keyGenerator: userOrIpKeyGenerator,
   standardHeaders: true,
   legacyHeaders: false,
-  message: "Too many profile updates. Please wait a minute and try again.",
+  handler: createRateLimitHandler("Too many profile updates. Please wait a minute and try again."),
 });
 
 export const myBetsListRateLimiter = rateLimit({
@@ -65,7 +67,7 @@ export const myBetsListRateLimiter = rateLimit({
   keyGenerator: userOrIpKeyGenerator,
   standardHeaders: true,
   legacyHeaders: false,
-  message: "Too many my-bets requests. Please wait a minute and try again.",
+  handler: createRateLimitHandler("Too many my-bets requests. Please wait a minute and try again."),
 });
 
 export const myBetDetailRateLimiter = rateLimit({
@@ -74,7 +76,7 @@ export const myBetDetailRateLimiter = rateLimit({
   keyGenerator: userOrIpKeyGenerator,
   standardHeaders: true,
   legacyHeaders: false,
-  message: "Too many bet detail requests. Please wait a minute and try again.",
+  handler: createRateLimitHandler("Too many bet detail requests. Please wait a minute and try again."),
 });
 
 export const cancelBetRateLimiter = rateLimit({
@@ -83,8 +85,7 @@ export const cancelBetRateLimiter = rateLimit({
   keyGenerator: userOrIpKeyGenerator,
   standardHeaders: true,
   legacyHeaders: false,
-  message:
-    "Too many cancellation attempts. Please wait a minute and try again.",
+  handler: createRateLimitHandler("Too many cancellation attempts. Please wait a minute and try again."),
 });
 
 export const liveMatchesRateLimiter = rateLimit({
@@ -92,7 +93,7 @@ export const liveMatchesRateLimiter = rateLimit({
   max: 60,
   standardHeaders: true,
   legacyHeaders: false,
-  message: "Too many live match requests. Please wait and retry.",
+  handler: createRateLimitHandler("Too many live match requests. Please wait and retry."),
 });
 
 export const liveOddsRateLimiter = rateLimit({
@@ -100,7 +101,7 @@ export const liveOddsRateLimiter = rateLimit({
   max: 120,
   standardHeaders: true,
   legacyHeaders: false,
-  message: "Too many live update requests. Please wait and retry.",
+  handler: createRateLimitHandler("Too many live update requests. Please wait and retry."),
 });
 
 export const placeBetRateLimiter = rateLimit({
@@ -109,7 +110,7 @@ export const placeBetRateLimiter = rateLimit({
   keyGenerator: userOrIpKeyGenerator,
   standardHeaders: true,
   legacyHeaders: false,
-  message: "Too many bet placements. Please wait a minute and try again.",
+  handler: createRateLimitHandler("Too many bet placements. Please wait a minute and try again."),
 });
 
 export const loadBetSlipRateLimiter = rateLimit({
@@ -117,5 +118,5 @@ export const loadBetSlipRateLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: "Too many shared betslip load attempts. Please wait and retry.",
+  handler: createRateLimitHandler("Too many shared betslip load attempts. Please wait and retry."),
 });
