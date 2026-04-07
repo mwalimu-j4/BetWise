@@ -4,7 +4,6 @@ import {
   AdminButton,
   AdminCard,
   AdminSectionHeader,
-  SummaryCard,
   StatusBadge,
   TableShell,
   adminCompactActionsClassName,
@@ -239,14 +238,14 @@ export default function Users() {
         subtitle="Manage user accounts and permissions"
         actions={
           <>
-            <AdminButton
+            {/* <AdminButton
               variant="ghost"
               size="sm"
               onClick={() => void refetch()}
             >
               <RefreshCw size={13} />
               Refresh
-            </AdminButton>
+            </AdminButton> */}
             <AdminButton
               variant="solid"
               size="sm"
@@ -260,27 +259,68 @@ export default function Users() {
       />
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <SummaryCard
-          label="Total Users"
-          value={totalUsers.toString()}
-          tone="blue"
-        />
-        <SummaryCard
-          label="Active Users"
-          value={activeUsers.toString()}
-          tone="accent"
-        />
-        <SummaryCard
-          label="Suspended Users"
-          value={suspendedUsers.toString()}
-          tone="gold"
-        />
-        <SummaryCard
-          label="Banned Users"
-          value={bannedUsers.toString()}
-          tone="red"
-        />
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
+        {[
+          { label: "Total Users", value: totalUsers.toString(), tone: "blue" as const },
+          { label: "Active Users", value: activeUsers.toString(), tone: "accent" as const },
+          { label: "Suspended Users", value: suspendedUsers.toString(), tone: "gold" as const },
+          { label: "Banned Users", value: bannedUsers.toString(), tone: "red" as const },
+        ].map((metric) => {
+          const colorMap: Record<
+            string,
+            { bg: string; text: string; icon: string; border: string }
+          > = {
+            accent: {
+              bg: "bg-admin-accent/5",
+              text: "text-admin-accent",
+              icon: "bg-admin-accent/15 text-admin-accent",
+              border: "border-admin-accent/20",
+            },
+            blue: {
+              bg: "bg-admin-blue/5",
+              text: "text-admin-blue",
+              icon: "bg-admin-blue/15 text-admin-blue",
+              border: "border-admin-blue/20",
+            },
+            gold: {
+              bg: "bg-admin-gold/5",
+              text: "text-admin-gold",
+              icon: "bg-admin-gold/15 text-admin-gold",
+              border: "border-admin-gold/20",
+            },
+            red: {
+              bg: "bg-red-500/5",
+              text: "text-red-500",
+              icon: "bg-red-500/15 text-red-500",
+              border: "border-red-500/20",
+            },
+          };
+
+          const colors = colorMap[metric.tone] || colorMap.accent;
+
+          return (
+            <AdminCard
+              key={metric.label}
+              className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3`}
+            >
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
+                    {metric.label}
+                  </p>
+                  <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
+                    <div className="h-3 w-3" />
+                  </div>
+                </div>
+                <p
+                  className={`text-base font-bold sm:text-lg ${colors.text}`}
+                >
+                  {metric.value}
+                </p>
+              </div>
+            </AdminCard>
+          );
+        })}
       </div>
 
       {error && (
