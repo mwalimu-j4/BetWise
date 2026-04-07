@@ -97,7 +97,7 @@ function BetSlipPanel({
 
   if (selections.length === 0) {
     return (
-      <div className="flex h-full flex-col rounded-xl border border-[#2a3f55] bg-[#0d1820] p-4 text-white shadow-2xl">
+      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#2a3f55] bg-[#0d1820] p-4 text-white shadow-2xl">
         <div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed border-[#2a3f55] bg-[#111f2f]/50 p-6 text-center">
           <p className="text-sm font-semibold text-white">No selection yet</p>
           <p className="mt-1 text-xs text-[#8fa3b1]">
@@ -109,7 +109,7 @@ function BetSlipPanel({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-[#2a3f55] bg-[#0d1820] text-white shadow-2xl">
+    <div className="flex h-full flex-col overflow-hidden mt-14 rounded-2xl border border-[#2a3f55] bg-[#0d1820] text-white shadow-2xl">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between border-b border-[#2a3f55] bg-[#111f2f] px-4 py-3">
         <div className="flex items-center gap-2">
@@ -132,21 +132,21 @@ function BetSlipPanel({
       </div>
 
       {/* Selection list */}
-      <div className="app-scrollbar flex-1 overflow-y-auto p-3 space-y-2">
-        {selections.map((selection, index) => (
+      <div className="app-scrollbar flex-1 space-y-2 overflow-y-auto p-3">
+        {selections.map((selection) => (
           <div
             key={`${selection.eventId}-${selection.side}`}
             className="flex items-center gap-3 rounded-lg border border-[#2a3f55] bg-[#1a2634] p-3 shadow-sm transition-colors hover:border-[#3a526b]"
           >
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-xs font-semibold text-white mb-0.5">
+            <div className="min-w-0 flex-1">
+              <p className="mb-0.5 truncate text-xs font-semibold text-white">
                 {selection.eventName}
               </p>
-              <p className="text-[11px] text-[#8fa3b1] truncate">
+              <p className="truncate text-[11px] text-[#8fa3b1]">
                 {selection.marketType.toUpperCase()} • {selection.side}
               </p>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex shrink-0 items-center gap-3">
               <p className="text-sm font-bold text-[#f5a623]">
                 {selection.odds.toFixed(2)}
               </p>
@@ -164,11 +164,11 @@ function BetSlipPanel({
       </div>
 
       {/* Footer Controls */}
-      <div className="shrink-0 border-t border-[#2a3f55] bg-[#0d1820] p-3 space-y-3">
+      <div className="shrink-0 space-y-3 border-t border-[#2a3f55] bg-[#0d1820] p-3">
         {/* Stake section */}
         <div className="space-y-2">
-          <div className="flex rounded-md border border-[#2a3f55] bg-[#1a2940] overflow-hidden focus-within:border-[#f5a623] transition-colors">
-            <div className="flex items-center bg-[#111f2f] px-3 border-r border-[#2a3f55]">
+          <div className="flex overflow-hidden rounded-md border border-[#2a3f55] bg-[#1a2940] transition-colors focus-within:border-[#f5a623]">
+            <div className="flex items-center border-r border-[#2a3f55] bg-[#111f2f] px-3">
               <label
                 className="text-xs font-medium text-[#8fa3b1]"
                 htmlFor="bet-stake"
@@ -195,7 +195,7 @@ function BetSlipPanel({
                 key={amount}
                 type="button"
                 onClick={() => setStake(stake + amount)}
-                className="flex h-8 items-center justify-center rounded border border-[#2a3f55] bg-[#1a2940] text-[11px] font-medium text-[#8fa3b1] transition hover:border-[#f5a623] hover:text-white hover:bg-[#20324c]"
+                className="flex h-8 items-center justify-center rounded border border-[#2a3f55] bg-[#1a2940] text-[11px] font-medium text-[#8fa3b1] transition hover:border-[#f5a623] hover:bg-[#20324c] hover:text-white"
               >
                 +{amount}
               </button>
@@ -205,7 +205,7 @@ function BetSlipPanel({
 
         {/* Summary box */}
         <div className="rounded-lg border border-[#1d4c2d] bg-[#10261a] p-2.5">
-          <div className="flex justify-between items-end mb-2">
+          <div className="mb-2 flex items-end justify-between">
             <div>
               <p className="text-[11px] text-[#8fa3b1]">Potential Win</p>
               <p className="text-sm font-bold text-[#00c853]">
@@ -255,7 +255,7 @@ function BetSlipPanel({
               ✓ Bet Placed Successfully!
             </p>
             {newBalance !== null && (
-              <p className="text-[11px] text-[#00c853]/80 mt-0.5">
+              <p className="mt-0.5 text-[11px] text-[#00c853]/80">
                 New balance: {formatCurrency(newBalance)}
               </p>
             )}
@@ -349,8 +349,8 @@ export default function BetSlip(props: UseBetSlipReturn) {
 
   return (
     <>
-      {/* Desktop Sidebar Sidebar - Now with proper padding from top if needed */}
-      <div className="fixed right-0 top-16 bottom-0 hidden w-[380px] flex-col p-4 md:flex z-30">
+      {/* Desktop Sidebar Wrapper - Padded so the inner panel floats and shows rounded top corners */}
+      <div className="fixed bottom-0 right-0 top-0 z-30 hidden w-[380px] flex-col p-4 pt-[80px] md:flex">
         <BetSlipPanel {...props} />
       </div>
 
@@ -359,7 +359,7 @@ export default function BetSlip(props: UseBetSlipReturn) {
         <button
           type="button"
           onClick={() => setMobileSheetOpen(true)}
-          className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-between border-t border-[#2a3f55] bg-[#0d1820] px-5 text-left text-white md:hidden shadow-[0_-4px_12px_rgba(0,0,0,0.5)]"
+          className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-between border-t border-[#2a3f55] bg-[#0d1820] px-5 text-left text-white shadow-[0_-4px_12px_rgba(0,0,0,0.5)] md:hidden"
         >
           <div>
             <p className="text-xs font-medium text-[#8fa3b1]">Betslip</p>
