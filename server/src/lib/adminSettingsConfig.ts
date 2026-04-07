@@ -90,6 +90,11 @@ export const adminSettingsSchema = z.object({
       adminAlerts: z.boolean(),
     }),
   }),
+  adminQuickSettings: z.object({
+    withdrawalSoundEnabled: z.boolean(),
+    withdrawalSoundTone: z.string().trim().min(1).max(255),
+    withdrawalSoundVolume: z.number().int().min(0).max(100),
+  }),
   apiAndIntegrationsConfig: z.object({
     sportsApiKey: z.string().trim().max(255),
     oddsProviderName: z.string().trim().min(2).max(100),
@@ -225,6 +230,12 @@ export const defaultAdminSettings: AdminSettingsConfig = {
       betResult: true,
       adminAlerts: true,
     },
+  },
+  adminQuickSettings: {
+    withdrawalSoundEnabled: true,
+    withdrawalSoundTone:
+      "/sounds/universfield-new-notification-010-352755.mp3",
+    withdrawalSoundVolume: 80,
   },
   apiAndIntegrationsConfig: {
     sportsApiKey: "replace-with-sports-api-key",
