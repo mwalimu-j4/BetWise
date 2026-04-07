@@ -1,4 +1,9 @@
-import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
+import type {
+  ButtonHTMLAttributes,
+  ComponentProps,
+  CSSProperties,
+  ReactNode,
+} from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
@@ -14,6 +19,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DialogContent as BaseDialogContent } from "@/components/ui/dialog";
 import {
   revenueTrend,
   sportDistribution,
@@ -76,6 +82,26 @@ const solidToneClasses: Record<AdminTone, string> = {
   live: "bg-admin-live text-black",
 };
 
+const toneBorderClasses: Record<AdminTone, string> = {
+  accent: "border-admin-accent/25",
+  blue: "border-admin-blue/25",
+  gold: "border-admin-gold/25",
+  red: "border-admin-red/25",
+  purple: "border-admin-purple/25",
+  muted: "border-admin-border/80",
+  live: "border-admin-live/25",
+};
+
+const tonePanelClasses: Record<AdminTone, string> = {
+  accent: "bg-admin-accent/10 text-admin-accent",
+  blue: "bg-admin-blue/10 text-admin-blue",
+  gold: "bg-admin-gold/10 text-admin-gold",
+  red: "bg-admin-red/10 text-admin-red",
+  purple: "bg-admin-purple/10 text-admin-purple",
+  muted: "bg-admin-surface/70 text-admin-text-secondary",
+  live: "bg-admin-live/10 text-admin-live",
+};
+
 const statusConfig: Record<
   AdminBadgeStatus,
   { tone: AdminTone; icon: LucideIcon }
@@ -110,13 +136,37 @@ interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const adminTableClassName =
-  "w-full border-collapse text-[10px] sm:text-xs lg:text-sm";
+  "w-full border-separate border-spacing-0 text-[10px] sm:text-xs lg:text-sm";
 export const adminTableHeadCellClassName =
-  "border-b border-admin-border px-2 py-2 text-left text-[9px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted break-words sm:px-3 sm:py-2.5 sm:text-[10px] lg:px-4 lg:py-3 lg:text-[11px]";
+  "border-b border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-2 py-2 text-left text-[9px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted break-words sm:px-3 sm:py-2.5 sm:text-[10px] lg:px-4 lg:py-3 lg:text-[11px]";
 export const adminTableCellClassName =
-  "border-b border-admin-border px-2 py-2.5 align-top text-[10px] text-admin-text-secondary break-words sm:px-3 sm:py-3 sm:text-xs lg:px-4 lg:py-3.5 lg:text-sm";
+  "border-b border-admin-border/65 px-2 py-2.5 align-top text-[10px] text-admin-text-secondary break-words sm:px-3 sm:py-3 sm:text-xs lg:px-4 lg:py-3.5 lg:text-sm";
 export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
+export const adminDialogContentClassName =
+  "overflow-hidden border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%),linear-gradient(160deg,rgba(255,255,255,0.04),transparent_38%)] bg-admin-card text-admin-text-primary shadow-[0_28px_90px_rgba(2,8,23,0.55)] backdrop-blur-xl";
+export const adminInputClassName =
+  "h-11 rounded-2xl border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3.5 text-admin-text-primary placeholder:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
+export const adminSelectTriggerClassName =
+  "h-11 w-full rounded-2xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3.5 text-admin-text-primary shadow-none data-[placeholder]:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
+export const adminSelectContentClassName =
+  "rounded-2xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%),linear-gradient(160deg,rgba(255,255,255,0.04),transparent_38%)] bg-admin-card text-admin-text-primary shadow-[0_18px_60px_rgba(2,8,23,0.45)] backdrop-blur-xl";
+export const adminDropdownContentClassName =
+  "rounded-2xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%),linear-gradient(160deg,rgba(255,255,255,0.04),transparent_38%)] bg-admin-card p-1.5 text-admin-text-primary shadow-[0_18px_60px_rgba(2,8,23,0.45)] backdrop-blur-xl";
+export const adminDropdownItemClassName =
+  "rounded-xl px-3 py-2 text-sm text-admin-text-secondary focus:bg-admin-accent/12 focus:text-admin-text-primary";
+
+export function AdminDialogContent({
+  className,
+  ...props
+}: ComponentProps<typeof BaseDialogContent>) {
+  return (
+    <BaseDialogContent
+      className={cn(adminDialogContentClassName, className)}
+      {...props}
+    />
+  );
+}
 
 export function truncateEmailForTable(email: string, visibleChars = 8) {
   if (!email) return "-";
@@ -142,10 +192,10 @@ export function AdminCard({
   return (
     <section
       className={cn(
-        "relative rounded-2xl border border-admin-border bg-admin-card p-3 text-admin-text-primary shadow-[0_12px_40px_var(--color-bg-deepest)] sm:p-4 lg:p-5",
-        "bg-[linear-gradient(180deg,var(--color-bg-hover),transparent_120px)]",
+        "relative overflow-hidden rounded-[1.6rem] border border-admin-border/80 bg-admin-card/95 p-3 text-admin-text-primary shadow-[0_18px_60px_rgba(2,8,23,0.38),inset_0_1px_0_rgba(255,255,255,0.03)] sm:p-4 lg:p-5",
+        "bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015)_58%),linear-gradient(160deg,rgba(255,255,255,0.04),transparent_40%)]",
         interactive &&
-          "transition duration-200 hover:-translate-y-0.5 hover:border-admin-border-strong",
+          "transition duration-200 hover:-translate-y-0.5 hover:border-admin-border-strong hover:shadow-[0_22px_70px_rgba(2,8,23,0.48),inset_0_1px_0_rgba(255,255,255,0.05)]",
         className,
       )}
     >
@@ -166,12 +216,15 @@ export function AdminButton({
     <button
       {...props}
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-xl border text-sm font-medium transition",
+        "inline-flex items-center justify-center gap-1.5 rounded-xl border text-sm font-medium transition duration-200",
         "disabled:pointer-events-none disabled:opacity-50",
         size === "md" ? "h-9 px-3.5" : "h-8 px-2.5 text-[11px]",
         variant === "solid"
-          ? cn(solidToneClasses[tone], "border-transparent hover:opacity-95")
-          : "border-admin-border bg-transparent text-admin-text-secondary hover:text-admin-text-primary",
+          ? cn(
+              solidToneClasses[tone],
+              "border-transparent shadow-[0_12px_30px_rgba(0,0,0,0.16)] hover:-translate-y-0.5 hover:opacity-95",
+            )
+          : "border-admin-border/70 bg-admin-surface/45 text-admin-text-secondary hover:border-admin-border-strong hover:bg-admin-hover hover:text-admin-text-primary",
         className,
       )}
       style={
@@ -196,12 +249,12 @@ export function AdminSectionHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-xl font-bold text-admin-text-primary sm:text-2xl">
+        <h1 className="text-[1.65rem] font-bold tracking-[-0.03em] text-admin-text-primary sm:text-[2rem]">
           {title}
         </h1>
-        <p className="mt-1 text-xs text-admin-text-muted sm:text-sm">
+        <p className="mt-1.5 max-w-3xl text-sm text-admin-text-muted">
           {subtitle}
         </p>
       </div>
@@ -224,11 +277,11 @@ export function AdminCardHeader({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="text-base font-semibold text-admin-text-primary">
+        <p className="text-base font-semibold tracking-[-0.02em] text-admin-text-primary">
           {title}
         </p>
         {subtitle ? (
-          <p className="mt-1 text-xs text-admin-text-muted">{subtitle}</p>
+          <p className="mt-1 text-sm text-admin-text-muted">{subtitle}</p>
         ) : null}
       </div>
       {actions ? (
@@ -288,6 +341,63 @@ export function MetricCard({
         >
           <Icon size={18} />
         </div>
+      </div>
+    </AdminCard>
+  );
+}
+
+export function AdminStatCard({
+  label,
+  value,
+  tone,
+  helper,
+  className,
+}: {
+  label: string;
+  value: string;
+  tone: AdminTone;
+  helper?: string;
+  className?: string;
+}) {
+  return (
+    <AdminCard
+      className={cn("overflow-hidden p-3.5 sm:p-4", toneBorderClasses[tone], className)}
+      interactive
+    >
+      <div
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-tr-[1.6rem] opacity-90",
+          toneGlowClasses[tone],
+        )}
+      />
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-admin-text-muted">
+            {label}
+          </p>
+          <p
+            className={cn(
+              "mt-2 text-xl font-bold tracking-[-0.03em] sm:text-[1.65rem]",
+              toneTextClasses[tone],
+            )}
+          >
+            {value}
+          </p>
+          <p className="mt-1 text-xs text-admin-text-muted">
+            {helper ?? "Updated from the latest admin feed"}
+          </p>
+        </div>
+
+        <span
+          className={cn(
+            "mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border",
+            toneBorderClasses[tone],
+            tonePanelClasses[tone],
+          )}
+        >
+          <span className="h-2.5 w-2.5 rounded-full bg-current" />
+        </span>
       </div>
     </AdminCard>
   );
@@ -364,7 +474,7 @@ export function TableShell({
   return (
     <div
       className={cn(
-        "w-full overflow-x-auto overscroll-x-contain rounded-lg border border-admin-border/70 bg-admin-surface/20 [scrollbar-width:thin] sm:rounded-xl",
+        "w-full overflow-x-auto overscroll-x-contain rounded-[1.4rem] border border-admin-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)_58%)] bg-admin-surface/35 [scrollbar-width:thin]",
         className,
       )}
     >
@@ -509,43 +619,48 @@ export function FinancialTrendChart({ data }: { data: any[] }) {
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
         <XAxis
           dataKey="day"
-          stroke="rgba(255,255,255,0.5)"
+          stroke="rgba(168,196,224,0.7)"
           style={{ fontSize: "12px" }}
         />
-        <YAxis stroke="rgba(255,255,255,0.5)" style={{ fontSize: "12px" }} />
+        <YAxis
+          stroke="rgba(168,196,224,0.7)"
+          style={{ fontSize: "12px" }}
+        />
         <Tooltip
           contentStyle={{
-            backgroundColor: "rgba(10,14,26,0.95)",
-            border: "1px solid rgba(0,229,160,0.2)",
-            borderRadius: "8px",
+            background:
+              "linear-gradient(180deg, rgba(20,35,58,0.97), rgba(13,26,44,0.94))",
+            border: "1px solid rgba(245,197,24,0.18)",
+            borderRadius: "14px",
+            boxShadow: "0 22px 50px rgba(0,0,0,0.35)",
           }}
-          labelStyle={{ color: "#00e5a0" }}
-          itemStyle={{ color: "#00e5a0" }}
+          labelStyle={{ color: "#ffffff" }}
+          itemStyle={{ color: "#a8c4e0" }}
         />
         <Legend />
         <Line
           type="monotone"
           dataKey="stake"
-          stroke="#00e5a0"
+          stroke="#f5c518"
           strokeWidth={2}
           dot={false}
-          name="Stake ($)"
+          name="Stake (KES)"
         />
         <Line
           type="monotone"
           dataKey="ggr"
-          stroke="#ff9800"
+          stroke="#a8c4e0"
           strokeWidth={2}
           dot={false}
-          name="GGR ($)"
+          name="GGR (KES)"
         />
         <Line
           type="monotone"
           dataKey="ngr"
-          stroke="#5e5ce6"
+          stroke="#00c97a"
           strokeWidth={2}
           dot={false}
-          name="NGR ($)"
+          name="NGR (KES)"
         />
       </LineChart>
     </ResponsiveContainer>
@@ -568,18 +683,22 @@ export function DepositWithdrawalChart({
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
         <XAxis
           dataKey="period"
-          stroke="rgba(255,255,255,0.4)"
+          stroke="rgba(168,196,224,0.62)"
           style={{ fontSize: "11px" }}
         />
-        <YAxis stroke="rgba(255,255,255,0.4)" style={{ fontSize: "11px" }} />
+        <YAxis
+          stroke="rgba(168,196,224,0.62)"
+          style={{ fontSize: "11px" }}
+        />
         <Tooltip
           contentStyle={{
-            backgroundColor: "rgba(20,24,40,0.98)",
-            border: "1px solid rgba(0,229,160,0.3)",
-            borderRadius: "8px",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+            background:
+              "linear-gradient(180deg, rgba(20,35,58,0.97), rgba(13,26,44,0.94))",
+            border: "1px solid rgba(245,197,24,0.18)",
+            borderRadius: "14px",
+            boxShadow: "0 20px 48px rgba(0,0,0,0.4)",
           }}
-          labelStyle={{ color: "#00e5a0", fontSize: "11px" }}
+          labelStyle={{ color: "#ffffff", fontSize: "11px" }}
           cursor={{ fill: "rgba(255,255,255,0.05)" }}
         />
         <Legend
@@ -589,7 +708,7 @@ export function DepositWithdrawalChart({
         <Line
           type="monotone"
           dataKey="deposits"
-          stroke="#00e5a0"
+          stroke="#f5c518"
           strokeWidth={2}
           dot={{ r: 2 }}
           activeDot={{ r: 4 }}
@@ -598,7 +717,7 @@ export function DepositWithdrawalChart({
         <Line
           type="monotone"
           dataKey="withdrawals"
-          stroke="#ff9800"
+          stroke="#a8c4e0"
           strokeWidth={2}
           dot={{ r: 2 }}
           activeDot={{ r: 4 }}

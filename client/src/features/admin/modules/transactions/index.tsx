@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle
@@ -19,7 +18,11 @@ import { toast } from "sonner";
 import {
   AdminButton,
   AdminCard,
+  AdminDialogContent,
+  AdminStatCard,
   adminCompactActionsClassName,
+  adminDropdownContentClassName,
+  adminDropdownItemClassName,
   AdminSectionHeader,
   adminTableCellClassName,
   adminTableClassName,
@@ -170,60 +173,15 @@ export default function Transactions() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
-        {stats.map((metric) => {
-          const colorMap: Record<
-            string,
-            { bg: string; text: string; icon: string; border: string }
-          > = {
-            accent: {
-              bg: "bg-admin-accent/5",
-              text: "text-admin-accent",
-              icon: "bg-admin-accent/15 text-admin-accent",
-              border: "border-admin-accent/20",
-            },
-            blue: {
-              bg: "bg-admin-blue/5",
-              text: "text-admin-blue",
-              icon: "bg-admin-blue/15 text-admin-blue",
-              border: "border-admin-blue/20",
-            },
-            gold: {
-              bg: "bg-admin-gold/5",
-              text: "text-admin-gold",
-              icon: "bg-admin-gold/15 text-admin-gold",
-              border: "border-admin-gold/20",
-            },
-            red: {
-              bg: "bg-red-500/5",
-              text: "text-red-500",
-              icon: "bg-red-500/15 text-red-500",
-              border: "border-red-500/20",
-            },
-          };
-
-          const colors = colorMap[metric.tone] || colorMap.accent;
-
-          return (
-            <AdminCard
-              key={metric.label}
-              className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
-                    {metric.label}
-                  </p>
-                  <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
-                    <div className="h-3 w-3" />
-                  </div>
-                </div>
-                <p className={`text-base font-bold sm:text-lg ${colors.text}`}>
-                  {metric.value}
-                </p>
-              </div>
-            </AdminCard>
-          );
-        })}
+        {stats.map((metric) => (
+          <AdminStatCard
+            key={metric.label}
+            label={metric.label}
+            value={metric.value}
+            tone={metric.tone}
+            helper="Live totals across wallet inflows and payout activity"
+          />
+        ))}
       </div>
 
       {/* Filters */}
@@ -244,7 +202,7 @@ export default function Transactions() {
                 );
                 setCurrentPage(1);
               }}
-              className="rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-sm text-admin-text-primary focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="rounded-2xl border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] bg-admin-surface/55 px-3.5 py-2.5 text-sm text-admin-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-admin-accent/20"
             >
               <option value="">All Statuses</option>
               <option value="pending">Pending</option>
@@ -260,7 +218,7 @@ export default function Transactions() {
                 setTypeFilter(e.target.value as "" | "deposit" | "withdrawal");
                 setCurrentPage(1);
               }}
-              className="rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-sm text-admin-text-primary focus:outline-none focus:ring-2 focus:ring-admin-accent"
+              className="rounded-2xl border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] bg-admin-surface/55 px-3.5 py-2.5 text-sm text-admin-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] focus:outline-none focus:ring-2 focus:ring-admin-accent/20"
             >
               <option value="">All Types</option>
               <option value="deposit">Deposits</option>
@@ -375,8 +333,12 @@ export default function Transactions() {
                             <MoreHorizontal size={16} />
                           </AdminButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuContent
+                          align="end"
+                          className={`${adminDropdownContentClassName} w-44`}
+                        >
                           <DropdownMenuItem
+                            className={adminDropdownItemClassName}
                             onClick={() => {
                               setSelectedTxn(transaction);
                               setDetailsOpen(true);
@@ -397,7 +359,7 @@ export default function Transactions() {
         {/* Transaction Details Dialog */}
         <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
           {selectedTxn && (
-            <DialogContent className="max-w-lg border-admin-border bg-admin-card text-admin-text-primary">
+            <AdminDialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>Transaction Details</DialogTitle>
                 <DialogDescription className="text-admin-text-muted">
@@ -529,7 +491,7 @@ export default function Transactions() {
                   )}
                 </div>
               </ScrollArea>
-            </DialogContent>
+            </AdminDialogContent>
           )}
         </Dialog>
       </AdminCard>
@@ -542,24 +504,22 @@ export default function Transactions() {
               Page {currentPage} of {pagination.pages}
             </div>
             <div className="flex gap-2">
-              <Button
+              <AdminButton
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                variant="outline"
                 size="sm"
               >
                 Previous
-              </Button>
-              <Button
+              </AdminButton>
+              <AdminButton
                 onClick={() =>
                   setCurrentPage(Math.min(pagination.pages, currentPage + 1))
                 }
                 disabled={currentPage === pagination.pages}
-                variant="outline"
                 size="sm"
               >
                 Next
-              </Button>
+              </AdminButton>
             </div>
           </div>
         </AdminCard>

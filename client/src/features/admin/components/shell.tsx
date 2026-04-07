@@ -212,6 +212,14 @@ export default function AdminShell() {
   }, []);
 
   useEffect(() => {
+    document.body.classList.add("admin-workspace");
+
+    return () => {
+      document.body.classList.remove("admin-workspace");
+    };
+  }, []);
+
+  useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setMobileSidebarOpen(false);
@@ -235,7 +243,11 @@ export default function AdminShell() {
 
   return (
     <ProtectedRoute requireRole="ADMIN">
-      <div className="relative min-h-dvh bg-admin-bg font-admin text-admin-text-primary lg:flex">
+      <div className="relative min-h-dvh overflow-hidden bg-admin-bg font-admin text-admin-text-primary lg:flex">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,197,24,0.12),transparent_28%),radial-gradient(circle_at_top_right,rgba(168,196,224,0.14),transparent_26%),linear-gradient(180deg,rgba(3,10,22,0.14),transparent_42%)]"
+        />
         {/* Mobile Sidebar Overlay */}
         {mobileSidebarOpen && (
           <button
@@ -249,8 +261,8 @@ export default function AdminShell() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col overflow-hidden border-r border-admin-border bg-admin-card",
-            "shadow-[4px_0_24px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out",
+            "fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col overflow-hidden border-r border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)_60%),linear-gradient(160deg,rgba(255,255,255,0.05),transparent_38%)] bg-admin-card/95 backdrop-blur-xl",
+            "shadow-[10px_0_40px_rgba(2,8,23,0.35)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0 lg:shadow-none",
             sidebarExpanded
@@ -388,14 +400,14 @@ export default function AdminShell() {
         </aside>
 
         {/* Main Content Area */}
-        <div className="relative flex min-w-0 flex-1 flex-col bg-admin-bg">
+        <div className="relative flex min-w-0 flex-1 flex-col bg-transparent">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--color-accent-soft),transparent_50%)] opacity-40"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--color-accent-soft),transparent_44%),radial-gradient(circle_at_18%_18%,rgba(168,196,224,0.08),transparent_18%)] opacity-70"
           />
 
           {/* Top Header - Updated to match sidebar background */}
-          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-admin-border bg-admin-card px-4 sm:px-6 lg:px-8">
+          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-admin-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015)_58%)] bg-admin-card/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 lg:hidden">
               <button
                 type="button"
@@ -409,7 +421,7 @@ export default function AdminShell() {
 
             {/* Search Bar - Updated for contrast */}
             <div className="hidden max-w-md flex-1 items-center md:flex">
-              <div className="group flex h-10 w-full items-center gap-2.5 rounded-full border border-admin-border bg-admin-bg/50 px-4 transition-all focus-within:border-admin-accent/50 focus-within:bg-admin-bg focus-within:ring-4 focus-within:ring-admin-accent/10 hover:bg-admin-bg/80">
+              <div className="group flex h-11 w-full items-center gap-2.5 rounded-full border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] bg-admin-bg/60 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-all focus-within:border-admin-accent/50 focus-within:bg-admin-bg/85 focus-within:ring-4 focus-within:ring-admin-accent/10 hover:bg-admin-bg/80">
                 <Search
                   size={16}
                   className="text-admin-text-muted transition-colors group-focus-within:text-admin-accent"
@@ -420,7 +432,7 @@ export default function AdminShell() {
                   placeholder="Search anything..."
                   value={searchQuery}
                 />
-                <div className="hidden items-center gap-1 rounded-md border border-admin-border/60 bg-admin-card px-1.5 py-0.5 text-[10px] font-medium text-admin-text-muted lg:flex">
+                <div className="hidden items-center gap-1 rounded-md border border-admin-border/60 bg-admin-card/75 px-1.5 py-0.5 text-[10px] font-medium text-admin-text-muted lg:flex">
                   ⌘K
                 </div>
               </div>
@@ -464,7 +476,7 @@ export default function AdminShell() {
                 </button>
 
                 {notificationsOpen && (
-                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(380px,calc(100vw-2rem))] origin-top-right overflow-hidden rounded-2xl border border-admin-border bg-admin-card shadow-[0_16px_40px_-10px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(380px,calc(100vw-2rem))] origin-top-right overflow-hidden rounded-[1.6rem] border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card/95 shadow-[0_24px_70px_-16px_rgba(0,0,0,0.65)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center justify-between border-b border-admin-border/50 px-5 py-4">
                       <h3 className="text-sm font-semibold text-admin-text-primary">
                         Notifications
@@ -577,7 +589,7 @@ export default function AdminShell() {
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-64 origin-top-right overflow-hidden rounded-2xl border border-admin-border bg-admin-card shadow-[0_16px_40px_-10px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-64 origin-top-right overflow-hidden rounded-[1.6rem] border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card/95 shadow-[0_24px_70px_-16px_rgba(0,0,0,0.65)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-3 border-b border-admin-border/50 p-4">
                       <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-sm font-bold text-white shadow-inner">
                         {user?.email.charAt(0).toUpperCase()}
