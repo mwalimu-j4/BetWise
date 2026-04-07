@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronDown, CircleCheck, CircleX, Menu, Zap } from "lucide-react";
+import { Bell, ChevronDown, CircleCheck, CircleX, Menu } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
 import SearchBar from "@/components/search/SearchBar";
@@ -16,30 +16,12 @@ type NavbarProps = {
   onToggleSidebar: () => void;
 };
 
-type LiveGame = {
-  id: string;
-  match: string;
-  league: string;
-  isLive: boolean;
-};
-
 const tickerItems = [
   { label: "Arsenal vs Liverpool", odds: "1.85", up: true },
   { label: "PSG vs Bayern", odds: "2.10", up: false },
   { label: "Inter vs Milan", odds: "1.92", up: true },
   { label: "Madrid vs Sevilla", odds: "1.73", up: true },
   { label: "Chelsea vs Villa", odds: "2.40", up: false },
-];
-
-const liveGames: LiveGame[] = [
-  { id: "1", match: "Arsenal vs Liverpool", league: "Premier League", isLive: true },
-  { id: "2", match: "Manchester City vs Chelsea", league: "Premier League", isLive: true },
-  { id: "3", match: "PSG vs AS Monaco", league: "Ligue 1", isLive: true },
-  { id: "4", match: "Real Madrid vs Barcelona", league: "La Liga", isLive: true },
-  { id: "5", match: "Bayern Munich vs Borussia Dortmund", league: "Bundesliga", isLive: true },
-  { id: "6", match: "AC Milan vs Inter Milan", league: "Serie A", isLive: true },
-  { id: "7", match: "Liverpool vs Manchester United", league: "Premier League", isLive: false },
-  { id: "8", match: "Tottenham vs Newcastle", league: "Premier League", isLive: false },
 ];
 
 const leagues = [
@@ -115,11 +97,9 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [liveGamesOpen, setLiveGamesOpen] = useState(false);
   const lastPathRef = useRef(location.pathname);
   const notifyRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
-  const liveGamesRef = useRef<HTMLDivElement>(null);
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
 
@@ -128,7 +108,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       lastPathRef.current = location.pathname;
       setNotificationsOpen(false);
       setAccountOpen(false);
-      setLiveGamesOpen(false);
     }
   }, [location.pathname]);
 
@@ -146,20 +125,15 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       if (accountRef.current && !accountRef.current.contains(target)) {
         setAccountOpen(false);
       }
-
-      // Close live games dropdown if clicking outside
-      if (liveGamesRef.current && !liveGamesRef.current.contains(target)) {
-        setLiveGamesOpen(false);
-      }
     }
 
-    if (notificationsOpen || accountOpen || liveGamesOpen) {
+    if (notificationsOpen || accountOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }
-  }, [notificationsOpen, accountOpen, liveGamesOpen]);
+  }, [notificationsOpen, accountOpen]);
 
   const notifications = notificationData?.notifications ?? [];
   const unreadCount = notificationData?.unreadCount ?? 0;
@@ -214,52 +188,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
 
         <div className="bc-actions">
-          <div className="bc-live-games-dropdown" ref={liveGamesRef}>
-            <button
-              type="button"
-              className={`bc-live-games-trigger ${liveGamesOpen ? "is-open" : ""}`}
-              aria-label="Open live games"
-              onClick={() => setLiveGamesOpen((prev) => !prev)}
-            >
-              <Zap size={14} />
-              <span>Live Games</span>
-            </button>
-            {liveGamesOpen ? (
-              <div className="bc-live-games-menu">
-                <div className="bc-live-games-header">
-                  <h3 className="bc-live-games-title">Live Games</h3>
-                </div>
-                <div className="bc-live-games-content">
-                  {liveGames.length > 0 ? (
-                    liveGames.map((game) => (
-                      <Link
-                        key={game.id}
-                        to="/user/live"
-                        onClick={() => setLiveGamesOpen(false)}
-                        className="bc-live-game-item"
-                      >
-                        <div className="bc-live-game-info">
-                          <div className="bc-live-game-match">{game.match}</div>
-                          <div className="bc-live-game-league">{game.league}</div>
-                        </div>
-                        {game.isLive ? (
-                          <span className="bc-live-game-badge">LIVE</span>
-                        ) : null}
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="bc-live-games-empty">
-                      <div className="bc-live-games-empty-icon">
-                        <Zap size={16} />
-                      </div>
-                      <p>No live games right now</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : null}
-          </div>
-
           {isAuthenticated && myBetsCount > 0 ? (
             <Link
               to="/my-bets"

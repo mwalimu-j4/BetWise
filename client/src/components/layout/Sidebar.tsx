@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Zap } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
@@ -393,6 +393,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     football: true,
     basketball: true,
   });
+  const [liveSportsOpen, setLiveSportsOpen] = useState(true);
   const [liveCounts, setLiveCounts] = useState<Record<string, number>>(() => ({
     Soccer: 0,
     Basketball: 0,
@@ -475,30 +476,35 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside className={`bc-sidebar ${isOpen ? "is-open" : ""}`}>
         <div className="bc-side-scroll">
           <div className="bc-side-section">
-            <p className="bc-side-heading">Live Sports</p>
-            <div className="overflow-hidden rounded-md border border-[#1a2332]">
+            <button
+              type="button"
+              className="bc-live-sports-toggle"
+              onClick={() => setLiveSportsOpen((prev) => !prev)}
+            >
+              <Zap size={16} />
+              <span>Live Sports</span>
+              <ChevronDown
+                size={14}
+                className={`bc-live-sports-chevron ${liveSportsOpen ? "is-open" : ""}`}
+              />
+            </button>
+            <div className={`bc-live-sports-list ${liveSportsOpen ? "is-open" : ""}`}>
               {liveSportsOrder.map((name) => {
+                const count = liveCounts[name] ?? 0;
                 return (
                   <Link
                     key={name}
                     to="/user/live"
-                    className={[
-                      "flex items-center gap-2 border-b border-[#1a2332] px-4 py-[7px] text-[12px] text-[#94a3b8] transition-colors",
-                      "hover:bg-[#1e293b] hover:text-white",
-                    ].join(" ")}
+                    className="bc-live-sport-item"
                     onClick={closeIfMobile}
                   >
-                    <span className="w-[18px] text-center text-[10px] font-semibold text-[#64748b]">
+                    <span className="bc-side-icon" aria-hidden="true">
                       {sportIcon(name)}
                     </span>
-                    <span className="flex-1">{name}</span>
-                    <span
-                      className={[
-                        "text-[10px] font-medium text-[#64748b]",
-                      ].join(" ")}
-                    >
-                      {liveCounts[name] ?? 0}
-                    </span>
+                    <span className="bc-live-sport-name">{name}</span>
+                    {count > 0 ? (
+                      <span className="bc-live-sport-count">{count > 99 ? "99+" : count}</span>
+                    ) : null}
                   </Link>
                 );
               })}
