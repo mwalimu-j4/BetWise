@@ -253,9 +253,7 @@ export default function AdminShell() {
             "shadow-[4px_0_24px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0 lg:shadow-none",
-            sidebarExpanded
-              ? "lg:w-65 lg:min-w-65"
-              : "lg:w-20 lg:min-w-20",
+            sidebarExpanded ? "lg:w-65 lg:min-w-65" : "lg:w-20 lg:min-w-20",
           )}
         >
           {/* Sidebar Header */}
