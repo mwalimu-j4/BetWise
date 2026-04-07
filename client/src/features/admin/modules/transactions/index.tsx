@@ -212,9 +212,7 @@ export default function Transactions() {
                     <div className="h-3 w-3" />
                   </div>
                 </div>
-                <p
-                  className={`text-base font-bold sm:text-lg ${colors.text}`}
-                >
+                <p className={`text-base font-bold sm:text-lg ${colors.text}`}>
                   {metric.value}
                 </p>
               </div>
