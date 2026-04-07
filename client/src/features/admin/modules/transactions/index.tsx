@@ -306,7 +306,7 @@ export default function Transactions() {
               <tbody>
                 {transactions.map((transaction) => (
                   <tr
-                    className="even:bg-[var(--color-bg-elevated)] hover:bg-admin-surface/60 cursor-pointer transition-colors"
+                    className="even:bg-(--color-bg-elevated) hover:bg-admin-surface/60 cursor-pointer transition-colors"
                     key={transaction.id}
                     onClick={() => {
                       setSelectedTxn(transaction);
@@ -321,7 +321,7 @@ export default function Transactions() {
                     <td className={adminTableCellClassName}>
                       <div className="flex flex-col">
                         <span
-                          className="max-w-[120px] truncate text-sm font-semibold text-admin-text-primary"
+                          className="max-w-30 truncate text-sm font-semibold text-admin-text-primary"
                           title={transaction.userEmail}
                         >
                           {truncateEmailForTable(transaction.userEmail)}
@@ -531,12 +531,6 @@ export default function Transactions() {
             </DialogContent>
           )}
         </Dialog>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </TableShell>
-        )}
       </AdminCard>
 
       {/* Pagination */}
