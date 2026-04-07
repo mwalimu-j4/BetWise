@@ -97,6 +97,8 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const lastPathRef = useRef(location.pathname);
+  const notifyRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
 
@@ -107,6 +109,30 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       setAccountOpen(false);
     }
   }, [location.pathname]);
+
+  // Handle click outside dropdowns
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+
+      // Close notifications if clicking outside
+      if (notifyRef.current && !notifyRef.current.contains(target)) {
+        setNotificationsOpen(false);
+      }
+
+      // Close account dropdown if clicking outside
+      if (accountRef.current && !accountRef.current.contains(target)) {
+        setAccountOpen(false);
+      }
+    }
+
+    if (notificationsOpen || accountOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [notificationsOpen, accountOpen]);
 
   const notifications = notificationData?.notifications ?? [];
   const unreadCount = notificationData?.unreadCount ?? 0;
@@ -197,7 +223,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
 
           {isAuthenticated ? (
             <>
-              <div className="bc-notify">
+              <div className="bc-notify" ref={notifyRef}>
                 <button
                   type="button"
                   className="bc-icon-btn bc-notify-trigger"
@@ -280,7 +306,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                 ) : null}
               </div>
 
-              <div className="bc-account-wrap">
+              <div className="bc-account-wrap" ref={accountRef}>
                 <button
                   type="button"
                   className={`bc-account-trigger ${accountOpen ? "is-open" : ""}`}
