@@ -108,11 +108,12 @@ interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
 }
 
-export const adminTableClassName = "min-w-[760px] w-full border-collapse";
+export const adminTableClassName =
+  "min-w-[640px] w-full border-collapse text-sm";
 export const adminTableHeadCellClassName =
-  "border-b border-admin-border px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted";
+  "border-b border-admin-border px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:px-4 sm:py-3.5 sm:text-[11px]";
 export const adminTableCellClassName =
-  "border-b border-admin-border px-4 py-4 text-sm text-admin-text-secondary";
+  "border-b border-admin-border px-3 py-3 align-top text-xs text-admin-text-secondary sm:px-4 sm:py-4 sm:text-sm";
 export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
 
@@ -334,7 +335,11 @@ export function InlinePill({
 }
 
 export function TableShell({ children }: { children: ReactNode }) {
-  return <div className="overflow-x-auto">{children}</div>;
+  return (
+    <div className="w-full overflow-x-auto rounded-xl border border-admin-border/70 bg-admin-surface/20">
+      {children}
+    </div>
+  );
 }
 
 export function MiniChart() {

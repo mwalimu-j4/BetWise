@@ -282,7 +282,7 @@ export default function AdminShell() {
           ) : null}
         </aside>
 
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-admin-bg">
+        <div className="relative flex min-h-dvh flex-1 flex-col bg-admin-bg">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--color-accent-soft),transparent_28%),linear-gradient(180deg,var(--color-bg-elevated),var(--color-bg-primary)_180px)]"
@@ -530,7 +530,7 @@ export default function AdminShell() {
             </div>
           </header>
 
-          <main className="app-scrollbar relative flex-1 overflow-auto p-4 sm:p-6">
+          <main className="relative flex-1 p-4 sm:p-6">
             <Outlet />
           </main>
         </div>
