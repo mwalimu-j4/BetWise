@@ -65,12 +65,8 @@ export default function RegisterModal() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Validation Logic
-  const emailValid = isValidEmail(email);
-  const phoneValid = KENYAN_PHONE_REGEX.test(phone.trim());
+  // Validation Logic - only check password is 6+ chars
   const passwordValid = password.length >= 6;
-  const confirmValid =
-    confirmPassword.length > 0 && confirmPassword === password;
 
   // Only require all fields to be filled, allow submit even if validation fails to get server feedback
   const canSubmit = useMemo(
@@ -213,9 +209,6 @@ export default function RegisterModal() {
                       required
                     />
                   </div>
-                  {!emailValid && email.length > 0 && (
-                    <p className="text-xs text-red-400">Valid email required</p>
-                  )}
                   {errors.email && (
                     <div className="space-y-1">
                       {errors.email.map((error, idx) => (
@@ -254,9 +247,6 @@ export default function RegisterModal() {
                       required
                     />
                   </div>
-                  {!phoneValid && phone.length > 0 && (
-                    <p className="text-xs text-red-400">Invalid phone number</p>
-                  )}
                   {errors.phone && (
                     <div className="space-y-1">
                       {errors.phone.map((error, idx) => (
@@ -289,7 +279,7 @@ export default function RegisterModal() {
                         setPassword(e.target.value);
                         clearFieldError("password");
                       }}
-                      placeholder="Min. 6 characters"
+                      placeholder="Enter your password"
                       autoComplete="new-password"
                       className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-[#3d6ba3]/40 bg-[#1a3a6b]/50 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30"
                       required
@@ -302,11 +292,6 @@ export default function RegisterModal() {
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
-                  {!passwordValid && password.length > 0 && (
-                    <p className="text-xs text-red-400">
-                      Password must be at least 6 characters
-                    </p>
-                  )}
                   {errors.password && (
                     <div className="space-y-1">
                       {errors.password.map((error, idx) => (
@@ -358,25 +343,6 @@ export default function RegisterModal() {
                       )}
                     </button>
                   </div>
-                  {confirmPassword.length > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs">
-                      {confirmPassword === password ? (
-                        <>
-                          <Check size={12} className="text-emerald-400" />
-                          <span className="text-emerald-400">
-                            Passwords match
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <X size={12} className="text-red-400" />
-                          <span className="text-red-400">
-                            Passwords don't match
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  )}
                   {errors.confirmPassword && (
                     <div className="space-y-1">
                       {errors.confirmPassword.map((error, idx) => (
