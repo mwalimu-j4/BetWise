@@ -767,9 +767,9 @@ export default function Events() {
               </optgroup>
             ))}
           </select>
-            <div className="text-xs text-admin-text-muted sm:text-right">
-              {refreshing ? "Refreshing events..." : ""}
-            </div>
+          <div className="text-xs text-admin-text-muted sm:text-right">
+            {refreshing ? "Refreshing events..." : ""}
+          </div>
         </div>
       </div>
 
@@ -892,7 +892,9 @@ export default function Events() {
             <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
               {metric.label}
             </p>
-            <p className={`mt-1.5 text-xl font-bold sm:text-2xl ${metric.tone}`}>
+            <p
+              className={`mt-1.5 text-xl font-bold sm:text-2xl ${metric.tone}`}
+            >
               {statsLoading ? "..." : metric.value}
             </p>
           </AdminCard>

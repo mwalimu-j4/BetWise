@@ -109,7 +109,7 @@ interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const adminTableClassName =
-  "min-w-[480px] w-full border-collapse text-xs sm:min-w-[560px] sm:text-sm lg:min-w-[760px]";
+  "min-w-[360px] w-full border-collapse text-xs sm:min-w-[520px] sm:text-sm lg:min-w-[760px]";
 export const adminTableHeadCellClassName =
   "border-b border-admin-border px-2.5 py-2 text-left text-[9px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:px-3 sm:py-2.5 sm:text-[10px] lg:px-4 lg:py-3.5 lg:text-[11px]";
 export const adminTableCellClassName =
@@ -562,7 +562,10 @@ export function DepositWithdrawalChart({
           labelStyle={{ color: "#00e5a0", fontSize: "11px" }}
           cursor={{ fill: "rgba(255,255,255,0.05)" }}
         />
-        <Legend iconSize={8} wrapperStyle={{ fontSize: "11px", paddingTop: 8 }} />
+        <Legend
+          iconSize={8}
+          wrapperStyle={{ fontSize: "11px", paddingTop: 8 }}
+        />
         <Line
           type="monotone"
           dataKey="deposits"

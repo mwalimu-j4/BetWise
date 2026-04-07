@@ -565,14 +565,14 @@ export default function Odds() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
         <button
           className="text-left"
           type="button"
           onClick={() => setFilter("configured")}
         >
           <AdminCard
-            className={`p-4 transition ${
+            className={`p-3 transition sm:p-4 ${
               activeFilter === "configured"
                 ? "border-admin-accent ring-1 ring-admin-accent"
                 : ""
@@ -582,7 +582,7 @@ export default function Odds() {
             <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
               Configured Games
             </p>
-            <p className="mt-2 text-2xl font-bold text-admin-blue">
+            <p className="mt-1.5 text-xl font-bold text-admin-blue sm:text-2xl">
               {statsLoading ? "..." : (stats?.totalConfigured ?? 0)}
             </p>
             <p className="mt-1 text-xs text-admin-text-muted">Active events</p>
@@ -594,7 +594,7 @@ export default function Odds() {
           onClick={() => setFilter("configured-with-odds")}
         >
           <AdminCard
-            className={`p-4 transition ${
+            className={`p-3 transition sm:p-4 ${
               activeFilter === "configured-with-odds"
                 ? "border-admin-accent ring-1 ring-admin-accent"
                 : ""
@@ -604,7 +604,7 @@ export default function Odds() {
             <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
               With Odds
             </p>
-            <p className="mt-2 text-2xl font-bold text-admin-accent">
+            <p className="mt-1.5 text-xl font-bold text-admin-accent sm:text-2xl">
               {statsLoading ? "..." : (stats?.withOdds ?? 0)}
             </p>
             <p className="mt-1 text-xs text-admin-text-muted">
@@ -618,7 +618,7 @@ export default function Odds() {
           onClick={() => setFilter("all-with-odds")}
         >
           <AdminCard
-            className={`p-4 transition ${
+            className={`p-3 transition sm:p-4 ${
               activeFilter === "all-with-odds"
                 ? "border-admin-accent ring-1 ring-admin-accent"
                 : ""
@@ -628,7 +628,7 @@ export default function Odds() {
             <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
               All With Odds
             </p>
-            <p className="mt-2 text-2xl font-bold text-admin-gold">
+            <p className="mt-1.5 text-xl font-bold text-admin-gold sm:text-2xl">
               {statsLoading ? "..." : (stats?.withOdds ?? 0)}
             </p>
             <p className="mt-1 text-xs text-admin-text-muted">
@@ -636,19 +636,19 @@ export default function Odds() {
             </p>
           </AdminCard>
         </button>
-        <AdminCard className="p-4" interactive>
+        <AdminCard className="p-3 sm:p-4" interactive>
           <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
             Bookmakers
           </p>
-          <p className="mt-2 text-2xl font-bold text-admin-gold">
+          <p className="mt-1.5 text-xl font-bold text-admin-gold sm:text-2xl">
             {statsLoading ? "..." : (stats?.bookmakers ?? 0)}
           </p>
           <p className="mt-1 text-xs text-admin-text-muted">Visible sources</p>
         </AdminCard>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-        <AdminCard className="space-y-3">
+      <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:gap-3">
+        <AdminCard className="space-y-2.5">
           <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
             Select Odds
           </p>
@@ -687,7 +687,7 @@ export default function Odds() {
           )}
         </AdminCard>
 
-        <AdminCard className="space-y-3">
+        <AdminCard className="space-y-2.5">
           <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
             Configured Games
           </p>
@@ -735,7 +735,7 @@ export default function Odds() {
         </AdminCard>
       </div>
 
-      <AdminCard className="space-y-3">
+      <AdminCard className="space-y-2.5">
         <div className="relative">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-admin-text-muted"
@@ -749,7 +749,7 @@ export default function Odds() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
           <label className="inline-flex items-center gap-2 text-xs text-admin-text-muted">
             <input
               checked={allOnPageSelected}
@@ -763,6 +763,7 @@ export default function Odds() {
             size="sm"
             onClick={() => void handleBookmarkBulk()}
             disabled={bulkBookmarking || selectedEventIds.length === 0}
+            className="w-full sm:w-auto"
           >
             {bulkBookmarking ? (
               <>
@@ -800,7 +801,7 @@ export default function Odds() {
               return (
                 <AdminCard
                   key={event.eventId}
-                  className="space-y-3 border-admin-border bg-admin-surface"
+                  className="space-y-2.5 border-admin-border bg-admin-surface"
                 >
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -838,22 +839,37 @@ export default function Odds() {
                     <div className="flex flex-wrap items-center gap-2">
                       <AdminButton
                         size="sm"
+                        className="px-2.5 sm:px-3.5"
                         variant="ghost"
                         onClick={() => void handleViewOdds(event.eventId)}
                       >
-                        {expanded ? "Hide Odds" : "View Odds"}
+                        <span className="sm:hidden">
+                          {expanded ? "Hide" : "Odds"}
+                        </span>
+                        <span className="hidden sm:inline">
+                          {expanded ? "Hide Odds" : "View Odds"}
+                        </span>
                       </AdminButton>
                       <AdminButton
                         size="sm"
+                        className="px-2.5 sm:px-3.5"
                         onClick={() => void handleBookmarkSingle(event.eventId)}
                         disabled={Boolean(bookmarkingEventIds[event.eventId])}
                       >
                         {bookmarkingEventIds[event.eventId] ? (
                           <Loader2 className="animate-spin" size={13} />
                         ) : bookmarkedEventIds[event.eventId] ? (
-                          "Bookmarked ✓"
+                          <>
+                            <span className="sm:hidden">Saved ✓</span>
+                            <span className="hidden sm:inline">Bookmarked ✓</span>
+                          </>
                         ) : (
-                          "Bookmark Best"
+                          <>
+                            <span className="sm:hidden">Bookmark</span>
+                            <span className="hidden sm:inline">
+                              Bookmark Best
+                            </span>
+                          </>
                         )}
                       </AdminButton>
                     </div>

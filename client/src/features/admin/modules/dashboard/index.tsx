@@ -241,7 +241,9 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div>
-                        <p className={`text-base font-bold sm:text-lg ${colors.text}`}>
+                        <p
+                          className={`text-base font-bold sm:text-lg ${colors.text}`}
+                        >
                           {metric.value}
                         </p>
                         {metric.helper && (
