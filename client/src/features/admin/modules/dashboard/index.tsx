@@ -513,7 +513,7 @@ export default function Dashboard() {
               <h3 className="text-sm font-semibold text-admin-text">
                 Quick Links
               </h3>
-              
+
               {/* 2x3 Grid for Quick Links */}
               <div className="grid grid-cols-2 gap-2">
                 {/* Pending Payouts */}
@@ -560,7 +560,9 @@ export default function Dashboard() {
                     <p className="text-xs font-bold text-admin-text-primary leading-tight">
                       Analytics
                     </p>
-                    <p className="text-[11px] text-admin-text-muted">Insights</p>
+                    <p className="text-[11px] text-admin-text-muted">
+                      Insights
+                    </p>
                   </div>
                 </Link>
 
