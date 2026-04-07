@@ -102,8 +102,8 @@ export default function BettingHome() {
   }, [heroImages.length]);
 
   return (
-    <div className="min-h-screen bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
-      <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen  bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
+      <div className="mx-auto max-w-7xl  space-y-5 px-4 py-6 sm:px-6 lg:px-8">
         <section className="overflow-hidden rounded-2xl border border-[#23384f] bg-[#101b2b]">
           <div className="relative h-[80px] w-full sm:h-[100px] md:h-[120px]">
             {heroImages.map((image, index) => (
@@ -124,7 +124,7 @@ export default function BettingHome() {
               </article>
             ))}
 
-            <div className="absolute inset-x-0 bottom-0 p-2 sm:p-3 md:p-4">
+            <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 md:p-5">
               <p className="text-[9px] uppercase tracking-[0.18em] text-[#f5c518]">
                 BetixPro Picks
               </p>

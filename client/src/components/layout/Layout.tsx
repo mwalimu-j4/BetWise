@@ -31,7 +31,7 @@ export default function Layout() {
   return (
     <div className="bc-layout-root">
       <Navbar onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-      <div className="bc-layout-body">
+      <div className="mt-12 flex min-h-[calc(100vh-3rem)] md:mt-28">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         {/* Added bottom padding so the mobile nav doesn't cover content */}
         <main
