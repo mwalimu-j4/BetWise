@@ -253,6 +253,26 @@ function BettingReportsTab({ period }: { period: ReportPeriod }) {
   const { data, isLoading, isError, error } = useAdminBettingReport(period);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
+  const winLossData = useMemo(
+    () =>
+      [
+        { name: "Won", value: data?.winLossStats.won ?? 0, color: "#10b981" },
+        { name: "Lost", value: data?.winLossStats.lost ?? 0, color: "#ef4444" },
+        {
+          name: "Pending",
+          value: data?.winLossStats.pending ?? 0,
+          color: "#f59e0b",
+        },
+        { name: "Void", value: data?.winLossStats.void ?? 0, color: "#6b7280" },
+      ].filter((d) => d.value > 0),
+    [data?.winLossStats],
+  );
+
+  const topMarketsData = useMemo(
+    () => data?.topMarkets.slice(0, 5) ?? [],
+    [data?.topMarkets],
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -297,22 +317,6 @@ function BettingReportsTab({ period }: { period: ReportPeriod }) {
       tone: "gold" as const,
     },
   ];
-
-  const winLossData = useMemo(
-    () =>
-      [
-        { name: "Won", value: data.winLossStats.won, color: "#10b981" },
-        { name: "Lost", value: data.winLossStats.lost, color: "#ef4444" },
-        { name: "Pending", value: data.winLossStats.pending, color: "#f59e0b" },
-        { name: "Void", value: data.winLossStats.void, color: "#6b7280" },
-      ].filter((d) => d.value > 0),
-    [data.winLossStats],
-  );
-
-  const topMarketsData = useMemo(
-    () => data.topMarkets.slice(0, 5),
-    [data.topMarkets],
-  );
 
   return (
     <div className="space-y-6">
@@ -433,6 +437,8 @@ function BettingReportsTab({ period }: { period: ReportPeriod }) {
 function UsersReportsTab({ period }: { period: ReportPeriod }) {
   const { data, isLoading, isError, error } = useAdminUsersReport(period);
 
+  const topBettors = useMemo(() => data?.topBettors ?? [], [data?.topBettors]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -477,8 +483,6 @@ function UsersReportsTab({ period }: { period: ReportPeriod }) {
       tone: "gold" as const,
     },
   ];
-
-  const topBettors = useMemo(() => data.topBettors, [data.topBettors]);
 
   return (
     <div className="space-y-6">
@@ -552,6 +556,35 @@ function RiskReportsTab({ period }: { period: ReportPeriod }) {
   const { data, isLoading, isError, error } = useAdminRiskReport(period);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
+  const severityData = useMemo(
+    () =>
+      (data?.alertsBySeverity ?? [])
+        .map((a) => ({
+          name: a.severity,
+          value: a._count,
+          color:
+            a.severity === "CRITICAL"
+              ? "#dc2626"
+              : a.severity === "HIGH"
+                ? "#f97316"
+                : a.severity === "MEDIUM"
+                  ? "#eab308"
+                  : "#22c55e",
+        }))
+        .filter((d) => d.value > 0),
+    [data?.alertsBySeverity],
+  );
+
+  const topAlertTypes = useMemo(
+    () => data?.alertsByType.slice(0, 5) ?? [],
+    [data?.alertsByType],
+  );
+
+  const recentAlerts = useMemo(
+    () => data?.recentHighRiskAlerts ?? [],
+    [data?.recentHighRiskAlerts],
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -596,34 +629,6 @@ function RiskReportsTab({ period }: { period: ReportPeriod }) {
       tone: "accent" as const,
     },
   ];
-
-  const severityData = useMemo(
-    () =>
-      data.alertsBySeverity
-        .map((a) => ({
-          name: a.severity,
-          value: a._count,
-          color:
-            a.severity === "CRITICAL"
-              ? "#dc2626"
-              : a.severity === "HIGH"
-                ? "#f97316"
-                : a.severity === "MEDIUM"
-                  ? "#eab308"
-                  : "#22c55e",
-        }))
-        .filter((d) => d.value > 0),
-    [data.alertsBySeverity],
-  );
-
-  const topAlertTypes = useMemo(
-    () => data.alertsByType.slice(0, 5),
-    [data.alertsByType],
-  );
-  const recentAlerts = useMemo(
-    () => data.recentHighRiskAlerts,
-    [data.recentHighRiskAlerts],
-  );
 
   return (
     <div className="space-y-6">
