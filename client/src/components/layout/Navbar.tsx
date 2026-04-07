@@ -1,4 +1,4 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Bell, ChevronDown, CircleCheck, CircleX, Menu } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
@@ -87,6 +87,7 @@ function toText(value: unknown, fallback = "") {
 
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated, openAuthModal } = useAuth();
 
   const { data: walletSummary } = useWalletSummary();
@@ -209,12 +210,17 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           ) : null}
 
           {isAuthenticated ? (
-            <div className="bc-balance-card" aria-label="Wallet Balance">
+            <button
+              type="button"
+              className="bc-balance-card"
+              aria-label="Wallet Balance"
+              onClick={() => navigate({ to: "/user/payments" })}
+            >
               <span className="bc-balance-label">Balance:</span>
               <span className="bc-balance-value">
                 {formatMoney(walletSummary?.wallet.balance ?? 0)}
               </span>
-            </div>
+            </button>
           ) : (
             <span className="text-xs text-[#a8c4e0] font-medium">
               Login to view balance
