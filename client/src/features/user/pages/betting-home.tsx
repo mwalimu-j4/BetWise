@@ -184,7 +184,7 @@ export default function BettingHome() {
           </div>
         </section>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="min-w-0 space-y-5">
             {liveEvents.length > 0 ? (
               <section className="space-y-3 overflow-hidden rounded-xl border border-[#23384f] bg-[#101b2b] p-4">
@@ -212,7 +212,7 @@ export default function BettingHome() {
                   ) : null}
                 </div>
 
-                <div className="divide-y divide-[#21364a]">
+                <div className="space-y-3">
                   {featuredLiveEvents.map((event) => (
                     <EventCard
                       key={event.eventId}
@@ -292,7 +292,7 @@ export default function BettingHome() {
             </section>
           </div>
 
-          <div className="relative min-w-0">
+          <div className="relative min-w-0 self-start">
             <BetSlip {...betSlip} />
           </div>
         </div>

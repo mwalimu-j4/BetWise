@@ -76,7 +76,7 @@ export default function SportEvents({
             ) : null}
           </div>
 
-          <div className="divide-y divide-[#21364a] lg:grid lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+          <div className="grid gap-3 p-3 lg:grid-cols-2">
             {leagueEvents.map((event) => (
               <EventCard
                 key={event.eventId}
