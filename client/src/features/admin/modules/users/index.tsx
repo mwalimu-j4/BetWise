@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
@@ -29,6 +27,7 @@ import { useState } from "react";
 import {
   AdminButton,
   AdminCard,
+  AdminDialogContent,
   AdminStatCard,
   AdminSectionHeader,
   StatusBadge,
