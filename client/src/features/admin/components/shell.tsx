@@ -235,7 +235,7 @@ export default function AdminShell() {
 
   return (
     <ProtectedRoute requireRole="ADMIN">
-      <div className="relative min-h-dvh bg-admin-bg font-admin text-admin-text-primary lg:flex">
+      <div className="relative  min-h-dvh bg-transparent font-admin text-admin-text-primary lg:flex">
         {/* Mobile Sidebar Overlay */}
         {mobileSidebarOpen && (
           <button

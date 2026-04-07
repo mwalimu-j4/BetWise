@@ -290,7 +290,7 @@ export default function Dashboard() {
             </div>
           </AdminCard>
 
-          <AdminCard className="p-3 sm:p-4 w-full">
+          <AdminCard className="hidden w-full p-3 sm:p-4 lg:block">
             <AdminCardHeader title="7 Day Totals" subtitle="Liquidity" />
             <div className="space-y-2.5 pt-2">
               <div className="rounded-lg border border-admin-border bg-admin-surface/60 p-2.5">
@@ -602,7 +602,7 @@ export default function Dashboard() {
           </AdminCard>
 
           {/* Quick Links */}
-          <AdminCard className="overflow-hidden w-full">
+          <AdminCard className="hidden w-full overflow-hidden lg:block">
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-admin-text">
                 Quick Links
