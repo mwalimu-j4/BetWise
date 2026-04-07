@@ -63,17 +63,21 @@ export default function RegisterModal() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Validation Logic - only check password is 6+ chars
+  // Validation Logic
   const passwordValid = password.length >= 6;
+  const emailValid = email.length > 0 && isValidEmail(email);
+  const phoneValid = phone.length > 0 && KENYAN_PHONE_REGEX.test(phone);
+  const passwordsMatch = password === confirmPassword && passwordValid;
 
-  // Only require all fields to be filled, allow submit even if validation fails to get server feedback
+  // Require all fields to be filled and valid
   const canSubmit = useMemo(
     () =>
-      email.length > 0 &&
-      phone.length > 0 &&
-      password.length > 0 &&
-      confirmPassword.length > 0,
-    [email, phone, password, confirmPassword],
+      emailValid &&
+      phoneValid &&
+      passwordValid &&
+      confirmPassword.length > 0 &&
+      passwordsMatch,
+    [emailValid, phoneValid, passwordValid, confirmPassword, passwordsMatch],
   );
 
   const clearFieldError = useCallback((field: string) => {
@@ -203,10 +207,19 @@ export default function RegisterModal() {
                       }}
                       placeholder="you@example.com"
                       autoComplete="email"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#3d6ba3]/40 bg-[#1a3a6b]/50 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30"
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
+                        email && !isValidEmail(email)
+                          ? "border-red-500/50 bg-red-500/10"
+                          : "border-[#3d6ba3]/40 bg-[#1a3a6b]/50"
+                      } text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30`}
                       required
                     />
                   </div>
+                  {email && !isValidEmail(email) && (
+                    <p className="text-xs text-red-400">
+                      Please enter a valid email address
+                    </p>
+                  )}
                   {errors.email && (
                     <div className="space-y-1">
                       {errors.email.map((error, idx) => (
@@ -241,10 +254,19 @@ export default function RegisterModal() {
                       }}
                       placeholder="0712345678"
                       autoComplete="tel"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#3d6ba3]/40 bg-[#1a3a6b]/50 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30"
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
+                        phone && !KENYAN_PHONE_REGEX.test(phone)
+                          ? "border-red-500/50 bg-red-500/10"
+                          : "border-[#3d6ba3]/40 bg-[#1a3a6b]/50"
+                      } text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30`}
                       required
                     />
                   </div>
+                  {phone && !KENYAN_PHONE_REGEX.test(phone) && (
+                    <p className="text-xs text-red-400">
+                      Please enter a valid Kenyan phone number (e.g., 0712345678 or +254712345678)
+                    </p>
+                  )}
                   {errors.phone && (
                     <div className="space-y-1">
                       {errors.phone.map((error, idx) => (
@@ -279,7 +301,11 @@ export default function RegisterModal() {
                       }}
                       placeholder="Enter your password"
                       autoComplete="new-password"
-                      className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-[#3d6ba3]/40 bg-[#1a3a6b]/50 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30"
+                      className={`w-full pl-10 pr-10 py-2.5 rounded-lg border ${
+                        password && !passwordValid
+                          ? "border-red-500/50 bg-red-500/10"
+                          : "border-[#3d6ba3]/40 bg-[#1a3a6b]/50"
+                      } text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/50 focus:ring-2 focus:ring-[#f5c518]/30`}
                       required
                     />
                     <button
@@ -290,6 +316,16 @@ export default function RegisterModal() {
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+                  {password && !passwordValid && (
+                    <p className="text-xs text-red-400">
+                      Password must be at least 6 characters
+                    </p>
+                  )}
+                  {password && passwordValid && (
+                    <p className="text-xs text-green-400">
+                      Password is valid
+                    </p>
+                  )}
                   {errors.password && (
                     <div className="space-y-1">
                       {errors.password.map((error, idx) => (
