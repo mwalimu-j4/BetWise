@@ -35,11 +35,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
-  LineChart,
-  Line,
 } from "recharts";
-import { Loader, AlertCircle, TrendingUp } from "lucide-react";
+import { Loader, AlertCircle } from "lucide-react";
 
 const PERIOD_OPTIONS: { value: ReportPeriod; label: string }[] = [
   { value: "7d", label: "Last 7 Days" },

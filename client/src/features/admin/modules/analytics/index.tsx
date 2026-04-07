@@ -140,6 +140,11 @@ export default function Analytics() {
     [data?.trend],
   );
 
+  const topLeagues = useMemo(
+    () => (data?.breakdowns.leagues ?? []).slice(0, 8),
+    [data?.breakdowns.leagues],
+  );
+
   return (
     <div className="space-y-6">
       <AdminSectionHeader
@@ -167,7 +172,7 @@ export default function Analytics() {
       )}
 
       {/* Loading Skeletons */}
-      {isLoading && <LoadingSkeletons() />}
+      {isLoading && <LoadingSkeletons />}
 
       {/* Main Content */}
       {!isLoading && data && (
@@ -193,7 +198,7 @@ export default function Analytics() {
           </AdminCard>
 
           {/* Main Trend Chart */}
-          <AdminCard className="lg:col-span-2 overflow-hidden">
+          <AdminCard className="overflow-hidden">
             <div className="mb-4 border-b border-admin-border pb-4">
               <h3 className="text-sm font-semibold text-admin-text-primary">Financial Trend</h3>
               <p className="text-xs text-admin-text-muted mt-1">Handle, payouts, and NGR over selected periods</p>
@@ -262,7 +267,7 @@ export default function Analytics() {
             </div>
           </AdminCard>
 
-          {/* Financial Snapshot */}
+          {/* Financial Snapshot & Signal Cards */}
           <div className="grid gap-4 lg:grid-cols-3">
             <AdminCard>
               <AdminCardHeader
@@ -530,493 +535,94 @@ export default function Analytics() {
                       tick={{ fill: "rgba(255,255,255,0.5)" }}
                     />
                     <Tooltip
-      <AdminSectionHeader
-        title="Analytics Intelligence"
-        subtitle="Betting economics, game mix, and strategic recommendations."
-      />
-
-      {isError ? (
-        <AdminCard>
-          <p className="text-sm text-admin-red">
-            {(error as Error)?.message ?? "Unable to load analytics data."}
-          </p>
-        </AdminCard>
-      ) : null}
-
-      {isLoading ? (
-        <div className="grid gap-4 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <AdminCard key={i} className="animate-pulse">
-              <div className="h-6 w-40 rounded bg-admin-surface mb-4" />
-              <div className="space-y-3">
-                <div className="h-40 rounded bg-admin-surface" />
-              </div>
-            </AdminCard>
-          ))}
-        </div>
-      ) : null}
-
-      {!isLoading && data && (
-        <>
-          <div className="grid gap-4 lg:grid-cols-3">
-            <AdminCard className="lg:col-span-2">
-              <div className="mb-4 flex flex-col gap-3 border-b border-admin-border pb-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-admin-text-primary">
-                    Financial Trend
-                  </h3>
-                  <p className="text-xs text-admin-text-muted">
-                    Handle, payouts, and NGR over selected periods
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                  <div className="flex-1 sm:flex-none sm:w-auto">
-                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-admin-text-secondary">
-                      Period
-                    </label>
-                    <select
-                      value={timeframe}
-                      onChange={(e) =>
-                        setTimeframe(e.target.value as AnalyticsTimeframe)
-                      }
-                      className="w-full rounded border border-admin-border bg-admin-surface px-2 py-1 text-xs font-medium text-admin-text-primary transition-colors hover:border-admin-accent focus:border-admin-accent focus:outline-none focus:ring-2 focus:ring-admin-accent/20 sm:w-auto"
-                    >
-                      {timeframeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <ResponsiveContainer width="100%" height={320}>
-                <AreaChart
-                  data={data?.trend ?? []}
-                  margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
-                >
-                  <defs>
-                    <linearGradient id="stakeFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor="#00e5a0"
-                        stopOpacity={0.25}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor="#00e5a0"
-                        stopOpacity={0.01}
-                      />
-                    </linearGradient>
-                    <linearGradient id="payoutFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor="#ffbe55"
-                        stopOpacity={0.25}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor="#ffbe55"
-                        stopOpacity={0.01}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.07)"
-                  />
-                  <XAxis
-                    dataKey="period"
-                    stroke="rgba(255,255,255,0.45)"
-                    fontSize={11}
-                  />
-                  <YAxis stroke="rgba(255,255,255,0.45)" fontSize={11} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(20,24,40,0.98)",
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      borderRadius: "10px",
-                    }}
-                    formatter={(value: any) => formatCurrency(value ?? 0)}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="stake"
-                    stroke="#00e5a0"
-                    fill="url(#stakeFill)"
-                    strokeWidth={2}
-                    name="Handle"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="payout"
-                    stroke="#ffbe55"
-                    fill="url(#payoutFill)"
-                    strokeWidth={2}
-                    name="Payout"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="ngr"
-                    stroke="#4aa3ff"
-                    strokeWidth={2.5}
-                    dot={false}
-                    name="NGR"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </AdminCard>
-
-            <AdminCard>
-              <AdminCardHeader
-                title="Financial Snapshot"
-                subtitle="Core performance for current window"
-              />
-              <div className="space-y-3 text-sm">
-                <div className="rounded-lg border border-admin-border bg-admin-surface/40 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
-                    Handle
-                  </p>
-                  <p className="mt-1 text-lg font-bold text-admin-accent">
-                    {formatCurrency(data?.financialSummary.handle ?? 0)}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-admin-border bg-admin-surface/40 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
-                    Gross Revenue (GGR)
-                  </p>
-                  <p className="mt-1 text-lg font-bold text-admin-blue">
-                    {formatCurrency(data?.financialSummary.ggr ?? 0)}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-admin-border bg-admin-surface/40 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
-                    Net Revenue Estimate (NGR)
-                  </p>
-                  <p className="mt-1 text-lg font-bold text-admin-gold">
-                    {formatCurrency(data?.financialSummary.ngr ?? 0)}
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="rounded-lg border border-admin-border bg-admin-bg p-2">
-                    <p className="text-admin-text-muted">GGR Δ</p>
-                    <p className="font-semibold text-admin-text-primary">
-                      {formatPercent(data?.growth.ggrChangePct ?? 0)}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-admin-border bg-admin-bg p-2">
-                    <p className="text-admin-text-muted">Active Δ</p>
-                    <p className="font-semibold text-admin-text-primary">
-                      {formatPercent(data?.growth.activeBettorsChangePct ?? 0)}
-                    </p>
-                  </div>
-                </div>
+                      contentStyle={{
+                        backgroundColor: "rgba(15,20,35,0.95)",
+                        border: "1px solid rgba(0,229,160,0.2)",
+                        borderRadius: "10px",
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                      }}
+                      cursor={{ fill: "rgba(255,255,255,0.03)" }}
+                      formatter={(value: any) => formatPercent(value ?? 0)}
+                    />
+                    <Legend wrapperStyle={{ fontSize: isMobile ? 11 : 12 }} />
+                    <Line
+                      type="natural"
+                      dataKey="hitRate"
+                      stroke="#00e5a0"
+                      strokeWidth={3}
+                      dot={{
+                        r: 4,
+                        fill: "#00e5a0",
+                        stroke: "rgba(255,255,255,0.2)",
+                        strokeWidth: 1.5,
+                      }}
+                      activeDot={{ r: 6 }}
+                      name="Hit Rate"
+                    />
+                    <Line
+                      type="natural"
+                      dataKey="holdRate"
+                      stroke="#ffbe55"
+                      strokeWidth={3}
+                      dot={{
+                        r: 4,
+                        fill: "#ffbe55",
+                        stroke: "rgba(255,255,255,0.2)",
+                        strokeWidth: 1.5,
+                      }}
+                      activeDot={{ r: 6 }}
+                      name="Hold Rate"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </AdminCard>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            {(data?.signalCards ?? []).map((card) => (
-              <AdminCard className="p-3" key={card.label}>
-                <p className="text-[10px] uppercase tracking-[0.08em] text-admin-text-muted">
-                  {card.label}
-                </p>
-                <p
-                  className={`mt-1 text-base font-bold ${toneClass(card.tone)}`}
-                >
-                  {card.value}
-                </p>
-                <p className="mt-1 text-[10px] text-admin-text-muted">
-                  {card.helper}
-                </p>
-              </AdminCard>
-            ))}
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-2">
-            <AdminCard>
-              <AdminCardHeader
-                title="Game Category Performance"
-                subtitle="Stake and GGR by sport"
-              />
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={sportsChartData}
-                  margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
-                >
-                  <defs>
-                    <linearGradient id="stakeGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#00e5a0" stopOpacity={1} />
-                      <stop
-                        offset="100%"
-                        stopColor="#00e5a0"
-                        stopOpacity={0.65}
-                      />
-                    </linearGradient>
-                    <linearGradient id="ggrGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#4aa3ff" stopOpacity={1} />
-                      <stop
-                        offset="100%"
-                        stopColor="#4aa3ff"
-                        stopOpacity={0.65}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.05)"
-                  />
-                  <XAxis
-                    dataKey="sport"
-                    stroke="rgba(255,255,255,0.35)"
-                    fontSize={11}
-                    tick={{ fill: "rgba(255,255,255,0.5)" }}
-                  />
-                  <YAxis
-                    stroke="rgba(255,255,255,0.35)"
-                    fontSize={11}
-                    tick={{ fill: "rgba(255,255,255,0.5)" }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15,20,35,0.95)",
-                      border: "1px solid rgba(0,229,160,0.2)",
-                      borderRadius: "10px",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                    }}
-                    cursor={{ fill: "rgba(255,255,255,0.03)" }}
-                    formatter={(value: any) => formatCurrency(value ?? 0)}
-                  />
-                  <Bar
-                    dataKey="stake"
-                    fill="url(#stakeGrad)"
-                    name="Handle"
-                    radius={[6, 6, 0, 0]}
-                    isAnimationActive={true}
-                  />
-                  <Bar
-                    dataKey="ggr"
-                    fill="url(#ggrGrad)"
-                    name="GGR"
-                    radius={[6, 6, 0, 0]}
-                    isAnimationActive={true}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </AdminCard>
-
-            <AdminCard>
-              <AdminCardHeader
-                title="Bet Outcomes"
-                subtitle="Won, lost, void, and pending distribution"
-              />
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={data?.breakdowns.outcomes ?? []}
-                    dataKey="count"
-                    nameKey="status"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={94}
-                    label={({ name, percent }) =>
-                      `${name}: ${((percent ?? 0) * 100).toFixed(1)}%`
-                    }
-                    labelLine={false}
-                    isAnimationActive={true}
-                  >
-                    {(data?.breakdowns.outcomes ?? []).map((_, index) => (
-                      <Cell
-                        key={index}
-                        fill={chartPalette[index % chartPalette.length]}
-                        stroke="rgba(255,255,255,0.15)"
-                        strokeWidth={2}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15,20,35,0.95)",
-                      border: "1px solid rgba(0,229,160,0.25)",
-                      borderRadius: "10px",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </AdminCard>
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-2">
-            <AdminCard>
-              <AdminCardHeader
-                title="Ticket Size Distribution"
-                subtitle="Handle split across stake bands"
-              />
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={data?.breakdowns.stakeDistribution ?? []}
-                  margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
-                >
-                  <defs>
-                    <linearGradient id="handleGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#ff9800" stopOpacity={0.9} />
-                      <stop
-                        offset="100%"
-                        stopColor="#ff6b6b"
-                        stopOpacity={0.5}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.05)"
-                  />
-                  <XAxis
-                    dataKey="band"
-                    stroke="rgba(255,255,255,0.35)"
-                    fontSize={11}
-                    tick={{ fill: "rgba(255,255,255,0.5)" }}
-                  />
-                  <YAxis
-                    stroke="rgba(255,255,255,0.35)"
-                    fontSize={11}
-                    tick={{ fill: "rgba(255,255,255,0.5)" }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15,20,35,0.95)",
-                      border: "1px solid rgba(255,153,0,0.2)",
-                      borderRadius: "10px",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                    }}
-                    cursor={{ fill: "rgba(255,255,255,0.03)" }}
-                    formatter={(value: any) => formatCurrency(value ?? 0)}
-                  />
-                  <Bar
-                    dataKey="handle"
-                    fill="url(#handleGrad)"
-                    name="Handle"
-                    radius={[6, 6, 0, 0]}
-                    isAnimationActive={true}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </AdminCard>
-
-            <AdminCard>
-              <AdminCardHeader
-                title="Odds Band Efficiency"
-                subtitle="Win rate and hold by quoted odds"
-              />
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={data?.breakdowns.oddsPerformance ?? []}
-                  margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="rgba(255,255,255,0.05)"
-                  />
-                  <XAxis
-                    dataKey="band"
-                    stroke="rgba(255,255,255,0.35)"
-                    fontSize={11}
-                    tick={{ fill: "rgba(255,255,255,0.5)" }}
-                  />
-                  <YAxis
-                    stroke="rgba(255,255,255,0.35)"
-                    fontSize={11}
-                    tick={{ fill: "rgba(255,255,255,0.5)" }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15,20,35,0.95)",
-                      border: "1px solid rgba(0,229,160,0.2)",
-                      borderRadius: "10px",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                    }}
-                    cursor={{ fill: "rgba(255,255,255,0.03)" }}
-                    formatter={(value: any) => formatPercent(value ?? 0)}
-                  />
-                  <Line
-                    type="natural"
-                    dataKey="hitRate"
-                    stroke="#00e5a0"
-                    strokeWidth={3}
-                    dot={{
-                      r: 4,
-                      fill: "#00e5a0",
-                      stroke: "rgba(255,255,255,0.2)",
-                      strokeWidth: 1.5,
-                    }}
-                    activeDot={{ r: 6 }}
-                    name="Hit Rate"
-                  />
-                  <Line
-                    type="natural"
-                    dataKey="holdRate"
-                    stroke="#ffbe55"
-                    strokeWidth={3}
-                    dot={{
-                      r: 4,
-                      fill: "#ffbe55",
-                      stroke: "rgba(255,255,255,0.2)",
-                      strokeWidth: 1.5,
-                    }}
-                    activeDot={{ r: 6 }}
-                    name="Hold Rate"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </AdminCard>
-          </div>
-
+          {/* Top Leagues & Recommendations */}
           <div className="grid gap-4 xl:grid-cols-2">
             <AdminCard>
               <AdminCardHeader
                 title="Top Leagues"
                 subtitle="Highest handle leagues in selected window"
               />
-              <TableShell>
-                <table className={adminTableClassName}>
-                  <thead>
-                    <tr>
-                      <th className={adminTableHeadCellClassName}>League</th>
-                      <th className={adminTableHeadCellClassName}>Sport</th>
-                      <th className={adminTableHeadCellClassName}>Handle</th>
-                      <th className={adminTableHeadCellClassName}>GGR</th>
-                      <th className={adminTableHeadCellClassName}>Share</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(data?.breakdowns.leagues ?? [])
-                      .slice(0, 8)
-                      .map((league) => (
+              <div className="overflow-x-auto">
+                <TableShell>
+                  <table className={adminTableClassName}>
+                    <thead>
+                      <tr className="border-b border-admin-border">
+                        <th className={adminTableHeadCellClassName}>League</th>
+                        <th className={`${adminTableHeadCellClassName} hidden sm:table-cell`}>Sport</th>
+                        <th className={adminTableHeadCellClassName}>Handle</th>
+                        <th className={`${adminTableHeadCellClassName} hidden md:table-cell`}>GGR</th>
+                        <th className={`${adminTableHeadCellClassName} hidden lg:table-cell text-right`}>Share%</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topLeagues.map((league, idx) => (
                         <tr
-                          className="even:bg-admin-surface/45"
+                          className={idx % 2 === 0 ? "border-b border-admin-border/50 even:bg-admin-surface/50" : "border-b border-admin-border/50"}
                           key={`${league.sport}-${league.league}`}
                         >
-                          <td className={adminTableCellClassName}>
-                            {league.league}
-                          </td>
-                          <td className={adminTableCellClassName}>
+                          <td className={`${adminTableCellClassName} font-medium`}>{league.league}</td>
+                          <td className={`${adminTableCellClassName} hidden sm:table-cell text-xs`}>
                             {league.sport}
                           </td>
                           <td className={adminTableCellClassName}>
                             {formatCurrency(league.stake)}
                           </td>
-                          <td className={adminTableCellClassName}>
+                          <td className={`${adminTableCellClassName} hidden md:table-cell`}>
                             {formatCurrency(league.ggr)}
                           </td>
-                          <td className={adminTableCellClassName}>
+                          <td className={`${adminTableCellClassName} hidden lg:table-cell text-right`}>
                             {formatPercent(league.shareOfHandle)}
                           </td>
                         </tr>
                       ))}
-                  </tbody>
-                </table>
-              </TableShell>
+                    </tbody>
+                  </table>
+                </TableShell>
+              </div>
             </AdminCard>
 
             <AdminCard>
@@ -1024,18 +630,18 @@ export default function Analytics() {
                 title="Recommendations"
                 subtitle="Auto-generated strategic actions from current analytics"
               />
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {(data?.recommendations ?? []).map((recommendation, index) => (
                   <div
-                    className="rounded-xl border border-admin-border bg-admin-surface/45 p-3"
+                    className="rounded-xl border border-admin-border bg-admin-surface/45 p-3 hover:bg-admin-surface/65 transition-colors"
                     key={`${recommendation.title}-${index}`}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-semibold text-admin-text-primary">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-admin-text-primary text-sm">
                         {recommendation.title}
                       </p>
                       <span
-                        className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] ${priorityClass(recommendation.priority)}`}
+                        className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] flex-shrink-0 ${priorityClass(recommendation.priority)}`}
                       >
                         {recommendation.priority}
                       </span>
@@ -1053,14 +659,6 @@ export default function Analytics() {
           </div>
         </>
       )}
-
-      {isLoading && !data ? (
-        <AdminCard>
-          <p className="text-sm text-admin-text-muted">
-            Loading analytics intelligence...
-          </p>
-        </AdminCard>
-      ) : null}
     </div>
   );
 }
