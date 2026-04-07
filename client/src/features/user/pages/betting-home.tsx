@@ -124,19 +124,19 @@ export default function BettingHome() {
               </article>
             ))}
 
-            <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 md:p-5">
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 md:p-6">
               <p className="text-[9px] uppercase tracking-[0.18em] text-[#f5c518]">
                 BetixPro Picks
               </p>
-              <h1 className="mt-1 max-w-2xl text-sm font-extrabold text-white sm:text-base md:text-lg">
+              <h1 className="mt-2 max-w-2xl text-sm font-extrabold text-white sm:text-base md:text-lg">
                 Bet Smarter, Win Bigger
               </h1>
-              <p className="mt-1 max-w-xl text-xs text-[#d6e0e8]">
+              <p className="mt-2 max-w-xl text-xs text-[#d6e0e8]">
                 Explore top fixtures with real-time odds and place your best
                 picks.
               </p>
 
-              <div className="mt-2 flex items-center gap-1.5">
+              <div className="mt-3 flex items-center gap-1.5">
                 {heroImages.map((_, index) => (
                   <button
                     key={`hero-dot-${index}`}
