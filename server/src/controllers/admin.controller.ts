@@ -97,6 +97,9 @@ const adminSettingsSelect = {
   notifyBetPlaced: true,
   notifyBetResult: true,
   notifyAdminAlerts: true,
+  adminWithdrawalSoundEnabled: true,
+  adminWithdrawalSoundTone: true,
+  adminWithdrawalSoundVolume: true,
   sportsApiKey: true,
   oddsProviderName: true,
   primaryWebhookUrl: true,
@@ -201,6 +204,10 @@ function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
     notifyBetPlaced: config.notificationsConfig.events.betPlaced,
     notifyBetResult: config.notificationsConfig.events.betResult,
     notifyAdminAlerts: config.notificationsConfig.events.adminAlerts,
+    adminWithdrawalSoundEnabled:
+      config.adminQuickSettings.withdrawalSoundEnabled,
+    adminWithdrawalSoundTone: config.adminQuickSettings.withdrawalSoundTone,
+    adminWithdrawalSoundVolume: config.adminQuickSettings.withdrawalSoundVolume,
     sportsApiKey: config.apiAndIntegrationsConfig.sportsApiKey,
     oddsProviderName: config.apiAndIntegrationsConfig.oddsProviderName,
     primaryWebhookUrl: config.apiAndIntegrationsConfig.primaryWebhookUrl,
@@ -320,6 +327,11 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
         betResult: record.notifyBetResult,
         adminAlerts: record.notifyAdminAlerts,
       },
+    },
+    adminQuickSettings: {
+      withdrawalSoundEnabled: record.adminWithdrawalSoundEnabled,
+      withdrawalSoundTone: record.adminWithdrawalSoundTone,
+      withdrawalSoundVolume: record.adminWithdrawalSoundVolume,
     },
     apiAndIntegrationsConfig: {
       sportsApiKey: record.sportsApiKey,
