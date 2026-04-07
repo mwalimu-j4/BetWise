@@ -482,22 +482,22 @@ export default function Users() {
           }
         }}
       >
-        <DialogContent className="border-admin-border bg-admin-card max-w-lg">
-          <DialogHeader className="border-b border-admin-border pb-3">
-            <DialogTitle className="text-lg">User Details</DialogTitle>
-            <DialogDescription className="text-xs">
-              View and manage user account
+        <AdminDialogContent className="max-w-2xl p-0">
+          <DialogHeader className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] px-6 py-5">
+            <DialogTitle className="text-lg text-white">User Details</DialogTitle>
+            <DialogDescription className="text-sm text-admin-text-secondary">
+              Account profile, wallet status, and admin actions.
             </DialogDescription>
           </DialogHeader>
 
           {userLoading ? (
-            <div className="text-center py-6 text-admin-text-muted text-sm">
+            <div className="px-6 py-10 text-center text-admin-text-muted text-sm">
               Loading...
             </div>
           ) : selectedUser ? (
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-3">
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto px-6 py-5">
               {/* Info Grid */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 rounded-2xl border border-white/10 bg-[rgba(13,33,55,0.16)] p-4">
                 <div className="space-y-1">
                   <p className="text-xs text-admin-text-muted font-semibold">
                     Email
@@ -553,8 +553,8 @@ export default function Users() {
               </div>
 
               {/* Financial Section */}
-              <div className="border-t border-admin-border pt-3">
-                <p className="text-xs font-semibold text-admin-text-muted mb-2">
+              <div className="rounded-2xl border border-[rgba(245,197,24,0.16)] bg-[rgba(13,33,55,0.16)] p-4">
+                <p className="mb-3 text-xs font-semibold text-admin-text-muted">
                   FINANCIAL
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -574,67 +574,66 @@ export default function Users() {
               </div>
 
               {/* Action Buttons */}
-              <div className="border-t border-admin-border pt-3">
+              <div className="border-t border-white/10 pt-4">
                 <div className="grid grid-cols-2 gap-2">
-                  <Button
+                  <AdminButton
                     onClick={() => handleOpenEdit(selectedUser)}
-                    className="bg-admin-accent hover:bg-admin-accent/90 text-white font-semibold"
                     size="sm"
                   >
-                    Edit
-                  </Button>
+                    Edit User
+                  </AdminButton>
                   {selectedUser.status === "active" ? (
                     <>
-                      <Button
+                      <AdminButton
                         onClick={() => handleOpenSuspend(selectedUser.id)}
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                       >
                         Suspend
-                      </Button>
-                      <Button
+                      </AdminButton>
+                      <AdminButton
                         onClick={() => handleOpenBan(selectedUser.id)}
-                        className="bg-admin-red hover:bg-red-600 text-white font-semibold"
+                        tone="red"
                         size="sm"
                       >
-                        Ban
-                      </Button>
+                        Ban User
+                      </AdminButton>
                     </>
                   ) : selectedUser.status === "suspended" ? (
                     <>
-                      <Button
+                      <AdminButton
                         onClick={() => handleOpenUnsuspend(selectedUser.id)}
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                       >
                         Unsuspend
-                      </Button>
-                      <Button
+                      </AdminButton>
+                      <AdminButton
                         onClick={() => handleOpenBan(selectedUser.id)}
-                        className="bg-admin-red hover:bg-red-600 text-white font-semibold"
+                        tone="red"
                         size="sm"
                       >
-                        Ban
-                      </Button>
+                        Ban User
+                      </AdminButton>
                     </>
                   ) : selectedUser.status === "banned" ? (
-                    <Button
+                    <AdminButton
                       onClick={() => handleOpenUnban(selectedUser.id)}
-                      className="col-span-2 bg-admin-accent hover:bg-admin-accent/90 text-white font-semibold"
+                      className="col-span-2"
                       size="sm"
                     >
-                      Unban
-                    </Button>
+                      Unban User
+                    </AdminButton>
                   ) : null}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="text-center py-12 text-admin-text-muted">
+            <div className="px-6 py-10 text-center text-admin-text-muted">
               No user data available
             </div>
           )}
-        </DialogContent>
+        </AdminDialogContent>
       </Dialog>
 
       <Dialog
@@ -646,7 +645,7 @@ export default function Users() {
           }
         }}
       >
-        <DialogContent className="border-admin-border bg-admin-card">
+        <AdminDialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>Update user information</DialogDescription>
@@ -662,7 +661,7 @@ export default function Users() {
                   setFormData({ ...formData, fullName: e.target.value })
                 }
                 placeholder="John Doe"
-                className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
+                className={`mt-1 ${adminInputClassName}`}
               />
             </div>
             <div>
@@ -676,7 +675,7 @@ export default function Users() {
                 }
                 placeholder="user@example.com"
                 disabled
-                className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary opacity-50"
+                className={`mt-1 ${adminInputClassName} opacity-50`}
               />
             </div>
             <div>
@@ -690,7 +689,7 @@ export default function Users() {
                 }
                 placeholder="+254712345678"
                 disabled
-                className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary opacity-50"
+                className={`mt-1 ${adminInputClassName} opacity-50`}
               />
             </div>
             <div className="flex items-center gap-2">
@@ -710,8 +709,8 @@ export default function Users() {
               </label>
             </div>
             <div className="flex gap-2 pt-4">
-              <Button
-                variant="outline"
+              <AdminButton
+                variant="ghost"
                 className="flex-1"
                 onClick={() => {
                   setActionDialog(null);
@@ -719,17 +718,17 @@ export default function Users() {
                 }}
               >
                 Cancel
-              </Button>
-              <Button
-                className="flex-1 bg-admin-accent hover:bg-admin-accent/90 text-white"
+              </AdminButton>
+              <AdminButton
+                className="flex-1"
                 onClick={handleSaveEdit}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Saving..." : "Save"}
-              </Button>
+              </AdminButton>
             </div>
           </div>
-        </DialogContent>
+        </AdminDialogContent>
       </Dialog>
 
       <Dialog
@@ -741,7 +740,7 @@ export default function Users() {
           }
         }}
       >
-        <DialogContent className="border-admin-border bg-admin-card">
+        <AdminDialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Ban User</DialogTitle>
             <DialogDescription>
@@ -756,12 +755,12 @@ export default function Users() {
               value={actionReason}
               onChange={(e) => setActionReason(e.target.value)}
               placeholder="E.g., Fraudulent activity"
-              className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
+              className={`mt-2 ${adminInputClassName}`}
             />
           </div>
           <div className="flex gap-2 pt-4">
-            <Button
-              variant="outline"
+            <AdminButton
+              variant="ghost"
               className="flex-1"
               onClick={() => {
                 setActionDialog(null);
@@ -769,16 +768,17 @@ export default function Users() {
               }}
             >
               Cancel
-            </Button>
-            <Button
-              className="flex-1 bg-admin-red hover:bg-red-600 text-white"
+            </AdminButton>
+            <AdminButton
+              tone="red"
+              className="flex-1"
               onClick={handleBanUser}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Banning..." : "Ban User"}
-            </Button>
+            </AdminButton>
           </div>
-        </DialogContent>
+        </AdminDialogContent>
       </Dialog>
 
       <Dialog
@@ -789,7 +789,7 @@ export default function Users() {
           }
         }}
       >
-        <DialogContent className="border-admin-border bg-admin-card">
+        <AdminDialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Unban User</DialogTitle>
             <DialogDescription>
@@ -797,22 +797,22 @@ export default function Users() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-2 pt-4">
-            <Button
-              variant="outline"
+            <AdminButton
+              variant="ghost"
               className="flex-1"
               onClick={() => setActionDialog(null)}
             >
               Cancel
-            </Button>
-            <Button
-              className="flex-1 bg-admin-accent hover:bg-admin-accent/90 text-white"
+            </AdminButton>
+            <AdminButton
+              className="flex-1"
               onClick={handleUnbanUser}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Unbanning..." : "Unban User"}
-            </Button>
+            </AdminButton>
           </div>
-        </DialogContent>
+        </AdminDialogContent>
       </Dialog>
 
       <Dialog
@@ -824,7 +824,7 @@ export default function Users() {
           }
         }}
       >
-        <DialogContent className="border-admin-border bg-admin-card">
+        <AdminDialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Suspend User</DialogTitle>
             <DialogDescription>
@@ -839,12 +839,12 @@ export default function Users() {
               value={actionReason}
               onChange={(e) => setActionReason(e.target.value)}
               placeholder="E.g., Suspicious activity"
-              className="mt-2 border-admin-border bg-admin-surface text-admin-text-primary"
+              className={`mt-2 ${adminInputClassName}`}
             />
           </div>
           <div className="flex gap-2 pt-4">
-            <Button
-              variant="outline"
+            <AdminButton
+              variant="ghost"
               className="flex-1"
               onClick={() => {
                 setActionDialog(null);
@@ -852,16 +852,17 @@ export default function Users() {
               }}
             >
               Cancel
-            </Button>
-            <Button
-              className="flex-1 bg-admin-gold hover:bg-yellow-600 text-white"
+            </AdminButton>
+            <AdminButton
+              tone="gold"
+              className="flex-1"
               onClick={handleSuspendUser}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Suspending..." : "Suspend User"}
-            </Button>
+            </AdminButton>
           </div>
-        </DialogContent>
+        </AdminDialogContent>
       </Dialog>
 
       <Dialog
@@ -872,7 +873,7 @@ export default function Users() {
           }
         }}
       >
-        <DialogContent className="border-admin-border bg-admin-card">
+        <AdminDialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Unsuspend User</DialogTitle>
             <DialogDescription>
@@ -880,22 +881,22 @@ export default function Users() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-2 pt-4">
-            <Button
-              variant="outline"
+            <AdminButton
+              variant="ghost"
               className="flex-1"
               onClick={() => setActionDialog(null)}
             >
               Cancel
-            </Button>
-            <Button
-              className="flex-1 bg-admin-accent hover:bg-admin-accent/90 text-white"
+            </AdminButton>
+            <AdminButton
+              className="flex-1"
               onClick={handleUnsuspendUser}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Unsuspending..." : "Unsuspend User"}
-            </Button>
+            </AdminButton>
           </div>
-        </DialogContent>
+        </AdminDialogContent>
       </Dialog>
 
       <Dialog
@@ -906,7 +907,7 @@ export default function Users() {
           }
         }}
       >
-        <DialogContent className="border-admin-border bg-admin-card max-w-md">
+        <AdminDialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Create New User</DialogTitle>
             <DialogDescription>
@@ -927,7 +928,7 @@ export default function Users() {
                   })
                 }
                 placeholder="John Doe"
-                className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
+                className={`mt-1 ${adminInputClassName}`}
               />
             </div>
             <div>
@@ -944,7 +945,7 @@ export default function Users() {
                 }
                 placeholder="user@example.com"
                 type="email"
-                className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
+                className={`mt-1 ${adminInputClassName}`}
               />
             </div>
             <div>
@@ -960,7 +961,7 @@ export default function Users() {
                   })
                 }
                 placeholder="+254712345678 or 0712345678"
-                className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
+                className={`mt-1 ${adminInputClassName}`}
               />
             </div>
             <div>
@@ -977,7 +978,7 @@ export default function Users() {
                 }
                 type="password"
                 placeholder="Minimum 8 characters"
-                className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
+                className={`mt-1 ${adminInputClassName}`}
               />
             </div>
             <div>
@@ -994,7 +995,7 @@ export default function Users() {
                 }
                 type="password"
                 placeholder="Confirm password"
-                className="mt-1 border-admin-border bg-admin-surface text-admin-text-primary"
+                className={`mt-1 ${adminInputClassName}`}
               />
             </div>
             <div className="flex items-center gap-2">
@@ -1017,23 +1018,23 @@ export default function Users() {
               </label>
             </div>
             <div className="flex gap-2 pt-4">
-              <Button
-                variant="outline"
+              <AdminButton
+                variant="ghost"
                 className="flex-1"
                 onClick={() => setActionDialog(null)}
               >
                 Cancel
-              </Button>
-              <Button
-                className="flex-1 bg-admin-accent hover:bg-admin-accent/90 text-white"
+              </AdminButton>
+              <AdminButton
+                className="flex-1"
                 onClick={handleCreateUser}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Creating..." : "Create User"}
-              </Button>
+              </AdminButton>
             </div>
           </div>
-        </DialogContent>
+        </AdminDialogContent>
       </Dialog>
     </div>
   );
