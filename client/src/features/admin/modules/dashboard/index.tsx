@@ -97,6 +97,41 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  const handleExportCSV = () => {
+    if (recentTransactions.length === 0) return;
+
+    const headers = ["#", "User Email", "Phone", "Type", "Amount", "Fee", "Status", "Time"];
+    const rows = recentTransactions.map((tx, idx) => [
+      idx + 1,
+      tx.userEmail,
+      tx.userPhone,
+      tx.type,
+      tx.amount,
+      tx.type === "withdrawal" ? tx.fee : "-",
+      tx.status,
+      new Date(tx.createdAt).toLocaleString("en-KE", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `recent_activity_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const { data, isLoading } = useQuery({
     queryKey: ["admin-dashboard-summary"],
     queryFn: async () => {
@@ -330,6 +365,10 @@ export default function Dashboard() {
                     variant="ghost"
                     size="sm"
                     className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-accent/10"
+                    onClick={() => {
+                      // Placeholder for filter dialog - can be expanded later
+                      console.log("Filters clicked");
+                    }}
                   >
                     <Filter size={13} />
                     <span>Filters</span>
@@ -338,6 +377,7 @@ export default function Dashboard() {
                     variant="ghost"
                     size="sm"
                     className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-blue/50 hover:bg-admin-blue/10"
+                    onClick={handleExportCSV}
                   >
                     <Download size={13} />
                     <span>Export</span>
