@@ -4,6 +4,7 @@ import {
   AdminButton,
   AdminCard,
   AdminSectionHeader,
+  SummaryCard,
   StatusBadge,
   TableShell,
   adminCompactActionsClassName,
@@ -70,7 +71,7 @@ export default function Users() {
   const [actionReason, setActionReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { users, loading, error, refetch } = useUsers({
+  const { users, loading, error, refetch, total } = useUsers({
     page,
     search,
     status,
@@ -223,6 +224,12 @@ export default function Users() {
 
   const visibleUsers = users || [];
 
+  // Calculate stats
+  const totalUsers = total || 0;
+  const activeUsers = visibleUsers.filter((u) => u.status === "active").length;
+  const suspendedUsers = visibleUsers.filter((u) => u.status === "suspended").length;
+  const bannedUsers = visibleUsers.filter((u) => u.status === "banned").length;
+
   return (
     <div className="space-y-6">
       <AdminSectionHeader
@@ -249,6 +256,30 @@ export default function Users() {
           </>
         }
       />
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <SummaryCard
+          label="Total Users"
+          value={totalUsers.toString()}
+          tone="blue"
+        />
+        <SummaryCard
+          label="Active Users"
+          value={activeUsers.toString()}
+          tone="accent"
+        />
+        <SummaryCard
+          label="Suspended Users"
+          value={suspendedUsers.toString()}
+          tone="gold"
+        />
+        <SummaryCard
+          label="Banned Users"
+          value={bannedUsers.toString()}
+          tone="red"
+        />
+      </div>
 
       {error && (
         <AdminCard className="border-admin-red/40 bg-admin-red-dim/20 text-admin-red">
