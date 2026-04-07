@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BellRing,
-  Loader2,
-  Save,
+  CircleAlert,
+  Lock,
+  Monitor,
+  RotateCcw,
   Settings2,
-  UserPlus,
-  Wrench,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,84 +16,38 @@ import {
   AdminSectionHeader,
 } from "../../components/ui";
 import {
-  type AdminSettingsConfig,
-  useAdminSettings,
-  useUpdateAdminSettings,
-} from "../../hooks/useAdminSettings";
-
-const withdrawalToneOptions = [
-  {
-    label: "Tone 1 (Soft)",
-    value: "/sounds/universfield-new-notification-010-352755.mp3",
-  },
-  {
-    label: "Tone 2 (Bright)",
-    value: "/sounds/universfield-new-notification-050-494248.mp3",
-  },
-  {
-    label: "Tone 3 (Sharp)",
-    value: "/sounds/universfield-new-notification-056-494256.mp3",
-  },
-] as const;
-
-function cloneSettings(settings: AdminSettingsConfig) {
-  return JSON.parse(JSON.stringify(settings)) as AdminSettingsConfig;
-}
-
-function clampVolume(value: number) {
-  return Math.min(100, Math.max(0, Math.round(value)));
-}
+  adminWithdrawalToneOptions,
+  clampQuickSettingVolume,
+} from "../../config/personalQuickSettings";
+import { useAdminPersonalQuickSettings } from "../../hooks/useAdminPersonalQuickSettings";
 
 export default function AdminQuickSettings() {
-  const { data, isLoading, isError, error } = useAdminSettings();
-  const updateSettings = useUpdateAdminSettings();
-
-  const [draft, setDraft] = useState<AdminSettingsConfig | null>(null);
+  const { settings, setSettings, resetSettings } =
+    useAdminPersonalQuickSettings();
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
 
-  useEffect(() => {
-    if (data?.config) {
-      setDraft(cloneSettings(data.config));
-    }
-  }, [data?.config]);
-
-  const hasChanges = useMemo(() => {
-    if (!draft || !data?.config) {
-      return false;
-    }
-
-    return JSON.stringify(draft) !== JSON.stringify(data.config);
-  }, [draft, data?.config]);
-
-  const saveQuickSettings = async () => {
-    if (!draft) {
-      return;
-    }
-
-    try {
-      const result = await updateSettings.mutateAsync(draft);
-      setDraft(cloneSettings(result.config));
-      toast.success("Quick settings updated.");
-    } catch (mutationError: unknown) {
-      const message =
-        typeof mutationError === "object" &&
-        mutationError !== null &&
-        "response" in mutationError &&
-        typeof (mutationError as { response?: unknown }).response === "object"
-          ? ((mutationError as { response?: { data?: { message?: string } } })
-              .response?.data?.message ?? "Failed to update quick settings.")
-          : "Failed to update quick settings.";
-      toast.error(message);
-    }
-  };
+  const summary = useMemo(
+    () => ({
+      soundStatus: settings.withdrawalSoundEnabled ? "Enabled" : "Muted",
+      volume: `${clampQuickSettingVolume(settings.withdrawalSoundVolume)}%`,
+      visibilityRule: settings.playSoundOnlyWhenPageVisible
+        ? "Only while this tab is visible"
+        : "Even when this tab is in the background",
+    }),
+    [
+      settings.playSoundOnlyWhenPageVisible,
+      settings.withdrawalSoundEnabled,
+      settings.withdrawalSoundVolume,
+    ],
+  );
 
   const previewTone = async () => {
-    if (!draft || isPlayingPreview) {
+    if (isPlayingPreview) {
       return;
     }
 
-    const audio = new Audio(draft.adminQuickSettings.withdrawalSoundTone);
-    audio.volume = clampVolume(draft.adminQuickSettings.withdrawalSoundVolume) / 100;
+    const audio = new Audio(settings.withdrawalSoundTone);
+    audio.volume = clampQuickSettingVolume(settings.withdrawalSoundVolume) / 100;
 
     setIsPlayingPreview(true);
 
@@ -108,55 +62,52 @@ export default function AdminQuickSettings() {
     }
   };
 
-  if (isLoading || !draft) {
-    return (
-      <AdminCard>
-        <div className="flex min-h-60 items-center justify-center gap-2 text-admin-text-muted">
-          <Loader2 size={18} className="animate-spin" />
-          Loading quick settings...
-        </div>
-      </AdminCard>
-    );
-  }
-
-  if (isError) {
-    return (
-      <AdminCard>
-        <p className="text-sm font-semibold text-admin-red">
-          Failed to load quick settings.
-        </p>
-        <p className="mt-1 text-sm text-admin-text-muted">
-          {error instanceof Error ? error.message : "Unknown error"}
-        </p>
-      </AdminCard>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <AdminSectionHeader
         title="Quick Settings"
-        subtitle="Fast admin controls for alerts and common platform toggles"
+        subtitle="Personal admin preferences for notifications and workflow comfort"
         actions={
-          <Button
-            onClick={saveQuickSettings}
-            disabled={!hasChanges || updateSettings.isPending}
-            className="gap-2"
-          >
-            {updateSettings.isPending ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Save size={14} />
-            )}
-            Save Changes
+          <Button onClick={resetSettings} variant="outline" className="gap-2">
+            <RotateCcw size={14} />
+            Reset Personal Defaults
           </Button>
         }
       />
 
+      <AdminCard className="border-admin-border/80 bg-[linear-gradient(120deg,rgba(22,38,72,0.8),rgba(14,24,46,0.86))]">
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-admin-border/70 bg-admin-surface/35 p-4">
+            <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
+              Sound Status
+            </p>
+            <p className="mt-1 text-lg font-semibold text-admin-text-primary">
+              {summary.soundStatus}
+            </p>
+          </div>
+          <div className="rounded-xl border border-admin-border/70 bg-admin-surface/35 p-4">
+            <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
+              Volume
+            </p>
+            <p className="mt-1 text-lg font-semibold text-admin-text-primary">
+              {summary.volume}
+            </p>
+          </div>
+          <div className="rounded-xl border border-admin-border/70 bg-admin-surface/35 p-4">
+            <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
+              Visibility Rule
+            </p>
+            <p className="mt-1 text-sm font-medium text-admin-text-primary">
+              {summary.visibilityRule}
+            </p>
+          </div>
+        </div>
+      </AdminCard>
+
       <AdminCard className="border-admin-border/80 bg-admin-card/95">
         <AdminCardHeader
           title="Withdrawal Request Sound"
-          subtitle="Ring a selected tone whenever a new withdrawal request arrives"
+          subtitle="These preferences are personal to your admin account on this device"
         />
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -167,23 +118,16 @@ export default function AdminQuickSettings() {
                   Enable admin sound alert
                 </p>
                 <p className="text-xs text-admin-text-muted">
-                  Plays when a new withdrawal request notification is received.
+                  Plays when a new withdrawal request notification is received for you.
                 </p>
               </div>
               <Switch
-                checked={draft.adminQuickSettings.withdrawalSoundEnabled}
+                checked={settings.withdrawalSoundEnabled}
                 onCheckedChange={(checked) =>
-                  setDraft((current) =>
-                    current
-                      ? {
-                          ...current,
-                          adminQuickSettings: {
-                            ...current.adminQuickSettings,
-                            withdrawalSoundEnabled: checked,
-                          },
-                        }
-                      : current,
-                  )
+                  setSettings((current) => ({
+                    ...current,
+                    withdrawalSoundEnabled: checked,
+                  }))
                 }
               />
             </div>
@@ -198,22 +142,15 @@ export default function AdminQuickSettings() {
             </p>
             <select
               className="mt-3 h-10 w-full rounded-lg border border-admin-border bg-admin-surface px-3 text-sm text-admin-text-primary outline-none transition focus:border-admin-border-strong"
-              value={draft.adminQuickSettings.withdrawalSoundTone}
+              value={settings.withdrawalSoundTone}
               onChange={(event) =>
-                setDraft((current) =>
-                  current
-                    ? {
-                        ...current,
-                        adminQuickSettings: {
-                          ...current.adminQuickSettings,
-                          withdrawalSoundTone: event.target.value,
-                        },
-                      }
-                    : current,
-                )
+                setSettings((current) => ({
+                  ...current,
+                  withdrawalSoundTone: event.target.value,
+                }))
               }
             >
-              {withdrawalToneOptions.map((tone) => (
+              {adminWithdrawalToneOptions.map((tone) => (
                 <option key={tone.value} value={tone.value}>
                   {tone.label}
                 </option>
@@ -225,7 +162,7 @@ export default function AdminQuickSettings() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-admin-text-primary">
-                  Alert volume: {clampVolume(draft.adminQuickSettings.withdrawalSoundVolume)}%
+                  Alert volume: {clampQuickSettingVolume(settings.withdrawalSoundVolume)}%
                 </p>
                 <p className="text-xs text-admin-text-muted">
                   Controls sound level for admin withdrawal request alerts.
@@ -248,19 +185,14 @@ export default function AdminQuickSettings() {
               min={0}
               max={100}
               step={1}
-              value={clampVolume(draft.adminQuickSettings.withdrawalSoundVolume)}
+              value={clampQuickSettingVolume(settings.withdrawalSoundVolume)}
               onChange={(event) =>
-                setDraft((current) =>
-                  current
-                    ? {
-                        ...current,
-                        adminQuickSettings: {
-                          ...current.adminQuickSettings,
-                          withdrawalSoundVolume: clampVolume(Number(event.target.value)),
-                        },
-                      }
-                    : current,
-                )
+                setSettings((current) => ({
+                  ...current,
+                  withdrawalSoundVolume: clampQuickSettingVolume(
+                    Number(event.target.value),
+                  ),
+                }))
               }
             />
           </div>
@@ -269,108 +201,62 @@ export default function AdminQuickSettings() {
 
       <AdminCard className="border-admin-border/80 bg-admin-card/95">
         <AdminCardHeader
-          title="Other Quick Admin Toggles"
-          subtitle="Common controls for day-to-day admin operations"
+          title="Personal Behavior"
+          subtitle="How this admin panel behaves for you only"
         />
 
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <div className="rounded-xl border border-admin-border bg-admin-surface/40 p-4">
-            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-admin-accent/10 text-admin-accent">
-              <Wrench size={15} />
-            </div>
-            <p className="text-sm font-semibold text-admin-text-primary">Maintenance Mode</p>
-            <p className="mt-1 text-xs text-admin-text-muted">
-              Temporarily limit platform access for maintenance.
-            </p>
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs text-admin-text-secondary">
-                {draft.generalSystemConfig.maintenanceMode ? "Enabled" : "Disabled"}
-              </span>
-              <Switch
-                checked={draft.generalSystemConfig.maintenanceMode}
-                onCheckedChange={(checked) =>
-                  setDraft((current) =>
-                    current
-                      ? {
-                          ...current,
-                          generalSystemConfig: {
-                            ...current.generalSystemConfig,
-                            maintenanceMode: checked,
-                          },
-                        }
-                      : current,
-                  )
-                }
-              />
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-admin-border bg-admin-surface/40 p-4">
-            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-admin-blue/10 text-admin-blue">
-              <UserPlus size={15} />
-            </div>
-            <p className="text-sm font-semibold text-admin-text-primary">User Registration</p>
-            <p className="mt-1 text-xs text-admin-text-muted">
-              Enable or disable new account signups quickly.
-            </p>
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs text-admin-text-secondary">
-                {draft.generalSystemConfig.registrationEnabled ? "Enabled" : "Disabled"}
-              </span>
-              <Switch
-                checked={draft.generalSystemConfig.registrationEnabled}
-                onCheckedChange={(checked) =>
-                  setDraft((current) =>
-                    current
-                      ? {
-                          ...current,
-                          generalSystemConfig: {
-                            ...current.generalSystemConfig,
-                            registrationEnabled: checked,
-                          },
-                        }
-                      : current,
-                  )
-                }
-              />
-            </div>
-          </div>
-
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
           <div className="rounded-xl border border-admin-border bg-admin-surface/40 p-4">
             <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-admin-gold/10 text-admin-gold">
-              <Settings2 size={15} />
+              <Monitor size={15} />
             </div>
-            <p className="text-sm font-semibold text-admin-text-primary">Admin Alerts</p>
+            <p className="text-sm font-semibold text-admin-text-primary">
+              Play sound only when this tab is visible
+            </p>
             <p className="mt-1 text-xs text-admin-text-muted">
-              Toggle operational alerts sent to admin notifications.
+              Avoid background noise while you work in other apps or tabs.
             </p>
             <div className="mt-3 flex items-center justify-between">
               <span className="text-xs text-admin-text-secondary">
-                {draft.notificationsConfig.events.adminAlerts ? "Enabled" : "Disabled"}
+                {settings.playSoundOnlyWhenPageVisible ? "Enabled" : "Disabled"}
               </span>
               <Switch
-                checked={draft.notificationsConfig.events.adminAlerts}
+                checked={settings.playSoundOnlyWhenPageVisible}
                 onCheckedChange={(checked) =>
-                  setDraft((current) =>
-                    current
-                      ? {
-                          ...current,
-                          notificationsConfig: {
-                            ...current.notificationsConfig,
-                            events: {
-                              ...current.notificationsConfig.events,
-                              adminAlerts: checked,
-                            },
-                          },
-                        }
-                      : current,
-                  )
+                  setSettings((current) => ({
+                    ...current,
+                    playSoundOnlyWhenPageVisible: checked,
+                  }))
                 }
               />
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-admin-border bg-admin-surface/40 p-4">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-admin-accent/10 text-admin-accent">
+              <Settings2 size={15} />
+            </div>
+            <p className="text-sm font-semibold text-admin-text-primary">
+              Auto-save personal quick settings
+            </p>
+            <p className="mt-1 text-xs text-admin-text-muted">
+              Changes here are saved instantly for your admin profile on this device.
+            </p>
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-admin-live-dim px-3 py-1 text-xs font-semibold text-admin-live">
+              <Lock size={12} />
+              Personal only
             </div>
           </div>
         </div>
       </AdminCard>
+
+      <div className="rounded-xl border border-admin-border bg-admin-surface/20 px-4 py-3 text-xs text-admin-text-muted">
+        <span className="inline-flex items-center gap-1.5 font-medium text-admin-text-secondary">
+          <CircleAlert size={13} />
+          Scope:
+        </span>{" "}
+        these preferences do not change platform-wide system settings for other admins.
+      </div>
     </div>
   );
 }
