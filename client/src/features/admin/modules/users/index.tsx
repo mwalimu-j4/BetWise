@@ -261,10 +261,26 @@ export default function Users() {
       {/* Stat Cards */}
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
         {[
-          { label: "Total Users", value: totalUsers.toString(), tone: "blue" as const },
-          { label: "Active Users", value: activeUsers.toString(), tone: "accent" as const },
-          { label: "Suspended Users", value: suspendedUsers.toString(), tone: "gold" as const },
-          { label: "Banned Users", value: bannedUsers.toString(), tone: "red" as const },
+          {
+            label: "Total Users",
+            value: totalUsers.toString(),
+            tone: "blue" as const,
+          },
+          {
+            label: "Active Users",
+            value: activeUsers.toString(),
+            tone: "accent" as const,
+          },
+          {
+            label: "Suspended Users",
+            value: suspendedUsers.toString(),
+            tone: "gold" as const,
+          },
+          {
+            label: "Banned Users",
+            value: bannedUsers.toString(),
+            tone: "red" as const,
+          },
         ].map((metric) => {
           const colorMap: Record<
             string,
@@ -312,9 +328,7 @@ export default function Users() {
                     <div className="h-3 w-3" />
                   </div>
                 </div>
-                <p
-                  className={`text-base font-bold sm:text-lg ${colors.text}`}
-                >
+                <p className={`text-base font-bold sm:text-lg ${colors.text}`}>
                   {metric.value}
                 </p>
               </div>

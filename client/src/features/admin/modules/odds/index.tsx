@@ -567,73 +567,105 @@ export default function Odds() {
         }
       />
 
-      {/* ── Stat cards: always 2-col, compact horizontal layout ── */}
-      <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
+      {/* ── Stat cards ── */}
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
         {[
           {
             filter: "configured" as OddsFilter,
             label: "Configured",
-            sub: "Active events",
             value: stats?.totalConfigured ?? 0,
-            color: "text-admin-blue",
+            tone: "blue" as const,
           },
           {
             filter: "configured-with-odds" as OddsFilter,
             label: "With Odds",
-            sub: "Configured + odds",
             value: stats?.withOdds ?? 0,
-            color: "text-admin-accent",
+            tone: "accent" as const,
           },
           {
             filter: "all-with-odds" as OddsFilter,
             label: "All w/ Odds",
-            sub: "Configured or not",
             value: stats?.withOdds ?? 0,
-            color: "text-admin-gold",
+            tone: "gold" as const,
           },
           {
             filter: null,
             label: "Bookmakers",
-            sub: "Visible sources",
             value: stats?.bookmakers ?? 0,
-            color: "text-admin-gold",
+            tone: "gold" as const,
           },
-        ].map(({ filter, label, sub, value, color }) => {
-          const isActive = filter !== null && activeFilter === filter;
+        ].map((metric: any) => {
+          const colorMap: Record<
+            string,
+            { bg: string; text: string; icon: string; border: string }
+          > = {
+            accent: {
+              bg: "bg-admin-accent/5",
+              text: "text-admin-accent",
+              icon: "bg-admin-accent/15 text-admin-accent",
+              border: "border-admin-accent/20",
+            },
+            blue: {
+              bg: "bg-admin-blue/5",
+              text: "text-admin-blue",
+              icon: "bg-admin-blue/15 text-admin-blue",
+              border: "border-admin-blue/20",
+            },
+            gold: {
+              bg: "bg-admin-gold/5",
+              text: "text-admin-gold",
+              icon: "bg-admin-gold/15 text-admin-gold",
+              border: "border-admin-gold/20",
+            },
+            red: {
+              bg: "bg-red-500/5",
+              text: "text-red-500",
+              icon: "bg-red-500/15 text-red-500",
+              border: "border-red-500/20",
+            },
+          };
+
+          const colors = colorMap[metric.tone] || colorMap.accent;
+          const isClickable = metric.filter !== null;
+
           const card = (
             <AdminCard
-              className={`flex items-center gap-2.5 p-2.5 transition sm:gap-3 sm:p-3 ${
-                isActive ? "border-admin-accent ring-1 ring-admin-accent" : ""
+              className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3 ${
+                isClickable && activeFilter === metric.filter
+                  ? "ring-1 ring-offset-0"
+                  : ""
               }`}
-              interactive={filter !== null}
+              interactive={isClickable}
             >
-              <p
-                className={`text-xl font-bold leading-none sm:text-2xl ${color}`}
-              >
-                {statsLoading ? "—" : value}
-              </p>
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-admin-text-primary">
-                  {label}
-                </p>
-                <p className="truncate text-[10px] text-admin-text-muted">
-                  {sub}
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
+                    {metric.label}
+                  </p>
+                  <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
+                    <div className="h-3 w-3" />
+                  </div>
+                </div>
+                <p
+                  className={`text-base font-bold sm:text-lg ${colors.text}`}
+                >
+                  {statsLoading ? "—" : metric.value}
                 </p>
               </div>
             </AdminCard>
           );
 
-          return filter !== null ? (
+          return isClickable ? (
             <button
-              key={label}
+              key={metric.label}
               className="h-full w-full text-left"
               type="button"
-              onClick={() => setFilter(filter)}
+              onClick={() => setFilter(metric.filter!)}
             >
               {card}
             </button>
           ) : (
-            <div key={label}>{card}</div>
+            <div key={metric.label}>{card}</div>
           );
         })}
       </div>
