@@ -2,7 +2,6 @@ import { api } from "@/api/axiosConfig";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
@@ -35,11 +34,15 @@ import {
   AdminButton,
   AdminCard,
   AdminCardHeader,
+  AdminDialogContent,
   AdminSectionHeader,
+  AdminStatCard,
   DepositWithdrawalChart,
   InlinePill,
   StatusBadge,
   TableShell,
+  adminDropdownContentClassName,
+  adminDropdownItemClassName,
   adminTableCellClassName,
   adminTableClassName,
   adminTableHeadCellClassName,
@@ -247,66 +250,15 @@ export default function Dashboard() {
             : metrics.map((metric, index) => {
                 const hideOnMobile = !showAllStatsMobile && index > 3;
 
-                const colorMap: Record<
-                  string,
-                  { bg: string; text: string; icon: string; border: string }
-                > = {
-                  accent: {
-                    bg: "bg-admin-accent/5",
-                    text: "text-admin-accent",
-                    icon: "bg-admin-accent/15 text-admin-accent",
-                    border: "border-admin-accent/20",
-                  },
-                  blue: {
-                    bg: "bg-admin-blue/5",
-                    text: "text-admin-blue",
-                    icon: "bg-admin-blue/15 text-admin-blue",
-                    border: "border-admin-blue/20",
-                  },
-                  gold: {
-                    bg: "bg-admin-gold/5",
-                    text: "text-admin-gold",
-                    icon: "bg-admin-gold/15 text-admin-gold",
-                    border: "border-admin-gold/20",
-                  },
-                  red: {
-                    bg: "bg-red-500/5",
-                    text: "text-red-500",
-                    icon: "bg-red-500/15 text-red-500",
-                    border: "border-red-500/20",
-                  },
-                };
-
-                const colors = colorMap[metric.tone] || colorMap.accent;
-
                 return (
-                  <AdminCard
+                  <AdminStatCard
                     key={metric.label}
-                    className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3 ${hideOnMobile ? "hidden sm:block" : ""}`}
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
-                          {metric.label}
-                        </p>
-                        <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
-                          <div className="h-3 w-3" />
-                        </div>
-                      </div>
-                      <div>
-                        <p
-                          className={`text-base font-bold sm:text-lg ${colors.text}`}
-                        >
-                          {metric.value}
-                        </p>
-                        {metric.helper && (
-                          <p className="mt-1 text-[8px] text-admin-text-muted line-clamp-1 sm:text-[9px]">
-                            {metric.helper}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </AdminCard>
+                    label={metric.label}
+                    value={metric.value}
+                    tone={metric.tone}
+                    helper={metric.helper}
+                    className={hideOnMobile ? "hidden sm:block" : undefined}
+                  />
                 );
               })}
         </div>
@@ -540,9 +492,10 @@ export default function Dashboard() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                   align="end"
-                                  className="w-56"
+                                  className={`${adminDropdownContentClassName} w-56`}
                                 >
                                   <DropdownMenuItem
+                                    className={adminDropdownItemClassName}
                                     onClick={() =>
                                       handleViewDetails(transaction)
                                     }
@@ -550,11 +503,13 @@ export default function Dashboard() {
                                     View full details
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
+                                    className={adminDropdownItemClassName}
                                     onClick={() => handleOpenUser(transaction)}
                                   >
                                     Open user profile
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
+                                    className={adminDropdownItemClassName}
                                     onClick={() =>
                                       handleReviewTransaction(transaction)
                                     }
@@ -708,9 +663,9 @@ export default function Dashboard() {
                 {/* Risk Management */}
                 <Link
                   to="/admin/risk"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-red-500/60 hover:bg-admin-surface/80 hover:shadow-md hover:shadow-red-500/10"
+                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-red/60 hover:bg-admin-surface/80 hover:shadow-md hover:shadow-admin-red/10"
                 >
-                  <div className="rounded-md bg-red-500/20 p-1.5 text-red-500 transition-colors duration-200 group-hover:bg-red-500/30">
+                  <div className="rounded-md bg-admin-red/20 p-1.5 text-admin-red transition-colors duration-200 group-hover:bg-admin-red/30">
                     <AlertCircle size={16} />
                   </div>
                   <div className="space-y-0.5 flex-1">
@@ -763,7 +718,7 @@ export default function Dashboard() {
           open={viewDetailsDialogOpen}
           onOpenChange={setViewDetailsDialogOpen}
         >
-          <DialogContent className="max-w-md bg-admin-bg">
+          <AdminDialogContent className="max-w-md bg-admin-bg">
             <DialogHeader>
               <DialogTitle className="text-admin-text-primary">
                 Transaction Details
@@ -892,7 +847,7 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
-          </DialogContent>
+          </AdminDialogContent>
         </Dialog>
       )}
     </div>

@@ -29,9 +29,13 @@ import { useState } from "react";
 import {
   AdminButton,
   AdminCard,
+  AdminStatCard,
   AdminSectionHeader,
   StatusBadge,
   TableShell,
+  adminDropdownContentClassName,
+  adminDropdownItemClassName,
+  adminInputClassName,
   adminCompactActionsClassName,
   adminTableCellClassName,
   adminTableClassName,
@@ -281,60 +285,15 @@ export default function Users() {
             value: bannedUsers.toString(),
             tone: "red" as const,
           },
-        ].map((metric) => {
-          const colorMap: Record<
-            string,
-            { bg: string; text: string; icon: string; border: string }
-          > = {
-            accent: {
-              bg: "bg-admin-accent/5",
-              text: "text-admin-accent",
-              icon: "bg-admin-accent/15 text-admin-accent",
-              border: "border-admin-accent/20",
-            },
-            blue: {
-              bg: "bg-admin-blue/5",
-              text: "text-admin-blue",
-              icon: "bg-admin-blue/15 text-admin-blue",
-              border: "border-admin-blue/20",
-            },
-            gold: {
-              bg: "bg-admin-gold/5",
-              text: "text-admin-gold",
-              icon: "bg-admin-gold/15 text-admin-gold",
-              border: "border-admin-gold/20",
-            },
-            red: {
-              bg: "bg-red-500/5",
-              text: "text-red-500",
-              icon: "bg-red-500/15 text-red-500",
-              border: "border-red-500/20",
-            },
-          };
-
-          const colors = colorMap[metric.tone] || colorMap.accent;
-
-          return (
-            <AdminCard
-              key={metric.label}
-              className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
-                    {metric.label}
-                  </p>
-                  <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
-                    <div className="h-3 w-3" />
-                  </div>
-                </div>
-                <p className={`text-base font-bold sm:text-lg ${colors.text}`}>
-                  {metric.value}
-                </p>
-              </div>
-            </AdminCard>
-          );
-        })}
+        ].map((metric) => (
+          <AdminStatCard
+            key={metric.label}
+            label={metric.label}
+            value={metric.value}
+            tone={metric.tone}
+            helper="Snapshot of account status across the current results page"
+          />
+        ))}
       </div>
 
       {error && (
@@ -351,7 +310,7 @@ export default function Users() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          className="border-admin-border bg-admin-surface text-admin-text-primary"
+          className={adminInputClassName}
         />
 
         <div className="flex gap-2 flex-wrap">
@@ -456,8 +415,12 @@ export default function Users() {
                               <MoreVertical size={14} />
                             </AdminButton>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuContent
+                            align="end"
+                            className={`${adminDropdownContentClassName} w-40`}
+                          >
                             <DropdownMenuItem
+                              className={adminDropdownItemClassName}
                               onClick={() => handleOpenEdit(user)}
                             >
                               Edit
@@ -465,13 +428,14 @@ export default function Users() {
                             {user.status === "active" ? (
                               <>
                                 <DropdownMenuItem
+                                  className={adminDropdownItemClassName}
                                   onClick={() => handleOpenSuspend(user.id)}
                                 >
                                   Suspend
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleOpenBan(user.id)}
-                                  className="text-admin-red"
+                                  className={`${adminDropdownItemClassName} text-admin-red focus:bg-admin-red/12 focus:text-admin-red`}
                                 >
                                   Ban
                                 </DropdownMenuItem>
@@ -479,19 +443,21 @@ export default function Users() {
                             ) : user.status === "suspended" ? (
                               <>
                                 <DropdownMenuItem
+                                  className={adminDropdownItemClassName}
                                   onClick={() => handleOpenUnsuspend(user.id)}
                                 >
                                   Unsuspend
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleOpenBan(user.id)}
-                                  className="text-admin-red"
+                                  className={`${adminDropdownItemClassName} text-admin-red focus:bg-admin-red/12 focus:text-admin-red`}
                                 >
                                   Ban
                                 </DropdownMenuItem>
                               </>
                             ) : user.status === "banned" ? (
                               <DropdownMenuItem
+                                className={adminDropdownItemClassName}
                                 onClick={() => handleOpenUnban(user.id)}
                               >
                                 Unban

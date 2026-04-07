@@ -212,14 +212,6 @@ export default function AdminShell() {
   }, []);
 
   useEffect(() => {
-    document.body.classList.add("admin-workspace");
-
-    return () => {
-      document.body.classList.remove("admin-workspace");
-    };
-  }, []);
-
-  useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setMobileSidebarOpen(false);
@@ -243,11 +235,7 @@ export default function AdminShell() {
 
   return (
     <ProtectedRoute requireRole="ADMIN">
-      <div className="relative min-h-dvh overflow-hidden bg-admin-bg font-admin text-admin-text-primary lg:flex">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,197,24,0.12),transparent_28%),radial-gradient(circle_at_top_right,rgba(168,196,224,0.14),transparent_26%),linear-gradient(180deg,rgba(3,10,22,0.14),transparent_42%)]"
-        />
+      <div className="relative min-h-dvh bg-admin-bg font-admin text-admin-text-primary lg:flex">
         {/* Mobile Sidebar Overlay */}
         {mobileSidebarOpen && (
           <button
@@ -261,8 +249,8 @@ export default function AdminShell() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col overflow-hidden border-r border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02)_60%),linear-gradient(160deg,rgba(255,255,255,0.05),transparent_38%)] bg-admin-card/95 backdrop-blur-xl",
-            "shadow-[10px_0_40px_rgba(2,8,23,0.35)] transition-all duration-300 ease-in-out",
+            "fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col overflow-hidden border-r border-admin-border bg-admin-card",
+            "shadow-[4px_0_24px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0 lg:shadow-none",
             sidebarExpanded
@@ -400,14 +388,14 @@ export default function AdminShell() {
         </aside>
 
         {/* Main Content Area */}
-        <div className="relative flex min-w-0 flex-1 flex-col bg-transparent">
+        <div className="relative flex min-w-0 flex-1 flex-col bg-admin-bg">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--color-accent-soft),transparent_44%),radial-gradient(circle_at_18%_18%,rgba(168,196,224,0.08),transparent_18%)] opacity-70"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--color-accent-soft),transparent_50%)] opacity-40"
           />
 
           {/* Top Header - Updated to match sidebar background */}
-          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-admin-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015)_58%)] bg-admin-card/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-admin-border bg-admin-card px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 lg:hidden">
               <button
                 type="button"
@@ -421,7 +409,7 @@ export default function AdminShell() {
 
             {/* Search Bar - Updated for contrast */}
             <div className="hidden max-w-md flex-1 items-center md:flex">
-              <div className="group flex h-11 w-full items-center gap-2.5 rounded-full border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] bg-admin-bg/60 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-all focus-within:border-admin-accent/50 focus-within:bg-admin-bg/85 focus-within:ring-4 focus-within:ring-admin-accent/10 hover:bg-admin-bg/80">
+              <div className="group flex h-10 w-full items-center gap-2.5 rounded-full border border-admin-border bg-admin-bg/50 px-4 transition-all focus-within:border-admin-accent/50 focus-within:bg-admin-bg focus-within:ring-4 focus-within:ring-admin-accent/10 hover:bg-admin-bg/80">
                 <Search
                   size={16}
                   className="text-admin-text-muted transition-colors group-focus-within:text-admin-accent"

@@ -92,16 +92,6 @@ const toneBorderClasses: Record<AdminTone, string> = {
   live: "border-admin-live/25",
 };
 
-const tonePanelClasses: Record<AdminTone, string> = {
-  accent: "bg-admin-accent/10 text-admin-accent",
-  blue: "bg-admin-blue/10 text-admin-blue",
-  gold: "bg-admin-gold/10 text-admin-gold",
-  red: "bg-admin-red/10 text-admin-red",
-  purple: "bg-admin-purple/10 text-admin-purple",
-  muted: "bg-admin-surface/70 text-admin-text-secondary",
-  live: "bg-admin-live/10 text-admin-live",
-};
-
 const statusConfig: Record<
   AdminBadgeStatus,
   { tone: AdminTone; icon: LucideIcon }
@@ -144,17 +134,17 @@ export const adminTableCellClassName =
 export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
 export const adminDialogContentClassName =
-  "overflow-hidden border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%),linear-gradient(160deg,rgba(255,255,255,0.04),transparent_38%)] bg-admin-card text-admin-text-primary shadow-[0_28px_90px_rgba(2,8,23,0.55)] backdrop-blur-xl";
+  "overflow-hidden rounded-[1.35rem] border border-[rgba(245,197,24,0.16)] bg-[linear-gradient(180deg,#244a8e,#1f4380)] text-admin-text-primary shadow-[0_24px_64px_rgba(13,33,55,0.34)]";
 export const adminInputClassName =
-  "h-11 rounded-2xl border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3.5 text-admin-text-primary placeholder:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
+  "h-10 rounded-xl border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3 text-admin-text-primary placeholder:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
 export const adminSelectTriggerClassName =
-  "h-11 w-full rounded-2xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3.5 text-admin-text-primary shadow-none data-[placeholder]:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
+  "h-10 w-full rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3 text-admin-text-primary shadow-none data-[placeholder]:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
 export const adminSelectContentClassName =
-  "rounded-2xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%),linear-gradient(160deg,rgba(255,255,255,0.04),transparent_38%)] bg-admin-card text-admin-text-primary shadow-[0_18px_60px_rgba(2,8,23,0.45)] backdrop-blur-xl";
+  "rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card text-admin-text-primary shadow-[0_16px_40px_rgba(2,8,23,0.38)]";
 export const adminDropdownContentClassName =
-  "rounded-2xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%),linear-gradient(160deg,rgba(255,255,255,0.04),transparent_38%)] bg-admin-card p-1.5 text-admin-text-primary shadow-[0_18px_60px_rgba(2,8,23,0.45)] backdrop-blur-xl";
+  "rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card p-1.5 text-admin-text-primary shadow-[0_16px_40px_rgba(2,8,23,0.38)]";
 export const adminDropdownItemClassName =
-  "rounded-xl px-3 py-2 text-sm text-admin-text-secondary focus:bg-admin-accent/12 focus:text-admin-text-primary";
+  "rounded-lg px-3 py-2 text-sm text-admin-text-secondary focus:bg-admin-accent/12 focus:text-admin-text-primary";
 
 export function AdminDialogContent({
   className,
@@ -192,10 +182,10 @@ export function AdminCard({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-[1.6rem] border border-admin-border/80 bg-admin-card/95 p-3 text-admin-text-primary shadow-[0_18px_60px_rgba(2,8,23,0.38),inset_0_1px_0_rgba(255,255,255,0.03)] sm:p-4 lg:p-5",
-        "bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015)_58%),linear-gradient(160deg,rgba(255,255,255,0.04),transparent_40%)]",
+        "relative rounded-2xl border border-admin-border bg-admin-card p-3 text-admin-text-primary shadow-[0_12px_40px_var(--color-bg-deepest)] sm:p-4 lg:p-5",
+        "bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_120px)]",
         interactive &&
-          "transition duration-200 hover:-translate-y-0.5 hover:border-admin-border-strong hover:shadow-[0_22px_70px_rgba(2,8,23,0.48),inset_0_1px_0_rgba(255,255,255,0.05)]",
+          "transition duration-200 hover:border-admin-border-strong",
         className,
       )}
     >
@@ -222,7 +212,7 @@ export function AdminButton({
         variant === "solid"
           ? cn(
               solidToneClasses[tone],
-              "border-transparent shadow-[0_12px_30px_rgba(0,0,0,0.16)] hover:-translate-y-0.5 hover:opacity-95",
+              "border-transparent shadow-[0_10px_24px_rgba(0,0,0,0.14)] hover:opacity-95",
             )
           : "border-admin-border/70 bg-admin-surface/45 text-admin-text-secondary hover:border-admin-border-strong hover:bg-admin-hover hover:text-admin-text-primary",
         className,
@@ -249,12 +239,12 @@ export function AdminSectionHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="text-[1.65rem] font-bold tracking-[-0.03em] text-admin-text-primary sm:text-[2rem]">
+        <h1 className="text-xl font-bold tracking-[-0.02em] text-admin-text-primary sm:text-2xl">
           {title}
         </h1>
-        <p className="mt-1.5 max-w-3xl text-sm text-admin-text-muted">
+        <p className="mt-1 max-w-3xl text-xs text-admin-text-muted sm:text-sm">
           {subtitle}
         </p>
       </div>
@@ -281,7 +271,7 @@ export function AdminCardHeader({
           {title}
         </p>
         {subtitle ? (
-          <p className="mt-1 text-sm text-admin-text-muted">{subtitle}</p>
+          <p className="mt-1 text-xs text-admin-text-muted">{subtitle}</p>
         ) : null}
       </div>
       {actions ? (
@@ -350,7 +340,6 @@ export function AdminStatCard({
   label,
   value,
   tone,
-  helper,
   className,
 }: {
   label: string;
@@ -361,43 +350,23 @@ export function AdminStatCard({
 }) {
   return (
     <AdminCard
-      className={cn("overflow-hidden p-3.5 sm:p-4", toneBorderClasses[tone], className)}
+      className={cn("border p-2.5 sm:p-3", toneBorderClasses[tone], className)}
       interactive
     >
       <div
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute right-0 top-0 h-24 w-24 rounded-tr-[1.6rem] opacity-90",
-          toneGlowClasses[tone],
+          "absolute right-3 top-3 h-5 w-5 rounded-[4px] opacity-75",
+          toneSoftClasses[tone],
         )}
       />
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-admin-text-muted">
-            {label}
-          </p>
-          <p
-            className={cn(
-              "mt-2 text-xl font-bold tracking-[-0.03em] sm:text-[1.65rem]",
-              toneTextClasses[tone],
-            )}
-          >
-            {value}
-          </p>
-          <p className="mt-1 text-xs text-admin-text-muted">
-            {helper ?? "Updated from the latest admin feed"}
-          </p>
-        </div>
-
-        <span
-          className={cn(
-            "mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border",
-            toneBorderClasses[tone],
-            tonePanelClasses[tone],
-          )}
-        >
-          <span className="h-2.5 w-2.5 rounded-full bg-current" />
-        </span>
+      <div className="space-y-2">
+        <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
+          {label}
+        </p>
+        <p className={cn("text-base font-bold sm:text-lg", toneTextClasses[tone])}>
+          {value}
+        </p>
       </div>
     </AdminCard>
   );
@@ -474,7 +443,7 @@ export function TableShell({
   return (
     <div
       className={cn(
-        "w-full overflow-x-auto overscroll-x-contain rounded-[1.4rem] border border-admin-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)_58%)] bg-admin-surface/35 [scrollbar-width:thin]",
+        "w-full overflow-x-auto overscroll-x-contain rounded-xl border border-admin-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)_58%)] bg-admin-surface/35 [scrollbar-width:thin]",
         className,
       )}
     >

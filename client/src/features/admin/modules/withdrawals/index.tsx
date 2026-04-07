@@ -13,9 +13,14 @@ import { api } from "@/api/axiosConfig";
 import {
   AdminButton,
   AdminCard,
+  AdminDialogContent,
+  AdminStatCard,
   AdminSectionHeader,
   StatusBadge,
   TableShell,
+  adminDropdownContentClassName,
+  adminDropdownItemClassName,
+  adminInputClassName,
   adminTableCellClassName,
   adminTableClassName,
   adminTableHeadCellClassName,
@@ -23,7 +28,6 @@ import {
 } from "../../components/ui";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
@@ -35,7 +39,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -298,7 +301,7 @@ export default function WithdrawalsAdmin() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as FilterStatus)}
-              className="rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-text-primary outline-none transition hover:border-admin-accent"
+              className="rounded-2xl border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] bg-admin-surface/55 px-3.5 py-2.5 text-sm text-admin-text-primary outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition hover:border-admin-accent/50"
             >
               <option value="PENDING">Pending</option>
               <option value="PROCESSING">Processing</option>
@@ -314,60 +317,15 @@ export default function WithdrawalsAdmin() {
       />
 
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
-        {stats.map((metric) => {
-          const colorMap: Record<
-            string,
-            { bg: string; text: string; icon: string; border: string }
-          > = {
-            accent: {
-              bg: "bg-admin-accent/5",
-              text: "text-admin-accent",
-              icon: "bg-admin-accent/15 text-admin-accent",
-              border: "border-admin-accent/20",
-            },
-            blue: {
-              bg: "bg-admin-blue/5",
-              text: "text-admin-blue",
-              icon: "bg-admin-blue/15 text-admin-blue",
-              border: "border-admin-blue/20",
-            },
-            gold: {
-              bg: "bg-admin-gold/5",
-              text: "text-admin-gold",
-              icon: "bg-admin-gold/15 text-admin-gold",
-              border: "border-admin-gold/20",
-            },
-            red: {
-              bg: "bg-red-500/5",
-              text: "text-red-500",
-              icon: "bg-red-500/15 text-red-500",
-              border: "border-red-500/20",
-            },
-          };
-
-          const colors = colorMap[metric.tone] || colorMap.accent;
-
-          return (
-            <AdminCard
-              key={metric.label}
-              className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
-                    {metric.label}
-                  </p>
-                  <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
-                    <div className="h-3 w-3" />
-                  </div>
-                </div>
-                <p className={`text-base font-bold sm:text-lg ${colors.text}`}>
-                  {metric.value}
-                </p>
-              </div>
-            </AdminCard>
-          );
-        })}
+        {stats.map((metric) => (
+          <AdminStatCard
+            key={metric.label}
+            label={metric.label}
+            value={metric.value}
+            tone={metric.tone}
+            helper="Queues and processed requests synced from the payouts pipeline"
+          />
+        ))}
       </div>
 
       <AdminCard>
@@ -463,8 +421,12 @@ export default function WithdrawalsAdmin() {
                             <MoreHorizontal size={16} />
                           </AdminButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuContent
+                          align="end"
+                          className={`${adminDropdownContentClassName} w-44`}
+                        >
                           <DropdownMenuItem
+                            className={adminDropdownItemClassName}
                             onSelect={() => openDetails(withdrawal)}
                           >
                             View details
@@ -473,7 +435,7 @@ export default function WithdrawalsAdmin() {
                             <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
-                                className="text-green-500 focus:text-green-600 focus:bg-green-500/10"
+                                className={`${adminDropdownItemClassName} text-admin-live focus:bg-admin-live/12 focus:text-admin-live`}
                                 onSelect={(e) => {
                                   e.preventDefault();
                                   approveMutation.mutate(withdrawal.id);
@@ -482,7 +444,7 @@ export default function WithdrawalsAdmin() {
                                 Approve
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                className="text-red-500 focus:text-red-600 focus:bg-red-500/10"
+                                className={`${adminDropdownItemClassName} text-admin-red focus:bg-admin-red/12 focus:text-admin-red`}
                                 onSelect={() => {
                                   setSelectedWithdrawal(withdrawal);
                                   setRejectReason("");
@@ -507,7 +469,7 @@ export default function WithdrawalsAdmin() {
           open={detailsOpen && selectedWithdrawal !== null}
           onOpenChange={(open) => !open && handleCloseDetails()}
         >
-          <DialogContent className="max-w-md overflow-hidden border-admin-border bg-admin-card p-0 shadow-xl sm:rounded-2xl">
+          <AdminDialogContent className="max-w-md p-0">
             <DialogHeader className="border-b border-admin-border bg-admin-surface/50 px-6 py-5">
               <DialogTitle className="text-lg text-admin-text-primary">
                 Withdrawal Request
@@ -643,13 +605,13 @@ export default function WithdrawalsAdmin() {
                         value={rejectReason}
                         onChange={(e) => setRejectReason(e.target.value)}
                         placeholder="Enter reason if rejecting..."
-                        className="mt-1.5 h-10 border-admin-border bg-admin-card text-sm focus-visible:ring-admin-accent"
+                        className={`mt-1.5 ${adminInputClassName}`}
                         onKeyDown={(e) => e.stopPropagation()} // Prevents modal from closing if pressing keys
                       />
                     </div>
 
                     <div className="flex gap-3">
-                      <Button
+                      <AdminButton
                         onClick={() =>
                           rejectMutation.mutate({
                             withdrawalId: selectedWithdrawal.id,
@@ -659,8 +621,9 @@ export default function WithdrawalsAdmin() {
                         disabled={
                           rejectMutation.isPending || approveMutation.isPending
                         }
-                        variant="outline"
-                        className="flex-1 border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:text-red-400"
+                        tone="red"
+                        variant="ghost"
+                        className="flex-1 border-admin-red/35 bg-admin-red/10 text-admin-red hover:bg-admin-red/15"
                       >
                         {rejectMutation.isPending ? (
                           <Loader size={16} className="mr-2 animate-spin" />
@@ -668,16 +631,16 @@ export default function WithdrawalsAdmin() {
                           <XCircle size={16} className="mr-2" />
                         )}
                         Reject
-                      </Button>
+                      </AdminButton>
 
-                      <Button
+                      <AdminButton
                         onClick={() =>
                           approveMutation.mutate(selectedWithdrawal.id)
                         }
                         disabled={
                           approveMutation.isPending || rejectMutation.isPending
                         }
-                        className="flex-1 bg-admin-accent text-black hover:opacity-90"
+                        className="flex-1"
                       >
                         {approveMutation.isPending ? (
                           <Loader size={16} className="mr-2 animate-spin" />
@@ -685,13 +648,13 @@ export default function WithdrawalsAdmin() {
                           <CheckCircle size={16} className="mr-2" />
                         )}
                         Approve
-                      </Button>
+                      </AdminButton>
                     </div>
                   </div>
                 )}
               </div>
             )}
-          </DialogContent>
+          </AdminDialogContent>
         </Dialog>
       </AdminCard>
     </div>

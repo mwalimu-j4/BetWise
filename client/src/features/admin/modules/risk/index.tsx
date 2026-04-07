@@ -10,9 +10,13 @@ import {
 import {
   AdminButton,
   AdminCard,
+  AdminDialogContent,
+  AdminStatCard,
   AdminSectionHeader,
   InlinePill,
   TableShell,
+  adminSelectContentClassName,
+  adminSelectTriggerClassName,
   adminCompactActionsClassName,
   adminTableCellClassName,
   adminTableClassName,
@@ -21,7 +25,6 @@ import {
 } from "../../components/ui";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
@@ -34,7 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -175,68 +177,15 @@ export default function Risk() {
             <Loader className="h-6 w-6 animate-spin text-admin-accent" />
           </div>
         ) : (
-          stats.map((metric) => {
-            const colorMap: Record<
-              string,
-              { bg: string; text: string; icon: string; border: string }
-            > = {
-              accent: {
-                bg: "bg-admin-accent/5",
-                text: "text-admin-accent",
-                icon: "bg-admin-accent/15 text-admin-accent",
-                border: "border-admin-accent/20",
-              },
-              blue: {
-                bg: "bg-admin-blue/5",
-                text: "text-admin-blue",
-                icon: "bg-admin-blue/15 text-admin-blue",
-                border: "border-admin-blue/20",
-              },
-              gold: {
-                bg: "bg-admin-gold/5",
-                text: "text-admin-gold",
-                icon: "bg-admin-gold/15 text-admin-gold",
-                border: "border-admin-gold/20",
-              },
-              red: {
-                bg: "bg-red-500/5",
-                text: "text-red-500",
-                icon: "bg-red-500/15 text-red-500",
-                border: "border-red-500/20",
-              },
-              purple: {
-                bg: "bg-admin-purple/5",
-                text: "text-admin-purple",
-                icon: "bg-admin-purple/15 text-admin-purple",
-                border: "border-admin-purple/20",
-              },
-            };
-
-            const colors = colorMap[metric.tone] || colorMap.accent;
-
-            return (
-              <AdminCard
-                key={metric.label}
-                className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3`}
-              >
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
-                      {metric.label}
-                    </p>
-                    <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
-                      <div className="h-3 w-3" />
-                    </div>
-                  </div>
-                  <p
-                    className={`text-base font-bold sm:text-lg ${colors.text}`}
-                  >
-                    {metric.value}
-                  </p>
-                </div>
-              </AdminCard>
-            );
-          })
+          stats.map((metric) => (
+            <AdminStatCard
+              key={metric.label}
+              label={metric.label}
+              value={metric.value}
+              tone={metric.tone}
+              helper="Severity and queue state synced from the compliance monitor"
+            />
+          ))
         )}
       </div>
 
@@ -255,10 +204,10 @@ export default function Risk() {
             <div className="space-y-2">
               <label className="text-sm text-admin-text-muted">Status</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className={adminSelectTriggerClassName}>
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className={adminSelectContentClassName}>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="OPEN">Open</SelectItem>
                   <SelectItem value="IN_REVIEW">In Review</SelectItem>
@@ -273,10 +222,10 @@ export default function Risk() {
             <div className="space-y-2">
               <label className="text-sm text-admin-text-muted">Severity</label>
               <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className={adminSelectTriggerClassName}>
                   <SelectValue placeholder="All Severities" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className={adminSelectContentClassName}>
                   <SelectItem value="all">All Severities</SelectItem>
                   <SelectItem value="CRITICAL">Critical</SelectItem>
                   <SelectItem value="HIGH">High</SelectItem>
@@ -292,10 +241,10 @@ export default function Risk() {
                 Alert Type
               </label>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className={adminSelectTriggerClassName}>
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className={adminSelectContentClassName}>
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="HIGH_RISK_BET">High Risk Bet</SelectItem>
                   <SelectItem value="EXPOSURE_LIMIT_EXCEEDED">
@@ -335,8 +284,8 @@ export default function Risk() {
             severityFilter !== "all" ||
             typeFilter !== "all") && (
             <div className="flex justify-end">
-              <Button
-                variant="outline"
+              <AdminButton
+                variant="ghost"
                 size="sm"
                 onClick={() => {
                   setStatusFilter("all");
@@ -346,7 +295,7 @@ export default function Risk() {
                 }}
               >
                 Clear Filters
-              </Button>
+              </AdminButton>
             </div>
           )}
         </div>
@@ -458,7 +407,7 @@ export default function Risk() {
                             </AdminButton>
                           </DialogTrigger>
                           {selectedAlert?.id === alert.id && (
-                            <DialogContent className="max-h-screen max-w-2xl overflow-hidden">
+                            <AdminDialogContent className="max-h-screen max-w-2xl overflow-hidden">
                               <DialogHeader>
                                 <DialogTitle>Risk Alert Details</DialogTitle>
                                 <DialogDescription>
@@ -628,7 +577,7 @@ export default function Risk() {
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
                                       {selectedAlert.status !== "RESOLVED" && (
-                                        <Button
+                                        <AdminButton
                                           size="sm"
                                           onClick={() =>
                                             handleStatusUpdate(
@@ -647,10 +596,10 @@ export default function Risk() {
                                           ) : (
                                             "Resolve"
                                           )}
-                                        </Button>
+                                        </AdminButton>
                                       )}
                                       {selectedAlert.status !== "DISMISSED" && (
-                                        <Button
+                                        <AdminButton
                                           size="sm"
                                           onClick={() =>
                                             handleStatusUpdate(
@@ -662,10 +611,10 @@ export default function Risk() {
                                           disabled={isUpdating}
                                         >
                                           Dismiss
-                                        </Button>
+                                        </AdminButton>
                                       )}
                                       {selectedAlert.status !== "IN_REVIEW" && (
-                                        <Button
+                                        <AdminButton
                                           size="sm"
                                           onClick={() =>
                                             handleStatusUpdate(
@@ -677,13 +626,13 @@ export default function Risk() {
                                           disabled={isUpdating}
                                         >
                                           Mark Review
-                                        </Button>
+                                        </AdminButton>
                                       )}
                                     </div>
                                   </div>
                                 </div>
                               </ScrollArea>
-                            </DialogContent>
+                            </AdminDialogContent>
                           )}
                         </Dialog>
                       </td>
