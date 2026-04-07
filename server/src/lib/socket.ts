@@ -3,7 +3,12 @@ import type { Express } from "express";
 import { Server } from "socket.io";
 import { verifyAccessToken } from "../utils/tokenUtils";
 
-type WalletEventStatus = "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
+type WalletEventStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED"
+  | "REVERSED";
 
 export type WalletRealtimeEvent = {
   transactionId: string;

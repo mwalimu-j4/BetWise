@@ -1,15 +1,17 @@
 import type { Request, Response } from "express";
 import { randomUUID } from "node:crypto";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { emitNotificationUpdate, emitWalletUpdate } from "../lib/socket";
+import { emitWalletUpdate } from "../lib/socket";
+import { getOrCreateWallet } from "../lib/wallet";
 import {
   createWithdrawalNotifications,
   createDepositNotifications,
 } from "./notifications.controller";
 import {
-  toTransactionType,
   getMpesaConfig,
+  getMpesaB2CConfig,
   getTimestamp,
   getMpesaAccessToken,
   normalizePhoneNumber,
@@ -22,26 +24,33 @@ import {
   type WalletTransactionType,
   type MpesaStkPushResponse,
   type MpesaStkQueryResponse,
+  type MpesaB2CResponse,
   type MpesaCallbackItem,
 } from "../lib/mpesa";
+import { defaultAdminSettings } from "../lib/adminSettingsConfig";
 
-const WITHDRAWAL_CONFIG = {
-  MIN_AMOUNT: 50,
-  MAX_AMOUNT_PER_REQUEST: 500000,
-  FEE_PERCENTAGE: 5,
+const WITHDRAWAL_DEFAULTS = {
+  MIN_AMOUNT: defaultAdminSettings.userDefaultsAndRestrictions.minWithdrawal,
+  MAX_AMOUNT_PER_REQUEST:
+    defaultAdminSettings.userDefaultsAndRestrictions.maxWithdrawal,
+  FEE_PERCENTAGE:
+    defaultAdminSettings.paymentsConfig.mpesa.transactionFeePercent,
+  DAILY_LIMIT:
+    defaultAdminSettings.userDefaultsAndRestrictions.dailyTransactionLimit,
+  APPROVAL_THRESHOLD:
+    defaultAdminSettings.paymentsConfig.mpesa.withdrawalApprovalThreshold,
+  KYC_REQUIRED: defaultAdminSettings.kycAndComplianceConfig.withdrawalRequiresKyc,
+  MPESA_ENABLED: defaultAdminSettings.paymentsConfig.methods.mpesa,
 };
 
 const withdrawalRequestSchema = z.object({
-  phone: z
-    .string()
-    .trim()
-    .regex(/^254\d{9}$/, "Phone must be in format 2547XXXXXXXX"),
+  phone: z.string().trim().min(9).max(20),
   amount: z
     .number()
     .int()
     .positive()
-    .min(WITHDRAWAL_CONFIG.MIN_AMOUNT)
-    .max(WITHDRAWAL_CONFIG.MAX_AMOUNT_PER_REQUEST),
+    .min(WITHDRAWAL_DEFAULTS.MIN_AMOUNT)
+    .max(WITHDRAWAL_DEFAULTS.MAX_AMOUNT_PER_REQUEST),
   pin: z.string().trim().min(4).max(6).optional(),
 });
 
@@ -57,6 +66,31 @@ type PaymentEvent = {
   amount: number;
 };
 
+type WithdrawalProviderMeta = {
+  fee?: number;
+  totalDebit?: number;
+  requestedAt?: string;
+  approvalMode?: "AUTO" | "MANUAL";
+  approvedAt?: string;
+  approvedBy?: string;
+  requestedPayoutAt?: string;
+  finalizedAt?: string;
+  disbursementState?: "PENDING_APPROVAL" | "PROCESSING" | "COMPLETED" | "FAILED";
+  failureStage?: "APPROVAL" | "B2C_REQUEST" | "B2C_TIMEOUT" | "B2C_RESULT";
+  mpesa?: Record<string, unknown>;
+};
+
+type WithdrawalSettings = {
+  minWithdrawal: number;
+  maxWithdrawal: number;
+  dailyTransactionLimit: number;
+  withdrawalRequiresKyc: boolean;
+  feePercentage: number;
+  autoWithdrawEnabled: boolean;
+  approvalThreshold: number;
+  mpesaEnabled: boolean;
+};
+
 function emitWalletEvent(event: PaymentEvent) {
   emitWalletUpdate(event.userId, {
     transactionId: event.transactionId,
@@ -67,17 +101,6 @@ function emitWalletEvent(event: PaymentEvent) {
     message: event.message,
     balance: event.balance,
     amount: event.amount,
-  });
-}
-
-async function getOrCreateWallet(userId: string) {
-  const existingWallet = await prisma.wallet.findUnique({ where: { userId } });
-  if (existingWallet) return existingWallet;
-
-  return prisma.wallet.create({
-    data: {
-      userId,
-    },
   });
 }
 
@@ -92,6 +115,8 @@ function toTransactionStatus(value: WalletTransactionStatus) {
   switch (value) {
     case "PENDING":
       return "pending";
+    case "PROCESSING":
+      return "processing";
     case "COMPLETED":
       return "completed";
     case "FAILED":
@@ -99,6 +124,462 @@ function toTransactionStatus(value: WalletTransactionStatus) {
     case "REVERSED":
       return "reversed";
   }
+}
+
+function startOfToday() {
+  const next = new Date();
+  next.setHours(0, 0, 0, 0);
+  return next;
+}
+
+function getJsonObject(value: Prisma.JsonValue | null | undefined) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function getWithdrawalProviderMeta(
+  value: Prisma.JsonValue | null | undefined,
+): WithdrawalProviderMeta {
+  return getJsonObject(value) as WithdrawalProviderMeta;
+}
+
+function mergeProviderMeta(
+  existing: Prisma.JsonValue | null | undefined,
+  next: WithdrawalProviderMeta,
+) {
+  return {
+    ...getWithdrawalProviderMeta(existing),
+    ...next,
+  } as never;
+}
+
+async function getWithdrawalSettings(): Promise<WithdrawalSettings> {
+  const settings = await prisma.adminSettings.findUnique({
+    where: { key: "global" },
+    select: {
+      minWithdrawal: true,
+      maxWithdrawal: true,
+      dailyTransactionLimit: true,
+      withdrawalRequiresKyc: true,
+      paymentMpesaEnabled: true,
+      mpesaTransactionFeePercent: true,
+      mpesaAutoWithdrawEnabled: true,
+      mpesaWithdrawalApprovalThreshold: true,
+    },
+  });
+
+  if (!settings) {
+    return {
+      minWithdrawal: WITHDRAWAL_DEFAULTS.MIN_AMOUNT,
+      maxWithdrawal: WITHDRAWAL_DEFAULTS.MAX_AMOUNT_PER_REQUEST,
+      dailyTransactionLimit: WITHDRAWAL_DEFAULTS.DAILY_LIMIT,
+      withdrawalRequiresKyc: WITHDRAWAL_DEFAULTS.KYC_REQUIRED,
+      feePercentage: WITHDRAWAL_DEFAULTS.FEE_PERCENTAGE,
+      autoWithdrawEnabled: false,
+      approvalThreshold: WITHDRAWAL_DEFAULTS.APPROVAL_THRESHOLD,
+      mpesaEnabled: WITHDRAWAL_DEFAULTS.MPESA_ENABLED,
+    };
+  }
+
+  return {
+    minWithdrawal: settings.minWithdrawal,
+    maxWithdrawal: settings.maxWithdrawal,
+    dailyTransactionLimit: settings.dailyTransactionLimit,
+    withdrawalRequiresKyc: settings.withdrawalRequiresKyc,
+    feePercentage: settings.mpesaTransactionFeePercent,
+    autoWithdrawEnabled: settings.mpesaAutoWithdrawEnabled,
+    approvalThreshold: settings.mpesaWithdrawalApprovalThreshold,
+    mpesaEnabled: settings.paymentMpesaEnabled,
+  };
+}
+
+function extractB2CReceipt(body: unknown) {
+  if (!body || typeof body !== "object" || !("Result" in body)) {
+    return null;
+  }
+
+  const result = (body as { Result?: unknown }).Result;
+  if (!result || typeof result !== "object") {
+    return null;
+  }
+
+  const parameters = (result as { ResultParameters?: { ResultParameter?: unknown } })
+    .ResultParameters?.ResultParameter;
+  if (!Array.isArray(parameters)) {
+    return null;
+  }
+
+  const receipt = parameters.find((item) => {
+    if (!item || typeof item !== "object") {
+      return false;
+    }
+
+    return (item as { Key?: unknown }).Key === "TransactionReceipt";
+  });
+
+  const value =
+    receipt && typeof receipt === "object"
+      ? (receipt as { Value?: unknown }).Value
+      : null;
+
+  return typeof value === "string"
+    ? value
+    : typeof value === "number"
+      ? String(value)
+      : null;
+}
+
+async function settleFailedWithdrawal(args: {
+  transactionId: string;
+  failureReason: string;
+  failureStage: WithdrawalProviderMeta["failureStage"];
+  providerResponseCode?: string | null;
+  providerResponseDescription?: string | null;
+  providerCallback?: Prisma.JsonValue;
+}) {
+  const result = await prisma.$transaction(async (tx) => {
+    const transaction = await tx.walletTransaction.findUnique({
+      where: { id: args.transactionId },
+      include: { wallet: true },
+    });
+
+    if (!transaction || transaction.type !== "WITHDRAWAL") {
+      return null;
+    }
+
+    if (transaction.status === "FAILED") {
+      const wallet = await getOrCreateWallet(transaction.userId, tx);
+      return {
+        transaction,
+        balance: wallet.balance,
+        refunded: false,
+      };
+    }
+
+    if (transaction.status === "COMPLETED") {
+      return null;
+    }
+
+    const meta = getWithdrawalProviderMeta(transaction.providerCallback);
+    const totalDebit = meta.totalDebit ?? transaction.amount;
+    const wallet = transaction.walletId
+      ? await getOrCreateWallet(transaction.userId, tx)
+      : await getOrCreateWallet(transaction.userId, tx);
+
+    const updatedWallet = await tx.wallet.update({
+      where: { id: wallet.id },
+      data: {
+        balance: {
+          increment: totalDebit,
+        },
+      },
+      select: { balance: true },
+    });
+
+    const updatedTransaction = await tx.walletTransaction.update({
+      where: { id: transaction.id },
+      data: {
+        walletId: wallet.id,
+        status: "FAILED",
+        processedAt: new Date(),
+        providerResponseCode: args.providerResponseCode ?? undefined,
+        providerResponseDescription:
+          args.providerResponseDescription ?? args.failureReason,
+        providerCallback: mergeProviderMeta(args.providerCallback ?? transaction.providerCallback, {
+          finalizedAt: new Date().toISOString(),
+          disbursementState: "FAILED",
+          failureStage: args.failureStage,
+        }),
+      },
+    });
+
+    return {
+      transaction: updatedTransaction,
+      balance: updatedWallet.balance,
+      refunded: true,
+    };
+  });
+
+  if (!result) {
+    return null;
+  }
+
+  const feeAmount = getWithdrawalProviderMeta(result.transaction.providerCallback).fee ?? 0;
+
+  emitWalletEvent({
+    userId: result.transaction.userId,
+    transactionId: result.transaction.id,
+    checkoutRequestId: result.transaction.checkoutRequestId,
+    merchantRequestId: result.transaction.merchantRequestId,
+    status: "FAILED",
+    mpesaCode: result.transaction.providerReceiptNumber,
+    message: args.failureReason,
+    balance: result.balance,
+    amount: result.transaction.amount,
+  });
+
+  await createWithdrawalNotifications({
+    userId: result.transaction.userId,
+    transactionId: result.transaction.id,
+    amount: result.transaction.amount,
+    fee: feeAmount,
+    balance: result.balance,
+    phone: result.transaction.phone ?? "",
+    status: "FAILED",
+    failureReason: args.failureReason,
+  });
+
+  return result;
+}
+
+async function finalizeSuccessfulWithdrawal(args: {
+  transactionId: string;
+  providerResponseCode?: string | null;
+  providerResponseDescription?: string | null;
+  mpesaCode?: string | null;
+  providerCallback?: Prisma.JsonValue;
+}) {
+  const result = await prisma.$transaction(async (tx) => {
+    const transaction = await tx.walletTransaction.findUnique({
+      where: { id: args.transactionId },
+    });
+
+    if (!transaction || transaction.type !== "WITHDRAWAL") {
+      return null;
+    }
+
+    if (transaction.status === "COMPLETED") {
+      const wallet = await getOrCreateWallet(transaction.userId, tx);
+      return {
+        transaction,
+        balance: wallet.balance,
+      };
+    }
+
+    if (!["PROCESSING", "PENDING"].includes(transaction.status)) {
+      return null;
+    }
+
+    const wallet = await getOrCreateWallet(transaction.userId, tx);
+    const updatedTransaction = await tx.walletTransaction.update({
+      where: { id: transaction.id },
+      data: {
+        walletId: wallet.id,
+        status: "COMPLETED",
+        processedAt: new Date(),
+        providerReceiptNumber:
+          args.mpesaCode ?? transaction.providerReceiptNumber ?? undefined,
+        providerResponseCode: args.providerResponseCode ?? undefined,
+        providerResponseDescription:
+          args.providerResponseDescription ?? transaction.providerResponseDescription ?? undefined,
+        providerCallback: mergeProviderMeta(args.providerCallback ?? transaction.providerCallback, {
+          finalizedAt: new Date().toISOString(),
+          disbursementState: "COMPLETED",
+        }),
+      },
+    });
+
+    return {
+      transaction: updatedTransaction,
+      balance: wallet.balance,
+    };
+  });
+
+  if (!result) {
+    return null;
+  }
+
+  const feeAmount =
+    getWithdrawalProviderMeta(result.transaction.providerCallback).fee ?? 0;
+
+  emitWalletEvent({
+    userId: result.transaction.userId,
+    transactionId: result.transaction.id,
+    checkoutRequestId: result.transaction.checkoutRequestId,
+    merchantRequestId: result.transaction.merchantRequestId,
+    mpesaCode: result.transaction.providerReceiptNumber,
+    status: "COMPLETED",
+    message: "Your withdrawal has been sent successfully.",
+    balance: result.balance,
+    amount: result.transaction.amount,
+  });
+
+  await createWithdrawalNotifications({
+    userId: result.transaction.userId,
+    transactionId: result.transaction.id,
+    amount: result.transaction.amount,
+    fee: feeAmount,
+    balance: result.balance,
+    phone: result.transaction.phone ?? "",
+    status: "COMPLETED",
+  });
+
+  return result;
+}
+
+async function initiateWithdrawalDisbursement(args: {
+  transactionId: string;
+  adminUserId: string;
+  approvalMode: "AUTO" | "MANUAL";
+}) {
+  const transaction = await prisma.$transaction(async (tx) => {
+    const existingTransaction = await tx.walletTransaction.findUnique({
+      where: { id: args.transactionId },
+    });
+
+    if (!existingTransaction || existingTransaction.type !== "WITHDRAWAL") {
+      return null;
+    }
+
+    if (existingTransaction.status !== "PENDING") {
+      return existingTransaction;
+    }
+
+    return tx.walletTransaction.update({
+      where: { id: existingTransaction.id },
+      data: {
+        status: "PROCESSING",
+        providerCallback: mergeProviderMeta(existingTransaction.providerCallback, {
+          approvedAt: new Date().toISOString(),
+          approvedBy: args.adminUserId,
+          approvalMode: args.approvalMode,
+          requestedPayoutAt: new Date().toISOString(),
+          disbursementState: "PROCESSING",
+        }),
+      },
+    });
+  });
+
+  if (!transaction) {
+    return { ok: false as const, code: 404, message: "Withdrawal not found." };
+  }
+
+  if (transaction.type !== "WITHDRAWAL") {
+    return {
+      ok: false as const,
+      code: 400,
+      message: "This is not a withdrawal transaction.",
+    };
+  }
+
+  if (transaction.status !== "PROCESSING") {
+    return {
+      ok: false as const,
+      code: 409,
+      message: `Cannot approve a ${transaction.status.toLowerCase()} withdrawal.`,
+    };
+  }
+
+  const config = getMpesaB2CConfig();
+  if (!config.isConfigured) {
+    const failureMessage = `M-Pesa withdrawal is not configured. Missing: ${config.missingVars.join(", ")}.`;
+    await settleFailedWithdrawal({
+      transactionId: transaction.id,
+      failureReason: failureMessage,
+      failureStage: "APPROVAL",
+      providerResponseDescription: failureMessage,
+    });
+
+    return {
+      ok: false as const,
+      code: 500,
+      message: failureMessage,
+    };
+  }
+
+  const tokenData = await getMpesaAccessToken(config);
+  const payoutPayload = {
+    OriginatorConversationID: transaction.id,
+    InitiatorName: config.initiatorName,
+    SecurityCredential: config.securityCredential,
+    CommandID: config.commandId,
+    Amount: transaction.amount,
+    PartyA: config.shortcode,
+    PartyB: transaction.phone,
+    Remarks: transaction.description ?? "BetWise withdrawal payout",
+    QueueTimeOutURL: config.timeoutUrl,
+    ResultURL: config.resultUrl,
+    Occasion: transaction.reference,
+  };
+
+  const payoutResponse = await fetch(
+    `${config.baseUrl}/mpesa/b2c/v3/paymentrequest`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payoutPayload),
+    },
+  );
+
+  const payoutData = (await payoutResponse.json()) as MpesaB2CResponse;
+
+  if (!payoutResponse.ok || payoutData.ResponseCode !== "0") {
+    const failureMessage =
+      payoutData.errorMessage ??
+      payoutData.ResponseDescription ??
+      "M-Pesa rejected the withdrawal payout request.";
+
+    await settleFailedWithdrawal({
+      transactionId: transaction.id,
+      failureReason: failureMessage,
+      failureStage: "B2C_REQUEST",
+      providerResponseCode: payoutData.ResponseCode ?? null,
+      providerResponseDescription:
+        payoutData.ResponseDescription ?? failureMessage,
+      providerCallback: payoutData as never,
+    });
+
+    return {
+      ok: false as const,
+      code: 502,
+      message: failureMessage,
+    };
+  }
+
+  const updatedTransaction = await prisma.walletTransaction.update({
+    where: { id: transaction.id },
+    data: {
+      checkoutRequestId: payoutData.ConversationID ?? transaction.checkoutRequestId,
+      merchantRequestId:
+        payoutData.OriginatorConversationID ?? transaction.merchantRequestId,
+      providerResponseCode: payoutData.ResponseCode ?? undefined,
+      providerResponseDescription:
+        payoutData.ResponseDescription ?? "Withdrawal payout accepted by M-Pesa.",
+      providerCallback: mergeProviderMeta(transaction.providerCallback, {
+        requestedPayoutAt: new Date().toISOString(),
+        disbursementState: "PROCESSING",
+        mpesa: {
+          request: payoutPayload,
+          response: payoutData,
+        },
+      }),
+    },
+  });
+
+  const wallet = await getOrCreateWallet(updatedTransaction.userId);
+  emitWalletEvent({
+    userId: updatedTransaction.userId,
+    transactionId: updatedTransaction.id,
+    checkoutRequestId: updatedTransaction.checkoutRequestId,
+    merchantRequestId: updatedTransaction.merchantRequestId,
+    status: "PROCESSING",
+    message: "Withdrawal approved and payout request sent to M-Pesa.",
+    balance: wallet.balance,
+    amount: updatedTransaction.amount,
+  });
+
+  return {
+    ok: true as const,
+    code: 200,
+    message: "Withdrawal approved and payout initiated successfully.",
+    transaction: updatedTransaction,
+  };
 }
 
 export async function createWithdrawalRequest(
@@ -121,10 +602,63 @@ export async function createWithdrawalRequest(
     }
 
     const userId = req.user.id;
+    const [settings, user] = await Promise.all([
+      getWithdrawalSettings(),
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          phone: true,
+          isVerified: true,
+        },
+      }),
+    ]);
+
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!settings.mpesaEnabled) {
+      return res.status(403).json({
+        message: "M-Pesa withdrawals are currently disabled.",
+      });
+    }
+
+    const normalizedPhone = normalizePhoneNumber(parsedBody.data.phone);
+    if (!normalizedPhone) {
+      return res.status(400).json({
+        message: "Phone must be in format 2547XXXXXXXX.",
+      });
+    }
+
+    const accountPhone = normalizePhoneNumber(user.phone);
+    if (!accountPhone || accountPhone !== normalizedPhone) {
+      return res.status(400).json({
+        message:
+          "Withdrawals can only be sent to your verified account phone number.",
+      });
+    }
+
+    if (settings.withdrawalRequiresKyc && !user.isVerified) {
+      return res.status(403).json({
+        message:
+          "Your account must be verified before you can make withdrawals.",
+      });
+    }
+
     const requestedAmount = parsedBody.data.amount;
-    const feeAmount = Math.ceil(
-      (requestedAmount * WITHDRAWAL_CONFIG.FEE_PERCENTAGE) / 100,
-    );
+    if (requestedAmount < settings.minWithdrawal) {
+      return res.status(400).json({
+        message: `Minimum withdrawal is KES ${settings.minWithdrawal.toLocaleString()}.`,
+      });
+    }
+
+    if (requestedAmount > settings.maxWithdrawal) {
+      return res.status(400).json({
+        message: `Maximum withdrawal is KES ${settings.maxWithdrawal.toLocaleString()}.`,
+      });
+    }
+
+    const feeAmount = Math.ceil((requestedAmount * settings.feePercentage) / 100);
     const totalDebit = requestedAmount + feeAmount;
 
     const wallet = await getOrCreateWallet(userId);
@@ -132,6 +666,30 @@ export async function createWithdrawalRequest(
     if (wallet.balance < totalDebit) {
       return res.status(400).json({
         message: `Insufficient balance. You need KES ${totalDebit.toLocaleString()} (amount + fees) but only have KES ${wallet.balance.toLocaleString()}.`,
+      });
+    }
+
+    const todayStart = startOfToday();
+    const dailyWithdrawalAggregate = await prisma.walletTransaction.aggregate({
+      where: {
+        userId,
+        type: "WITHDRAWAL",
+        status: {
+          in: ["PENDING", "PROCESSING", "COMPLETED"],
+        },
+        createdAt: {
+          gte: todayStart,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    const dailyRequestedAmount = dailyWithdrawalAggregate._sum.amount ?? 0;
+    if (dailyRequestedAmount + requestedAmount > settings.dailyTransactionLimit) {
+      return res.status(400).json({
+        message: `Daily withdrawal limit exceeded. You can only withdraw up to KES ${settings.dailyTransactionLimit.toLocaleString()} per day.`,
       });
     }
 
@@ -164,13 +722,14 @@ export async function createWithdrawalRequest(
           currency: "KES",
           channel: "M-Pesa",
           reference: `WD-${randomUUID()}`,
-          phone: parsedBody.data.phone,
+          phone: normalizedPhone,
           accountReference: "BET-WITHDRAWAL",
-          description: `Withdrawal to M-Pesa (${parsedBody.data.phone})`,
+          description: `Withdrawal to M-Pesa (${normalizedPhone})`,
           providerCallback: {
             fee: feeAmount,
             totalDebit,
             requestedAt: new Date().toISOString(),
+            disbursementState: "PENDING_APPROVAL",
           } as never,
         },
       });
@@ -210,7 +769,7 @@ export async function createWithdrawalRequest(
         amount: requestedAmount,
         fee: feeAmount,
         balance: updatedBalance,
-        phone: parsedBody.data.phone,
+        phone: normalizedPhone,
         status: "PENDING",
       });
     } catch (notificationError) {
@@ -230,7 +789,7 @@ export async function createWithdrawalRequest(
         amount: requestedAmount,
         fee: feeAmount,
         netAmount: requestedAmount - feeAmount,
-        phone: parsedBody.data.phone,
+        phone: normalizedPhone,
       },
     });
   } catch (error) {
@@ -302,62 +861,20 @@ export async function approveWithdrawal(
       return res.status(400).json({ message: "Invalid transaction id." });
     }
 
-    const transaction = await prisma.walletTransaction.findUnique({
-      where: { id: transactionId },
+    const result = await initiateWithdrawalDisbursement({
+      transactionId,
+      adminUserId: req.user.id,
+      approvalMode: "MANUAL",
     });
 
-    if (!transaction) {
-      return res.status(404).json({ message: "Withdrawal not found." });
+    if (!result.ok) {
+      return res.status(result.code).json({ message: result.message });
     }
-
-    if (transaction.type !== "WITHDRAWAL") {
-      return res
-        .status(400)
-        .json({ message: "This is not a withdrawal transaction." });
-    }
-
-    if (transaction.status !== "PENDING") {
-      return res.status(400).json({
-        message: `Cannot approve a ${transaction.status.toLowerCase()} withdrawal.`,
-      });
-    }
-
-    const updatedTransaction = await prisma.walletTransaction.update({
-      where: { id: transactionId },
-      data: {
-        status: "COMPLETED",
-        processedAt: new Date(),
-        providerReceiptNumber: `MPX-${Date.now()}`,
-      },
-    });
-
-    const wallet = await getOrCreateWallet(transaction.userId);
-
-    emitWalletEvent({
-      userId: transaction.userId,
-      transactionId: transaction.id,
-      status: "COMPLETED",
-      message: "Your withdrawal has been processed.",
-      balance: wallet.balance,
-      amount: transaction.amount,
-    });
-
-    const feeAmount =
-      (transaction.providerCallback as { fee?: number } | null)?.fee ?? 0;
-    await createWithdrawalNotifications({
-      userId: transaction.userId,
-      transactionId: transaction.id,
-      amount: transaction.amount,
-      fee: feeAmount,
-      balance: wallet.balance,
-      phone: transaction.phone ?? "",
-      status: "COMPLETED",
-    });
 
     return res.status(200).json({
-      message: "Withdrawal approved and processed successfully.",
-      transactionId: updatedTransaction.id,
-      status: "COMPLETED",
+      message: result.message,
+      transactionId: result.transaction.id,
+      status: "PROCESSING",
     });
   } catch (error) {
     next(error);
@@ -412,55 +929,81 @@ export async function rejectWithdrawal(
       });
     }
 
-    const totalDebit =
-      (transaction.providerCallback as { totalDebit?: number } | null)
-        ?.totalDebit ?? transaction.amount;
+    const result = await prisma.$transaction(async (tx) => {
+      const latestTransaction = await tx.walletTransaction.findUnique({
+        where: { id: transactionId },
+      });
 
-    await prisma.wallet.update({
-      where: { id: transaction.walletId! },
-      data: {
-        balance: {
-          increment: totalDebit,
+      if (!latestTransaction || latestTransaction.status !== "PENDING") {
+        return null;
+      }
+
+      const meta = getWithdrawalProviderMeta(latestTransaction.providerCallback);
+      const totalDebit = meta.totalDebit ?? latestTransaction.amount;
+      const wallet = await getOrCreateWallet(latestTransaction.userId, tx);
+
+      const updatedWallet = await tx.wallet.update({
+        where: { id: wallet.id },
+        data: {
+          balance: {
+            increment: totalDebit,
+          },
         },
-      },
+        select: { balance: true },
+      });
+
+      const updatedTransaction = await tx.walletTransaction.update({
+        where: { id: transactionId },
+        data: {
+          walletId: wallet.id,
+          status: "FAILED",
+          processedAt: new Date(),
+          providerResponseDescription: reason || "Withdrawal rejected by admin",
+          providerCallback: mergeProviderMeta(latestTransaction.providerCallback, {
+            finalizedAt: new Date().toISOString(),
+            failureStage: "APPROVAL",
+            disbursementState: "FAILED",
+          }),
+        },
+      });
+
+      return {
+        transaction: updatedTransaction,
+        balance: updatedWallet.balance,
+      };
     });
 
-    const updatedTransaction = await prisma.walletTransaction.update({
-      where: { id: transactionId },
-      data: {
-        status: "FAILED",
-        processedAt: new Date(),
-        providerResponseDescription: reason || "Withdrawal rejected by admin",
-      },
-    });
-
-    const wallet = await getOrCreateWallet(transaction.userId);
+    if (!result) {
+      return res.status(409).json({
+        message: "Withdrawal is no longer pending review.",
+      });
+    }
 
     emitWalletEvent({
-      userId: transaction.userId,
-      transactionId: transaction.id,
+      userId: result.transaction.userId,
+      transactionId: result.transaction.id,
       status: "FAILED",
       message: "Your withdrawal request was rejected.",
-      balance: wallet.balance,
-      amount: transaction.amount,
+      balance: result.balance,
+      amount: result.transaction.amount,
     });
 
     const feeAmount =
-      (transaction.providerCallback as { fee?: number } | null)?.fee ?? 0;
+      getWithdrawalProviderMeta(result.transaction.providerCallback).fee ?? 0;
     await createWithdrawalNotifications({
-      userId: transaction.userId,
-      transactionId: transaction.id,
-      amount: transaction.amount,
+      userId: result.transaction.userId,
+      transactionId: result.transaction.id,
+      amount: result.transaction.amount,
       fee: feeAmount,
-      balance: wallet.balance,
-      phone: transaction.phone ?? "",
+      balance: result.balance,
+      phone: result.transaction.phone ?? "",
       status: "REJECTED",
       failureReason: reason || "Rejected by admin",
     });
 
     return res.status(200).json({
       message: "Withdrawal rejected and funds refunded to user.",
-      transactionId: updatedTransaction.id,
+      transactionId: result.transaction.id,
       status: "FAILED",
     });
   } catch (error) {
@@ -900,6 +1443,100 @@ export async function handleMpesaCallback(req: Request, res: Response) {
   return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
 }
 
+export async function handleMpesaWithdrawalResult(
+  req: Request,
+  res: Response,
+) {
+  const result = req.body?.Result;
+  if (!result || typeof result !== "object") {
+    return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
+  }
+
+  const originatorConversationId =
+    typeof (result as { OriginatorConversationID?: unknown })
+      .OriginatorConversationID === "string"
+      ? (result as { OriginatorConversationID: string }).OriginatorConversationID
+      : null;
+  const responseConversationId =
+    typeof (result as { ConversationID?: unknown }).ConversationID === "string"
+      ? (result as { ConversationID: string }).ConversationID
+      : null;
+  const resultCode = Number((result as { ResultCode?: unknown }).ResultCode ?? NaN);
+  const resultDesc =
+    typeof (result as { ResultDesc?: unknown }).ResultDesc === "string"
+      ? (result as { ResultDesc: string }).ResultDesc
+      : "Unknown withdrawal result from M-Pesa.";
+  const mpesaCode = extractB2CReceipt(req.body);
+
+  void (async () => {
+    if (!originatorConversationId) {
+      return;
+    }
+
+    if (resultCode === 0) {
+      await finalizeSuccessfulWithdrawal({
+        transactionId: originatorConversationId,
+        providerResponseCode: Number.isNaN(resultCode) ? null : String(resultCode),
+        providerResponseDescription: resultDesc,
+        mpesaCode,
+        providerCallback: {
+          result: req.body,
+          conversationId: responseConversationId,
+        } as never,
+      });
+      return;
+    }
+
+    await settleFailedWithdrawal({
+      transactionId: originatorConversationId,
+      failureReason: resultDesc,
+      failureStage: "B2C_RESULT",
+      providerResponseCode: Number.isNaN(resultCode) ? null : String(resultCode),
+      providerResponseDescription: resultDesc,
+      providerCallback: {
+        result: req.body,
+        conversationId: responseConversationId,
+      } as never,
+    });
+  })().catch((error) => {
+    console.error("CRITICAL ERROR IN M-PESA WITHDRAWAL RESULT PROCESSING:", error);
+  });
+
+  return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
+}
+
+export async function handleMpesaWithdrawalTimeout(
+  req: Request,
+  res: Response,
+) {
+  const originatorConversationId =
+    typeof req.body?.OriginatorConversationID === "string"
+      ? req.body.OriginatorConversationID
+      : null;
+  const resultDesc =
+    typeof req.body?.ResultDesc === "string"
+      ? req.body.ResultDesc
+      : "Withdrawal request timed out before completion.";
+
+  void (async () => {
+    if (!originatorConversationId) {
+      return;
+    }
+
+    await settleFailedWithdrawal({
+      transactionId: originatorConversationId,
+      failureReason: resultDesc,
+      failureStage: "B2C_TIMEOUT",
+      providerResponseDescription: resultDesc,
+      providerCallback: req.body as never,
+    });
+  })().catch((error) => {
+    console.error("CRITICAL ERROR IN M-PESA WITHDRAWAL TIMEOUT PROCESSING:", error);
+  });
+
+  return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
+}
+
 export async function listAdminWithdrawals(
   req: Request,
   res: Response,
@@ -919,7 +1556,12 @@ export async function listAdminWithdrawals(
       return res.status(403).json({ message: "Admin access required." });
     }
 
-    const status = (req.query.status as string) || "PENDING";
+    const requestedStatus = String(req.query.status ?? "PENDING").toUpperCase();
+    const status = ["PENDING", "PROCESSING", "COMPLETED", "FAILED"].includes(
+      requestedStatus,
+    )
+      ? requestedStatus
+      : "PENDING";
     const withdrawals = await prisma.walletTransaction.findMany({
       where: {
         type: "WITHDRAWAL",
@@ -951,6 +1593,9 @@ export async function listAdminWithdrawals(
           w.amount,
         phone: w.phone,
         status: toTransactionStatus(w.status),
+        reference: w.reference,
+        mpesaCode: w.providerReceiptNumber,
+        providerMessage: w.providerResponseDescription,
         createdAt: w.createdAt.toISOString(),
         processedAt: w.processedAt?.toISOString() ?? null,
       })),

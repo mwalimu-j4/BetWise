@@ -1,8 +1,9 @@
 import { BetStatus, Prisma } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
-import { emitBetUpdate } from "../lib/socket";
+import { emitBetUpdate, emitWalletUpdate } from "../lib/socket";
 import { prisma } from "../lib/prisma";
+import { getOrCreateWallet } from "../lib/wallet";
 import { authenticate } from "../middleware/authenticate";
 import {
   cancelBetRateLimiter,
@@ -589,7 +590,8 @@ myBetsRouter.post(
 
       const refundAmount = Math.round(bet.stake);
 
-      await prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx) => {
+        const wallet = await getOrCreateWallet(userId, tx);
         await tx.bet.update({
           where: { id: bet.id },
           data: {
@@ -601,18 +603,22 @@ myBetsRouter.post(
           },
         });
 
-        await tx.wallet.update({
-          where: { userId },
+        const updatedWallet = await tx.wallet.update({
+          where: { id: wallet.id },
           data: {
             balance: {
               increment: refundAmount,
             },
           },
+          select: {
+            balance: true,
+          },
         });
 
-        await tx.walletTransaction.create({
+        const transaction = await tx.walletTransaction.create({
           data: {
             userId,
+            walletId: wallet.id,
             type: "REFUND",
             status: "COMPLETED",
             amount: refundAmount,
@@ -622,6 +628,11 @@ myBetsRouter.post(
             description: `Cancelled bet ${bet.betCode}`,
           },
         });
+
+        return {
+          balance: updatedWallet.balance,
+          transactionId: transaction.id,
+        };
       });
 
       await createAuditLog({
@@ -639,6 +650,14 @@ myBetsRouter.post(
         placedAt: bet.placedAt.toISOString(),
         updatedAt: now.toISOString(),
         possiblePayout: 0,
+      });
+
+      emitWalletUpdate(userId, {
+        transactionId: result.transactionId,
+        status: "COMPLETED",
+        message: "Bet cancelled and stake refunded to your wallet.",
+        balance: result.balance,
+        amount: refundAmount,
       });
 
       return res.status(200).json({

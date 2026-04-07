@@ -19,6 +19,7 @@ function formatMoney(value: number) {
 function toAdminStatus(status: string) {
   return status.toLowerCase() as
     | "pending"
+    | "processing"
     | "completed"
     | "failed"
     | "reversed";
@@ -1968,8 +1969,8 @@ export async function getAdminPayments(req: Request, res: Response) {
 
   const limit = parseInt(String(req.query.limit ?? 50), 10);
   const offset = parseInt(String(req.query.offset ?? 0), 10);
-  const status = String(req.query.status ?? "");
-  const type = String(req.query.type ?? "");
+  const status = String(req.query.status ?? "").toUpperCase();
+  const type = String(req.query.type ?? "").toUpperCase();
 
   const whereFilters: any = {
     type: { in: ["DEPOSIT", "WITHDRAWAL"] },
@@ -1977,7 +1978,9 @@ export async function getAdminPayments(req: Request, res: Response) {
 
   if (
     status &&
-    ["PENDING", "COMPLETED", "FAILED", "REVERSED"].includes(status)
+    ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "REVERSED"].includes(
+      status,
+    )
   ) {
     whereFilters.status = status;
   }

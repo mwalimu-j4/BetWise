@@ -1,0 +1,1 @@
+ALTER TYPE "WalletTransactionStatus" ADD VALUE IF NOT EXISTS 'PROCESSING';
