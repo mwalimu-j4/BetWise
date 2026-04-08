@@ -57,26 +57,26 @@ export default function SportEvents({
       {Object.entries(groupedEvents).map(([leagueName, leagueEvents]) => (
         <section
           key={leagueName}
-          className="overflow-hidden rounded-xl border border-[#24384c] bg-[#0f1a2a]"
+          className="overflow-hidden rounded-lg border border-[#24384c] bg-[#0f1a2a] sm:rounded-xl"
         >
-          <div className="flex items-center justify-between gap-2 border-b border-[#24384c] bg-[#121f31] px-3 py-2">
+          <div className="flex items-center justify-between gap-2 border-b border-[#24384c] bg-[#121f31] px-2.5 py-1.5 sm:px-3 sm:py-2">
             <div className="flex min-w-0 items-center gap-2">
-              <span className="text-[13px]" aria-hidden="true">
+              <span className="text-[12px] sm:text-[13px]" aria-hidden="true">
                 {getLeagueIcon(leagueName)}
               </span>
-              <h3 className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8a9bb0]">
+              <h3 className="truncate text-[9px] font-semibold uppercase tracking-[0.16em] text-[#8a9bb0] sm:text-[10px] sm:tracking-[0.18em]">
                 {leagueName}
               </h3>
             </div>
 
             {leagueEvents[0] ? (
-              <p className="shrink-0 text-[10px] font-medium uppercase tracking-[0.1em] text-[#8a9bb0]">
+              <p className="shrink-0 text-[9px] font-medium uppercase tracking-[0.08em] text-[#8a9bb0] sm:text-[10px] sm:tracking-[0.1em]">
                 Kickoff {formatKickoffTime(leagueEvents[0].commenceTime)}
               </p>
             ) : null}
           </div>
 
-          <div className="grid gap-3 p-3 lg:grid-cols-2">
+          <div className="grid gap-2 p-2 sm:gap-3 sm:p-3 lg:grid-cols-2">
             {leagueEvents.map((event) => (
               <EventCard
                 key={event.eventId}
