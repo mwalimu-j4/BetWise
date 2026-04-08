@@ -78,7 +78,6 @@ interface ApiEvent {
   marketsEnabled: string[];
   _count: { odds: number; bets: number };
 }
-
 interface EventDetail extends ApiEvent {
   displayedOdds?: Array<{
     bookmakerId: string;
@@ -96,7 +95,6 @@ interface EventDetail extends ApiEvent {
     }>;
   }>;
 }
-
 interface EventStats {
   liveCount: number;
   upcomingCount: number;
@@ -105,14 +103,12 @@ interface EventStats {
   noOddsCount: number;
   finishedToday: number;
 }
-
 interface LeagueResponse {
   sports: Array<{
     sportKey: string;
     leagues: string[];
   }>;
 }
-
 type FilterValue =
   | ""
   | "LIVE"
@@ -122,7 +118,6 @@ type FilterValue =
   | "NO_ODDS"
   | "FINISHED"
   | "CANCELLED";
-
 type BulkFilter = "league" | "sport" | "selected";
 
 const marketOptions = ["h2h", "spreads", "totals"] as const;
@@ -140,29 +135,15 @@ function toBadgeStatus(status: ApiEvent["status"]) {
       return "failed";
   }
 }
-
 function formatSportLabel(sportKey: string) {
   const lower = sportKey.toLowerCase();
-
-  if (lower.includes("soccer") || lower.includes("football")) {
-    return "Football";
-  }
-
-  if (lower.includes("basketball")) {
-    return "Basketball";
-  }
-
-  if (lower.includes("tennis")) {
-    return "Tennis";
-  }
-
-  if (lower.includes("nfl") || lower.includes("americanfootball")) {
+  if (lower.includes("soccer") || lower.includes("football")) return "Football";
+  if (lower.includes("basketball")) return "Basketball";
+  if (lower.includes("tennis")) return "Tennis";
+  if (lower.includes("nfl") || lower.includes("americanfootball"))
     return "American Football";
-  }
-
   return sportKey;
 }
-
 function formatEventTime(commenceTime: string) {
   return new Date(commenceTime).toLocaleString(undefined, {
     month: "short",
@@ -171,7 +152,6 @@ function formatEventTime(commenceTime: string) {
     minute: "2-digit",
   });
 }
-
 function formatUpdatedTime(timestamp: string) {
   return new Date(timestamp).toLocaleString(undefined, {
     month: "short",
@@ -180,52 +160,28 @@ function formatUpdatedTime(timestamp: string) {
     minute: "2-digit",
   });
 }
-
 function formatUpcomingCountdown(commenceTime: string, nowMs: number) {
   const diffMs = new Date(commenceTime).getTime() - nowMs;
-
-  if (diffMs <= 0) {
-    return "Starting now";
-  }
-
+  if (diffMs <= 0) return "Now";
   const totalMinutes = Math.floor(diffMs / 60000);
   const days = Math.floor(totalMinutes / (60 * 24));
   const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
   const minutes = totalMinutes % 60;
-
-  if (days > 0) {
-    return `Starts in ${days}d ${hours}h`;
-  }
-
-  if (hours > 0) {
-    return `Starts in ${hours}h ${minutes}m`;
-  }
-
-  return `Starts in ${minutes}m`;
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
 }
-
 function getErrorMessage(error: unknown, fallback: string) {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "response" in error &&
-    typeof (error as { response?: unknown }).response === "object"
-  ) {
-    const response = (error as { response?: { data?: { message?: string } } })
-      .response;
-    const message = response?.data?.message;
-
-    if (message) {
-      return message;
-    }
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const msg = (error as { response?: { data?: { message?: string } } })
+      .response?.data?.message;
+    if (msg) return msg;
   }
-
   return fallback;
 }
-
 function toggleMarket(currentMarkets: string[], market: string) {
   return currentMarkets.includes(market)
-    ? currentMarkets.filter((currentMarket) => currentMarket !== market)
+    ? currentMarkets.filter((m) => m !== market)
     : [...currentMarkets, market];
 }
 
@@ -237,11 +193,11 @@ function DetailField({
   value: string | number;
 }) {
   return (
-    <div className="rounded-xl border border-admin-border/70 bg-admin-surface/25 p-3">
-      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-admin-text-muted">
+    <div className="rounded-lg border border-admin-border/70 bg-admin-surface/25 p-3">
+      <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-admin-text-muted">
         {label}
       </p>
-      <p className="mt-1 text-sm font-medium text-admin-text-primary">
+      <p className="mt-0.5 text-sm font-medium text-admin-text-primary">
         {value}
       </p>
     </div>
@@ -286,15 +242,12 @@ export default function Events() {
   const hasSelection = selectedEventIds.length > 0;
   const allVisibleSelected =
     events.length > 0 &&
-    events.every((event) => selectedEventIds.includes(event.eventId));
+    events.every((e) => selectedEventIds.includes(e.eventId));
 
   const selectedLeagueSportKey = useMemo(() => {
     for (const sport of leagueOptions) {
-      if (sport.leagues.includes(selectedLeague)) {
-        return sport.sportKey;
-      }
+      if (sport.leagues.includes(selectedLeague)) return sport.sportKey;
     }
-
     return "";
   }, [leagueOptions, selectedLeague]);
 
@@ -335,22 +288,14 @@ export default function Events() {
         value: "FINISHED" as FilterValue,
         count: stats?.finishedToday ?? 0,
       },
-      {
-        label: "Cancelled",
-        value: "CANCELLED" as FilterValue,
-        count: 0,
-      },
+      { label: "Cancelled", value: "CANCELLED" as FilterValue, count: 0 },
     ],
     [stats],
   );
 
   const summaryCards = useMemo(
     () => [
-      {
-        label: "Live",
-        value: stats?.liveCount ?? 0,
-        tone: "live" as const,
-      },
+      { label: "Live", value: stats?.liveCount ?? 0, tone: "live" as const },
       {
         label: "Upcoming",
         value: stats?.upcomingCount ?? 0,
@@ -370,28 +315,26 @@ export default function Events() {
     [stats],
   );
 
-  const skeletonCards = useMemo(
+  const skeletonRows = useMemo(
     () =>
-      Array.from({ length: 4 }, (_, index) => (
+      Array.from({ length: 6 }, (_, i) => (
         <div
-          className="rounded-xl border border-admin-border/70 bg-admin-surface/20 p-4"
-          key={`event-skeleton-${index}`}
+          key={`sk-${i}`}
+          className="flex items-center gap-3 border-b border-admin-border/50 px-3 py-2.5 last:border-0"
         >
-          <div className="flex flex-col gap-4">
-            <div className="space-y-2">
-              <div className="h-4 w-28 animate-pulse rounded bg-admin-surface" />
-              <div className="h-6 w-2/3 animate-pulse rounded bg-admin-surface" />
-              <div className="h-4 w-1/2 animate-pulse rounded bg-admin-surface" />
-            </div>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {Array.from({ length: 3 }, (_, metricIndex) => (
-                <div
-                  className="h-16 animate-pulse rounded-xl bg-admin-surface"
-                  key={metricIndex}
-                />
-              ))}
-            </div>
+          <div className="size-3.5 shrink-0 animate-pulse rounded bg-admin-surface" />
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="h-3.5 w-44 animate-pulse rounded bg-admin-surface" />
+            <div className="h-3 w-28 animate-pulse rounded bg-admin-surface" />
           </div>
+          <div className="hidden shrink-0 gap-1.5 sm:flex">
+            <div className="h-5 w-12 animate-pulse rounded-full bg-admin-surface" />
+            <div className="h-5 w-16 animate-pulse rounded-full bg-admin-surface" />
+          </div>
+          <div className="hidden sm:block">
+            <div className="h-6 w-10 animate-pulse rounded-full bg-admin-surface" />
+          </div>
+          <div className="size-6 animate-pulse rounded bg-admin-surface" />
         </div>
       )),
     [],
@@ -399,81 +342,55 @@ export default function Events() {
 
   async function loadLeagues() {
     try {
-      const response = await api.get<LeagueResponse>("/admin/events/leagues");
-      setLeagueOptions(response.data.sports);
-    } catch (requestError) {
-      console.error(requestError);
+      const res = await api.get<LeagueResponse>("/admin/events/leagues");
+      setLeagueOptions(res.data.sports);
+    } catch (e) {
+      console.error(e);
     }
   }
 
   async function loadEvents(options?: { background?: boolean }) {
-    if (options?.background) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-
+    if (options?.background) setRefreshing(true);
+    else setLoading(true);
     setError("");
-
     try {
       const params: Record<string, string | number | boolean> = {
         page,
         limit: 20,
       };
-
       if (
         activeFilter === "LIVE" ||
         activeFilter === "UPCOMING" ||
         activeFilter === "FINISHED" ||
         activeFilter === "CANCELLED"
-      ) {
+      )
         params.status = activeFilter;
-      }
-
-      if (activeFilter === "ACTIVE") {
-        params.isActive = true;
-      }
-
+      if (activeFilter === "ACTIVE") params.isActive = true;
       if (activeFilter === "CONFIGURED") {
         params.isActive = true;
         params.hasMargin = true;
       }
-
       if (activeFilter === "NO_ODDS") {
         params.isActive = true;
         params.hasOdds = false;
       }
-
-      if (debouncedSearch.trim()) {
-        params.search = debouncedSearch.trim();
-      }
-
-      if (selectedLeague) {
-        params.leagueName = selectedLeague;
-      }
-
-      const response = await api.get<{
+      if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
+      if (selectedLeague) params.leagueName = selectedLeague;
+      const res = await api.get<{
         events: ApiEvent[];
         total: number;
         page: number;
         totalPages: number;
       }>("/admin/events", { params });
-
-      setEvents(response.data.events);
-      setTotal(response.data.total);
-      setSelectedEventIds((currentIds) =>
-        currentIds.filter((eventId) =>
-          response.data.events.some((event) => event.eventId === eventId),
-        ),
+      setEvents(res.data.events);
+      setTotal(res.data.total);
+      setSelectedEventIds((ids) =>
+        ids.filter((id) => res.data.events.some((e) => e.eventId === id)),
       );
-    } catch (requestError) {
-      console.error(requestError);
-      const message = getErrorMessage(
-        requestError,
-        "Unable to load events right now.",
-      );
-      setError(message);
-      toast.error(message);
+    } catch (e) {
+      const msg = getErrorMessage(e, "Unable to load events right now.");
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -482,12 +399,11 @@ export default function Events() {
 
   async function loadStats() {
     setStatsLoading(true);
-
     try {
-      const response = await api.get<EventStats>("/admin/events/stats");
-      setStats(response.data);
-    } catch (requestError) {
-      console.error(requestError);
+      const res = await api.get<EventStats>("/admin/events/stats");
+      setStats(res.data);
+    } catch (e) {
+      console.error(e);
       setError("Unable to load event stats.");
     } finally {
       setStatsLoading(false);
@@ -496,12 +412,11 @@ export default function Events() {
 
   async function loadEventDetail(eventId: string) {
     setDetailLoading(true);
-
     try {
-      const response = await api.get<EventDetail>(`/admin/events/${eventId}`);
-      setEventDetail(response.data);
-    } catch (requestError) {
-      console.error(requestError);
+      const res = await api.get<EventDetail>(`/admin/events/${eventId}`);
+      setEventDetail(res.data);
+    } catch (e) {
+      console.error(e);
       setError("Unable to load event details.");
     } finally {
       setDetailLoading(false);
@@ -513,64 +428,47 @@ export default function Events() {
   }
 
   async function handleToggle(event: ApiEvent, nextIsActive?: boolean) {
-    const previous = event.isActive;
-    const targetIsActive = nextIsActive ?? !previous;
-
-    setEvents((currentEvents) =>
-      currentEvents.map((currentEvent) =>
-        currentEvent.eventId === event.eventId
-          ? { ...currentEvent, isActive: targetIsActive }
-          : currentEvent,
+    const prev = event.isActive;
+    const target = nextIsActive ?? !prev;
+    setEvents((ev) =>
+      ev.map((e) =>
+        e.eventId === event.eventId ? { ...e, isActive: target } : e,
       ),
     );
-
     try {
-      const response = await api.patch<Pick<ApiEvent, "eventId" | "isActive">>(
+      const res = await api.patch<Pick<ApiEvent, "eventId" | "isActive">>(
         `/admin/events/${event.eventId}/toggle`,
       );
-
-      setEvents((currentEvents) =>
-        currentEvents.map((currentEvent) =>
-          currentEvent.eventId === event.eventId
-            ? { ...currentEvent, isActive: response.data.isActive }
-            : currentEvent,
+      setEvents((ev) =>
+        ev.map((e) =>
+          e.eventId === event.eventId
+            ? { ...e, isActive: res.data.isActive }
+            : e,
         ),
       );
       await loadStats();
       toast.success(
-        response.data.isActive
-          ? "Event activated successfully"
-          : "Event deactivated successfully",
+        res.data.isActive ? "Event activated" : "Event deactivated",
       );
-    } catch (requestError) {
-      console.error(requestError);
-      setEvents((currentEvents) =>
-        currentEvents.map((currentEvent) =>
-          currentEvent.eventId === event.eventId
-            ? { ...currentEvent, isActive: previous }
-            : currentEvent,
+    } catch (e) {
+      setEvents((ev) =>
+        ev.map((e) =>
+          e.eventId === event.eventId ? { ...e, isActive: prev } : e,
         ),
       );
-      const message = getErrorMessage(
-        requestError,
-        "Unable to update event status.",
-      );
-      setError(message);
-      toast.error(message);
+      const msg = getErrorMessage(e, "Unable to update event status.");
+      setError(msg);
+      toast.error(msg);
     }
   }
 
   async function handleBulkToggle(nextIsActive: boolean) {
-    if (!hasSelection) {
-      return;
-    }
-
+    if (!hasSelection) return;
     try {
       await api.patch("/admin/events/bulk-toggle", {
         eventIds: selectedEventIds,
         isActive: nextIsActive,
       });
-
       setSelectedEventIds([]);
       await Promise.all([loadEvents({ background: true }), loadStats()]);
       toast.success(
@@ -578,55 +476,40 @@ export default function Events() {
           ? "Selected events activated"
           : "Selected events deactivated",
       );
-    } catch (requestError) {
-      console.error(requestError);
-      const message = getErrorMessage(
-        requestError,
-        "Unable to update selected events.",
-      );
-      setError(message);
-      toast.error(message);
+    } catch (e) {
+      const msg = getErrorMessage(e, "Unable to update selected events.");
+      setError(msg);
+      toast.error(msg);
     }
   }
 
   async function handleBulkMargin(nextHouseMargin: number) {
-    if (!hasSelection) {
-      return;
-    }
-
+    if (!hasSelection) return;
     try {
       await api.patch("/admin/events/bulk-config", {
         eventIds: selectedEventIds,
         houseMargin: nextHouseMargin,
       });
-
       setSelectedEventIds([]);
       await Promise.all([loadEvents({ background: true }), loadStats()]);
       toast.success(`Set ${nextHouseMargin}% margin for selected events`);
-    } catch (requestError) {
-      console.error(requestError);
-      const message = getErrorMessage(
-        requestError,
-        "Unable to update selected event margin.",
-      );
-      setError(message);
-      toast.error(message);
+    } catch (e) {
+      const msg = getErrorMessage(e, "Unable to update selected event margin.");
+      setError(msg);
+      toast.error(msg);
     }
   }
 
   async function handleApplyBulkMargin() {
     const marginValue = Number(bulkHouseMargin);
-
     if (!Number.isFinite(marginValue) || marginValue < 0) {
       toast.error("Enter a valid house margin.");
       return;
     }
-
     if (bulkMarkets.length === 0) {
       toast.error("Select at least one market.");
       return;
     }
-
     const body: {
       filter: BulkFilter;
       leagueName?: string;
@@ -639,107 +522,77 @@ export default function Events() {
       houseMargin: marginValue,
       marketsEnabled: bulkMarkets,
     };
-
     if (bulkFilter === "league") {
       if (!selectedLeague) {
-        toast.error("Choose a league first to use the current league scope.");
+        toast.error("Choose a league first.");
         return;
       }
-
       body.leagueName = selectedLeague;
     }
-
     if (bulkFilter === "sport") {
       const sportKey =
         selectedLeagueSportKey ||
-        events.find((event) => event.sportKey)?.sportKey ||
+        events.find((e) => e.sportKey)?.sportKey ||
         "";
-
       if (!sportKey) {
-        toast.error("No sport context is available for the current view.");
+        toast.error("No sport context available.");
         return;
       }
-
       body.sportKey = sportKey;
     }
-
     if (bulkFilter === "selected") {
       if (!selectedEventIds.length) {
         toast.error("Select at least one event first.");
         return;
       }
-
       body.eventIds = selectedEventIds;
     }
-
     setBulkApplying(true);
-
     try {
-      const response = await api.patch<{ updated: number; message: string }>(
+      const res = await api.patch<{ updated: number; message: string }>(
         "/admin/events/bulk-margin",
         body,
       );
-
-      toast.success(response.data.message);
+      toast.success(res.data.message);
       setBulkDialogOpen(false);
       setSelectedEventIds([]);
       await Promise.all([loadEvents({ background: true }), loadStats()]);
-    } catch (requestError) {
-      console.error(requestError);
-      const message = getErrorMessage(
-        requestError,
-        "Unable to apply bulk margin.",
-      );
-      setError(message);
-      toast.error(message);
+    } catch (e) {
+      const msg = getErrorMessage(e, "Unable to apply bulk margin.");
+      setError(msg);
+      toast.error(msg);
     } finally {
       setBulkApplying(false);
     }
   }
 
   async function handleSaveConfig() {
-    if (!configEvent) {
-      return;
-    }
-
+    if (!configEvent) return;
     const marginValue = Number(houseMargin);
-
     if (!Number.isFinite(marginValue) || marginValue < 0) {
       toast.error("Enter a valid house margin.");
       return;
     }
-
     if (marketsEnabled.length === 0) {
       toast.error("Select at least one market.");
       return;
     }
-
     try {
-      const response = await api.patch<ApiEvent>(
+      const res = await api.patch<ApiEvent>(
         `/admin/events/${configEvent.eventId}/config`,
-        {
-          houseMargin: marginValue,
-          marketsEnabled,
-        },
+        { houseMargin: marginValue, marketsEnabled },
       );
-
-      setEvents((currentEvents) =>
-        currentEvents.map((event) =>
-          event.eventId === configEvent.eventId ? response.data : event,
-        ),
+      setEvents((ev) =>
+        ev.map((e) => (e.eventId === configEvent.eventId ? res.data : e)),
       );
-      setConfigEvent(response.data);
+      setConfigEvent(res.data);
       setConfigDialogOpen(false);
       toast.success("Event configuration saved");
       await loadStats();
-    } catch (requestError) {
-      console.error(requestError);
-      const message = getErrorMessage(
-        requestError,
-        "Unable to save event configuration.",
-      );
-      setError(message);
-      toast.error(message);
+    } catch (e) {
+      const msg = getErrorMessage(e, "Unable to save event configuration.");
+      setError(msg);
+      toast.error(msg);
     }
   }
 
@@ -758,45 +611,30 @@ export default function Events() {
   }
 
   function toggleSelection(eventId: string, checked: boolean) {
-    setSelectedEventIds((currentIds) => {
-      if (checked) {
-        return currentIds.includes(eventId)
-          ? currentIds
-          : [...currentIds, eventId];
-      }
-
-      return currentIds.filter((id) => id !== eventId);
-    });
+    setSelectedEventIds((ids) =>
+      checked
+        ? ids.includes(eventId)
+          ? ids
+          : [...ids, eventId]
+        : ids.filter((id) => id !== eventId),
+    );
   }
 
   function toggleSelectAllVisible(checked: boolean) {
     if (!checked) {
-      setSelectedEventIds((currentIds) =>
-        currentIds.filter(
-          (currentId) => !events.some((event) => event.eventId === currentId),
-        ),
+      setSelectedEventIds((ids) =>
+        ids.filter((id) => !events.some((e) => e.eventId === id)),
       );
       return;
     }
-
-    setSelectedEventIds((currentIds) => {
-      const merged = new Set([
-        ...currentIds,
-        ...events.map((event) => event.eventId),
-      ]);
-
-      return Array.from(merged);
-    });
+    setSelectedEventIds((ids) =>
+      Array.from(new Set([...ids, ...events.map((e) => e.eventId)])),
+    );
   }
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 500);
-
-    return () => {
-      window.clearTimeout(timeout);
-    };
+    const t = window.setTimeout(() => setDebouncedSearch(searchQuery), 500);
+    return () => window.clearTimeout(t);
   }, [searchQuery]);
 
   useEffect(() => {
@@ -808,33 +646,28 @@ export default function Events() {
   }, []);
 
   useEffect(() => {
-    const statsInterval = window.setInterval(() => {
-      void loadStats();
-    }, 60000);
-
-    const eventsInterval = window.setInterval(() => {
-      void loadEvents({ background: true });
-    }, 120000);
-
-    const countdownInterval = window.setInterval(() => {
-      setCurrentTimeMs(Date.now());
-    }, 60000);
-
+    const si = window.setInterval(() => void loadStats(), 60000);
+    const ei = window.setInterval(
+      () => void loadEvents({ background: true }),
+      120000,
+    );
+    const ci = window.setInterval(() => setCurrentTimeMs(Date.now()), 60000);
     return () => {
-      window.clearInterval(statsInterval);
-      window.clearInterval(eventsInterval);
-      window.clearInterval(countdownInterval);
+      window.clearInterval(si);
+      window.clearInterval(ei);
+      window.clearInterval(ci);
     };
   }, [activeFilter, page, debouncedSearch, selectedLeague]);
 
   return (
     <>
-      <div className="space-y-5 sm:space-y-6">
+      <div className="space-y-4">
+        {/* ── Header ── */}
         <AdminSectionHeader
           title="Events"
-          subtitle="Review live and upcoming fixtures, manage markets, and make bulk updates without the extra clutter."
+          subtitle="Manage live and upcoming fixtures, markets, and odds."
           actions={
-            <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+            <div className="grid w-full gap-2 sm:flex sm:w-auto sm:items-center">
               <Button
                 variant="outline"
                 size="sm"
@@ -843,26 +676,26 @@ export default function Events() {
                 className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
               >
                 {refreshing ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <Loader2 className="size-3.5 animate-spin" />
                 ) : (
-                  <RefreshCw className="size-4" />
+                  <RefreshCw className="size-3.5" />
                 )}
-                Refresh feed
+                Refresh
               </Button>
-
               <Button
                 size="sm"
                 onClick={() => setBulkDialogOpen(true)}
                 className="w-full bg-admin-accent text-black hover:bg-admin-accent/90 sm:w-auto"
               >
-                <Settings2 className="size-4" />
+                <Settings2 className="size-3.5" />
                 Bulk update
               </Button>
             </div>
           }
         />
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {/* ── Stat cards ── */}
+        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
           {summaryCards.map((metric) => (
             <AdminStatCard
               key={metric.label}
@@ -873,45 +706,37 @@ export default function Events() {
           ))}
         </div>
 
+        {/* ── Filters ── */}
         <Card className="border-admin-border bg-admin-card shadow-sm">
-          <CardHeader className="gap-4 border-b border-admin-border/70 pb-4 sm:pb-5">
-            <div>
-              <CardTitle className="text-admin-text-primary">
-                Find events faster
-              </CardTitle>
-              <CardDescription className="text-admin-text-muted">
-                Filter by team, league, or event state and keep the list focused.
-              </CardDescription>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_260px]">
+          <CardContent className="space-y-3 p-3 sm:p-4">
+            {/* Search + league */}
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_220px]">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-admin-text-muted" />
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-admin-text-muted" />
                 <Input
-                  placeholder="Search by team or league"
+                  placeholder="Search team or league…"
                   value={searchQuery}
-                  onChange={(event) => {
+                  onChange={(e) => {
                     setPage(1);
-                    setSearchQuery(event.target.value);
+                    setSearchQuery(e.target.value);
                   }}
                   className={cn(
                     adminInputClassName,
-                    "border-admin-border bg-admin-surface pl-9 text-admin-text-primary",
+                    "h-8 border-admin-border bg-admin-surface pl-8 text-sm text-admin-text-primary",
                   )}
                 />
               </div>
-
               <Select
                 value={selectedLeague || allLeaguesValue}
-                onValueChange={(value) => {
+                onValueChange={(v) => {
                   setPage(1);
-                  setSelectedLeague(value === allLeaguesValue ? "" : value);
+                  setSelectedLeague(v === allLeaguesValue ? "" : v);
                 }}
               >
                 <SelectTrigger
                   className={cn(
                     adminSelectTriggerClassName,
-                    "w-full border-admin-border bg-admin-surface text-admin-text-primary",
+                    "h-8 w-full border-admin-border bg-admin-surface text-sm text-admin-text-primary",
                   )}
                 >
                   <SelectValue placeholder="All leagues" />
@@ -937,404 +762,350 @@ export default function Events() {
               </Select>
             </div>
 
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+            {/* Filter pills */}
+            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
               {filterOptions.map((filter) => {
                 const isActive = activeFilter === filter.value;
-
                 return (
-                  <Button
+                  <button
                     key={filter.label}
-                    variant={isActive ? "default" : "outline"}
-                    size="sm"
                     onClick={() => {
                       setPage(1);
                       setActiveFilter(filter.value);
                     }}
                     className={cn(
-                      "shrink-0 justify-between gap-2 rounded-full border-admin-border",
+                      "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
                       isActive
-                        ? "bg-admin-accent text-black hover:bg-admin-accent/90"
-                        : "bg-admin-surface/35 text-admin-text-secondary hover:bg-admin-surface hover:text-admin-text-primary",
+                        ? "border-admin-accent bg-admin-accent text-black"
+                        : "border-admin-border bg-admin-surface/40 text-admin-text-secondary hover:bg-admin-surface hover:text-admin-text-primary",
                     )}
                   >
-                    <span>{filter.label}</span>
-                    <Badge
-                      variant="outline"
+                    {filter.label}
+                    <span
                       className={cn(
-                        "rounded-full border-admin-border/60 px-2 text-[10px]",
+                        "rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none",
                         isActive
-                          ? "bg-black/10 text-black"
+                          ? "bg-black/15 text-black"
                           : "bg-admin-card text-admin-text-muted",
                       )}
                     >
-                      {statsLoading ? "..." : filter.count}
-                    </Badge>
-                  </Button>
+                      {statsLoading ? "·" : filter.count}
+                    </span>
+                  </button>
                 );
               })}
             </div>
 
-            <div className="flex flex-col gap-2 text-sm text-admin-text-muted sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            {/* Row count + refresh hint */}
+            <div className="flex items-center justify-between text-xs text-admin-text-muted">
               <span>
-                Showing {events.length.toLocaleString()} of{" "}
-                {total.toLocaleString()} events
+                {events.length.toLocaleString()} of {total.toLocaleString()}{" "}
+                events
               </span>
               {refreshing ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader2 className="size-4 animate-spin" />
-                  Refreshing latest events
+                <span className="inline-flex items-center gap-1.5">
+                  <Loader2 className="size-3 animate-spin" />
+                  Refreshing…
                 </span>
               ) : null}
             </div>
-          </CardHeader>
+          </CardContent>
         </Card>
 
+        {/* ── Selection toolbar ── */}
         {hasSelection ? (
-          <Card className="border-admin-accent/25 bg-admin-accent/5 shadow-sm">
-            <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium text-admin-text-primary">
-                  {selectedEventIds.length} event
-                  {selectedEventIds.length === 1 ? "" : "s"} selected
-                </p>
-                <p className="text-xs text-admin-text-muted">
-                  Use quick actions for the current selection.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-                <Button
-                  size="sm"
-                  onClick={() => void handleBulkToggle(true)}
-                  className="w-full bg-admin-accent text-black hover:bg-admin-accent/90 sm:w-auto"
-                >
-                  Activate
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void handleBulkMargin(5)}
-                  className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
-                >
-                  Set 5% margin
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void handleBulkToggle(false)}
-                  className="w-full border-admin-red/40 bg-admin-red/10 text-admin-red hover:bg-admin-red/15 hover:text-admin-red sm:w-auto"
-                >
-                  Deactivate
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setSelectedEventIds([])}
-                  className="col-span-2 w-full text-admin-text-secondary hover:bg-admin-surface hover:text-admin-text-primary sm:col-auto sm:w-auto"
-                >
-                  Clear
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col gap-2 rounded-xl border border-admin-accent/25 bg-admin-accent/5 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium text-admin-text-primary">
+              {selectedEventIds.length} event
+              {selectedEventIds.length === 1 ? "" : "s"} selected
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <Button
+                size="sm"
+                onClick={() => void handleBulkToggle(true)}
+                className="h-7 bg-admin-accent px-3 text-xs text-black hover:bg-admin-accent/90"
+              >
+                Activate
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void handleBulkMargin(5)}
+                className="h-7 border-admin-border bg-admin-card px-3 text-xs text-admin-text-primary hover:bg-admin-surface"
+              >
+                Set 5% margin
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void handleBulkToggle(false)}
+                className="h-7 border-admin-red/40 bg-admin-red/10 px-3 text-xs text-admin-red hover:bg-admin-red/15"
+              >
+                Deactivate
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedEventIds([])}
+                className="h-7 px-3 text-xs text-admin-text-secondary hover:text-admin-text-primary"
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
         ) : null}
 
+        {/* ── Error ── */}
         {error ? (
           <Alert
             variant="destructive"
             className="border-admin-red/30 bg-admin-red/10 text-admin-red"
           >
-            <AlertTitle>Unable to load part of the events workspace</AlertTitle>
+            <AlertTitle>Error loading events</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
 
+        {/* ── Event list ── */}
         <Card className="border-admin-border bg-admin-card shadow-sm">
-          <CardHeader className="flex flex-col gap-3 border-b border-admin-border/70 pb-4 sm:flex-row sm:items-center sm:justify-between sm:pb-5">
-            <div>
-              <CardTitle className="text-admin-text-primary">
-                Event list
-              </CardTitle>
-              <CardDescription className="text-admin-text-muted">
-                Open details, adjust market settings, or quickly toggle event visibility.
-              </CardDescription>
-            </div>
-
+          {/* List header row */}
+          <div className="flex items-center justify-between border-b border-admin-border/70 px-3 py-2 sm:px-4">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-admin-text-muted">
+              Event list
+            </p>
             {!loading && events.length > 0 ? (
-              <label className="inline-flex w-full items-center gap-2 text-sm text-admin-text-secondary sm:w-auto">
+              <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-admin-text-secondary">
                 <input
                   checked={allVisibleSelected}
-                  className="size-4 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
-                  onChange={(event) =>
-                    toggleSelectAllVisible(event.target.checked)
-                  }
+                  className="size-3.5 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
+                  onChange={(e) => toggleSelectAllVisible(e.target.checked)}
                   type="checkbox"
                 />
                 Select page
               </label>
             ) : null}
-          </CardHeader>
+          </div>
 
-          <CardContent className="space-y-3 px-3 py-4 sm:px-6 sm:py-6">
-            {loading && events.length === 0 ? skeletonCards : null}
+          {/* Skeleton */}
+          {loading && events.length === 0 ? (
+            <div className="divide-y divide-admin-border/40">
+              {skeletonRows}
+            </div>
+          ) : null}
 
-            {!loading && events.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-admin-border bg-admin-surface/10 p-6 text-center sm:p-8">
-                <p className="text-sm font-medium text-admin-text-primary">
-                  No events found
-                </p>
-                <p className="mt-1 text-sm text-admin-text-muted">
-                  Try clearing a filter or refreshing the provider feed.
-                </p>
-              </div>
-            ) : null}
+          {/* Empty state */}
+          {!loading && events.length === 0 ? (
+            <div className="px-4 py-10 text-center">
+              <p className="text-sm font-medium text-admin-text-primary">
+                No events found
+              </p>
+              <p className="mt-1 text-xs text-admin-text-muted">
+                Try clearing a filter or refreshing the feed.
+              </p>
+            </div>
+          ) : null}
 
+          {/* Rows */}
+          <div className="divide-y divide-admin-border/40">
             {events.map((event) => {
               const hasOdds = event._count.odds > 0;
               const hasScore =
                 event.homeScore !== null && event.awayScore !== null;
+              const isSelected = selectedEventIds.includes(event.eventId);
 
               return (
                 <div
-                  className="rounded-2xl border border-admin-border/70 bg-admin-surface/15 p-3 transition-colors hover:border-admin-border-strong sm:p-4"
                   key={event.eventId}
+                  className={cn(
+                    "flex items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-admin-surface/20 sm:px-4",
+                    isSelected && "bg-admin-accent/5",
+                  )}
                 >
-                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                    <div className="flex min-w-0 gap-3 sm:gap-4">
-                      <input
-                        checked={selectedEventIds.includes(event.eventId)}
-                        className="mt-1 size-4 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
-                        onChange={(checkboxEvent) =>
-                          toggleSelection(
-                            event.eventId,
-                            checkboxEvent.target.checked,
-                          )
-                        }
-                        type="checkbox"
-                      />
+                  {/* Checkbox */}
+                  <input
+                    checked={isSelected}
+                    className="size-3.5 shrink-0 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
+                    onChange={(e) =>
+                      toggleSelection(event.eventId, e.target.checked)
+                    }
+                    type="checkbox"
+                  />
 
-                      <div className="min-w-0 space-y-3">
-                        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
-                          <StatusBadge status={toBadgeStatus(event.status)} />
-                          {event.status === "UPCOMING" ? (
-                            <Badge
-                              variant="outline"
-                              className="border-admin-blue/30 bg-admin-blue/10 text-admin-blue"
-                            >
-                              {formatUpcomingCountdown(
-                                event.commenceTime,
-                                currentTimeMs,
-                              )}
-                            </Badge>
-                          ) : null}
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              hasOdds
-                                ? "border-admin-accent/30 bg-admin-accent/10 text-admin-accent"
-                                : "border-admin-red/30 bg-admin-red/10 text-admin-red",
+                  {/* Content */}
+                  <div className="min-w-0 flex-1">
+                    {/* Matchup + badges */}
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                      <p className="truncate text-sm font-semibold text-admin-text-primary">
+                        {event.homeTeam}{" "}
+                        <span className="font-normal text-admin-text-muted">
+                          vs
+                        </span>{" "}
+                        {event.awayTeam}
+                      </p>
+                      <div className="flex shrink-0 flex-wrap items-center gap-1">
+                        <StatusBadge status={toBadgeStatus(event.status)} />
+                        {hasScore && (
+                          <span className="rounded border border-admin-border bg-admin-card px-1.5 py-px text-[11px] font-medium text-admin-text-primary">
+                            {event.homeScore}–{event.awayScore}
+                          </span>
+                        )}
+                        {event.status === "UPCOMING" && (
+                          <span className="rounded border border-admin-blue/30 bg-admin-blue/10 px-1.5 py-px text-[11px] font-medium text-admin-blue">
+                            {formatUpcomingCountdown(
+                              event.commenceTime,
+                              currentTimeMs,
                             )}
-                          >
-                            {hasOdds
-                              ? `${event._count.odds} odds available`
-                              : "No odds configured"}
-                          </Badge>
-                          {hasScore ? (
-                            <Badge
-                              variant="outline"
-                              className="border-admin-border bg-admin-card text-admin-text-primary"
-                            >
-                              Score {event.homeScore} - {event.awayScore}
-                            </Badge>
-                          ) : null}
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-base font-semibold text-admin-text-primary sm:text-lg">
-                            {event.homeTeam} vs {event.awayTeam}
-                          </p>
-                          <div className="flex flex-col items-start gap-1 text-sm text-admin-text-muted sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
-                            <span>{event.leagueName ?? "Unknown league"}</span>
-                            <span>{formatEventTime(event.commenceTime)}</span>
-                            {event.sportKey ? (
-                              <span>{formatSportLabel(event.sportKey)}</span>
-                            ) : null}
-                          </div>
-                        </div>
-
-                        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
-                          <Badge
-                            variant="outline"
-                            className="shrink-0 border-admin-border bg-admin-card text-admin-text-primary"
-                          >
-                            Margin {event.houseMargin}%
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className="shrink-0 border-admin-border bg-admin-card text-admin-text-primary"
-                          >
-                            Markets {event.marketsEnabled.join(", ")}
-                          </Badge>
-                        </div>
+                          </span>
+                        )}
+                        {!hasOdds && (
+                          <span className="rounded border border-admin-red/30 bg-admin-red/10 px-1.5 py-px text-[11px] font-medium text-admin-red">
+                            No odds
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="grid w-full gap-3 sm:flex sm:w-auto sm:flex-row sm:items-center xl:justify-end">
-                      <div className="grid min-w-0 gap-2 sm:grid-cols-2">
-                        <div className="rounded-xl border border-admin-border/70 bg-admin-card px-4 py-3">
-                          <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
-                            Odds
-                          </p>
-                          <p className="mt-1 text-lg font-semibold text-admin-blue">
-                            {event._count.odds.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="rounded-xl border border-admin-border/70 bg-admin-card px-4 py-3">
-                          <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
-                            Bets
-                          </p>
-                          <p className="mt-1 text-lg font-semibold text-admin-gold">
-                            {event._count.bets.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-3 rounded-xl border border-admin-border/70 bg-admin-card px-4 py-3 sm:min-w-[180px]">
-                        <div>
-                          <p className="text-sm font-medium text-admin-text-primary">
-                            {event.isActive ? "Active" : "Inactive"}
-                          </p>
-                          <p className="text-xs text-admin-text-muted">
-                            Visible to bettors
-                          </p>
-                        </div>
-                        <Switch
-                          checked={event.isActive}
-                          onCheckedChange={(checked) =>
-                            void handleToggle(event, checked)
-                          }
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 sm:hidden">
-                        <Button
-                          variant="outline"
-                          onClick={() => openDetailDialog(event)}
-                          className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
-                        >
-                          <Eye className="size-4" />
-                          View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => openConfigDialog(event)}
-                          className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
-                        >
-                          <PencilLine className="size-4" />
-                          Edit
-                        </Button>
-                      </div>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="hidden border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:inline-flex"
-                          >
-                            <MoreHorizontal className="size-4" />
-                            <span className="sr-only">Open event actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="border-admin-border bg-admin-card text-admin-text-primary"
-                        >
-                          <DropdownMenuItem
-                            onSelect={() => openDetailDialog(event)}
-                          >
-                            <Eye className="size-4" />
-                            View details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onSelect={() => openConfigDialog(event)}
-                          >
-                            <PencilLine className="size-4" />
-                            Edit markets
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          {event.isActive ? (
-                            <DropdownMenuItem
-                              variant="destructive"
-                              onSelect={() => {
-                                setActionEvent(event);
-                                setConfirmDeactivateOpen(true);
-                              }}
-                            >
-                              <Power className="size-4" />
-                              Deactivate event
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem
-                              onSelect={() => void handleToggle(event, true)}
-                            >
-                              <Power className="size-4" />
-                              Activate event
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    {/* Meta row */}
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0 text-xs text-admin-text-muted">
+                      <span className="truncate max-w-[160px]">
+                        {event.leagueName ?? "Unknown league"}
+                      </span>
+                      <span className="hidden sm:inline">
+                        {formatEventTime(event.commenceTime)}
+                      </span>
+                      <span className="hidden sm:inline">
+                        {event._count.odds} odds · {event._count.bets} bets ·{" "}
+                        {event.houseMargin}% margin ·{" "}
+                        {event.marketsEnabled.join(", ")}
+                      </span>
+                      <span className="sm:hidden">
+                        {event.houseMargin}% · {event._count.bets} bets
+                      </span>
                     </div>
+                  </div>
+
+                  {/* Right: toggle + icon actions + overflow */}
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Switch
+                      checked={event.isActive}
+                      onCheckedChange={(checked) =>
+                        void handleToggle(event, checked)
+                      }
+                      className="scale-[0.85]"
+                    />
+                    <div className="hidden items-center sm:flex">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => openDetailDialog(event)}
+                        className="size-7 text-admin-text-muted hover:bg-admin-surface hover:text-admin-text-primary"
+                        title="View details"
+                      >
+                        <Eye className="size-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => openConfigDialog(event)}
+                        className="size-7 text-admin-text-muted hover:bg-admin-surface hover:text-admin-text-primary"
+                        title="Edit markets"
+                      >
+                        <PencilLine className="size-3.5" />
+                      </Button>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-7 text-admin-text-muted hover:bg-admin-surface hover:text-admin-text-primary"
+                        >
+                          <MoreHorizontal className="size-3.5" />
+                          <span className="sr-only">Event actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="border-admin-border bg-admin-card text-admin-text-primary"
+                      >
+                        <DropdownMenuItem
+                          onSelect={() => openDetailDialog(event)}
+                        >
+                          <Eye className="size-3.5" /> View details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => openConfigDialog(event)}
+                        >
+                          <PencilLine className="size-3.5" /> Edit markets
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {event.isActive ? (
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onSelect={() => {
+                              setActionEvent(event);
+                              setConfirmDeactivateOpen(true);
+                            }}
+                          >
+                            <Power className="size-3.5" /> Deactivate
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            onSelect={() => void handleToggle(event, true)}
+                          >
+                            <Power className="size-3.5" /> Activate
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               );
             })}
-          </CardContent>
+          </div>
         </Card>
 
+        {/* ── Pagination ── */}
         {total > 20 ? (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-admin-text-muted">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-admin-text-muted">
               Page {page} of {totalPages}
             </p>
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+            <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
+                size="sm"
                 disabled={page <= 1}
-                onClick={() =>
-                  setPage((currentPage) => Math.max(1, currentPage - 1))
-                }
-                className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="h-7 border-admin-border bg-admin-card px-2.5 text-xs text-admin-text-primary hover:bg-admin-surface"
               >
-                <ChevronLeft className="size-4" />
-                Previous
+                <ChevronLeft className="size-3.5" /> Prev
               </Button>
               <Button
                 variant="outline"
+                size="sm"
                 disabled={page >= totalPages}
-                onClick={() => setPage((currentPage) => currentPage + 1)}
-                className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
+                onClick={() => setPage((p) => p + 1)}
+                className="h-7 border-admin-border bg-admin-card px-2.5 text-xs text-admin-text-primary hover:bg-admin-surface"
               >
-                Next
-                <ChevronRight className="size-4" />
+                Next <ChevronRight className="size-3.5" />
               </Button>
             </div>
           </div>
         ) : null}
       </div>
 
+      {/* ── Bulk update dialog ── */}
       <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
         <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-xl sm:p-6">
           <DialogHeader>
             <DialogTitle>Bulk update events</DialogTitle>
             <DialogDescription className="text-admin-text-muted">
-              Apply a margin and enabled markets to the current league, the
-              current sport, or your selected events.
+              Apply margin and markets to a league, sport, or selection.
             </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-5">
-            <div className="grid gap-3 sm:grid-cols-3">
+          <div className="space-y-4">
+            <div className="grid gap-2 sm:grid-cols-3">
               {[
                 {
                   label: "Current league",
@@ -1346,8 +1117,8 @@ export default function Events() {
                   value: "sport" as BulkFilter,
                   helper:
                     selectedLeagueSportKey ||
-                    events.find((event) => event.sportKey)?.sportKey ||
-                    "Uses the sport in the current view",
+                    events.find((e) => e.sportKey)?.sportKey ||
+                    "Sport in current view",
                 },
                 {
                   label: "Selected events",
@@ -1356,58 +1127,54 @@ export default function Events() {
                 },
               ].map((option) => {
                 const isActive = bulkFilter === option.value;
-
                 return (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => setBulkFilter(option.value)}
                     className={cn(
-                      "rounded-xl border p-4 text-left transition-colors",
+                      "rounded-lg border p-3 text-left text-sm transition-colors",
                       isActive
                         ? "border-admin-accent bg-admin-accent/10"
                         : "border-admin-border bg-admin-surface/25 hover:bg-admin-surface/40",
                     )}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-admin-text-primary">
+                      <span className="font-medium text-admin-text-primary">
                         {option.label}
-                      </p>
+                      </span>
                       {isActive ? (
-                        <Check className="size-4 text-admin-accent" />
+                        <Check className="size-3.5 text-admin-accent" />
                       ) : null}
                     </div>
-                    <p className="mt-2 text-xs text-admin-text-muted">
+                    <p className="mt-1 text-xs text-admin-text-muted">
                       {option.helper}
                     </p>
                   </button>
                 );
               })}
             </div>
-
-            <div className="grid gap-4 sm:grid-cols-[160px_minmax(0,1fr)] sm:items-start">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-admin-text-primary">
+            <div className="grid gap-3 sm:grid-cols-[140px_minmax(0,1fr)] sm:items-start">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-admin-text-primary">
                   House margin
                 </label>
                 <Input
                   value={bulkHouseMargin}
-                  onChange={(event) => setBulkHouseMargin(event.target.value)}
+                  onChange={(e) => setBulkHouseMargin(e.target.value)}
                   className={cn(
                     adminInputClassName,
-                    "border-admin-border bg-admin-surface text-admin-text-primary",
+                    "h-8 border-admin-border bg-admin-surface text-sm text-admin-text-primary",
                   )}
                 />
               </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-admin-text-primary">
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-admin-text-primary">
                   Enabled markets
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {marketOptions.map((market) => {
                     const checked = bulkMarkets.includes(market);
-
                     return (
                       <Button
                         key={market}
@@ -1415,11 +1182,10 @@ export default function Events() {
                         size="sm"
                         variant={checked ? "default" : "outline"}
                         onClick={() =>
-                          setBulkMarkets((currentMarkets) =>
-                            toggleMarket(currentMarkets, market),
-                          )
+                          setBulkMarkets((m) => toggleMarket(m, market))
                         }
                         className={cn(
+                          "h-7 px-3 text-xs",
                           checked
                             ? "bg-admin-accent text-black hover:bg-admin-accent/90"
                             : "border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface",
@@ -1433,7 +1199,6 @@ export default function Events() {
               </div>
             </div>
           </div>
-
           <DialogFooter>
             <Button
               variant="outline"
@@ -1449,8 +1214,8 @@ export default function Events() {
             >
               {bulkApplying ? (
                 <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Applying
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Applying…
                 </>
               ) : (
                 "Apply changes"
@@ -1460,6 +1225,7 @@ export default function Events() {
         </DialogContent>
       </Dialog>
 
+      {/* ── Detail dialog ── */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
         <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-3xl sm:p-6">
           <DialogHeader>
@@ -1472,20 +1238,19 @@ export default function Events() {
               Review event metadata, markets, and displayed odds.
             </DialogDescription>
           </DialogHeader>
-
           <ScrollArea className="max-h-[75dvh] pr-2 sm:pr-4">
             {detailLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 6 }, (_, index) => (
+              <div className="space-y-2">
+                {Array.from({ length: 6 }, (_, i) => (
                   <div
-                    className="h-16 animate-pulse rounded-xl bg-admin-surface"
-                    key={index}
+                    className="h-14 animate-pulse rounded-lg bg-admin-surface"
+                    key={i}
                   />
                 ))}
               </div>
             ) : eventDetail ? (
-              <div className="space-y-6">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-4">
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   <DetailField label="Event ID" value={eventDetail.eventId} />
                   <DetailField
                     label="League"
@@ -1508,35 +1273,33 @@ export default function Events() {
                     value={eventDetail._count.bets.toLocaleString()}
                   />
                 </div>
-
-                <div className="rounded-xl border border-admin-border/70 bg-admin-surface/20 p-4">
-                  <div className="flex items-center gap-2">
-                    <CalendarClock className="size-4 text-admin-blue" />
+                <div className="rounded-lg border border-admin-border/70 bg-admin-surface/20 p-3">
+                  <div className="mb-3 flex items-center gap-2">
+                    <CalendarClock className="size-3.5 text-admin-blue" />
                     <p className="text-sm font-medium text-admin-text-primary">
                       Displayed odds
                     </p>
                   </div>
-
                   {(eventDetail.displayedOdds ?? []).length > 0 ? (
-                    <div className="mt-4 space-y-3">
+                    <div className="space-y-2">
                       {(eventDetail.displayedOdds ?? []).map((bookmaker) => (
                         <div
-                          className="rounded-xl border border-admin-border/70 bg-admin-card p-3 sm:p-4"
+                          className="rounded-lg border border-admin-border/70 bg-admin-card p-3"
                           key={bookmaker.bookmakerId}
                         >
                           <p className="text-sm font-semibold text-admin-text-primary">
                             {bookmaker.bookmakerName}
                           </p>
-                          <div className="mt-3 space-y-2">
+                          <div className="mt-2 space-y-1.5">
                             {bookmaker.odds.map((odd) => (
                               <div
-                                className="flex flex-col gap-2 text-sm text-admin-text-secondary sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+                                className="flex flex-col gap-1 text-xs text-admin-text-secondary sm:flex-row sm:items-center sm:justify-between"
                                 key={odd.id}
                               >
-                                <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex items-center gap-1.5">
                                   <Badge
                                     variant="outline"
-                                    className="border-admin-border bg-admin-surface text-admin-text-primary"
+                                    className="border-admin-border bg-admin-surface px-1.5 py-px text-[10px] text-admin-text-primary"
                                   >
                                     {odd.marketType}
                                   </Badge>
@@ -1546,7 +1309,7 @@ export default function Events() {
                                   <p className="font-medium text-admin-text-primary">
                                     {odd.displayOdds}
                                   </p>
-                                  <p className="text-xs text-admin-text-muted">
+                                  <p className="text-[10px] text-admin-text-muted">
                                     Updated {formatUpdatedTime(odd.updatedAt)}
                                   </p>
                                 </div>
@@ -1557,62 +1320,59 @@ export default function Events() {
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-4 text-sm text-admin-text-muted">
-                      No displayed odds are available for this event yet.
+                    <p className="text-sm text-admin-text-muted">
+                      No displayed odds available yet.
                     </p>
                   )}
                 </div>
               </div>
             ) : (
               <p className="text-sm text-admin-text-muted">
-                No details are available for this event right now.
+                No details available right now.
               </p>
             )}
           </ScrollArea>
         </DialogContent>
       </Dialog>
 
+      {/* ── Config dialog ── */}
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
         <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-lg sm:p-6">
           <DialogHeader>
             <DialogTitle>Edit event markets</DialogTitle>
             <DialogDescription className="text-admin-text-muted">
-              Adjust the house margin and choose which markets are available.
+              Adjust house margin and enabled markets.
             </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-5">
-            <div className="rounded-xl border border-admin-border/70 bg-admin-surface/20 p-4">
+          <div className="space-y-4">
+            <div className="rounded-lg border border-admin-border/70 bg-admin-surface/20 p-3">
               <p className="text-sm font-medium text-admin-text-primary">
                 {configEvent?.homeTeam} vs {configEvent?.awayTeam}
               </p>
-              <p className="mt-1 text-sm text-admin-text-muted">
+              <p className="mt-0.5 text-xs text-admin-text-muted">
                 {configEvent?.leagueName ?? "Unknown league"}
               </p>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-admin-text-primary">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-admin-text-primary">
                 House margin
               </label>
               <Input
                 value={houseMargin}
-                onChange={(event) => setHouseMargin(event.target.value)}
+                onChange={(e) => setHouseMargin(e.target.value)}
                 className={cn(
                   adminInputClassName,
-                  "border-admin-border bg-admin-surface text-admin-text-primary",
+                  "h-8 border-admin-border bg-admin-surface text-sm text-admin-text-primary",
                 )}
               />
             </div>
-
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-admin-text-primary">
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-admin-text-primary">
                 Enabled markets
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {marketOptions.map((market) => {
                   const checked = marketsEnabled.includes(market);
-
                   return (
                     <Button
                       key={market}
@@ -1620,11 +1380,10 @@ export default function Events() {
                       size="sm"
                       variant={checked ? "default" : "outline"}
                       onClick={() =>
-                        setMarketsEnabled((currentMarkets) =>
-                          toggleMarket(currentMarkets, market),
-                        )
+                        setMarketsEnabled((m) => toggleMarket(m, market))
                       }
                       className={cn(
+                        "h-7 px-3 text-xs",
                         checked
                           ? "bg-admin-accent text-black hover:bg-admin-accent/90"
                           : "border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface",
@@ -1637,7 +1396,6 @@ export default function Events() {
               </div>
             </div>
           </div>
-
           <DialogFooter>
             <Button
               variant="outline"
@@ -1656,6 +1414,7 @@ export default function Events() {
         </DialogContent>
       </Dialog>
 
+      {/* ── Confirm deactivate dialog ── */}
       <Dialog
         open={confirmDeactivateOpen}
         onOpenChange={setConfirmDeactivateOpen}
@@ -1665,11 +1424,10 @@ export default function Events() {
             <DialogTitle>Deactivate event</DialogTitle>
             <DialogDescription className="text-admin-text-muted">
               {actionEvent
-                ? `${actionEvent.homeTeam} vs ${actionEvent.awayTeam} will be hidden from bettors until it is reactivated.`
+                ? `${actionEvent.homeTeam} vs ${actionEvent.awayTeam} will be hidden from bettors until reactivated.`
                 : "This event will be hidden until it is reactivated."}
             </DialogDescription>
           </DialogHeader>
-
           <DialogFooter>
             <Button
               variant="outline"
@@ -1680,10 +1438,7 @@ export default function Events() {
             </Button>
             <Button
               onClick={() => {
-                if (!actionEvent) {
-                  return;
-                }
-
+                if (!actionEvent) return;
                 setConfirmDeactivateOpen(false);
                 void handleToggle(actionEvent, false);
               }}
