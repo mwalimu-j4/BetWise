@@ -613,7 +613,7 @@ export default function Dashboard() {
                 {/* Pending Payouts */}
                 <Link
                   to="/admin/withdrawals"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-gold hover:bg-admin-surface/80 hover:shadow-md hover:shadow-admin-gold/10"
+                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-gold hover:bg-admin-surface/72"
                 >
                   <div className="rounded-md bg-admin-gold/20 p-1.5 text-admin-gold transition-colors duration-200 group-hover:bg-admin-gold/30">
                     <Wallet size={16} />
@@ -629,7 +629,7 @@ export default function Dashboard() {
                 {/* Users Management */}
                 <Link
                   to="/admin/users"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-accent hover:bg-admin-surface/80 hover:shadow-md hover:shadow-admin-accent/10"
+                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-accent hover:bg-admin-surface/72"
                 >
                   <div className="rounded-md bg-admin-accent/20 p-1.5 text-admin-accent transition-colors duration-200 group-hover:bg-admin-accent/30">
                     <Users size={16} />
@@ -645,7 +645,7 @@ export default function Dashboard() {
                 {/* Analytics Page */}
                 <Link
                   to="/admin/analytics"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-blue hover:bg-admin-surface/80 hover:shadow-md hover:shadow-admin-blue/10"
+                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-blue hover:bg-admin-surface/72"
                 >
                   <div className="rounded-md bg-admin-blue/20 p-1.5 text-admin-blue transition-colors duration-200 group-hover:bg-admin-blue/30">
                     <TrendingUp size={16} />
@@ -663,7 +663,7 @@ export default function Dashboard() {
                 {/* Risk Management */}
                 <Link
                   to="/admin/risk"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-red/60 hover:bg-admin-surface/80 hover:shadow-md hover:shadow-admin-red/10"
+                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-red/60 hover:bg-admin-surface/72"
                 >
                   <div className="rounded-md bg-admin-red/20 p-1.5 text-admin-red transition-colors duration-200 group-hover:bg-admin-red/30">
                     <AlertCircle size={16} />
@@ -679,7 +679,7 @@ export default function Dashboard() {
                 {/* Settings */}
                 <Link
                   to="/admin/settings"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-text-secondary hover:bg-admin-surface/80 hover:shadow-md hover:shadow-admin-text-secondary/10"
+                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-text-secondary hover:bg-admin-surface/72"
                 >
                   <div className="rounded-md bg-admin-text-secondary/20 p-1.5 text-admin-text-secondary transition-colors duration-200 group-hover:bg-admin-text-secondary/30">
                     <Settings size={16} />
@@ -695,7 +695,7 @@ export default function Dashboard() {
                 {/* Contact Messages */}
                 <Link
                   to="/admin/contacts"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-purple-500/60 hover:bg-admin-surface/80 hover:shadow-md hover:shadow-purple-500/10"
+                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-purple-500/60 hover:bg-admin-surface/72"
                 >
                   <div className="rounded-md bg-purple-500/20 p-1.5 text-purple-500 transition-colors duration-200 group-hover:bg-purple-500/30">
                     <MessageSquare size={16} />

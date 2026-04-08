@@ -250,7 +250,7 @@ export default function AdminShell() {
         <aside
           className={cn(
             "fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col overflow-hidden border-r border-admin-border bg-admin-card",
-            "shadow-[4px_0_24px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out",
+            "shadow-[2px_0_12px_rgba(0,0,0,0.08)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0 lg:shadow-none",
             sidebarExpanded
@@ -460,7 +460,7 @@ export default function AdminShell() {
                 </button>
 
                 {notificationsOpen && (
-                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(380px,calc(100vw-2rem))] origin-top-right overflow-hidden rounded-[1.6rem] border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card/95 shadow-[0_24px_70px_-16px_rgba(0,0,0,0.65)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[min(380px,calc(100vw-2rem))] origin-top-right overflow-hidden rounded-[1.6rem] border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card/95 shadow-[0_16px_42px_-18px_rgba(0,0,0,0.42)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center justify-between border-b border-admin-border/50 px-5 py-4">
                       <h3 className="text-sm font-semibold text-admin-text-primary">
                         Notifications
@@ -573,7 +573,7 @@ export default function AdminShell() {
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-64 origin-top-right overflow-hidden rounded-[1.6rem] border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card/95 shadow-[0_24px_70px_-16px_rgba(0,0,0,0.65)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-64 origin-top-right overflow-hidden rounded-[1.6rem] border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card/95 shadow-[0_16px_42px_-18px_rgba(0,0,0,0.42)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-3 border-b border-admin-border/50 p-4">
                       <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-sm font-bold text-white shadow-inner">
                         {user?.email.charAt(0).toUpperCase()}
@@ -652,7 +652,7 @@ export default function AdminShell() {
                             align="end"
                             side="left"
                             sideOffset={12}
-                            className="min-w-[140px] rounded-xl shadow-xl"
+                            className="min-w-[140px] rounded-xl shadow-[0_12px_28px_rgba(2,8,23,0.22)]"
                           >
                             <DropdownMenuItem
                               onClick={() => setTheme("light")}

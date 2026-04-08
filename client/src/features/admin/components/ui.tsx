@@ -134,15 +134,15 @@ export const adminTableCellClassName =
 export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
 export const adminDialogContentClassName =
-  "overflow-hidden rounded-[1.35rem] border border-[rgba(245,197,24,0.16)] bg-[linear-gradient(180deg,#244a8e,#1f4380)] text-admin-text-primary shadow-[0_24px_64px_rgba(13,33,55,0.34)]";
+  "overflow-hidden rounded-[1.35rem] border border-[rgba(245,197,24,0.16)] bg-[linear-gradient(180deg,#244a8e,#1f4380)] text-admin-text-primary shadow-[0_18px_42px_rgba(13,33,55,0.22)]";
 export const adminInputClassName =
   "h-10 rounded-xl border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3 text-admin-text-primary placeholder:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
 export const adminSelectTriggerClassName =
   "h-10 w-full rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3 text-admin-text-primary shadow-none data-[placeholder]:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
 export const adminSelectContentClassName =
-  "rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card text-admin-text-primary shadow-[0_16px_40px_rgba(2,8,23,0.38)]";
+  "rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card text-admin-text-primary shadow-[0_12px_28px_rgba(2,8,23,0.24)]";
 export const adminDropdownContentClassName =
-  "rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card p-1.5 text-admin-text-primary shadow-[0_16px_40px_rgba(2,8,23,0.38)]";
+  "rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card p-1.5 text-admin-text-primary shadow-[0_12px_28px_rgba(2,8,23,0.24)]";
 export const adminDropdownItemClassName =
   "rounded-lg px-3 py-2 text-sm text-admin-text-secondary focus:bg-admin-accent/12 focus:text-admin-text-primary";
 
@@ -182,7 +182,7 @@ export function AdminCard({
   return (
     <section
       className={cn(
-        "relative rounded-2xl border border-admin-border bg-admin-card p-3 text-admin-text-primary shadow-[0_12px_40px_var(--color-bg-deepest)] sm:p-4 lg:p-5",
+        "relative rounded-2xl border border-admin-border bg-admin-card p-3 text-admin-text-primary shadow-[0_8px_22px_rgba(2,8,23,0.18)] sm:p-4 lg:p-5",
         "bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_120px)]",
         interactive &&
           "transition duration-200 hover:border-admin-border-strong",
@@ -212,7 +212,7 @@ export function AdminButton({
         variant === "solid"
           ? cn(
               solidToneClasses[tone],
-              "border-transparent shadow-[0_10px_24px_rgba(0,0,0,0.14)] hover:opacity-95",
+              "border-transparent shadow-[0_6px_16px_rgba(0,0,0,0.1)] hover:opacity-95",
             )
           : "border-admin-border/70 bg-admin-surface/45 text-admin-text-secondary hover:border-admin-border-strong hover:bg-admin-hover hover:text-admin-text-primary",
         className,
