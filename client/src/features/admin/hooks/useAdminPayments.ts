@@ -9,7 +9,7 @@ export interface Payment {
   userName?: string;
   type: "deposit" | "withdrawal";
   amount: number;
-  status: "pending" | "completed" | "failed" | "reversed";
+  status: "pending" | "processing" | "completed" | "failed" | "reversed";
   reference: string;
   channel: string;
   mpesaCode?: string;

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export type WalletTransactionStatus =
   | "PENDING"
+  | "PROCESSING"
   | "COMPLETED"
   | "FAILED"
   | "REVERSED";
@@ -34,6 +35,14 @@ export type MpesaStkQueryResponse = {
   CheckoutRequestID?: string;
   ResultCode?: string;
   ResultDesc?: string;
+  errorMessage?: string;
+};
+
+export type MpesaB2CResponse = {
+  ConversationID?: string;
+  OriginatorConversationID?: string;
+  ResponseCode?: string;
+  ResponseDescription?: string;
   errorMessage?: string;
 };
 
@@ -93,6 +102,8 @@ export function toTransactionStatus(value: WalletTransactionStatus): string {
   switch (value) {
     case "PENDING":
       return "pending";
+    case "PROCESSING":
+      return "processing";
     case "COMPLETED":
       return "completed";
     case "FAILED":
@@ -170,6 +181,77 @@ export function getMpesaConfig():
     shortcode: shortcode as string,
     passkey: passkey as string,
     callbackUrl: callbackUrl as string,
+  };
+}
+
+function deriveSiblingCallbackUrl(callbackUrl: string, pathname: string) {
+  const url = new URL(callbackUrl);
+  url.pathname = pathname;
+  url.search = "";
+  url.hash = "";
+  return url.toString();
+}
+
+export function getMpesaB2CConfig():
+  | {
+      isConfigured: true;
+      baseUrl: string;
+      consumerKey: string;
+      consumerSecret: string;
+      shortcode: string;
+      initiatorName: string;
+      securityCredential: string;
+      commandId: string;
+      resultUrl: string;
+      timeoutUrl: string;
+    }
+  | {
+      isConfigured: false;
+      missingVars: string[];
+    } {
+  const baseConfig = getMpesaConfig();
+  if (!baseConfig.isConfigured) {
+    return baseConfig;
+  }
+
+  const initiatorName = process.env.MPESA_INITIATOR_NAME?.trim();
+  const securityCredential = process.env.MPESA_SECURITY_CREDENTIAL?.trim();
+  const commandId = process.env.MPESA_B2C_COMMAND_ID?.trim() || "BusinessPayment";
+  const resultUrl =
+    process.env.MPESA_B2C_RESULT_URL?.trim() ||
+    deriveSiblingCallbackUrl(
+      baseConfig.callbackUrl,
+      "/api/payments/mpesa/withdrawals/result",
+    );
+  const timeoutUrl =
+    process.env.MPESA_B2C_TIMEOUT_URL?.trim() ||
+    deriveSiblingCallbackUrl(
+      baseConfig.callbackUrl,
+      "/api/payments/mpesa/withdrawals/timeout",
+    );
+
+  const missingVars: string[] = [];
+  if (!initiatorName) missingVars.push("MPESA_INITIATOR_NAME");
+  if (!securityCredential) missingVars.push("MPESA_SECURITY_CREDENTIAL");
+
+  if (missingVars.length > 0) {
+    return {
+      isConfigured: false,
+      missingVars,
+    };
+  }
+
+  return {
+    isConfigured: true,
+    baseUrl: baseConfig.baseUrl,
+    consumerKey: baseConfig.consumerKey,
+    consumerSecret: baseConfig.consumerSecret,
+    shortcode: baseConfig.shortcode,
+    initiatorName: initiatorName as string,
+    securityCredential: securityCredential as string,
+    commandId,
+    resultUrl,
+    timeoutUrl,
   };
 }
 

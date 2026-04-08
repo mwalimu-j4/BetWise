@@ -14,7 +14,6 @@ import { userBetsRouter } from "./user/bets";
 import { userEventsRouter } from "./user/events";
 import { contactRouter } from "./contact";
 import { newsletterRouter } from "./newsletter";
-import { reportsRouter } from "./reports";
 
 const apiRouter = Router();
 
@@ -33,6 +32,5 @@ apiRouter.use(userEventsRouter);
 apiRouter.use(userBetsRouter);
 apiRouter.use(contactRouter);
 apiRouter.use(newsletterRouter);
-apiRouter.use(reportsRouter);
 
 export { apiRouter };

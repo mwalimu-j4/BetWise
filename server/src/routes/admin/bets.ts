@@ -2,7 +2,8 @@ import { Prisma } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../../lib/prisma";
-import { emitBetUpdate } from "../../lib/socket";
+import { emitBetUpdate, emitWalletUpdate } from "../../lib/socket";
+import { getOrCreateWallet } from "../../lib/wallet";
 import { authenticate } from "../../middleware/authenticate";
 import { requireAdmin } from "../../middleware/requireAdmin";
 
@@ -155,7 +156,8 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
     const now = new Date();
 
     if (winner.toLowerCase() === "void") {
-      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        const wallet = await getOrCreateWallet(bet.userId, tx);
         await tx.bet.update({
           where: { id: betId },
           data: {
@@ -165,14 +167,34 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
           },
         });
 
-        await tx.wallet.update({
-          where: { userId: bet.userId },
+        const updatedWallet = await tx.wallet.update({
+          where: { id: wallet.id },
           data: {
             balance: {
               increment: Math.round(bet.stake),
             },
           },
+          select: { balance: true },
         });
+
+        const transaction = await tx.walletTransaction.create({
+          data: {
+            userId: bet.userId,
+            walletId: wallet.id,
+            type: "REFUND",
+            status: "COMPLETED",
+            amount: Math.round(bet.stake),
+            currency: "KES",
+            channel: "betting",
+            reference: `BET-VOID-${bet.id}`,
+            description: `Voided bet ${bet.betCode}`,
+          },
+        });
+
+        return {
+          balance: updatedWallet.balance,
+          transactionId: transaction.id,
+        };
       });
 
       emitBetUpdate(bet.userId, {
@@ -184,6 +206,14 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
         possiblePayout: 0,
       });
 
+      emitWalletUpdate(bet.userId, {
+        transactionId: result.transactionId,
+        status: "COMPLETED",
+        message: "Bet voided and stake refunded to wallet.",
+        balance: result.balance,
+        amount: Math.round(bet.stake),
+      });
+
       return res.status(200).json({
         settled: true,
         status: "VOID",
@@ -193,7 +223,7 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
 
     const won = bet.side === winner;
 
-    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.bet.update({
         where: { id: betId },
         data: {
@@ -204,15 +234,38 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
       });
 
       if (won) {
-        await tx.wallet.update({
-          where: { userId: bet.userId },
+        const wallet = await getOrCreateWallet(bet.userId, tx);
+        const updatedWallet = await tx.wallet.update({
+          where: { id: wallet.id },
           data: {
             balance: {
               increment: Math.round(bet.potentialPayout),
             },
           },
+          select: { balance: true },
         });
+
+        const transaction = await tx.walletTransaction.create({
+          data: {
+            userId: bet.userId,
+            walletId: wallet.id,
+            type: "BET_WIN",
+            status: "COMPLETED",
+            amount: Math.round(bet.potentialPayout),
+            currency: "KES",
+            channel: "betting",
+            reference: `BET-WIN-${bet.id}`,
+            description: `Winning payout for bet ${bet.betCode}`,
+          },
+        });
+
+        return {
+          balance: updatedWallet.balance,
+          transactionId: transaction.id,
+        };
       }
+
+      return null;
     });
 
     emitBetUpdate(bet.userId, {
@@ -223,6 +276,16 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
       updatedAt: now.toISOString(),
       possiblePayout: won ? bet.potentialPayout : 0,
     });
+
+    if (won && result) {
+      emitWalletUpdate(bet.userId, {
+        transactionId: result.transactionId,
+        status: "COMPLETED",
+        message: "Winning payout credited to your wallet.",
+        balance: result.balance,
+        amount: Math.round(bet.potentialPayout),
+      });
+    }
 
     return res.status(200).json({
       settled: true,

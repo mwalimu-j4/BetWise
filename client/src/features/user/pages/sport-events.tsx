@@ -6,6 +6,7 @@ type SportEventsProps = {
   events: ApiEvent[];
   onOddsSelect: (selection: BetSelection) => void;
   selectedOdds: Set<string>;
+  cardsPerRow?: 2 | 3;
 };
 
 function getLeagueIcon(value: string) {
@@ -37,7 +38,11 @@ export default function SportEvents({
   events,
   onOddsSelect,
   selectedOdds,
+  cardsPerRow = 2,
 }: SportEventsProps) {
+  const eventGridClassName =
+    cardsPerRow === 3 ? "md:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-2";
+
   const groupedEvents = events.reduce<Record<string, ApiEvent[]>>(
     (groups, event) => {
       const key = event.leagueName ?? "Featured Matches";
@@ -53,7 +58,7 @@ export default function SportEvents({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {Object.entries(groupedEvents).map(([leagueName, leagueEvents]) => (
         <section
           key={leagueName}

@@ -28,6 +28,7 @@ enum WalletTransactionType {
 
 enum WalletTransactionStatus {
   PENDING
+  PROCESSING
   COMPLETED
   FAILED
   REVERSED

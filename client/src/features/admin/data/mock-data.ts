@@ -21,6 +21,7 @@ export type AdminTone =
 
 export type AdminBadgeStatus =
   | "pending"
+  | "processing"
   | "won"
   | "lost"
   | "flagged"

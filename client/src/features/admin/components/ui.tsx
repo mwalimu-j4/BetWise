@@ -81,6 +81,7 @@ const statusConfig: Record<
   { tone: AdminTone; icon: LucideIcon }
 > = {
   pending: { tone: "gold", icon: Clock },
+  processing: { tone: "blue", icon: Clock },
   won: { tone: "accent", icon: CheckCircle },
   lost: { tone: "red", icon: XCircle },
   flagged: { tone: "red", icon: Flag },

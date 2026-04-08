@@ -25,6 +25,7 @@ import {
   MessageSquare,
   MoreHorizontal,
   Settings,
+  TrendingUp,
   TriangleAlert,
   Users,
   Wallet,
@@ -683,6 +684,24 @@ export default function Dashboard() {
                       Users
                     </p>
                     <p className="text-[11px] text-admin-text-muted">Manage</p>
+                  </div>
+                </Link>
+
+                {/* Analytics Page */}
+                <Link
+                  to="/admin/analytics"
+                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-blue hover:bg-admin-surface/80 hover:shadow-md hover:shadow-admin-blue/10"
+                >
+                  <div className="rounded-md bg-admin-blue/20 p-1.5 text-admin-blue transition-colors duration-200 group-hover:bg-admin-blue/30">
+                    <TrendingUp size={16} />
+                  </div>
+                  <div className="space-y-0.5 flex-1">
+                    <p className="text-xs font-bold text-admin-text-primary leading-tight">
+                      Analytics
+                    </p>
+                    <p className="text-[11px] text-admin-text-muted">
+                      Insights
+                    </p>
                   </div>
                 </Link>
 

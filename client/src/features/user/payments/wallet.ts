@@ -14,6 +14,7 @@ export type WalletTransactionType =
 
 export type WalletTransactionStatus =
   | "completed"
+  | "processing"
   | "pending"
   | "failed"
   | "reversed";
@@ -61,7 +62,7 @@ export type WalletStreamEvent = {
   checkoutRequestId?: string | null;
   merchantRequestId?: string | null;
   mpesaCode?: string | null;
-  status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED";
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REVERSED";
   message: string;
   balance: number;
   amount: number;

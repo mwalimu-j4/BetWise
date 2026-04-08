@@ -7,6 +7,8 @@ import {
   createWithdrawalRequest,
   getWalletSummary,
   handleMpesaCallback,
+  handleMpesaWithdrawalResult,
+  handleMpesaWithdrawalTimeout,
   initiateStk,
   listAdminWithdrawals,
   listWithdrawals,
@@ -18,6 +20,14 @@ const paymentRouter = Router();
 // M-Pesa callback endpoints
 paymentRouter.post("/mpesa/callback", handleMpesaCallback);
 paymentRouter.post("/payments/mpesa/callback", handleMpesaCallback);
+paymentRouter.post(
+  "/payments/mpesa/withdrawals/result",
+  handleMpesaWithdrawalResult,
+);
+paymentRouter.post(
+  "/payments/mpesa/withdrawals/timeout",
+  handleMpesaWithdrawalTimeout,
+);
 
 // Wallet endpoints
 paymentRouter.get("/payments/wallet/summary", authenticate, getWalletSummary);
