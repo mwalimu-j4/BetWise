@@ -259,9 +259,7 @@ export default function BettingHome() {
               {loading ? (
                 <div
                   className={`grid gap-3 ${
-                    hasSelections
-                      ? "lg:grid-cols-2"
-                      : "md:grid-cols-2 xl:grid-cols-3"
+                    hasSelections ? "lg:grid-cols-2" : "md:grid-cols-2 xl:grid-cols-3"
                   }`}
                 >
                   {Array.from({ length: hasSelections ? 4 : 6 }).map(
