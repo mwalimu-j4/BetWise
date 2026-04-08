@@ -5,11 +5,46 @@ import LiveTicker from "../components/LiveTicker";
 import useBetSlip from "../hooks/useBetSlip";
 import useEvents from "../hooks/useEvents";
 import SportEvents from "./sport-events";
+import { Users, Activity, Trophy } from "lucide-react";
 import heroOne from "@/assets/h1.jfif";
 import heroTwo from "@/assets/h2.jfif";
 import heroThree from "@/assets/h3.jfif";
 import heroFour from "@/assets/h4.jfif";
 import heroFive from "@/assets/h5.jfif";
+
+// Custom hook-based component for smooth number animation
+function AnimatedNumber({ value, suffix = "", isFloat = false }: { value: number, suffix?: string, isFloat?: boolean }) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp: number;
+    const duration = 2000; // Animation duration in milliseconds
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      
+      // Easing function (easeOutExpo) for a smooth deceleration
+      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setDisplayValue(value * ease);
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setDisplayValue(value); // Ensure it ends exactly on the target value
+      }
+    };
+
+    window.requestAnimationFrame(step);
+  }, [value]);
+
+  return (
+    <span>
+      {isFloat ? displayValue.toFixed(1) : Math.floor(displayValue)}
+      {suffix}
+    </span>
+  );
+}
 
 function formatTabLabel(value: string) {
   return value
@@ -121,36 +156,56 @@ export default function BettingHome() {
                   className="h-full w-full object-cover"
                   loading={index === 0 ? "eager" : "lazy"}
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0a1218]/88 via-[#0a1218]/42 to-[#0b1120]/28" />
+                {/* Darkened overlay: transitioning from a deeper navy back into the royal blue */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0b1f4a]/95 via-[#122d6b]/80 to-[#1d428a]/30" />
               </article>
             ))}
 
             <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 md:p-6">
-              <p className="text-[9px] uppercase tracking-[0.18em] text-[#f5c518]">
-                BetixPro Picks
-              </p>
-              <h1 className="mt-2 max-w-2xl text-sm font-extrabold text-white sm:text-base md:text-lg">
-                Bet Smarter, Win Bigger
-              </h1>
-              <p className="mt-2 max-w-xl text-xs text-[#d6e0e8]">
-                Explore top fixtures with real-time odds and place your best
-                picks.
-              </p>
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.18em] text-[#ffd500] font-bold">
+                    BetixPro Picks
+                  </p>
+                  <h1 className="mt-1 max-w-2xl text-base font-extrabold text-white sm:text-xl md:text-2xl drop-shadow-md">
+                    Bet Smarter, Win Bigger
+                  </h1>
+                  
+                  <div className="mt-2.5 flex items-center gap-3 sm:gap-5 text-[10px] sm:text-xs font-medium text-[#d6e0e8]">
+                    <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1.5 backdrop-blur-sm shadow-sm">
+                      <Users className="h-3.5 w-3.5 text-[#ffd500]" />
+                      <span>
+                        <AnimatedNumber value={11.2} suffix="K" isFloat={true} /> Active
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1.5 backdrop-blur-sm shadow-sm">
+                      <Activity className="h-3.5 w-3.5 text-[#ffd500]" />
+                      <span>
+                        <AnimatedNumber value={94} suffix="%" /> Engagement
+                      </span>
+                    </div>
+                    <div className="hidden items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1.5 backdrop-blur-sm shadow-sm sm:flex">
+                      <Trophy className="h-3.5 w-3.5 text-[#ffd500]" />
+                      <span>Top Odds</span>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="mt-3 flex items-center gap-1.5">
-                {heroImages.map((_, index) => (
-                  <button
-                    key={`hero-dot-${index}`}
-                    type="button"
-                    onClick={() => setActiveHeroIndex(index)}
-                    aria-label={`Show slide ${index + 1}`}
-                    className={`h-2.5 rounded-full transition-all ${
-                      index === activeHeroIndex
-                        ? "w-7 bg-[#f5c518]"
-                        : "w-2.5 bg-white/50 hover:bg-white/80"
-                    }`}
-                  />
-                ))}
+                <div className="flex items-center gap-1.5">
+                  {heroImages.map((_, index) => (
+                    <button
+                      key={`hero-dot-${index}`}
+                      type="button"
+                      onClick={() => setActiveHeroIndex(index)}
+                      aria-label={`Show slide ${index + 1}`}
+                      className={`h-2 rounded-full transition-all ${
+                        index === activeHeroIndex
+                          ? "w-6 bg-[#ffd500]"
+                          : "w-2 bg-white/40 hover:bg-white/70"
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -158,7 +213,7 @@ export default function BettingHome() {
 
         <LiveTicker />
 
-        <section className="overflow-x-auto rounded-xl border border-[#23384f] bg-[#101b2b] px-4 py-3 app-scrollbar scroll-smooth">
+        <section className="overflow-x-auto rounded-xl border border-[#2d4362] bg-[#1e304a] px-4 py-3 app-scrollbar scroll-smooth">
           <div className="flex min-w-max gap-3">
             {tabs.map((tab) => {
               const isActive =
@@ -174,8 +229,8 @@ export default function BettingHome() {
                   }}
                   className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-xs font-semibold uppercase tracking-wide transition ${
                     isActive
-                      ? "border-[#f5c518] bg-[#f5c518]/15 text-[#f5c518]"
-                      : "border-[#294157] text-[#8a9bb0] hover:border-[#f5c518]/60 hover:text-white"
+                      ? "border-[#ffd500] bg-[#ffd500]/15 text-[#ffd500]"
+                      : "border-[#365074] text-[#8a9bb0] hover:border-[#ffd500]/60 hover:text-white"
                   }`}
                 >
                   {tab.label}
@@ -287,13 +342,13 @@ export default function BettingHome() {
                   <button
                     type="button"
                     onClick={refetch}
-                    className="mt-4 rounded-lg bg-[#f5c518] px-4 py-2 text-sm font-semibold text-black"
+                    className="mt-4 rounded-lg bg-[#ffd500] px-4 py-2 text-sm font-semibold text-black"
                   >
                     Refresh
                   </button>
                 </div>
               ) : upcomingEvents.length === 0 ? (
-                <div className="rounded-2xl border border-[#23384f] bg-[#111d2e] px-6 py-10 text-center">
+                <div className="rounded-2xl border border-[#2d4362] bg-[#1e304a] px-6 py-10 text-center">
                   <p className="text-3xl">⚽</p>
                   <p className="mt-3 text-lg font-semibold text-white">
                     No matches available right now
@@ -304,7 +359,7 @@ export default function BettingHome() {
                   <button
                     type="button"
                     onClick={refetch}
-                    className="mt-4 rounded-lg bg-[#f5c518] px-4 py-2 text-sm font-semibold text-black"
+                    className="mt-4 rounded-lg bg-[#ffd500] px-4 py-2 text-sm font-semibold text-black"
                   >
                     Refresh
                   </button>

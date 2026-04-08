@@ -11,6 +11,7 @@ import {
 import { useMyBetsCount } from "@/features/user/hooks/useMyBets";
 import { formatMoney } from "@/features/user/payments/data";
 import { useWalletSummary } from "@/features/user/payments/wallet";
+import { useNavigate } from '@tanstack/react-router';
 
 // ✅ NEW: Import your logo (standard Vite + shadcn alias)
 import Logo from "@/assets/logo.png";
