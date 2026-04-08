@@ -12,6 +12,11 @@ type EventCardProps = {
   selectedOdds: Set<string>;
 };
 
+type DisplayedOddCountItem = {
+  marketType: string;
+  bookmakerName: string;
+};
+
 function formatCardDateTime(value: string) {
   return new Intl.DateTimeFormat(undefined, {
     weekday: "short",
@@ -98,7 +103,11 @@ function OddsPreviewButton({
   );
 }
 
-export default function EventCard({ event, onOddsSelect, selectedOdds }: EventCardProps) {
+export default function EventCard({
+  event,
+  onOddsSelect,
+  selectedOdds,
+}: EventCardProps) {
   const [marketCount, setMarketCount] = useState<number>(0);
   const [showMarkets, setShowMarkets] = useState(false);
 
@@ -107,12 +116,17 @@ export default function EventCard({ event, onOddsSelect, selectedOdds }: EventCa
 
     const fetchMarketCount = async () => {
       try {
-        const { data } = await api.get<{ displayedOdds?: unknown[] }>(
-          `/user/events/${event.eventId}`,
-        );
+        const { data } = await api.get<{
+          displayedOdds?: DisplayedOddCountItem[];
+        }>(`/user/events/${event.eventId}`);
 
         if (!cancelled) {
-          setMarketCount(Array.isArray(data.displayedOdds) ? data.displayedOdds.length : 0);
+          const groupedMarkets = new Set(
+            (data.displayedOdds ?? []).map(
+              (odd) => `${odd.marketType}::${odd.bookmakerName}`,
+            ),
+          );
+          setMarketCount(groupedMarkets.size);
         }
       } catch (fetchError) {
         if (
@@ -134,9 +148,17 @@ export default function EventCard({ event, onOddsSelect, selectedOdds }: EventCa
 
   const oddsPreview = useMemo<OddsPreview[]>(
     () => [
-      { label: "1", side: event.homeTeam, odds: event.markets.h2h?.home ?? null },
+      {
+        label: "1",
+        side: event.homeTeam,
+        odds: event.markets.h2h?.home ?? null,
+      },
       { label: "X", side: "Draw", odds: event.markets.h2h?.draw ?? null },
-      { label: "2", side: event.awayTeam, odds: event.markets.h2h?.away ?? null },
+      {
+        label: "2",
+        side: event.awayTeam,
+        odds: event.markets.h2h?.away ?? null,
+      },
     ],
     [
       event.awayTeam,
@@ -148,8 +170,9 @@ export default function EventCard({ event, onOddsSelect, selectedOdds }: EventCa
   );
 
   return (
-    <article className="overflow-hidden rounded-lg border border-[#31466f] bg-[#2a3554] p-3 shadow-[0_8px_18px_rgba(0,0,0,0.24)]">
-      <div className="flex h-full min-h-[132px] flex-col justify-between gap-2 overflow-hidden">
+    <article className="group relative overflow-hidden rounded-2xl border border-[#3a4f74] bg-[linear-gradient(160deg,#2c3a5c_0%,#25324f_55%,#1e2940_100%)] p-3.5 shadow-[0_12px_26px_rgba(0,0,0,0.28)] transition-all duration-200 hover:border-[#4f6792] hover:shadow-[0_16px_32px_rgba(0,0,0,0.34)] sm:p-4">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#f0b429]/10 to-transparent" />
+      <div className="relative flex h-full min-h-[136px] flex-col justify-between gap-3 overflow-hidden">
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className="truncate text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9aa7c7]">
@@ -159,7 +182,7 @@ export default function EventCard({ event, onOddsSelect, selectedOdds }: EventCa
             <button
               type="button"
               onClick={() => setShowMarkets(true)}
-              className="shrink-0 rounded-full border border-[#48557d] bg-[#1d2640] px-2.5 py-1 text-[11px] font-semibold text-[#f0b429]"
+              className="shrink-0 rounded-full border border-[#5a6e95] bg-[#17233b]/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#f0c040] transition hover:border-[#f0c040] hover:bg-[#f0c040]/12"
             >
               +{marketCount} Markets
             </button>
@@ -168,39 +191,45 @@ export default function EventCard({ event, onOddsSelect, selectedOdds }: EventCa
           <button
             type="button"
             onClick={() => setShowMarkets(true)}
-            className="mt-1 w-full text-left"
+            className="mt-1.5 w-full text-left"
           >
-            <h3 className="truncate text-[15px] font-bold text-white sm:text-base">
+            <h3 className="truncate text-[15px] font-bold leading-tight text-white sm:text-base">
               {event.homeTeam} vs {event.awayTeam}
             </h3>
           </button>
 
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#a7b4d4]">
-            <span className="inline-flex min-w-0 items-center gap-1 rounded-md bg-[#1f2943] px-2 py-1">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-[#a7b4d4]">
+            <span className="inline-flex min-w-0 items-center gap-1 rounded-md border border-[#31486b] bg-[#192741] px-2 py-1">
               <Calendar size={12} className="shrink-0" />
-              <span className="truncate">{formatCardDateTime(event.commenceTime)}</span>
+              <span className="truncate">
+                {formatCardDateTime(event.commenceTime)}
+              </span>
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#1b2440] px-2 py-0.5 text-[#b9c6e3]">
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#2e4262] bg-[#17253c] px-2 py-0.5 text-[#b9c6e3]">
               <Clock size={11} className="shrink-0" />
               <span>{getRelativeTime(event.commenceTime)}</span>
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          {oddsPreview.map((entry) => (
-            <OddsPreviewButton
-              key={entry.label}
-              entry={entry}
-              event={event}
-              isSelected={selectedOdds.has(
-                `${event.eventId}:h2h:${entry.side}:${
-                  typeof entry.odds === "number" ? entry.odds.toFixed(2) : "0.00"
-                }`,
-              )}
-              onOddsSelect={onOddsSelect}
-            />
-          ))}
+        <div className="rounded-xl border border-[#3a4d72] bg-[#1a2740]/70 p-2">
+          <div className="grid grid-cols-3 gap-2.5">
+            {oddsPreview.map((entry) => (
+              <OddsPreviewButton
+                key={entry.label}
+                entry={entry}
+                event={event}
+                isSelected={selectedOdds.has(
+                  `${event.eventId}:h2h:${entry.side}:${
+                    typeof entry.odds === "number"
+                      ? entry.odds.toFixed(2)
+                      : "0.00"
+                  }`,
+                )}
+                onOddsSelect={onOddsSelect}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
@@ -210,6 +239,7 @@ export default function EventCard({ event, onOddsSelect, selectedOdds }: EventCa
         onClose={() => setShowMarkets(false)}
         onOddsSelect={onOddsSelect}
         selectedOdds={selectedOdds}
+        events={[event]}
       />
     </article>
   );

@@ -1,7 +1,7 @@
 .bc-layout-root {
   min-height: 100vh;
-  overflow-x: hidden;
-  background: var(--color-bg-primary);
+  overflow-x: clip;
+  background: var(--nav-bg);
   color: var(--nav-text);
   font-family: "Barlow", sans-serif;
 }
@@ -17,7 +17,7 @@
   flex-direction: column;
   min-height: calc(100vh - var(--navbar-height));
   margin-left: var(--sidebar-width);
-  overflow-x: hidden;
+  overflow-x: clip;
   transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

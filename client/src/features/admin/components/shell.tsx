@@ -1,44 +1,44 @@
-import { useEffect, useMemo, useState, useRef } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
-import {
-  Bell,
-  Menu,
-  Search,
-  Zap,
-  LogOut,
-  User,
-  Moon,
-  Sun,
-  Monitor,
-  ChevronRight,
-  SidebarOpen,
-  SidebarClose,
-  Clock,
-  Activity,
-  CheckCircle2,
-  XCircle,
-  Settings,
-  SlidersHorizontal,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import {
-  useAppNotifications,
-  useMarkAllNotificationsRead,
-  type AppNotification,
-} from "@/features/notifications/notifications";
-import { useWalletRealtime } from "@/features/user/payments/wallet";
-import { useAdminPersonalQuickSettings } from "../hooks/useAdminPersonalQuickSettings";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
+import {
+  useAppNotifications,
+  useMarkAllNotificationsRead,
+  type AppNotification,
+} from "@/features/notifications/notifications";
+import { useWalletRealtime } from "@/features/user/payments/wallet";
+import { cn } from "@/lib/utils";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  Activity,
+  Bell,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  LogOut,
+  Menu,
+  Monitor,
+  Moon,
+  Search,
+  Settings,
+  SidebarClose,
+  SidebarOpen,
+  SlidersHorizontal,
+  Sun,
+  User,
+  XCircle,
+  Zap,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { adminNavigation } from "../config/navigation";
+import { useAdminPersonalQuickSettings } from "../hooks/useAdminPersonalQuickSettings";
 
 export default function AdminShell() {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -249,13 +249,11 @@ export default function AdminShell() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col overflow-hidden border-r border-admin-border bg-admin-card",
+            "fixed inset-y-0 left-0 z-50 flex w-70 max-w-[85vw] flex-col overflow-hidden border-r border-admin-border bg-admin-card",
             "shadow-[4px_0_24px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0 lg:shadow-none",
-            sidebarExpanded
-              ? "lg:w-[260px] lg:min-w-[260px]"
-              : "lg:w-[80px] lg:min-w-[80px]",
+            sidebarExpanded ? "lg:w-65 lg:min-w-65" : "lg:w-20 lg:min-w-20",
           )}
         >
           {/* Sidebar Header */}
@@ -271,7 +269,7 @@ export default function AdminShell() {
                 !showNavLabels && "lg:hidden",
               )}
             >
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-dark)] shadow-sm">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-linear-to-br from-(--color-accent) to-(--color-accent-dark) shadow-sm">
                 <Zap
                   size={16}
                   color="var(--color-text-dark)"
@@ -457,7 +455,7 @@ export default function AdminShell() {
                     )}
                   />
                   {unreadCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-admin-card bg-admin-red px-1 text-[9px] font-bold text-white shadow-sm">
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-admin-card bg-admin-red px-1 text-[9px] font-bold text-white">
                       {Math.min(unreadCount, 99)}
                     </span>
                   )}
@@ -476,7 +474,7 @@ export default function AdminShell() {
                       )}
                     </div>
 
-                    <div className="app-scrollbar max-h-[400px] overflow-y-auto p-2">
+                    <div className="app-scrollbar max-h-100 overflow-y-auto p-2">
                       {notifications.length > 0 ? (
                         <div className="space-y-1">
                           {notifications.map((notification) => (
@@ -563,7 +561,7 @@ export default function AdminShell() {
                       : "border-transparent hover:bg-admin-bg/50 hover:border-admin-border/80",
                   )}
                 >
-                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-[11px] font-bold text-white shadow-inner">
+                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 text-[11px] font-bold text-white shadow-inner">
                     {user?.email.charAt(0).toUpperCase()}
                   </div>
                   <div className="hidden flex-col items-start text-left sm:flex">
@@ -579,7 +577,7 @@ export default function AdminShell() {
                 {userMenuOpen && (
                   <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-64 origin-top-right overflow-hidden rounded-2xl border border-admin-border bg-admin-card shadow-[0_16px_40px_-10px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-3 border-b border-admin-border/50 p-4">
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-sm font-bold text-white shadow-inner">
+                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 text-sm font-bold text-white shadow-inner">
                         {user?.email.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -656,7 +654,7 @@ export default function AdminShell() {
                             align="end"
                             side="left"
                             sideOffset={12}
-                            className="min-w-[140px] rounded-xl shadow-xl"
+                            className="min-w-35 rounded-xl shadow-xl"
                           >
                             <DropdownMenuItem
                               onClick={() => setTheme("light")}

@@ -80,6 +80,8 @@ export function useEvents() {
         },
       });
 
+      console.log("Fetched events:", data.events);
+
       setEvents(data.events);
     } catch (fetchError) {
       setError(getErrorMessage(fetchError));

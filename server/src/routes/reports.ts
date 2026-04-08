@@ -64,7 +64,7 @@ function getDateRange(query: DateRangeQuery): {
 
 // GET /api/reports/admin/financial - Financial overview
 reportsRouter.get(
-  "/admin/financial",
+  "/reports/admin/financial",
   authenticate,
   requireAdmin,
   async (req: Request, res: Response) => {
@@ -145,7 +145,7 @@ reportsRouter.get(
 
 // GET /api/reports/admin/betting - Betting statistics
 reportsRouter.get(
-  "/admin/betting",
+  "/reports/admin/betting",
   authenticate,
   requireAdmin,
   async (req: Request, res: Response) => {
@@ -222,7 +222,7 @@ reportsRouter.get(
 
 // GET /api/reports/admin/users - User statistics
 reportsRouter.get(
-  "/admin/users",
+  "/reports/admin/users",
   authenticate,
   requireAdmin,
   async (req: Request, res: Response) => {
@@ -294,7 +294,7 @@ reportsRouter.get(
 
 // GET /api/reports/admin/risk - Risk and compliance reports
 reportsRouter.get(
-  "/admin/risk",
+  "/reports/admin/risk",
   authenticate,
   requireAdmin,
   async (req: Request, res: Response) => {
@@ -362,7 +362,7 @@ reportsRouter.get(
 
 // GET /api/reports/user/personal - User's personal betting performance
 reportsRouter.get(
-  "/user/personal",
+  "/reports/user/personal",
   authenticate,
   async (req: Request, res: Response) => {
     try {
@@ -446,7 +446,7 @@ reportsRouter.get(
 
 // GET /api/reports/user/recent-bets - User's recent betting activity with pagination
 reportsRouter.get(
-  "/user/recent-bets",
+  "/reports/user/recent-bets",
   authenticate,
   async (req: Request, res: Response) => {
     try {
@@ -511,7 +511,7 @@ reportsRouter.get(
 
 // GET /api/reports/user/financial-summary - User's financial overview
 reportsRouter.get(
-  "/user/financial-summary",
+  "/reports/user/financial-summary",
   authenticate,
   async (req: Request, res: Response) => {
     try {
