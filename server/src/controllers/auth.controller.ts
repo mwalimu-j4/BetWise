@@ -1,8 +1,12 @@
 import type { Request, Response } from "express";
+import { randomBytes, randomInt } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { sendPasswordResetEmail } from "../utils/emailUtils";
+import {
+  sendAdminLoginOtpEmail,
+  sendPasswordResetEmail,
+} from "../utils/emailUtils";
 import {
   createAccessToken,
   createRefreshToken,
@@ -16,6 +20,10 @@ import {
 
 const PASSWORD_SALT_ROUNDS = 12;
 const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
+const PASSWORD_MIN_LENGTH = 10;
+const ADMIN_MFA_CODE_LENGTH = 6;
+const ADMIN_MFA_TTL_MS = 10 * 60 * 1000;
+const ADMIN_MFA_MAX_ATTEMPTS = 5;
 
 const registerSchema = z.object({
   email: z.string().trim().email("Provide a valid email address."),
@@ -27,6 +35,14 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   phone: z.string().trim(),
   password: z.string(),
+});
+
+const verifyAdminMfaSchema = z.object({
+  challengeId: z.string().trim().min(16),
+  otpCode: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
 });
 
 const forgotPasswordSchema = z.object({
@@ -43,15 +59,57 @@ const resetPasswordSchema = z.object({
 function validatePassword(password: string) {
   const errors: string[] = [];
 
-  if (password.length < 6) {
-    errors.push("Password must be at least 6 characters long.");
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    errors.push(
+      `Password must be at least ${PASSWORD_MIN_LENGTH} characters long.`,
+    );
   }
 
   if (password.length > 128) {
     errors.push("Password must be at most 128 characters long.");
   }
 
+  if (!/[A-Z]/.test(password)) {
+    errors.push("Password must include at least one uppercase letter.");
+  }
+
+  if (!/[a-z]/.test(password)) {
+    errors.push("Password must include at least one lowercase letter.");
+  }
+
+  if (!/\d/.test(password)) {
+    errors.push("Password must include at least one number.");
+  }
+
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    errors.push("Password must include at least one special character.");
+  }
+
   return errors;
+}
+
+function generateAdminOtpCode() {
+  const min = 10 ** (ADMIN_MFA_CODE_LENGTH - 1);
+  const max = 10 ** ADMIN_MFA_CODE_LENGTH;
+  return String(randomInt(min, max));
+}
+
+function maskEmail(email: string) {
+  const [namePart, domainPart] = email.split("@");
+  if (!namePart || !domainPart || namePart.length < 2) {
+    return "***";
+  }
+
+  return `${namePart.slice(0, 1)}***${namePart.slice(-1)}@${domainPart}`;
+}
+
+async function isAdminTwoFactorRequired() {
+  const settings = await prisma.adminSettings.findUnique({
+    where: { key: "global" },
+    select: { adminTwoFactorRequired: true },
+  });
+
+  return settings?.adminTwoFactorRequired ?? true;
 }
 
 function normalizeKenyanPhone(rawPhone: string) {
@@ -99,6 +157,16 @@ function getIpAddress(req: Request) {
   return req.ip ?? null;
 }
 
+function getDeviceInfo(req: Request) {
+  const value = req.headers["user-agent"];
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function getRefreshCookie(req: Request) {
+  const value = req.cookies.refreshToken;
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
 async function setRefreshTokenCookieAndPersist(
   req: Request,
   res: Response,
@@ -111,13 +179,38 @@ async function setRefreshTokenCookieAndPersist(
     data: {
       userId,
       tokenHash: refreshTokenHash,
-      deviceInfo: req.headers["user-agent"] ?? null,
+      deviceInfo: getDeviceInfo(req),
       ipAddress: getIpAddress(req),
       expiresAt: getRefreshExpiryDate(),
     },
   });
 
   res.cookie("refreshToken", rawRefreshToken, getRefreshTokenCookieOptions());
+}
+
+async function createAuthenticatedSession(args: {
+  req: Request;
+  res: Response;
+  user: {
+    id: string;
+    email: string;
+    phone: string;
+    role: "USER" | "ADMIN";
+    isVerified: boolean;
+    createdAt: Date;
+  };
+}) {
+  const accessToken = createAccessToken({
+    id: args.user.id,
+    role: args.user.role,
+  });
+
+  await setRefreshTokenCookieAndPersist(args.req, args.res, args.user.id);
+
+  return {
+    accessToken,
+    user: sanitizeUser(args.user),
+  };
 }
 
 export async function register(req: Request, res: Response) {
@@ -188,16 +281,15 @@ export async function register(req: Request, res: Response) {
     },
   });
 
-  const accessToken = createAccessToken({
-    id: user.id,
-    role: user.role,
+  const session = await createAuthenticatedSession({
+    req,
+    res,
+    user,
   });
 
-  await setRefreshTokenCookieAndPersist(req, res, user.id);
-
   return res.status(201).json({
-    accessToken,
-    user: sanitizeUser(user),
+    accessToken: session.accessToken,
+    user: session.user,
   });
 }
 
@@ -244,22 +336,165 @@ export async function login(req: Request, res: Response) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  const accessToken = createAccessToken({
-    id: user.id,
-    role: user.role,
+  const requireAdminMfa =
+    user.role === "ADMIN" && (await isAdminTwoFactorRequired());
+
+  if (requireAdminMfa) {
+    await prisma.adminLoginChallenge.deleteMany({
+      where: {
+        userId: user.id,
+        OR: [{ consumedAt: { not: null } }, { expiresAt: { lte: new Date() } }],
+      },
+    });
+
+    const otpCode = generateAdminOtpCode();
+    const rawChallengeId = randomBytes(32).toString("hex");
+    const challengeHash = hashToken(rawChallengeId, getRefreshTokenSecret());
+    const otpHash = hashToken(otpCode, getRefreshTokenSecret());
+
+    await prisma.adminLoginChallenge.create({
+      data: {
+        userId: user.id,
+        challengeHash,
+        otpHash,
+        expiresAt: new Date(Date.now() + ADMIN_MFA_TTL_MS),
+        ipAddress: getIpAddress(req),
+        deviceInfo: req.headers["user-agent"] ?? null,
+      },
+    });
+
+    await sendAdminLoginOtpEmail({
+      email: user.email,
+      otpCode,
+      expiresInMinutes: Math.floor(ADMIN_MFA_TTL_MS / 60000),
+    });
+
+    return res.status(202).json({
+      mfaRequired: true,
+      challengeId: rawChallengeId,
+      expiresInSeconds: Math.floor(ADMIN_MFA_TTL_MS / 1000),
+      message: "Admin verification code sent to your email.",
+      emailHint: maskEmail(user.email),
+    });
+  }
+
+  const session = await createAuthenticatedSession({
+    req,
+    res,
+    user,
   });
 
-  await setRefreshTokenCookieAndPersist(req, res, user.id);
+  return res.status(200).json({
+    accessToken: session.accessToken,
+    user: session.user,
+  });
+}
+
+export async function verifyAdminMfaLogin(req: Request, res: Response) {
+  const parsed = verifyAdminMfaSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Invalid verification request." });
+  }
+
+  const challengeHash = hashToken(
+    parsed.data.challengeId,
+    getRefreshTokenSecret(),
+  );
+  const otpHash = hashToken(parsed.data.otpCode, getRefreshTokenSecret());
+
+  const challenge = await prisma.adminLoginChallenge.findUnique({
+    where: { challengeHash },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          phone: true,
+          role: true,
+          isVerified: true,
+          createdAt: true,
+          accountStatus: true,
+        },
+      },
+    },
+  });
+
+  if (!challenge || !challenge.user || challenge.user.role !== "ADMIN") {
+    return res.status(401).json({ message: "Verification challenge invalid." });
+  }
+
+  if (challenge.consumedAt || challenge.expiresAt <= new Date()) {
+    return res.status(401).json({ message: "Verification challenge expired." });
+  }
+
+  if (challenge.attempts >= ADMIN_MFA_MAX_ATTEMPTS) {
+    return res.status(429).json({
+      message: "Maximum verification attempts exceeded. Log in again.",
+    });
+  }
+
+  const requestIp = getIpAddress(req);
+  const requestDeviceInfo = getDeviceInfo(req);
+  const enforceIpBinding = process.env.ADMIN_MFA_ENFORCE_IP === "true";
+
+  if (
+    challenge.deviceInfo &&
+    requestDeviceInfo &&
+    challenge.deviceInfo !== requestDeviceInfo
+  ) {
+    return res.status(401).json({ message: "Verification challenge invalid." });
+  }
+
+  if (
+    enforceIpBinding &&
+    challenge.ipAddress &&
+    requestIp &&
+    challenge.ipAddress !== requestIp
+  ) {
+    return res.status(401).json({ message: "Verification challenge invalid." });
+  }
+
+  if (challenge.otpHash !== otpHash) {
+    await prisma.adminLoginChallenge.update({
+      where: { id: challenge.id },
+      data: {
+        attempts: {
+          increment: 1,
+        },
+      },
+    });
+
+    return res.status(401).json({ message: "Invalid verification code." });
+  }
+
+  if (challenge.user.accountStatus === "SUSPENDED") {
+    return res
+      .status(403)
+      .json({ message: "This account has been suspended." });
+  }
+
+  await prisma.adminLoginChallenge.update({
+    where: { id: challenge.id },
+    data: {
+      consumedAt: new Date(),
+    },
+  });
+
+  const session = await createAuthenticatedSession({
+    req,
+    res,
+    user: challenge.user,
+  });
 
   return res.status(200).json({
-    accessToken,
-    user: sanitizeUser(user),
+    accessToken: session.accessToken,
+    user: session.user,
   });
 }
 
 export async function refresh(req: Request, res: Response) {
   try {
-    const refreshToken = req.cookies.refreshToken as string | undefined;
+    const refreshToken = getRefreshCookie(req);
     if (!refreshToken) {
       res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
       return res.status(401).json({ message: "Unauthorized" });
@@ -291,6 +526,19 @@ export async function refresh(req: Request, res: Response) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    const requestDeviceInfo = getDeviceInfo(req);
+    if (
+      tokenRecord.deviceInfo &&
+      requestDeviceInfo &&
+      tokenRecord.deviceInfo !== requestDeviceInfo
+    ) {
+      await prisma.refreshToken.deleteMany({
+        where: { id: tokenRecord.id },
+      });
+      res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     if (tokenRecord.user.accountStatus === "SUSPENDED") {
       await prisma.refreshToken.deleteMany({
         where: { userId: tokenRecord.user.id },
@@ -313,7 +561,7 @@ export async function refresh(req: Request, res: Response) {
         data: {
           userId: tokenRecord.userId,
           tokenHash: newRefreshHash,
-          deviceInfo: req.headers["user-agent"] ?? null,
+          deviceInfo: getDeviceInfo(req),
           ipAddress: getIpAddress(req),
           expiresAt: getRefreshExpiryDate(),
         },
@@ -343,7 +591,7 @@ export async function refresh(req: Request, res: Response) {
 }
 
 export async function logout(req: Request, res: Response) {
-  const refreshToken = req.cookies.refreshToken as string | undefined;
+  const refreshToken = getRefreshCookie(req);
 
   if (refreshToken) {
     const tokenHash = hashToken(refreshToken, getRefreshTokenSecret());

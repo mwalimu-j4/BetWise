@@ -73,12 +73,27 @@ function isOriginAllowed(originHeader: unknown) {
   return getAllowedOrigins().some((origin) => origin === originHeader);
 }
 
+function isSocketCorsOriginAllowed(origin: string | undefined) {
+  if (!origin) {
+    return true;
+  }
+
+  return isOriginAllowed(origin);
+}
+
 export function createHttpServerWithSockets(app: Express) {
   const httpServer = createServer(app);
 
   const io = new Server(httpServer, {
     cors: {
-      origin: getFrontendOrigin(),
+      origin: (origin, callback) => {
+        if (isSocketCorsOriginAllowed(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error("Not allowed by Socket.IO CORS"));
+      },
       credentials: true,
     },
     transports: ["websocket"],
