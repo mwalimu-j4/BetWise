@@ -41,3 +41,19 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     html: `<p>Use this link to reset your password. It expires in 15 minutes:</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
   });
 }
+
+export async function sendAdminLoginOtpEmail(args: {
+  email: string;
+  otpCode: string;
+  expiresInMinutes: number;
+}) {
+  const transporter = getTransporter();
+
+  await transporter.sendMail({
+    from: `no-reply <${getRequiredEnv("EMAIL_USER")}>`,
+    to: args.email,
+    subject: "Your BetixPro admin login verification code",
+    text: `Use this one-time code to complete your admin login: ${args.otpCode}. It expires in ${args.expiresInMinutes} minutes.`,
+    html: `<p>Use this one-time code to complete your admin login:</p><p style="font-size:24px;font-weight:700;letter-spacing:4px;">${args.otpCode}</p><p>This code expires in ${args.expiresInMinutes} minutes.</p>`,
+  });
+}
