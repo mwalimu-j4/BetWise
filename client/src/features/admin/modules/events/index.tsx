@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
 import { cn } from "@/lib/utils";
 import {
+  AdminStatCard,
   AdminSectionHeader,
   StatusBadge,
   adminInputClassName,
@@ -228,29 +229,6 @@ function toggleMarket(currentMarkets: string[], market: string) {
     : [...currentMarkets, market];
 }
 
-function SummaryStatCard({
-  label,
-  value,
-  toneClassName,
-}: {
-  label: string;
-  value: number;
-  toneClassName: string;
-}) {
-  return (
-    <Card className="border-admin-border bg-admin-card shadow-sm">
-      <CardContent className="py-5">
-        <p className="text-xs font-medium uppercase tracking-[0.12em] text-admin-text-muted">
-          {label}
-        </p>
-        <p className={cn("mt-2 text-3xl font-semibold", toneClassName)}>
-          {value.toLocaleString()}
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
 function DetailField({
   label,
   value,
@@ -371,22 +349,22 @@ export default function Events() {
       {
         label: "Live",
         value: stats?.liveCount ?? 0,
-        toneClassName: "text-admin-live",
+        tone: "live" as const,
       },
       {
         label: "Upcoming",
         value: stats?.upcomingCount ?? 0,
-        toneClassName: "text-admin-blue",
+        tone: "blue" as const,
       },
       {
         label: "Active",
         value: stats?.activeCount ?? 0,
-        toneClassName: "text-admin-accent",
+        tone: "accent" as const,
       },
       {
         label: "Configured",
         value: stats?.configuredCount ?? 0,
-        toneClassName: "text-admin-gold",
+        tone: "gold" as const,
       },
     ],
     [stats],
@@ -851,18 +829,18 @@ export default function Events() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <AdminSectionHeader
           title="Events"
           subtitle="Review live and upcoming fixtures, manage markets, and make bulk updates without the extra clutter."
           actions={
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => void handleRefresh()}
                 disabled={refreshing}
-                className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+                className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
               >
                 {refreshing ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -875,7 +853,7 @@ export default function Events() {
               <Button
                 size="sm"
                 onClick={() => setBulkDialogOpen(true)}
-                className="bg-admin-accent text-black hover:bg-admin-accent/90"
+                className="w-full bg-admin-accent text-black hover:bg-admin-accent/90 sm:w-auto"
               >
                 <Settings2 className="size-4" />
                 Bulk update
@@ -884,19 +862,19 @@ export default function Events() {
           }
         />
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {summaryCards.map((metric) => (
-            <SummaryStatCard
+            <AdminStatCard
               key={metric.label}
               label={metric.label}
-              value={statsLoading ? 0 : metric.value}
-              toneClassName={metric.toneClassName}
+              value={(statsLoading ? 0 : metric.value).toLocaleString()}
+              tone={metric.tone}
             />
           ))}
         </div>
 
         <Card className="border-admin-border bg-admin-card shadow-sm">
-          <CardHeader className="gap-4 border-b border-admin-border/70 pb-5">
+          <CardHeader className="gap-4 border-b border-admin-border/70 pb-4 sm:pb-5">
             <div>
               <CardTitle className="text-admin-text-primary">
                 Find events faster
@@ -906,7 +884,7 @@ export default function Events() {
               </CardDescription>
             </div>
 
-            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_260px]">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-admin-text-muted" />
                 <Input
@@ -959,7 +937,7 @@ export default function Events() {
               </Select>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
               {filterOptions.map((filter) => {
                 const isActive = activeFilter === filter.value;
 
@@ -973,7 +951,7 @@ export default function Events() {
                       setActiveFilter(filter.value);
                     }}
                     className={cn(
-                      "justify-between gap-2 rounded-full border-admin-border",
+                      "shrink-0 justify-between gap-2 rounded-full border-admin-border",
                       isActive
                         ? "bg-admin-accent text-black hover:bg-admin-accent/90"
                         : "bg-admin-surface/35 text-admin-text-secondary hover:bg-admin-surface hover:text-admin-text-primary",
@@ -996,7 +974,7 @@ export default function Events() {
               })}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-admin-text-muted">
+            <div className="flex flex-col gap-2 text-sm text-admin-text-muted sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <span>
                 Showing {events.length.toLocaleString()} of{" "}
                 {total.toLocaleString()} events
@@ -1024,11 +1002,11 @@ export default function Events() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 <Button
                   size="sm"
                   onClick={() => void handleBulkToggle(true)}
-                  className="bg-admin-accent text-black hover:bg-admin-accent/90"
+                  className="w-full bg-admin-accent text-black hover:bg-admin-accent/90 sm:w-auto"
                 >
                   Activate
                 </Button>
@@ -1036,7 +1014,7 @@ export default function Events() {
                   size="sm"
                   variant="outline"
                   onClick={() => void handleBulkMargin(5)}
-                  className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+                  className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
                 >
                   Set 5% margin
                 </Button>
@@ -1044,7 +1022,7 @@ export default function Events() {
                   size="sm"
                   variant="outline"
                   onClick={() => void handleBulkToggle(false)}
-                  className="border-admin-red/40 bg-admin-red/10 text-admin-red hover:bg-admin-red/15 hover:text-admin-red"
+                  className="w-full border-admin-red/40 bg-admin-red/10 text-admin-red hover:bg-admin-red/15 hover:text-admin-red sm:w-auto"
                 >
                   Deactivate
                 </Button>
@@ -1052,7 +1030,7 @@ export default function Events() {
                   size="sm"
                   variant="ghost"
                   onClick={() => setSelectedEventIds([])}
-                  className="text-admin-text-secondary hover:bg-admin-surface hover:text-admin-text-primary"
+                  className="col-span-2 w-full text-admin-text-secondary hover:bg-admin-surface hover:text-admin-text-primary sm:col-auto sm:w-auto"
                 >
                   Clear
                 </Button>
@@ -1072,7 +1050,7 @@ export default function Events() {
         ) : null}
 
         <Card className="border-admin-border bg-admin-card shadow-sm">
-          <CardHeader className="flex flex-col gap-3 border-b border-admin-border/70 pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <CardHeader className="flex flex-col gap-3 border-b border-admin-border/70 pb-4 sm:flex-row sm:items-center sm:justify-between sm:pb-5">
             <div>
               <CardTitle className="text-admin-text-primary">
                 Event list
@@ -1083,7 +1061,7 @@ export default function Events() {
             </div>
 
             {!loading && events.length > 0 ? (
-              <label className="inline-flex items-center gap-2 text-sm text-admin-text-secondary">
+              <label className="inline-flex w-full items-center gap-2 text-sm text-admin-text-secondary sm:w-auto">
                 <input
                   checked={allVisibleSelected}
                   className="size-4 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
@@ -1097,11 +1075,11 @@ export default function Events() {
             ) : null}
           </CardHeader>
 
-          <CardContent className="space-y-3 py-6">
+          <CardContent className="space-y-3 px-3 py-4 sm:px-6 sm:py-6">
             {loading && events.length === 0 ? skeletonCards : null}
 
             {!loading && events.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-admin-border bg-admin-surface/10 p-8 text-center">
+              <div className="rounded-xl border border-dashed border-admin-border bg-admin-surface/10 p-6 text-center sm:p-8">
                 <p className="text-sm font-medium text-admin-text-primary">
                   No events found
                 </p>
@@ -1118,11 +1096,11 @@ export default function Events() {
 
               return (
                 <div
-                  className="rounded-2xl border border-admin-border/70 bg-admin-surface/15 p-4 transition-colors hover:border-admin-border-strong"
+                  className="rounded-2xl border border-admin-border/70 bg-admin-surface/15 p-3 transition-colors hover:border-admin-border-strong sm:p-4"
                   key={event.eventId}
                 >
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                    <div className="flex min-w-0 gap-3">
+                    <div className="flex min-w-0 gap-3 sm:gap-4">
                       <input
                         checked={selectedEventIds.includes(event.eventId)}
                         className="mt-1 size-4 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
@@ -1136,7 +1114,7 @@ export default function Events() {
                       />
 
                       <div className="min-w-0 space-y-3">
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
                           <StatusBadge status={toBadgeStatus(event.status)} />
                           {event.status === "UPCOMING" ? (
                             <Badge
@@ -1172,10 +1150,10 @@ export default function Events() {
                         </div>
 
                         <div className="space-y-1">
-                          <p className="text-lg font-semibold text-admin-text-primary">
+                          <p className="text-base font-semibold text-admin-text-primary sm:text-lg">
                             {event.homeTeam} vs {event.awayTeam}
                           </p>
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-admin-text-muted">
+                          <div className="flex flex-col items-start gap-1 text-sm text-admin-text-muted sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
                             <span>{event.leagueName ?? "Unknown league"}</span>
                             <span>{formatEventTime(event.commenceTime)}</span>
                             {event.sportKey ? (
@@ -1184,16 +1162,16 @@ export default function Events() {
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
+                        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
                           <Badge
                             variant="outline"
-                            className="border-admin-border bg-admin-card text-admin-text-primary"
+                            className="shrink-0 border-admin-border bg-admin-card text-admin-text-primary"
                           >
                             Margin {event.houseMargin}%
                           </Badge>
                           <Badge
                             variant="outline"
-                            className="border-admin-border bg-admin-card text-admin-text-primary"
+                            className="shrink-0 border-admin-border bg-admin-card text-admin-text-primary"
                           >
                             Markets {event.marketsEnabled.join(", ")}
                           </Badge>
@@ -1201,7 +1179,7 @@ export default function Events() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center xl:justify-end">
+                    <div className="grid w-full gap-3 sm:flex sm:w-auto sm:flex-row sm:items-center xl:justify-end">
                       <div className="grid min-w-0 gap-2 sm:grid-cols-2">
                         <div className="rounded-xl border border-admin-border/70 bg-admin-card px-4 py-3">
                           <p className="text-xs uppercase tracking-[0.08em] text-admin-text-muted">
@@ -1238,12 +1216,31 @@ export default function Events() {
                         />
                       </div>
 
+                      <div className="grid grid-cols-2 gap-2 sm:hidden">
+                        <Button
+                          variant="outline"
+                          onClick={() => openDetailDialog(event)}
+                          className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+                        >
+                          <Eye className="size-4" />
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => openConfigDialog(event)}
+                          className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+                        >
+                          <PencilLine className="size-4" />
+                          Edit
+                        </Button>
+                      </div>
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="outline"
                             size="icon"
-                            className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+                            className="hidden border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:inline-flex"
                           >
                             <MoreHorizontal className="size-4" />
                             <span className="sr-only">Open event actions</span>
@@ -1300,14 +1297,14 @@ export default function Events() {
             <p className="text-sm text-admin-text-muted">
               Page {page} of {totalPages}
             </p>
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
               <Button
                 variant="outline"
                 disabled={page <= 1}
                 onClick={() =>
                   setPage((currentPage) => Math.max(1, currentPage - 1))
                 }
-                className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+                className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
               >
                 <ChevronLeft className="size-4" />
                 Previous
@@ -1316,7 +1313,7 @@ export default function Events() {
                 variant="outline"
                 disabled={page >= totalPages}
                 onClick={() => setPage((currentPage) => currentPage + 1)}
-                className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+                className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
               >
                 Next
                 <ChevronRight className="size-4" />
@@ -1327,7 +1324,7 @@ export default function Events() {
       </div>
 
       <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
-        <DialogContent className="border-admin-border bg-admin-card text-admin-text-primary sm:max-w-xl">
+        <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-xl sm:p-6">
           <DialogHeader>
             <DialogTitle>Bulk update events</DialogTitle>
             <DialogDescription className="text-admin-text-muted">
@@ -1441,14 +1438,14 @@ export default function Events() {
             <Button
               variant="outline"
               onClick={() => setBulkDialogOpen(false)}
-              className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+              className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               onClick={() => void handleApplyBulkMargin()}
               disabled={bulkApplying}
-              className="bg-admin-accent text-black hover:bg-admin-accent/90"
+              className="w-full bg-admin-accent text-black hover:bg-admin-accent/90 sm:w-auto"
             >
               {bulkApplying ? (
                 <>
@@ -1464,7 +1461,7 @@ export default function Events() {
       </Dialog>
 
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent className="border-admin-border bg-admin-card text-admin-text-primary sm:max-w-3xl">
+        <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-3xl sm:p-6">
           <DialogHeader>
             <DialogTitle>
               {selectedEvent
@@ -1476,7 +1473,7 @@ export default function Events() {
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="max-h-[70vh] pr-4">
+          <ScrollArea className="max-h-[75dvh] pr-2 sm:pr-4">
             {detailLoading ? (
               <div className="space-y-3">
                 {Array.from({ length: 6 }, (_, index) => (
@@ -1524,7 +1521,7 @@ export default function Events() {
                     <div className="mt-4 space-y-3">
                       {(eventDetail.displayedOdds ?? []).map((bookmaker) => (
                         <div
-                          className="rounded-xl border border-admin-border/70 bg-admin-card p-4"
+                          className="rounded-xl border border-admin-border/70 bg-admin-card p-3 sm:p-4"
                           key={bookmaker.bookmakerId}
                         >
                           <p className="text-sm font-semibold text-admin-text-primary">
@@ -1533,7 +1530,7 @@ export default function Events() {
                           <div className="mt-3 space-y-2">
                             {bookmaker.odds.map((odd) => (
                               <div
-                                className="flex flex-wrap items-center justify-between gap-2 text-sm text-admin-text-secondary"
+                                className="flex flex-col gap-2 text-sm text-admin-text-secondary sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
                                 key={odd.id}
                               >
                                 <div className="flex flex-wrap items-center gap-2">
@@ -1576,7 +1573,7 @@ export default function Events() {
       </Dialog>
 
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
-        <DialogContent className="border-admin-border bg-admin-card text-admin-text-primary sm:max-w-lg">
+        <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-lg sm:p-6">
           <DialogHeader>
             <DialogTitle>Edit event markets</DialogTitle>
             <DialogDescription className="text-admin-text-muted">
@@ -1645,13 +1642,13 @@ export default function Events() {
             <Button
               variant="outline"
               onClick={() => setConfigDialogOpen(false)}
-              className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+              className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               onClick={() => void handleSaveConfig()}
-              className="bg-admin-accent text-black hover:bg-admin-accent/90"
+              className="w-full bg-admin-accent text-black hover:bg-admin-accent/90 sm:w-auto"
             >
               Save changes
             </Button>
@@ -1663,7 +1660,7 @@ export default function Events() {
         open={confirmDeactivateOpen}
         onOpenChange={setConfirmDeactivateOpen}
       >
-        <DialogContent className="border-admin-border bg-admin-card text-admin-text-primary sm:max-w-md">
+        <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-md sm:p-6">
           <DialogHeader>
             <DialogTitle>Deactivate event</DialogTitle>
             <DialogDescription className="text-admin-text-muted">
@@ -1677,7 +1674,7 @@ export default function Events() {
             <Button
               variant="outline"
               onClick={() => setConfirmDeactivateOpen(false)}
-              className="border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface"
+              className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
             >
               Cancel
             </Button>
@@ -1690,7 +1687,7 @@ export default function Events() {
                 setConfirmDeactivateOpen(false);
                 void handleToggle(actionEvent, false);
               }}
-              className="bg-admin-red text-white hover:bg-admin-red/90"
+              className="w-full bg-admin-red text-white hover:bg-admin-red/90 sm:w-auto"
             >
               Deactivate
             </Button>
