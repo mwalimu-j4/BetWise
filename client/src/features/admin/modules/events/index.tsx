@@ -2,10 +2,7 @@ import { api } from "@/api/axiosConfig";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -930,7 +927,7 @@ export default function Events() {
 
                   {/* Content */}
                   <div className="min-w-0 flex-1">
-                  {/* Matchup + badges */}
+                    {/* Matchup + badges */}
                     <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
                       <p className="truncate text-sm font-semibold text-admin-text-primary">
                         {event.homeTeam}{" "}
