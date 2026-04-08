@@ -87,7 +87,7 @@ function OddsPreviewButton({
           commenceTime: event.commenceTime,
         });
       }}
-      className={`flex h-9 min-w-0 items-center justify-between gap-1 overflow-hidden rounded-md border px-2 text-xs transition ${
+      className={`flex h-8 min-w-0 items-center justify-between gap-1 overflow-hidden rounded-md border px-1.5 text-[11px] transition sm:h-9 sm:px-2 sm:text-xs ${
         disabled
           ? "cursor-not-allowed border-[#3a4468] bg-[#1f2640] text-[#6f7ca8]"
           : isSelected
@@ -170,19 +170,19 @@ export default function EventCard({
   );
 
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-[#3a4f74] bg-[linear-gradient(160deg,#2c3a5c_0%,#25324f_55%,#1e2940_100%)] p-3.5 shadow-[0_12px_26px_rgba(0,0,0,0.28)] transition-all duration-200 hover:border-[#4f6792] hover:shadow-[0_16px_32px_rgba(0,0,0,0.34)] sm:p-4">
+    <article className="group relative overflow-hidden rounded-xl border border-[#3a4f74] bg-[linear-gradient(160deg,#2c3a5c_0%,#25324f_55%,#1e2940_100%)] p-2.5 shadow-[0_10px_22px_rgba(0,0,0,0.28)] transition-all duration-200 hover:border-[#4f6792] hover:shadow-[0_16px_32px_rgba(0,0,0,0.34)] sm:rounded-2xl sm:p-4 sm:shadow-[0_12px_26px_rgba(0,0,0,0.28)]">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#f0b429]/10 to-transparent" />
-      <div className="relative flex h-full min-h-[136px] flex-col justify-between gap-3 overflow-hidden">
+      <div className="relative flex h-full min-h-[118px] flex-col justify-between gap-2.5 overflow-hidden sm:min-h-[136px] sm:gap-3">
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9aa7c7]">
+            <p className="truncate text-[9px] font-semibold uppercase tracking-[0.08em] text-[#9aa7c7] sm:text-[10px]">
               {event.leagueName ?? "Featured Match"}
             </p>
 
             <button
               type="button"
               onClick={() => setShowMarkets(true)}
-              className="shrink-0 rounded-full border border-[#5a6e95] bg-[#17233b]/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#f0c040] transition hover:border-[#f0c040] hover:bg-[#f0c040]/12"
+              className="shrink-0 rounded-full border border-[#5a6e95] bg-[#17233b]/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#f0c040] transition hover:border-[#f0c040] hover:bg-[#f0c040]/12 sm:px-3 sm:py-1 sm:text-[10px]"
             >
               +{marketCount} Markets
             </button>
@@ -191,29 +191,29 @@ export default function EventCard({
           <button
             type="button"
             onClick={() => setShowMarkets(true)}
-            className="mt-1.5 w-full text-left"
+            className="mt-1 w-full text-left sm:mt-1.5"
           >
-            <h3 className="truncate text-[15px] font-bold leading-tight text-white sm:text-base">
+            <h3 className="truncate text-[14px] font-bold leading-tight text-white sm:text-base">
               {event.homeTeam} vs {event.awayTeam}
             </h3>
           </button>
 
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-[#a7b4d4]">
-            <span className="inline-flex min-w-0 items-center gap-1 rounded-md border border-[#31486b] bg-[#192741] px-2 py-1">
-              <Calendar size={12} className="shrink-0" />
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-[#a7b4d4] sm:mt-2 sm:gap-2 sm:text-[11px]">
+            <span className="inline-flex min-w-0 items-center gap-1 rounded-md border border-[#31486b] bg-[#192741] px-1.5 py-0.5 sm:px-2 sm:py-1">
+              <Calendar size={11} className="shrink-0 sm:h-3 sm:w-3" />
               <span className="truncate">
                 {formatCardDateTime(event.commenceTime)}
               </span>
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-[#2e4262] bg-[#17253c] px-2 py-0.5 text-[#b9c6e3]">
-              <Clock size={11} className="shrink-0" />
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#2e4262] bg-[#17253c] px-1.5 py-0.5 text-[#b9c6e3] sm:px-2">
+              <Clock size={10} className="shrink-0 sm:h-[11px] sm:w-[11px]" />
               <span>{getRelativeTime(event.commenceTime)}</span>
             </span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#3a4d72] bg-[#1a2740]/70 p-2">
-          <div className="grid grid-cols-3 gap-2.5">
+        <div className="rounded-lg border border-[#3a4d72] bg-[#1a2740]/70 p-1.5 sm:rounded-xl sm:p-2">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5">
             {oddsPreview.map((entry) => (
               <OddsPreviewButton
                 key={entry.label}

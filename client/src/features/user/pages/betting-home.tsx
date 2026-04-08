@@ -227,7 +227,7 @@ export default function BettingHome() {
                     setSelectedSport(tab.sportKey);
                     setSelectedLeague(tab.league);
                   }}
-                  className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-xs font-semibold uppercase tracking-wide transition ${
+                  className={`whitespace-nowrap rounded-full border px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.06em] transition sm:px-5 sm:py-2.5 sm:text-xs sm:tracking-wide ${
                     isActive
                       ? "border-[#ffd500] bg-[#ffd500]/15 text-[#ffd500]"
                       : "border-[#365074] text-[#8a9bb0] hover:border-[#ffd500]/60 hover:text-white"

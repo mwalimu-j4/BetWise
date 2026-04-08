@@ -1,5 +1,12 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronDown, CircleCheck, CircleX, Menu, Search } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  CircleCheck,
+  CircleX,
+  Menu,
+  Search,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
 import SearchBar from "@/components/search/SearchBar";
@@ -181,17 +188,17 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         {/* ✅ Logo + Mobile-only Search Icon */}
         <div className="flex items-center gap-3">
           <Link to="/user" className="bc-logo" aria-label="BetixPro home">
-          <img
-            src={Logo}
-            alt="BetixPro"
-            className="h-11 w-auto 
+            <img
+              src={Logo}
+              alt="BetixPro"
+              className="h-11 w-auto 
                        drop-shadow-[0_0_10px_#ffffff] 
                        drop-shadow-[0_0_18px_#fefce8] 
                        transition-all 
                        hover:drop-shadow-[0_0_12px_#ffffff] 
                        hover:drop-shadow-[0_0_22px_#fefce8]"
-          />
-        </Link>
+            />
+          </Link>
 
           {/* ✅ New mobile search icon (visible only on mobile) */}
           <button
@@ -209,8 +216,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
 
         <div className="bc-actions flex items-center gap-2">
-          
-
           {isAuthenticated && myBetsCount > 0 ? (
             <Link
               to="/my-bets"
