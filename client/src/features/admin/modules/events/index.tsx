@@ -871,7 +871,7 @@ export default function Events() {
               <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-admin-text-secondary">
                 <input
                   checked={allVisibleSelected}
-                  className="size-3.5 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
+                  className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
                   onChange={(e) => toggleSelectAllVisible(e.target.checked)}
                   type="checkbox"
                 />
@@ -918,7 +918,7 @@ export default function Events() {
                   {/* Checkbox */}
                   <input
                     checked={isSelected}
-                    className="size-3.5 shrink-0 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
+                    className="size-3.5 shrink-0 rounded border-admin-border bg-admin-surface accent-admin-accent"
                     onChange={(e) =>
                       toggleSelection(event.eventId, e.target.checked)
                     }
@@ -961,7 +961,7 @@ export default function Events() {
 
                     {/* Meta row */}
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0 text-xs text-admin-text-muted">
-                      <span className="truncate max-w-[140px]">
+                      <span className="truncate max-w-35">
                         {event.leagueName ?? "Unknown league"}
                       </span>
                       <span className="hidden sm:inline text-[11px]">
