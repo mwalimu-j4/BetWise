@@ -45,6 +45,16 @@ export const authGeneralRateLimiter = rateLimit({
   handler: createRateLimitHandler("Too many requests. Please try again later."),
 });
 
+export const mfaRateLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createRateLimitHandler(
+    "Too many verification attempts. Please try again in 10 minutes.",
+  ),
+});
+
 function userOrIpKeyGenerator(req: Request) {
   return req.user?.id ?? req.ip ?? "anonymous";
 }

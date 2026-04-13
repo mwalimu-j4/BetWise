@@ -8,7 +8,16 @@
 
 */
 -- DropForeignKey
-ALTER TABLE "contacts" DROP CONSTRAINT "contacts_user_id_fkey";
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'contacts'
+  ) THEN
+    ALTER TABLE "contacts" DROP CONSTRAINT IF EXISTS "contacts_user_id_fkey";
+  END IF;
+END $$;
 
 -- AlterTable
 ALTER TABLE "admin_settings" DROP COLUMN "auto_verification_rule",
@@ -17,7 +26,16 @@ DROP COLUMN "payment_airtel_money_enabled",
 DROP COLUMN "payment_card_enabled";
 
 -- AlterTable
-ALTER TABLE "contacts" ALTER COLUMN "updated_at" DROP DEFAULT;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'contacts'
+  ) THEN
+    ALTER TABLE "contacts" ALTER COLUMN "updated_at" DROP DEFAULT;
+  END IF;
+END $$;
 
 -- CreateTable
 CREATE TABLE "newsletter_subscriptions" (
@@ -54,4 +72,15 @@ CREATE INDEX "bets_event_id_status_idx" ON "bets"("event_id", "status");
 CREATE INDEX "bets_placed_at_status_idx" ON "bets"("placed_at", "status");
 
 -- AddForeignKey
-ALTER TABLE "contacts" ADD CONSTRAINT "contacts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'contacts'
+  ) THEN
+    ALTER TABLE "contacts"
+      ADD CONSTRAINT "contacts_user_id_fkey"
+      FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;

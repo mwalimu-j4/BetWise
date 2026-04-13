@@ -16,11 +16,32 @@ function getRequiredEnv(
   return value;
 }
 
+function getOptionalBooleanEnv(name: "EMAIL_SECURE") {
+  const value = process.env[name];
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "true" || normalized === "1") {
+    return true;
+  }
+
+  if (normalized === "false" || normalized === "0") {
+    return false;
+  }
+
+  return undefined;
+}
+
 function getTransporter() {
+  const port = Number(getRequiredEnv("EMAIL_PORT"));
+  const secure = getOptionalBooleanEnv("EMAIL_SECURE") ?? port === 465;
+
   return nodemailer.createTransport({
     host: getRequiredEnv("EMAIL_HOST"),
-    port: Number(getRequiredEnv("EMAIL_PORT")),
-    secure: false,
+    port,
+    secure,
     auth: {
       user: getRequiredEnv("EMAIL_USER"),
       pass: getRequiredEnv("EMAIL_PASS"),
@@ -39,5 +60,21 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     subject: "Reset your BetixPro password",
     text: `Use this link to reset your password. It expires in 15 minutes: ${resetUrl}`,
     html: `<p>Use this link to reset your password. It expires in 15 minutes:</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
+  });
+}
+
+export async function sendAdminLoginOtpEmail(args: {
+  email: string;
+  otpCode: string;
+  expiresInMinutes: number;
+}) {
+  const transporter = getTransporter();
+
+  await transporter.sendMail({
+    from: `no-reply <${getRequiredEnv("EMAIL_USER")}>`,
+    to: args.email,
+    subject: "Your BetixPro admin login verification code",
+    text: `Use this one-time code to complete your admin login: ${args.otpCode}. It expires in ${args.expiresInMinutes} minutes.`,
+    html: `<p>Use this one-time code to complete your admin login:</p><p style="font-size:24px;font-weight:700;letter-spacing:4px;">${args.otpCode}</p><p>This code expires in ${args.expiresInMinutes} minutes.</p>`,
   });
 }

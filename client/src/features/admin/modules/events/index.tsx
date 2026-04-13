@@ -2,10 +2,7 @@ import { api } from "@/api/axiosConfig";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -658,13 +655,13 @@ export default function Events() {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-2">
         {/* ── Header ── */}
         <AdminSectionHeader
           title="Events"
           subtitle="Manage live and upcoming fixtures, markets, and odds."
           actions={
-            <div className="grid w-full gap-2 sm:flex sm:w-auto sm:items-center">
+            <div className="grid w-full gap-1.5 sm:flex sm:w-auto sm:items-center">
               <Button
                 variant="outline"
                 size="sm"
@@ -692,7 +689,7 @@ export default function Events() {
         />
 
         {/* ── Stat cards ── */}
-        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           {summaryCards.map((metric) => (
             <AdminStatCard
               key={metric.label}
@@ -705,9 +702,9 @@ export default function Events() {
 
         {/* ── Filters ── */}
         <Card className="border-admin-border bg-admin-card shadow-sm">
-          <CardContent className="space-y-3 p-3 sm:p-4">
+          <CardContent className="space-y-2 p-2 sm:p-3">
             {/* Search + league */}
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_220px]">
+            <div className="grid gap-1.5 sm:grid-cols-[minmax(0,1fr)_200px]">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-admin-text-muted" />
                 <Input
@@ -719,7 +716,7 @@ export default function Events() {
                   }}
                   className={cn(
                     adminInputClassName,
-                    "h-8 border-admin-border bg-admin-surface pl-8 text-sm text-admin-text-primary",
+                    "h-7 border-admin-border bg-admin-surface pl-8 text-xs text-admin-text-primary",
                   )}
                 />
               </div>
@@ -733,7 +730,7 @@ export default function Events() {
                 <SelectTrigger
                   className={cn(
                     adminSelectTriggerClassName,
-                    "h-8 w-full border-admin-border bg-admin-surface text-sm text-admin-text-primary",
+                    "h-7 w-full border-admin-border bg-admin-surface text-xs text-admin-text-primary",
                   )}
                 >
                   <SelectValue placeholder="All leagues" />
@@ -760,7 +757,7 @@ export default function Events() {
             </div>
 
             {/* Filter pills */}
-            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+            <div className="-mx-0.5 flex gap-1 overflow-x-auto px-0.5 pb-px sm:flex-wrap sm:overflow-visible sm:px-0">
               {filterOptions.map((filter) => {
                 const isActive = activeFilter === filter.value;
                 return (
@@ -771,7 +768,7 @@ export default function Events() {
                       setActiveFilter(filter.value);
                     }}
                     className={cn(
-                      "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                      "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors",
                       isActive
                         ? "border-admin-accent bg-admin-accent text-black"
                         : "border-admin-border bg-admin-surface/40 text-admin-text-secondary hover:bg-admin-surface hover:text-admin-text-primary",
@@ -780,7 +777,7 @@ export default function Events() {
                     {filter.label}
                     <span
                       className={cn(
-                        "rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none",
+                        "rounded-full px-1 py-px text-[9px] font-medium leading-none",
                         isActive
                           ? "bg-black/15 text-black"
                           : "bg-admin-card text-admin-text-muted",
@@ -794,14 +791,14 @@ export default function Events() {
             </div>
 
             {/* Row count + refresh hint */}
-            <div className="flex items-center justify-between text-xs text-admin-text-muted">
+            <div className="flex items-center justify-between text-[11px] text-admin-text-muted">
               <span>
                 {events.length.toLocaleString()} of {total.toLocaleString()}{" "}
                 events
               </span>
               {refreshing ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <Loader2 className="size-3 animate-spin" />
+                <span className="inline-flex items-center gap-1">
+                  <Loader2 className="size-2.5 animate-spin" />
                   Refreshing…
                 </span>
               ) : null}
@@ -811,16 +808,16 @@ export default function Events() {
 
         {/* ── Selection toolbar ── */}
         {hasSelection ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-admin-accent/25 bg-admin-accent/5 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-medium text-admin-text-primary">
+          <div className="flex flex-col gap-1.5 rounded-xl border border-admin-accent/25 bg-admin-accent/5 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs font-medium text-admin-text-primary">
               {selectedEventIds.length} event
               {selectedEventIds.length === 1 ? "" : "s"} selected
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1">
               <Button
                 size="sm"
                 onClick={() => void handleBulkToggle(true)}
-                className="h-7 bg-admin-accent px-3 text-xs text-black hover:bg-admin-accent/90"
+                className="h-6 bg-admin-accent px-2.5 text-[11px] text-black hover:bg-admin-accent/90"
               >
                 Activate
               </Button>
@@ -828,7 +825,7 @@ export default function Events() {
                 size="sm"
                 variant="outline"
                 onClick={() => void handleBulkMargin(5)}
-                className="h-7 border-admin-border bg-admin-card px-3 text-xs text-admin-text-primary hover:bg-admin-surface"
+                className="h-6 border-admin-border bg-admin-card px-2.5 text-[11px] text-admin-text-primary hover:bg-admin-surface"
               >
                 Set 5% margin
               </Button>
@@ -836,7 +833,7 @@ export default function Events() {
                 size="sm"
                 variant="outline"
                 onClick={() => void handleBulkToggle(false)}
-                className="h-7 border-admin-red/40 bg-admin-red/10 px-3 text-xs text-admin-red hover:bg-admin-red/15"
+                className="h-6 border-admin-red/40 bg-admin-red/10 px-2.5 text-[11px] text-admin-red hover:bg-admin-red/15"
               >
                 Deactivate
               </Button>
@@ -844,7 +841,7 @@ export default function Events() {
                 size="sm"
                 variant="ghost"
                 onClick={() => setSelectedEventIds([])}
-                className="h-7 px-3 text-xs text-admin-text-secondary hover:text-admin-text-primary"
+                className="h-6 px-2.5 text-[11px] text-admin-text-secondary hover:text-admin-text-primary"
               >
                 Clear
               </Button>
@@ -866,15 +863,15 @@ export default function Events() {
         {/* ── Event list ── */}
         <Card className="border-admin-border bg-admin-card shadow-sm">
           {/* List header row */}
-          <div className="flex items-center justify-between border-b border-admin-border/70 px-3 py-2 sm:px-4">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-admin-text-muted">
+          <div className="flex items-center justify-between border-b border-admin-border/70 px-3 py-1.5 sm:px-4">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-admin-text-muted">
               Event list
             </p>
             {!loading && events.length > 0 ? (
               <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-admin-text-secondary">
                 <input
                   checked={allVisibleSelected}
-                  className="size-3.5 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
+                  className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
                   onChange={(e) => toggleSelectAllVisible(e.target.checked)}
                   type="checkbox"
                 />
@@ -914,14 +911,14 @@ export default function Events() {
                 <div
                   key={event.eventId}
                   className={cn(
-                    "flex items-center gap-2.5 px-3 py-2.5 transition-colors hover:bg-admin-surface/20 sm:px-4",
+                    "flex items-center gap-2 px-3 py-1.5 transition-colors hover:bg-admin-surface/20 sm:px-4",
                     isSelected && "bg-admin-accent/5",
                   )}
                 >
                   {/* Checkbox */}
                   <input
                     checked={isSelected}
-                    className="size-3.5 shrink-0 rounded border-admin-border bg-admin-surface accent-[var(--admin-accent)]"
+                    className="size-3.5 shrink-0 rounded border-admin-border bg-admin-surface accent-admin-accent"
                     onChange={(e) =>
                       toggleSelection(event.eventId, e.target.checked)
                     }
@@ -931,7 +928,7 @@ export default function Events() {
                   {/* Content */}
                   <div className="min-w-0 flex-1">
                     {/* Matchup + badges */}
-                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
                       <p className="truncate text-sm font-semibold text-admin-text-primary">
                         {event.homeTeam}{" "}
                         <span className="font-normal text-admin-text-muted">
@@ -939,15 +936,15 @@ export default function Events() {
                         </span>{" "}
                         {event.awayTeam}
                       </p>
-                      <div className="flex shrink-0 flex-wrap items-center gap-1">
+                      <div className="flex shrink-0 flex-wrap items-center gap-0.5">
                         <StatusBadge status={toBadgeStatus(event.status)} />
                         {hasScore && (
-                          <span className="rounded border border-admin-border bg-admin-card px-1.5 py-px text-[11px] font-medium text-admin-text-primary">
+                          <span className="rounded border border-admin-border bg-admin-card px-1 py-px text-[10px] font-medium text-admin-text-primary">
                             {event.homeScore}–{event.awayScore}
                           </span>
                         )}
                         {event.status === "UPCOMING" && (
-                          <span className="rounded border border-admin-blue/30 bg-admin-blue/10 px-1.5 py-px text-[11px] font-medium text-admin-blue">
+                          <span className="rounded border border-admin-blue/30 bg-admin-blue/10 px-1 py-px text-[10px] font-medium text-admin-blue">
                             {formatUpcomingCountdown(
                               event.commenceTime,
                               currentTimeMs,
@@ -955,7 +952,7 @@ export default function Events() {
                           </span>
                         )}
                         {!hasOdds && (
-                          <span className="rounded border border-admin-red/30 bg-admin-red/10 px-1.5 py-px text-[11px] font-medium text-admin-red">
+                          <span className="rounded border border-admin-red/30 bg-admin-red/10 px-1 py-px text-[10px] font-medium text-admin-red">
                             No odds
                           </span>
                         )}
@@ -963,19 +960,19 @@ export default function Events() {
                     </div>
 
                     {/* Meta row */}
-                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0 text-xs text-admin-text-muted">
-                      <span className="truncate max-w-[160px]">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0 text-xs text-admin-text-muted">
+                      <span className="truncate max-w-35">
                         {event.leagueName ?? "Unknown league"}
                       </span>
-                      <span className="hidden sm:inline">
+                      <span className="hidden sm:inline text-[11px]">
                         {formatEventTime(event.commenceTime)}
                       </span>
-                      <span className="hidden sm:inline">
+                      <span className="hidden lg:inline text-[11px]">
                         {event._count.odds} odds · {event._count.bets} bets ·{" "}
                         {event.houseMargin}% margin ·{" "}
                         {event.marketsEnabled.join(", ")}
                       </span>
-                      <span className="sm:hidden">
+                      <span className="sm:hidden text-[11px]">
                         {event.houseMargin}% · {event._count.bets} bets
                       </span>
                     </div>

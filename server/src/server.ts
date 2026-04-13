@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./bootstrap/env";
 console.log("[Env Check] ODDS_API_KEY loaded:", !!process.env.ODDS_API_KEY);
 import { app } from "./app";
 import { prisma } from "./lib/prisma";
