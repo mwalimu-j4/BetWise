@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, TrendingUp } from "lucide-react";
 import { isAxiosError } from "axios";
 import { api } from "@/api/axiosConfig";
 import EventMarketsModal from "./EventMarketsModal";
@@ -87,17 +87,21 @@ function OddsPreviewButton({
           commenceTime: event.commenceTime,
         });
       }}
-      className={`flex h-9 min-w-0 items-center justify-between gap-1 overflow-hidden rounded-md border px-2 text-xs transition ${
+      className={`odds-btn group/odds flex min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-lg border px-1 py-1.5 text-center transition-all duration-200 sm:px-2 sm:py-2 ${
         disabled
-          ? "cursor-not-allowed border-[#3a4468] bg-[#1f2640] text-[#6f7ca8]"
+          ? "cursor-not-allowed border-[#1e3350]/30 bg-[#111d2e] text-[#3d5478]"
           : isSelected
-            ? "border-[#f0b429] bg-[#f0b429]/15 text-[#f0b429]"
-            : "border-[#3a4468] bg-[#2a3150] text-white hover:bg-[#313a5c]"
+            ? "border-[#ffd500]/50 bg-[#ffd500]/10 text-[#ffd500] shadow-[0_0_12px_rgba(255,213,0,0.12)]"
+            : "border-[#1e3350]/50 bg-[#0f1a2d] text-white hover:border-[#ffd500]/30 hover:bg-[#ffd500]/[0.05]"
       }`}
     >
-      <span className="truncate">{entry.label}</span>
-      <span className="shrink-0 font-bold">
-        {typeof entry.odds === "number" ? entry.odds.toFixed(2) : "--"}
+      <span className={`text-[8px] font-medium uppercase tracking-wider sm:text-[9px] ${
+        disabled ? "text-[#3d5478]" : isSelected ? "text-[#ffd500]/70" : "text-[#637fa0]"
+      }`}>
+        {entry.label}
+      </span>
+      <span className="text-xs font-bold sm:text-sm">
+        {typeof entry.odds === "number" ? entry.odds.toFixed(2) : "—"}
       </span>
     </button>
   );
@@ -170,50 +174,59 @@ export default function EventCard({
   );
 
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-[#3a4f74] bg-[linear-gradient(160deg,#2c3a5c_0%,#25324f_55%,#1e2940_100%)] p-3.5 shadow-[0_12px_26px_rgba(0,0,0,0.28)] transition-all duration-200 hover:border-[#4f6792] hover:shadow-[0_16px_32px_rgba(0,0,0,0.34)] sm:p-4">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#f0b429]/10 to-transparent" />
-      <div className="relative flex h-full min-h-[136px] flex-col justify-between gap-3 overflow-hidden">
+    <article className="event-card group relative overflow-hidden rounded-xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770] sm:rounded-xl">
+      {/* Subtle top accent line */}
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#ffd500]/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+
+      <div className="relative flex h-full flex-col justify-between gap-1.5 p-2.5 sm:gap-2 sm:p-3">
+        {/* League + Markets badge row */}
         <div className="min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <p className="truncate text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9aa7c7]">
+          <div className="flex items-center justify-between gap-1">
+            <p className="truncate text-[8px] font-semibold uppercase tracking-[0.12em] text-[#637fa0] sm:text-[9px]">
               {event.leagueName ?? "Featured Match"}
             </p>
 
             <button
               type="button"
               onClick={() => setShowMarkets(true)}
-              className="shrink-0 rounded-full border border-[#5a6e95] bg-[#17233b]/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#f0c040] transition hover:border-[#f0c040] hover:bg-[#f0c040]/12"
+              className="inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1.5 py-0.5 text-[7px] font-semibold uppercase tracking-wider text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[8px] md:text-[9px]"
             >
-              +{marketCount} Markets
+              <TrendingUp size={8} className="sm:h-[9px] sm:w-[9px]" />
+              +{marketCount}
             </button>
           </div>
 
+          {/* Match name */}
           <button
             type="button"
             onClick={() => setShowMarkets(true)}
-            className="mt-1.5 w-full text-left"
+            className="mt-1 w-full text-left sm:mt-1.5"
           >
-            <h3 className="truncate text-[15px] font-bold leading-tight text-white sm:text-base">
-              {event.homeTeam} vs {event.awayTeam}
+            <h3 className="text-[12px] font-bold leading-snug text-white break-words transition-colors group-hover:text-[#ffd500]/90 sm:text-[13px] md:text-sm">
+              {event.homeTeam}{" "}
+              <span className="font-normal text-[#4a6a8f]">vs</span>{" "}
+              {event.awayTeam}
             </h3>
           </button>
 
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-[#a7b4d4]">
-            <span className="inline-flex min-w-0 items-center gap-1 rounded-md border border-[#31486b] bg-[#192741] px-2 py-1">
-              <Calendar size={12} className="shrink-0" />
+          {/* Date and countdown — single compact row */}
+          <div className="mt-1 flex items-center gap-1 sm:mt-1.5 sm:gap-1.5">
+            <span className="inline-flex min-w-0 items-center gap-0.5 rounded border border-[#1e3350]/40 bg-[#0b1525] px-1 py-[2px] text-[7px] text-[#7a94b8] sm:px-1.5 sm:py-0.5 sm:text-[8px] md:text-[9px]">
+              <Calendar size={8} className="shrink-0 text-[#637fa0]" />
               <span className="truncate">
                 {formatCardDateTime(event.commenceTime)}
               </span>
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-[#2e4262] bg-[#17253c] px-2 py-0.5 text-[#b9c6e3]">
-              <Clock size={11} className="shrink-0" />
+            <span className="inline-flex items-center gap-0.5 rounded border border-[#1e3350]/40 bg-[#0b1525] px-1 py-[2px] text-[7px] text-[#7a94b8] sm:px-1.5 sm:py-0.5 sm:text-[8px] md:text-[9px]">
+              <Clock size={8} className="shrink-0 text-[#637fa0]" />
               <span>{getRelativeTime(event.commenceTime)}</span>
             </span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#3a4d72] bg-[#1a2740]/70 p-2">
-          <div className="grid grid-cols-3 gap-2.5">
+        {/* Odds row — 3 columns */}
+        <div className="mt-0.5 rounded-lg border border-[#1e3350]/30 bg-[#0b1525]/60 p-1 sm:p-1.5">
+          <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
             {oddsPreview.map((entry) => (
               <OddsPreviewButton
                 key={entry.label}

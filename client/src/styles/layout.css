@@ -28,6 +28,190 @@
   max-width: 1280px;
   margin: 0 auto;
   padding: 0;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+/* ── Betting Home Page ──────────────────────────────────── */
+
+.betting-home-wrapper {
+  overflow-x: clip;
+}
+
+.betting-content {
+  width: 100%;
+}
+
+.events-pane {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.events-pane::-webkit-scrollbar {
+  display: none;
+}
+
+.matches-section {
+  margin-top: 0;
+}
+
+/* Hero stat pills micro-animation */
+.hero-stat-pill {
+  transition: all 0.2s ease;
+}
+
+.hero-stat-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Sport tab hover feedback */
+.sport-tab {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* ── Event Card — Compact, premium design ──────────── */
+.event-card {
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.event-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    ellipse at top left,
+    rgba(255, 213, 0, 0.04) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.event-card:hover::before {
+  opacity: 1;
+}
+
+.event-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 213, 0, 0.08);
+}
+
+/* Odds button press effect */
+.odds-btn {
+  transition: all 0.15s ease;
+}
+
+.odds-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* ── Betslip sticky sidebar ────────────────────────── */
+.betslip-sticky-wrap {
+  position: sticky;
+  /* navbar height = ~118px on desktop + 12px breathing room */
+  top: calc(var(--navbar-height, 118px) + 12px);
+  max-height: calc(100vh - var(--navbar-height, 118px) - 24px);
+  overflow-y: auto;
+}
+
+/* Desktop: betslip sticky sidebar uses flex layout */
+@media (min-width: 1024px) {
+  .betting-home-main.has-betslip .hero-section {
+    margin-bottom: 16px;
+  }
+
+  .betslip-sidebar {
+    max-height: calc(100vh - var(--navbar-height, 118px) - 20px);
+  }
+}
+
+@media (max-width: 767px) {
+  .betting-home-main,
+  .betting-home-wrapper,
+  .betting-content,
+  .events-pane,
+  .hero-section,
+  .matches-section {
+    max-width: 100vw;
+    min-width: 0;
+    overflow-x: clip;
+    box-sizing: border-box;
+  }
+
+  .betting-home-main {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .bc-page-wrap {
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  /* Force all children to not exceed viewport */
+  .betting-home-wrapper * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  .events-pane::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  /* ── Premium mobile event cards ──────────────────── */
+  .event-card {
+    border-radius: 14px !important;
+    border-color: rgba(30, 51, 80, 0.45) !important;
+    background: linear-gradient(
+      145deg,
+      rgba(17, 29, 46, 0.95) 0%,
+      rgba(13, 22, 36, 0.98) 100%
+    ) !important;
+    box-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(8px);
+  }
+
+  .event-card:hover {
+    transform: none;
+  }
+
+  .event-card:active {
+    transform: scale(0.985);
+    transition: transform 0.1s ease;
+  }
+
+  .hero-section {
+    border-radius: 16px !important;
+  }
+
+  /* Prevent odds buttons from overflowing */
+  .odds-btn {
+    min-width: 0;
+    word-break: break-all;
+    border-radius: 10px !important;
+  }
 }
 
 .bc-navbar {
