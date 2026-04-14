@@ -1567,7 +1567,10 @@ export async function getAllUsers(req: Request, res: Response) {
   const { search = "", status = "", page = 1, limit = 50 } = req.query;
   const skip = (Number(page) - 1) * Number(limit);
 
-  const where: any = {};
+  const where: any = {
+    role: "USER",
+    id: { not: req.user.id }, // Exclude the current admin user from results
+  };
 
   if (search) {
     where.OR = [
@@ -1588,7 +1591,7 @@ export async function getAllUsers(req: Request, res: Response) {
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({
-      where: { role: "USER", ...where },
+      where,
       select: {
         id: true,
         fullName: true,
@@ -1610,7 +1613,7 @@ export async function getAllUsers(req: Request, res: Response) {
       take: Number(limit),
       orderBy: { createdAt: "desc" },
     }),
-    prisma.user.count({ where: { role: "USER", ...where } }),
+    prisma.user.count({ where }),
   ]);
 
   const formattedUsers = users.map((user) => ({
