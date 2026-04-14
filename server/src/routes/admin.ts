@@ -137,4 +137,24 @@ adminRouter.put(
   updateAdminSettings,
 );
 
+// Ban Appeals Management
+adminRouter.get(
+  "/admin/appeals",
+  authenticate,
+  requireAdmin,
+  getBanAppeals,
+);
+adminRouter.get(
+  "/admin/appeals/:appealId",
+  authenticate,
+  requireAdmin,
+  getBanAppealDetail,
+);
+adminRouter.post(
+  "/admin/appeals/:appealId/respond",
+  authenticate,
+  requireAdmin,
+  respondToBanAppeal,
+);
+
 export { adminRouter };
