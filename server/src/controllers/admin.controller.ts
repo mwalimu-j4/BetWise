@@ -1786,7 +1786,20 @@ export async function banUser(req: Request, res: Response) {
   }
 
   const userId = String(req.params.userId);
-  const { reason } = req.body;
+
+  const banBodySchema = z.object({
+    reason: z.string().trim().max(500).optional(),
+  });
+
+  const parsedBody = banBodySchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    return res.status(400).json({
+      message: "Invalid request body",
+      errors: parsedBody.error.flatten().fieldErrors,
+    });
+  }
+
+  const reason = parsedBody.data.reason;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
