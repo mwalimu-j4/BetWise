@@ -744,27 +744,37 @@ export default function Users() {
         }}
       >
         <AdminDialogContent className="max-w-lg">
-          <DialogHeader>
+          <DialogHeader className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] px-6 py-5">
             <DialogTitle>Unban User</DialogTitle>
             <DialogDescription>
-              This will restore the user's access to the platform
+              Lift the ban and restore the user's access to the platform.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-2 pt-4">
-            <AdminButton
-              variant="ghost"
-              className="flex-1"
-              onClick={() => setActionDialog(null)}
-            >
-              Cancel
-            </AdminButton>
-            <AdminButton
-              className="flex-1"
-              onClick={handleUnbanUser}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Unbanning..." : "Unban User"}
-            </AdminButton>
+          <div className="space-y-4 px-6 py-5">
+            <div className="rounded-lg border border-admin-accent/30 bg-admin-accent/10 p-3">
+              <p className="text-xs font-semibold text-admin-accent uppercase">
+                Confirm Action
+              </p>
+              <p className="text-sm text-admin-accent/80 mt-1">
+                This will restore the user's full access to the platform.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-2 border-t border-white/10">
+              <AdminButton
+                variant="ghost"
+                className="flex-1 mt-4"
+                onClick={() => setActionDialog(null)}
+              >
+                Cancel
+              </AdminButton>
+              <AdminButton
+                className="flex-1 mt-4"
+                onClick={handleUnbanUser}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Unbanning..." : "Unban User"}
+              </AdminButton>
+            </div>
           </div>
         </AdminDialogContent>
       </Dialog>
