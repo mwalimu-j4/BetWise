@@ -2,8 +2,23 @@ import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
-import { AlertTriangle, ArrowRight, Eye, EyeOff, Loader2, Lock, Phone, ShieldAlert } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  Lock,
+  Phone,
+  ShieldAlert,
+} from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 import { toast } from "sonner";
 
 const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
@@ -31,10 +46,14 @@ export default function LoginModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [mfaToken, setMfaToken] = useState<string | null>(null);
-  const [mfaMode, setMfaMode] = useState<"totp_setup" | "totp_verify" | null>(null);
+  const [mfaMode, setMfaMode] = useState<"totp_setup" | "totp_verify" | null>(
+    null,
+  );
   const [mfaCode, setMfaCode] = useState("");
   const [mfaQrCodeDataUrl, setMfaQrCodeDataUrl] = useState<string | null>(null);
-  const [mfaManualEntryKey, setMfaManualEntryKey] = useState<string | null>(null);
+  const [mfaManualEntryKey, setMfaManualEntryKey] = useState<string | null>(
+    null,
+  );
   const [banAppealToken, setBanAppealToken] = useState<string | null>(null);
   const [banReason, setBanReason] = useState<string | null>(null);
   const [banAppealText, setBanAppealText] = useState("");
