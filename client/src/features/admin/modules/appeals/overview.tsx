@@ -1,5 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { AdminButton, AdminCard, AdminSectionHeader, StatusBadge } from "../../components/ui";
+import {
+  AdminButton,
+  AdminCard,
+  AdminSectionHeader,
+  StatusBadge,
+} from "../../components/ui";
 import { useAdminBanAppeals } from "@/hooks/useBanAppeals";
 
 export default function BanAppealsOverviewPage() {
@@ -54,7 +59,9 @@ export default function BanAppealsOverviewPage() {
                   <div className="min-w-0 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold text-admin-text-primary">
-                        {appeal.user?.fullName || appeal.user?.email || appeal.userId}
+                        {appeal.user?.fullName ||
+                          appeal.user?.email ||
+                          appeal.userId}
                       </p>
                       <StatusBadge
                         status={
