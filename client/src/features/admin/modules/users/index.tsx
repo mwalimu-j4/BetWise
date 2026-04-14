@@ -175,8 +175,9 @@ export default function Users() {
       void refetch();
       setSelectedUserId(null);
       setActionDialog(null);
-    } catch {
-      alert("Failed to ban user");
+      toast.success("User banned successfully");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to ban user");
     } finally {
       setIsSubmitting(false);
     }
@@ -190,8 +191,9 @@ export default function Users() {
       void refetch();
       setSelectedUserId(null);
       setActionDialog(null);
-    } catch {
-      alert("Failed to unban user");
+      toast.success("User unbanned successfully");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to unban user");
     } finally {
       setIsSubmitting(false);
     }
@@ -203,8 +205,9 @@ export default function Users() {
       await createUserAction(createFormData);
       void refetch();
       setActionDialog(null);
-    } catch {
-      alert("Failed to create user");
+      toast.success("User created successfully");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to create user");
     } finally {
       setIsSubmitting(false);
     }
