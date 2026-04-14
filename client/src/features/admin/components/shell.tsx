@@ -120,7 +120,8 @@ export default function AdminShell() {
       return false;
     }
 
-    const haystack = `${notification.title} ${notification.message}`.toLowerCase();
+    const haystack =
+      `${notification.title} ${notification.message}`.toLowerCase();
     return haystack.includes("ban appeal");
   };
 
@@ -168,9 +169,7 @@ export default function AdminShell() {
       seen.add(item.id);
     }
 
-    const newBanAppeals = incomingNotifications.filter(
-      isBanAppealNotification,
-    );
+    const newBanAppeals = incomingNotifications.filter(isBanAppealNotification);
 
     for (const notification of newBanAppeals) {
       toast.error(notification.title || "New Ban Appeal", {
@@ -274,9 +273,7 @@ export default function AdminShell() {
             "shadow-[2px_0_12px_rgba(0,0,0,0.08)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0 lg:shadow-none",
-            sidebarExpanded
-              ? "lg:w-65 lg:min-w-65"
-              : "lg:w-20 lg:min-w-20",
+            sidebarExpanded ? "lg:w-65 lg:min-w-65" : "lg:w-20 lg:min-w-20",
           )}
         >
           {/* Sidebar Header */}
@@ -410,7 +407,6 @@ export default function AdminShell() {
 
         {/* Main Content Area */}
         <div className="relative flex min-w-0 flex-1 flex-col bg-transparent">
-
           {/* Top Header - Updated to match sidebar background */}
           <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-admin-border bg-admin-card px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 lg:hidden">

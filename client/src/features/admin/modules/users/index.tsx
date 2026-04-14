@@ -80,7 +80,9 @@ export default function Users() {
   });
   const [actionReason, setActionReason] = useState("");
   const [appealResponse, setAppealResponse] = useState("");
-  const [appealDecision, setAppealDecision] = useState<"APPROVE" | "REJECT" | null>(null);
+  const [appealDecision, setAppealDecision] = useState<
+    "APPROVE" | "REJECT" | null
+  >(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { users, loading, error, refetch, total } = useUsers({
@@ -127,7 +129,9 @@ export default function Users() {
     }
 
     setAppealResponse(selectedUser.banAppeal.responseText || "");
-    setAppealDecision(selectedUser.banAppeal.status === "APPROVED" ? "APPROVE" : "REJECT");
+    setAppealDecision(
+      selectedUser.banAppeal.status === "APPROVED" ? "APPROVE" : "REJECT",
+    );
     setActionDialog({ type: "respondAppeal", userId: selectedUserId });
   };
 
@@ -273,7 +277,9 @@ export default function Users() {
           : "Appeal rejected and response sent",
       );
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to respond to appeal");
+      toast.error(
+        err?.response?.data?.message || "Failed to respond to appeal",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -528,9 +534,7 @@ export default function Users() {
       >
         <AdminDialogContent className="max-w-2xl p-0">
           <DialogHeader className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] px-6 py-5">
-            <DialogTitle className="text-white">
-              User Details
-            </DialogTitle>
+            <DialogTitle className="text-white">User Details</DialogTitle>
             <DialogDescription className="text-admin-text-secondary">
               Account profile, wallet status, and admin actions.
             </DialogDescription>
@@ -728,9 +732,12 @@ export default function Users() {
       >
         <AdminDialogContent className="max-w-xl">
           <DialogHeader className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] px-6 py-5">
-            <DialogTitle className="text-admin-accent">Respond to Ban Appeal</DialogTitle>
+            <DialogTitle className="text-admin-accent">
+              Respond to Ban Appeal
+            </DialogTitle>
             <DialogDescription>
-              Review the appeal, reply to the user, and lift the ban if approved.
+              Review the appeal, reply to the user, and lift the ban if
+              approved.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 px-6 py-5">
@@ -778,7 +785,11 @@ export default function Users() {
               <AdminButton
                 className="flex-1 bg-admin-accent hover:bg-admin-accent/90"
                 onClick={() => void handleRespondToAppeal()}
-                disabled={isSubmitting || !appealDecision || appealResponse.trim().length < 10}
+                disabled={
+                  isSubmitting ||
+                  !appealDecision ||
+                  appealResponse.trim().length < 10
+                }
               >
                 {isSubmitting ? "Submitting..." : "Send Response"}
               </AdminButton>
