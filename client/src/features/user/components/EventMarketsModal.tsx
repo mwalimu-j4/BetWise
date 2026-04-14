@@ -32,25 +32,54 @@ interface DetailedEventResponse extends ApiEvent {
 
 type MarketGroup = "Main" | "Goals" | "Handicap" | "Combo";
 
+interface BookmakerOdd {
+  bookmakerName: string;
+  odds: number;
+  id: string;
+  isBest: boolean;
+}
+
+interface OutcomeOdds {
+  label: string;
+  side: string;
+  odds: BookmakerOdd[];
+}
+
 interface MarketCard {
   group: MarketGroup;
   name: string;
-  selections: {
-    label: string;
-    odds: number | null;
-    key: string;
-    marketType: string;
-    side: string;
-  }[];
+  marketType: string;
+  outcomes: OutcomeOdds[];
   cols: 2 | 3;
 }
 
+// ─── Market Category Map ──────────────────────────────────────────────────────
+const MARKET_CATEGORIES: Record<string, MarketGroup | null> = {
+  h2h: "Main",
+  "1×2": "Main",
+  "win": "Main",
+  "who will win": "Main",
+  "double chance": "Main",
+  "draw no bet": "Main",
+  "both teams to score": "Goals",
+  "btts": "Goals",
+  "over/under": "Goals",
+  "over": "Goals",
+  "under": "Goals",
+  "total goals": "Goals",
+  "exact goals": "Goals",
+  "spreads": "Handicap",
+  "asian handicap": "Handicap",
+  "handicap 1×2": "Handicap",
+  "1st half handicap": "Handicap",
+  "1x2 & btts": "Combo",
+  "1x2 & total": "Combo",
+  "double chance & btts": "Combo",
+};
+
 function getMarketGroup(marketType: string): MarketGroup {
   const normalized = marketType.trim().toLowerCase();
-  if (normalized === "h2h") return "Main";
-  if (normalized === "totals") return "Goals";
-  if (normalized === "spreads") return "Handicap";
-  return "Combo";
+  return MARKET_CATEGORIES[normalized] ?? "Combo";
 }
 
 function formatMarketType(marketType: string) {
@@ -64,28 +93,59 @@ function formatMarketType(marketType: string) {
 function buildCardsFromDisplayedOdds(
   displayedOdds: DisplayedOdd[],
 ): MarketCard[] {
-  const grouped = new Map<string, DisplayedOdd[]>();
-
+  // Group by market type ONLY
+  const byMarketType = new Map<string, DisplayedOdd[]>();
+  
   for (const odd of displayedOdds) {
-    const key = `${odd.marketType}::${odd.bookmakerName}`;
-    const current = grouped.get(key) ?? [];
+    const key = odd.marketType.trim().toLowerCase();
+    const current = byMarketType.get(key) ?? [];
     current.push(odd);
-    grouped.set(key, current);
+    byMarketType.set(key, current);
   }
 
-  return Array.from(grouped.entries()).map(([key, odds]) => {
-    const [marketType, bookmakerName] = key.split("::");
+  // Transform to MarketCard[]
+  return Array.from(byMarketType.entries()).map(([marketTypeKey, odds]) => {
+    // Group odds by side/outcome within this market
+    const bySide = new Map<string, DisplayedOdd[]>();
+    for (const odd of odds) {
+      const sideKey = odd.side.trim().toLowerCase();
+      const current = bySide.get(sideKey) ?? [];
+      current.push(odd);
+      bySide.set(sideKey, current);
+    }
+
+    // Find best odds for each side
+    const outcomes: OutcomeOdds[] = [];
+    for (const sideOdds of bySide.values()) {
+      // Sort by odds descending to find best
+      const sorted = [...sideOdds].sort((a, b) => b.displayOdds - a.displayOdds);
+      const bestOddsValue = sorted[0]?.displayOdds ?? 0;
+
+      const bookmakerOdds: BookmakerOdd[] = sorted.map((odd) => ({
+        bookmakerName: odd.bookmakerName,
+        odds: odd.displayOdds,
+        id: odd.id,
+        isBest: odd.displayOdds === bestOddsValue,
+      }));
+
+      outcomes.push({
+        label: sideOdds[0]!.side, // Use first occurrence for label
+        side: sideOdds[0]!.side,
+        odds: bookmakerOdds,
+      });
+    }
+
+    const originalOdd = odds[0];
+    const marketType = originalOdd?.marketType ?? marketTypeKey;
+
+    const colCount = outcomes.length >= 3 ? 3 : Math.min(Math.max(outcomes.length, 2), 2);
+
     return {
       group: getMarketGroup(marketType),
-      name: `${formatMarketType(marketType)} • ${bookmakerName}`,
-      cols: odds.length >= 3 ? 3 : 2,
-      selections: odds.map((odd) => ({
-        label: odd.side,
-        odds: odd.displayOdds,
-        key: odd.id,
-        marketType: odd.marketType,
-        side: odd.side,
-      })),
+      name: formatMarketType(marketType),
+      marketType: marketType,
+      outcomes,
+      cols: colCount as 2 | 3,
     };
   });
 }
@@ -211,23 +271,27 @@ export default function EventMarketsModal({
     (selectionKey) => selectionKey.startsWith(`${resolvedEventId}:`),
   ).length;
 
-  const isSelected = (sel: MarketCard["selections"][number], odds: number) => {
-    const selectionKey = `${resolvedEventId}:${sel.marketType}:${sel.side}:${odds.toFixed(2)}`;
+  const isSelected = (
+    marketType: string,
+    side: string,
+    odds: number,
+  ) => {
+    const selectionKey = `${resolvedEventId}:${marketType}:${side}:${odds.toFixed(2)}`;
     return selectedOdds.has(selectionKey);
   };
 
   const handleSelect = (
-    _card: MarketCard,
-    sel: MarketCard["selections"][number],
+    marketType: string,
+    outcome: OutcomeOdds,
+    bookmakerOdd: BookmakerOdd,
   ) => {
-    if (!sel.odds) return;
     onOddsSelect({
       eventId: resolvedEventId,
       eventName: `${activeEvent.homeTeam} vs ${activeEvent.awayTeam}`,
       leagueName: activeEvent.leagueName ?? "Featured Match",
-      marketType: sel.marketType,
-      side: sel.side,
-      odds: sel.odds,
+      marketType: marketType,
+      side: outcome.side,
+      odds: bookmakerOdd.odds,
       commenceTime: activeEvent.commenceTime,
     });
   };
@@ -384,102 +448,107 @@ export default function EventMarketsModal({
                   className="px-3.5 py-2.5 flex items-center justify-between"
                   style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
                 >
-                  <span className="text-[11px] font-semibold text-[#a0b3c8] uppercase tracking-wider">
+                  <span className="text-sm font-semibold text-white">
                     {card.name}
                   </span>
                   <span
                     className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded"
                     style={{
-                      background: "rgba(255,255,255,0.05)",
-                      color: "#6b7f94",
+                      background: "rgba(255,255,255,0.08)",
+                      color: "#8b9db5",
                     }}
                   >
                     {card.group}
                   </span>
                 </div>
 
-                {/* Selections grid */}
-                <div
-                  className={`grid gap-1.5 p-2.5`}
-                  style={{ gridTemplateColumns: `repeat(${card.cols}, 1fr)` }}
-                >
-                  {card.selections.map((sel) => {
-                    const selected =
-                      typeof sel.odds === "number" && isSelected(sel, sel.odds);
-                    const disabled = !sel.odds;
-                    return (
-                      <button
-                        key={sel.key}
-                        disabled={disabled}
-                        onClick={() => handleSelect(card, sel)}
-                        className={`relative flex min-h-[60px] flex-col items-center justify-center rounded-lg px-2 py-2.5 transition-all duration-150 ${
-                          disabled ? "" : "hover:-translate-y-[1px]"
-                        }`}
-                        style={
-                          disabled
-                            ? {
-                                background: "rgba(255,255,255,0.02)",
-                                opacity: 0.35,
-                                cursor: "not-allowed",
-                              }
-                            : selected
-                              ? {
-                                  background: "rgba(240,192,64,0.15)",
-                                  border: "1.5px solid rgba(240,192,64,0.6)",
-                                  boxShadow: "0 0 12px rgba(240,192,64,0.12)",
-                                }
-                              : {
-                                  background: "rgba(255,255,255,0.04)",
-                                  border: "1px solid rgba(255,255,255,0.07)",
-                                }
-                        }
+                {/* Outcomes */}
+                <div className="p-2.5 space-y-2">
+                  {card.outcomes.map((outcome, oi) => (
+                    <div key={oi} className="space-y-1">
+                      {/* Outcome label */}
+                      <div className="px-1 py-0.5">
+                        <span className="text-[11px] font-medium text-[#a0b3c8]">
+                          {outcome.label}
+                        </span>
+                      </div>
+
+                      {/* Bookmaker odds grid for this outcome */}
+                      <div
+                        className="grid gap-1.5"
+                        style={{
+                          gridTemplateColumns: `repeat(${Math.min(outcome.odds.length, 3)}, 1fr)`,
+                        }}
                       >
-                        {selected && (
-                          <span
-                            className="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
-                            style={{ background: "#f0c040" }}
-                          >
-                            <svg
-                              width="7"
-                              height="6"
-                              viewBox="0 0 7 6"
-                              fill="none"
+                        {outcome.odds.map((bm) => {
+                          const selected = isSelected(
+                            card.marketType,
+                            outcome.side,
+                            bm.odds,
+                          );
+                          return (
+                            <button
+                              key={bm.id}
+                              onClick={() =>
+                                handleSelect(card.marketType, outcome, bm)
+                              }
+                              className={`flex flex-col items-center justify-center rounded-lg px-2 py-2 transition-all duration-150 ${
+                                "hover:-translate-y-[1px]"
+                              }`}
+                              style={
+                                bm.isBest
+                                  ? selected
+                                    ? {
+                                        background:
+                                          "rgba(240,192,64,0.25)",
+                                        border: "1.5px solid #f0c040",
+                                        boxShadow:
+                                          "0 0 12px rgba(240,192,64,0.2)",
+                                      }
+                                    : {
+                                        background:
+                                          "rgba(240,192,64,0.12)",
+                                        border: "1.5px solid rgba(240,192,64,0.5)",
+                                      }
+                                  : selected
+                                    ? {
+                                        background:
+                                          "rgba(139,157,181,0.15)",
+                                        border: "1px solid rgba(139,157,181,0.4)",
+                                      }
+                                    : {
+                                        background:
+                                          "rgba(255,255,255,0.04)",
+                                        border: "1px solid rgba(255,255,255,0.07)",
+                                      }
+                              }
                             >
-                              <path
-                                d="M1 3L2.5 4.5L6 1.5"
-                                stroke="#0a1520"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </span>
-                        )}
-                        <span
-                          className="text-[10px] font-medium mb-1 text-center leading-tight"
-                          style={{ color: selected ? "#f0c040" : "#8b9db5" }}
-                        >
-                          {sel.label}
-                        </span>
-                        <span
-                          className="text-base font-black tabular-nums"
-                          style={{ color: selected ? "#f0c040" : "#e8f0f8" }}
-                        >
-                          {sel.odds?.toFixed(2) ?? "–"}
-                        </span>
-                        <span
-                          className="text-[9px] font-bold mt-0.5"
-                          style={{
-                            color: selected
-                              ? "rgba(240,192,64,0.7)"
-                              : "rgba(255,255,255,0.3)",
-                          }}
-                        >
-                          {sel.marketType.toUpperCase()}
-                        </span>
-                      </button>
-                    );
-                  })}
+                              <span
+                                className="text-base font-black tabular-nums"
+                                style={{
+                                  color: bm.isBest
+                                    ? "#f0c040"
+                                    : "#e8f0f8",
+                                }}
+                              >
+                                {bm.odds.toFixed(2)}
+                              </span>
+                              <span
+                                className="text-[8px] font-bold mt-0.5 text-center leading-tight"
+                                style={{
+                                  color: bm.isBest
+                                    ? "rgba(240,192,64,0.8)"
+                                    : "#6b7f94",
+                                }}
+                              >
+                                {bm.bookmakerName}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))

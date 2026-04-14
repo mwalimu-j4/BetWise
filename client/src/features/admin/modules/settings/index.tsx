@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
+  ArrowLeft,
   Banknote,
   Bell,
   Briefcase,
@@ -11,16 +12,22 @@ import {
   Globe2,
   Loader2,
   Lock,
+  Mail,
   Percent,
+  QrCode,
   Sparkles,
   Search,
   Shield,
+  ShieldCheck,
+  Smartphone,
   TicketPercent,
   UserCog,
   Wrench,
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/api/axiosConfig";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -61,10 +68,32 @@ type SectionDefinition = {
   fields: FieldDefinition[];
 };
 
+type AdminTwoFactorStatusResponse = {
+  enabled: boolean;
+};
+
+type AdminTwoFactorSetupResponse = {
+  setupToken: string;
+  expiresInSeconds: number;
+  qrCodeDataUrl: string;
+  manualEntryKey: string;
+  message: string;
+};
+
+type GenericMessageResponse = {
+  message: string;
+};
+
 const inputClassName =
   "h-10 w-full rounded-lg border border-admin-border bg-admin-surface px-3 text-sm text-admin-text-primary outline-none transition focus:border-admin-border-strong";
 const textareaClassName =
   "w-full rounded-lg border border-admin-border bg-admin-surface px-3 py-2.5 text-sm text-admin-text-primary outline-none transition focus:border-admin-border-strong";
+const MICROSOFT_AUTHENTICATOR_ANDROID_URL =
+  "https://play.google.com/store/apps/details?id=com.azure.authenticator";
+const MICROSOFT_AUTHENTICATOR_IOS_URL =
+  "https://apps.apple.com/app/microsoft-authenticator/id983156458";
+const MICROSOFT_AUTHENTICATOR_FALLBACK_URL =
+  "https://www.microsoft.com/security/mobile-authenticator-app";
 
 function cloneSettings(settings: AdminSettingsConfig) {
   return JSON.parse(JSON.stringify(settings)) as AdminSettingsConfig;
@@ -695,6 +724,7 @@ const sectionDefinitions: SectionDefinition[] = [
 export default function Settings() {
   const { data, isLoading, isError, error } = useAdminSettings();
   const updateSettings = useUpdateAdminSettings();
+  const queryClient = useQueryClient();
 
   const [draft, setDraft] = useState<AdminSettingsConfig | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -702,6 +732,157 @@ export default function Settings() {
   const [modalDraft, setModalDraft] = useState<AdminSettingsConfig | null>(
     null,
   );
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [setupToken, setSetupToken] = useState<string | null>(null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  const [manualEntryKey, setManualEntryKey] = useState<string | null>(null);
+  const [setupStep, setSetupStep] = useState<1 | 2 | 3>(1);
+  const [stepOneCompleted, setStepOneCompleted] = useState(false);
+  const [stepOneSkipped, setStepOneSkipped] = useState(false);
+
+  const openAuthenticatorInstallLink = () => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isAndroid = userAgent.includes("android");
+    const isIos = /iphone|ipad|ipod/.test(userAgent);
+    const installUrl = isAndroid
+      ? MICROSOFT_AUTHENTICATOR_ANDROID_URL
+      : isIos
+        ? MICROSOFT_AUTHENTICATOR_IOS_URL
+        : MICROSOFT_AUTHENTICATOR_FALLBACK_URL;
+
+    window.open(installUrl, "_blank", "noopener,noreferrer");
+    setStepOneCompleted(true);
+    setStepOneSkipped(false);
+    setSetupStep(2);
+  };
+
+  const resetTwoFactorWizard = () => {
+    setSetupStep(1);
+    setStepOneCompleted(false);
+    setStepOneSkipped(false);
+    setSetupToken(null);
+    setQrCodeDataUrl(null);
+    setManualEntryKey(null);
+    setTwoFactorCode("");
+  };
+
+  const adminTwoFactorStatusQuery = useQuery({
+    queryKey: ["admin-2fa-status"],
+    queryFn: async () => {
+      const response = await api.get<AdminTwoFactorStatusResponse>(
+        "/profile/admin-2fa/status",
+      );
+      return response.data;
+    },
+  });
+
+  const startAdminTwoFactorSetup = useMutation({
+    mutationFn: async () => {
+      const response = await api.post<AdminTwoFactorSetupResponse>(
+        "/profile/admin-2fa/setup",
+      );
+      return response.data;
+    },
+    onSuccess: (payload) => {
+      setSetupToken(payload.setupToken);
+      setQrCodeDataUrl(payload.qrCodeDataUrl);
+      setManualEntryKey(payload.manualEntryKey);
+      setTwoFactorCode("");
+      setSetupStep(3);
+      toast.success(payload.message);
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        typeof mutationError === "object" &&
+        mutationError !== null &&
+        "response" in mutationError &&
+        typeof (mutationError as { response?: unknown }).response === "object"
+          ? ((mutationError as { response?: { data?: { message?: string } } })
+              .response?.data?.message ?? "Failed to start 2FA setup.")
+          : "Failed to start 2FA setup.";
+      toast.error(message);
+    },
+  });
+
+  const enableAdminTwoFactor = useMutation({
+    mutationFn: async () => {
+      if (!setupToken) {
+        throw new Error("Start setup first.");
+      }
+
+      await api.post("/profile/admin-2fa/enable", {
+        setupToken,
+        otpCode: twoFactorCode.trim(),
+      });
+    },
+    onSuccess: () => {
+      toast.success("2FA enabled successfully.");
+      resetTwoFactorWizard();
+      void queryClient.invalidateQueries({ queryKey: ["admin-2fa-status"] });
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        typeof mutationError === "object" &&
+        mutationError !== null &&
+        "response" in mutationError &&
+        typeof (mutationError as { response?: unknown }).response === "object"
+          ? ((mutationError as { response?: { data?: { message?: string } } })
+              .response?.data?.message ?? "Failed to enable 2FA.")
+          : "Failed to enable 2FA.";
+      toast.error(message);
+    },
+  });
+
+  const disableAdminTwoFactor = useMutation({
+    mutationFn: async () => {
+      await api.post("/profile/admin-2fa/disable", {
+        otpCode: twoFactorCode.trim(),
+      });
+    },
+    onSuccess: () => {
+      toast.success("2FA disabled successfully.");
+      resetTwoFactorWizard();
+      void queryClient.invalidateQueries({ queryKey: ["admin-2fa-status"] });
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        typeof mutationError === "object" &&
+        mutationError !== null &&
+        "response" in mutationError &&
+        typeof (mutationError as { response?: unknown }).response === "object"
+          ? ((mutationError as { response?: { data?: { message?: string } } })
+              .response?.data?.message ?? "Failed to disable 2FA.")
+          : "Failed to disable 2FA.";
+      toast.error(message);
+    },
+  });
+
+  const sendAdminTwoFactorAppLink = useMutation({
+    mutationFn: async () => {
+      const response = await api.post<GenericMessageResponse>(
+        "/profile/admin-2fa/send-app-link",
+      );
+      return response.data;
+    },
+    onSuccess: (payload) => {
+      toast.success(payload.message);
+      setStepOneCompleted(true);
+      setStepOneSkipped(false);
+      setSetupStep(2);
+    },
+    onError: (mutationError: unknown) => {
+      const message =
+        typeof mutationError === "object" &&
+        mutationError !== null &&
+        "response" in mutationError &&
+        typeof (mutationError as { response?: unknown }).response === "object"
+          ? ((mutationError as { response?: { data?: { message?: string } } })
+              .response?.data?.message ??
+            "Failed to send Microsoft Authenticator install link.")
+          : "Failed to send Microsoft Authenticator install link.";
+      toast.error(message);
+    },
+  });
 
   useEffect(() => {
     if (data?.config) {
@@ -887,6 +1068,308 @@ export default function Settings() {
             />
           </div>
         </div>
+      </AdminCard>
+
+      <AdminCard className="border-admin-border bg-admin-card/95 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-admin-text-primary">
+              Admin 2FA Security Wizard
+            </h3>
+            <p className="mt-1 text-xs text-admin-text-muted">
+              Professional step-by-step setup with strict progression. You
+              cannot reach the next step until the current one is complete.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-admin-border bg-admin-surface px-3 py-1.5 text-xs text-admin-text-secondary">
+            <Shield size={12} className="text-admin-accent" />
+            <span>
+              {adminTwoFactorStatusQuery.data?.enabled
+                ? "Protected"
+                : "Not protected"}
+            </span>
+          </div>
+        </div>
+
+        {adminTwoFactorStatusQuery.data?.enabled ? (
+          <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]">
+            <div className="space-y-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+              <div className="flex items-center gap-2 text-emerald-300">
+                <ShieldCheck size={16} />
+                <p className="text-sm font-semibold">
+                  Authenticator protection is active
+                </p>
+              </div>
+              <p className="text-xs text-admin-text-muted">
+                Your admin account currently requires a TOTP code at sign-in.
+                Enter a valid code below only if you intentionally want to
+                disable this protection.
+              </p>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
+                  Authenticator code
+                </label>
+                <input
+                  value={twoFactorCode}
+                  onChange={(event) =>
+                    setTwoFactorCode(
+                      event.target.value.replace(/\D/g, "").slice(0, 6),
+                    )
+                  }
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="6-digit code"
+                  className={inputClassName}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => void disableAdminTwoFactor.mutateAsync()}
+                disabled={
+                  disableAdminTwoFactor.isPending ||
+                  twoFactorCode.trim().length !== 6
+                }
+                variant="outline"
+                className="h-9"
+              >
+                {disableAdminTwoFactor.isPending ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Disabling...
+                  </>
+                ) : (
+                  "Disable 2FA"
+                )}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 space-y-4">
+            <div className="grid gap-2 md:grid-cols-3">
+              {[
+                {
+                  id: 1,
+                  title: "Install App",
+                  icon: <Mail size={14} />,
+                  done: stepOneCompleted || stepOneSkipped,
+                  active: setupStep === 1,
+                },
+                {
+                  id: 2,
+                  title: "Generate QR",
+                  icon: <QrCode size={14} />,
+                  done: Boolean(setupToken),
+                  active: setupStep === 2,
+                },
+                {
+                  id: 3,
+                  title: "Verify & Enable",
+                  icon: <CheckCircle2 size={14} />,
+                  done: false,
+                  active: setupStep === 3,
+                },
+              ].map((step) => (
+                <div
+                  key={step.id}
+                  className={`rounded-xl border p-3 text-xs transition ${
+                    step.active
+                      ? "border-admin-border-strong bg-admin-surface"
+                      : "border-admin-border bg-admin-surface/40"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="inline-flex items-center gap-1.5 text-admin-text-secondary">
+                      {step.icon}
+                      <span>Step {step.id}</span>
+                    </div>
+                    {step.done ? (
+                      <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-emerald-300">
+                        {step.id === 1 && stepOneSkipped ? "Skipped" : "Done"}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-2 text-sm font-semibold text-admin-text-primary">
+                    {step.title}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3 rounded-xl border border-admin-border bg-admin-surface/40 p-4">
+              {setupStep === 1 ? (
+                <>
+                  <div className="flex items-start gap-2 text-admin-text-secondary">
+                    <Smartphone
+                      size={16}
+                      className="mt-0.5 text-admin-accent"
+                    />
+                    <p className="text-xs leading-5 text-admin-text-muted">
+                      Step 1 of 3. Open the install link directly on this phone,
+                      or optionally send install links to your email. If you
+                      already have the app, skip this step and continue.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={openAuthenticatorInstallLink}
+                      className="h-9"
+                    >
+                      Open install link on this phone
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        void sendAdminTwoFactorAppLink.mutateAsync()
+                      }
+                      disabled={sendAdminTwoFactorAppLink.isPending}
+                      variant="outline"
+                      className="h-9"
+                    >
+                      {sendAdminTwoFactorAppLink.isPending ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          Sending email...
+                        </>
+                      ) : (
+                        "Send install links to email"
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-9"
+                      onClick={() => {
+                        setStepOneSkipped(true);
+                        setStepOneCompleted(false);
+                        setSetupStep(2);
+                      }}
+                    >
+                      I already have the app
+                    </Button>
+                  </div>
+                </>
+              ) : null}
+
+              {(stepOneCompleted || stepOneSkipped) && setupStep === 2 ? (
+                <>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-xs leading-5 text-admin-text-muted">
+                      Step 2 of 3. Generate your QR code and setup secret. You
+                      will scan this in Microsoft Authenticator.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="h-8"
+                      onClick={() => {
+                        setSetupStep(1);
+                        setStepOneCompleted(false);
+                        setStepOneSkipped(false);
+                        setSetupToken(null);
+                        setQrCodeDataUrl(null);
+                        setManualEntryKey(null);
+                        setTwoFactorCode("");
+                      }}
+                    >
+                      <ArrowLeft size={14} />
+                      Back
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={() => void startAdminTwoFactorSetup.mutateAsync()}
+                    disabled={startAdminTwoFactorSetup.isPending}
+                    className="h-9"
+                  >
+                    {startAdminTwoFactorSetup.isPending ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Generating QR...
+                      </>
+                    ) : (
+                      "Generate setup QR"
+                    )}
+                  </Button>
+                </>
+              ) : null}
+
+              {setupToken && setupStep === 3 ? (
+                <>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-xs leading-5 text-admin-text-muted">
+                      Step 3 of 3. Scan the QR code or use manual key, then
+                      enter the current 6-digit code to activate 2FA.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="h-8"
+                      onClick={() => {
+                        setSetupStep(2);
+                        setTwoFactorCode("");
+                      }}
+                    >
+                      <ArrowLeft size={14} />
+                      Back
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-[auto,1fr]">
+                    {qrCodeDataUrl ? (
+                      <img
+                        src={qrCodeDataUrl}
+                        alt="Admin 2FA setup QR"
+                        className="h-44 w-44 rounded-lg border border-admin-border bg-white p-2"
+                      />
+                    ) : null}
+                    <div className="space-y-3">
+                      {manualEntryKey ? (
+                        <p className="text-xs text-admin-text-muted break-all">
+                          Manual key:{" "}
+                          <span className="text-admin-text-primary">
+                            {manualEntryKey}
+                          </span>
+                        </p>
+                      ) : null}
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
+                          Authenticator code
+                        </label>
+                        <input
+                          value={twoFactorCode}
+                          onChange={(event) =>
+                            setTwoFactorCode(
+                              event.target.value.replace(/\D/g, "").slice(0, 6),
+                            )
+                          }
+                          inputMode="numeric"
+                          maxLength={6}
+                          placeholder="6-digit code"
+                          className={inputClassName}
+                        />
+                      </div>
+
+                      <Button
+                        onClick={() => void enableAdminTwoFactor.mutateAsync()}
+                        disabled={
+                          enableAdminTwoFactor.isPending ||
+                          twoFactorCode.trim().length !== 6
+                        }
+                        className="h-9"
+                      >
+                        {enableAdminTwoFactor.isPending ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin" />
+                            Enabling...
+                          </>
+                        ) : (
+                          "Verify & enable 2FA"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+        )}
       </AdminCard>
 
       {(

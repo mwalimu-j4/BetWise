@@ -27,13 +27,34 @@ type AuthResponse = {
   user: AuthUser;
 };
 
+type AdminMfaRequiredResponse = {
+  mfaRequired: true;
+  mfaMode: "totp_setup" | "totp_verify";
+  mfaToken: string;
+  expiresInSeconds: number;
+  message: string;
+  qrCodeDataUrl?: string;
+  manualEntryKey?: string;
+};
+
+type LoginResult =
+  | {
+      status: "authenticated";
+      user: AuthUser;
+    }
+  | {
+      status: "mfa_required";
+      mfaMode: "totp_setup" | "totp_verify";
+      mfaToken: string;
+      expiresInSeconds: number;
+      message: string;
+      qrCodeDataUrl?: string;
+      manualEntryKey?: string;
+    };
+
 type MeResponse = {
   user: AuthUser;
 };
-
-const persistedSessionKey = "betixpro-auth-session";
-const persistedTokenKey = "betixpro-auth-token";
-const persistedUserKey = "betixpro-auth-user";
 
 type RegisterPayload = {
   email: string;
@@ -54,7 +75,11 @@ type AuthContextValue = {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (payload: LoginPayload) => Promise<AuthUser>;
+  login: (payload: LoginPayload) => Promise<LoginResult>;
+  verifyAdminMfa: (payload: {
+    mfaToken: string;
+    otpCode: string;
+  }) => Promise<AuthUser>;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<string | null>;
@@ -72,11 +97,6 @@ function clearAuthState(
   setUser(null);
   setToken(null);
   setAccessToken(null);
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem(persistedSessionKey);
-    window.localStorage.removeItem(persistedTokenKey);
-    window.localStorage.removeItem(persistedUserKey);
-  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -97,11 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
     setAccessTokenState(data.accessToken);
     setAccessToken(data.accessToken);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(persistedSessionKey, "true");
-      window.localStorage.setItem(persistedTokenKey, data.accessToken);
-      window.localStorage.setItem(persistedUserKey, JSON.stringify(data.user));
-    }
   }, []);
 
   const refreshSession = useCallback(async () => {
@@ -117,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(me.data.user);
       return data.accessToken;
-    } catch (error) {
+    } catch {
       // Don't clear auth state on refresh failure - the user may still have a valid access token.
       // The access token will be invalidated when it expires and a 401 is received from the API.
       return null;
@@ -135,8 +150,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (payload: LoginPayload) => {
-      const { data } = await api.post<AuthResponse>("/auth/login", payload);
+    async (payload: LoginPayload): Promise<LoginResult> => {
+      const response = await api.post<AuthResponse | AdminMfaRequiredResponse>(
+        "/auth/login",
+        payload,
+        {
+          validateStatus: (status) => status === 200 || status === 202,
+        },
+      );
+
+      if (response.status === 202 && "mfaRequired" in response.data) {
+        return {
+          status: "mfa_required" as const,
+          mfaMode: response.data.mfaMode,
+          mfaToken: response.data.mfaToken,
+          expiresInSeconds: response.data.expiresInSeconds,
+          message: response.data.message,
+          qrCodeDataUrl: response.data.qrCodeDataUrl,
+          manualEntryKey: response.data.manualEntryKey,
+        };
+      }
+
+      const data = response.data as AuthResponse;
+      updateSession(data);
+      return {
+        status: "authenticated" as const,
+        user: data.user,
+      };
+    },
+    [updateSession],
+  );
+
+  const verifyAdminMfa = useCallback(
+    async (payload: { mfaToken: string; otpCode: string }) => {
+      const { data } = await api.post<AuthResponse>(
+        "/auth/login/verify-admin-mfa",
+        payload,
+      );
+
       updateSession(data);
       return data.user;
     },
@@ -163,45 +214,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshSession]);
 
   useEffect(() => {
-    const hasPersistedSession =
-      typeof window !== "undefined" &&
-      window.localStorage.getItem(persistedSessionKey) === "true";
-
-    if (!hasPersistedSession) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Restore token and user from localStorage immediately
-    const persistedToken =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem(persistedTokenKey)
-        : null;
-    const persistedUserJson =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem(persistedUserKey)
-        : null;
-
-    if (persistedToken && persistedUserJson) {
+    void (async () => {
       try {
-        const persistedUser = JSON.parse(persistedUserJson) as AuthUser;
-        setAccessTokenState(persistedToken);
-        setAccessToken(persistedToken);
-        setUser(persistedUser);
-        setIsLoading(false); // User is restored, stop loading immediately
-      } catch {
-        // Invalid stored data, clear and fall through to login
-        clearAuthState(setUser, setAccessTokenState);
+        await refreshSession();
+      } finally {
         setIsLoading(false);
-        return;
       }
-    } else {
-      setIsLoading(false);
-      return;
-    }
-
-    // Attempt to refresh and validate session in the background (don't block UI on this)
-    void refreshSession();
+    })();
   }, [refreshSession]);
 
   const value = useMemo<AuthContextValue>(
@@ -211,6 +230,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(user && accessTokenState),
       isLoading,
       login,
+      verifyAdminMfa,
       register,
       logout,
       refreshSession,
@@ -222,6 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       accessTokenState,
       isLoading,
       login,
+      verifyAdminMfa,
       logout,
       refreshSession,
       register,

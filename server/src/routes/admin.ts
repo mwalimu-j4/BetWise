@@ -29,6 +29,7 @@ const adminRouter = Router();
 adminRouter.get(
   "/admin/dashboard/summary",
   authenticate,
+  requireAdmin,
   getAdminDashboardSummary,
 );
 adminRouter.get(

@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
@@ -111,6 +112,8 @@ model User {
   passwordHash  String               @map("password_hash")
   isVerified    Boolean              @default(false) @map("is_verified")
   accountStatus AccountStatus        @default(ACTIVE) @map("account_status")
+  adminTotpEnabled Boolean           @default(false) @map("admin_totp_enabled")
+  adminTotpSecret  String?           @map("admin_totp_secret")
   bannedAt      DateTime?            @map("banned_at")
   banReason     String?              @map("ban_reason")
   role          UserRole             @default(USER)
@@ -125,6 +128,7 @@ model User {
   betAuditLogs  BetAuditLog[]
   riskAlerts    RiskAlert[]
   contacts      Contact[]
+  adminLoginChallenges AdminLoginChallenge[]
 
   @@map("users")
 }
@@ -210,6 +214,24 @@ model RefreshToken {
   @@index([userId])
   @@index([tokenHash])
   @@map("refresh_tokens")
+}
+
+model AdminLoginChallenge {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  challengeHash String  @unique @map("challenge_hash")
+  otpHash      String   @map("otp_hash")
+  expiresAt    DateTime @map("expires_at")
+  consumedAt   DateTime? @map("consumed_at")
+  attempts     Int      @default(0)
+  ipAddress    String?  @map("ip_address")
+  deviceInfo   String?  @map("device_info")
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("admin_login_challenges")
 }
 
 model PasswordResetToken {
