@@ -835,7 +835,10 @@ export default function Users() {
                   type={showOldPassword ? "text" : "password"}
                   value={passwordData.oldPassword}
                   onChange={(e) =>
-                    setPasswordData({ ...passwordData, oldPassword: e.target.value })
+                    setPasswordData({
+                      ...passwordData,
+                      oldPassword: e.target.value,
+                    })
                   }
                   placeholder="Current password"
                   className={`${adminInputClassName} pr-10`}
@@ -858,7 +861,10 @@ export default function Users() {
                   type={showPassword ? "text" : "password"}
                   value={passwordData.password}
                   onChange={(e) =>
-                    setPasswordData({ ...passwordData, password: e.target.value })
+                    setPasswordData({
+                      ...passwordData,
+                      password: e.target.value,
+                    })
                   }
                   placeholder="Minimum 6 characters"
                   className={`${adminInputClassName} pr-10`}
