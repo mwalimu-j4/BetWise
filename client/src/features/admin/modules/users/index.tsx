@@ -42,14 +42,12 @@ import {
 
 export default function Users() {
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<"active" | "suspended" | "banned" | "">(
-    "",
-  );
+  const [status, setStatus] = useState<"active" | "banned" | "">("");
   const [page, setPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [actionDialog, setActionDialog] = useState<{
-    type: "edit" | "ban" | "unban" | "suspend" | "unsuspend" | "create";
+    type: "edit" | "ban" | "unban" | "changePassword" | "create";
     userId?: string;
   } | null>(null);
   const [formData, setFormData] = useState({
@@ -57,7 +55,10 @@ export default function Users() {
     email: "",
     phone: "",
     isVerified: false,
-    accountStatus: "ACTIVE" as "ACTIVE" | "SUSPENDED",
+  });
+  const [passwordData, setPasswordData] = useState({
+    password: "",
+    confirmPassword: "",
   });
   const [createFormData, setCreateFormData] = useState({
     fullName: "",
@@ -93,12 +94,6 @@ export default function Users() {
       email: user.email,
       phone: user.phone,
       isVerified: user.isVerified,
-      accountStatus:
-        user.status === "suspended"
-          ? "SUSPENDED"
-          : user.status === "banned"
-            ? "ACTIVE"
-            : "ACTIVE",
     });
     setActionDialog({ type: "edit", userId: user.id });
   };
@@ -112,13 +107,9 @@ export default function Users() {
     setActionDialog({ type: "unban", userId });
   };
 
-  const handleOpenSuspend = (userId: string) => {
-    setActionDialog({ type: "suspend", userId });
-    setActionReason("");
-  };
-
-  const handleOpenUnsuspend = (userId: string) => {
-    setActionDialog({ type: "unsuspend", userId });
+  const handleOpenChangePassword = (userId: string) => {
+    setPasswordData({ password: "", confirmPassword: "" });
+    setActionDialog({ type: "changePassword", userId });
   };
 
   const handleOpenCreate = () => {
@@ -138,12 +129,35 @@ export default function Users() {
     if (!editingUserId) return;
     setIsSubmitting(true);
     try {
-      await updateUserAction(editingUserId, formData);
+      const payload: any = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        isVerified: formData.isVerified,
+      };
+      await updateUserAction(editingUserId, payload);
       void refetch();
       setActionDialog(null);
       setEditingUserId(null);
     } catch {
       alert("Failed to update user");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!actionDialog?.userId) return;
+    setIsSubmitting(true);
+    try {
+      await updateUserPasswordAction(actionDialog.userId, {
+        password: passwordData.password,
+        confirmPassword: passwordData.confirmPassword,
+      });
+      setPasswordData({ password: "", confirmPassword: "" });
+      setActionDialog(null);
+    } catch {
+      alert("Failed to change password");
     } finally {
       setIsSubmitting(false);
     }
@@ -179,36 +193,6 @@ export default function Users() {
     }
   };
 
-  const handleSuspendUser = async () => {
-    if (!actionDialog?.userId) return;
-    setIsSubmitting(true);
-    try {
-      await suspendUserAction(actionDialog.userId, actionReason);
-      void refetch();
-      setSelectedUserId(null);
-      setActionDialog(null);
-    } catch {
-      alert("Failed to suspend user");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleUnsuspendUser = async () => {
-    if (!actionDialog?.userId) return;
-    setIsSubmitting(true);
-    try {
-      await unsuspendUserAction(actionDialog.userId);
-      void refetch();
-      setSelectedUserId(null);
-      setActionDialog(null);
-    } catch {
-      alert("Failed to unsuspend user");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleCreateUser = async () => {
     setIsSubmitting(true);
     try {
@@ -227,9 +211,6 @@ export default function Users() {
   // Calculate stats
   const totalUsers = total || 0;
   const activeUsers = visibleUsers.filter((u) => u.status === "active").length;
-  const suspendedUsers = visibleUsers.filter(
-    (u) => u.status === "suspended",
-  ).length;
   const bannedUsers = visibleUsers.filter((u) => u.status === "banned").length;
 
   return (
@@ -260,7 +241,7 @@ export default function Users() {
       />
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-3">
         {[
           {
             label: "Total Users",
@@ -271,11 +252,6 @@ export default function Users() {
             label: "Active Users",
             value: activeUsers.toString(),
             tone: "accent" as const,
-          },
-          {
-            label: "Suspended Users",
-            value: suspendedUsers.toString(),
-            tone: "gold" as const,
           },
           {
             label: "Banned Users",
@@ -311,7 +287,7 @@ export default function Users() {
         />
 
         <div className="flex gap-2 flex-wrap">
-          {(["", "active", "suspended", "banned"] as const).map((s) => (
+          {(["", "active", "banned"] as const).map((s) => (
             <AdminButton
               key={s}
               variant={status === s ? "solid" : "ghost"}
@@ -414,7 +390,7 @@ export default function Users() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className={`${adminDropdownContentClassName} w-40`}
+                            className={`${adminDropdownContentClassName} w-44`}
                           >
                             <DropdownMenuItem
                               className={adminDropdownItemClassName}
@@ -422,42 +398,25 @@ export default function Users() {
                             >
                               Edit
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className={adminDropdownItemClassName}
+                              onClick={() => handleOpenChangePassword(user.id)}
+                            >
+                              Change Password
+                            </DropdownMenuItem>
                             {user.status === "active" ? (
-                              <>
-                                <DropdownMenuItem
-                                  className={adminDropdownItemClassName}
-                                  onClick={() => handleOpenSuspend(user.id)}
-                                >
-                                  Suspend
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleOpenBan(user.id)}
-                                  className={`${adminDropdownItemClassName} text-admin-red focus:bg-admin-red/12 focus:text-admin-red`}
-                                >
-                                  Ban
-                                </DropdownMenuItem>
-                              </>
-                            ) : user.status === "suspended" ? (
-                              <>
-                                <DropdownMenuItem
-                                  className={adminDropdownItemClassName}
-                                  onClick={() => handleOpenUnsuspend(user.id)}
-                                >
-                                  Unsuspend
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleOpenBan(user.id)}
-                                  className={`${adminDropdownItemClassName} text-admin-red focus:bg-admin-red/12 focus:text-admin-red`}
-                                >
-                                  Ban
-                                </DropdownMenuItem>
-                              </>
+                              <DropdownMenuItem
+                                onClick={() => handleOpenBan(user.id)}
+                                className={`${adminDropdownItemClassName} text-admin-red focus:bg-admin-red/12 focus:text-admin-red`}
+                              >
+                                Ban User
+                              </DropdownMenuItem>
                             ) : user.status === "banned" ? (
                               <DropdownMenuItem
                                 className={adminDropdownItemClassName}
                                 onClick={() => handleOpenUnban(user.id)}
                               >
-                                Unban
+                                Unban User
                               </DropdownMenuItem>
                             ) : null}
                           </DropdownMenuContent>
@@ -482,7 +441,9 @@ export default function Users() {
       >
         <AdminDialogContent className="max-w-2xl p-0">
           <DialogHeader className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] px-6 py-5">
-            <DialogTitle className="text-lg text-white">User Details</DialogTitle>
+            <DialogTitle className="text-lg text-white">
+              User Details
+            </DialogTitle>
             <DialogDescription className="text-sm text-admin-text-secondary">
               Account profile, wallet status, and admin actions.
             </DialogDescription>
@@ -580,40 +541,22 @@ export default function Users() {
                   >
                     Edit User
                   </AdminButton>
+                  <AdminButton
+                    onClick={() => handleOpenChangePassword(selectedUser.id)}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    Change Password
+                  </AdminButton>
                   {selectedUser.status === "active" ? (
-                    <>
-                      <AdminButton
-                        onClick={() => handleOpenSuspend(selectedUser.id)}
-                        variant="ghost"
-                        size="sm"
-                      >
-                        Suspend
-                      </AdminButton>
-                      <AdminButton
-                        onClick={() => handleOpenBan(selectedUser.id)}
-                        tone="red"
-                        size="sm"
-                      >
-                        Ban User
-                      </AdminButton>
-                    </>
-                  ) : selectedUser.status === "suspended" ? (
-                    <>
-                      <AdminButton
-                        onClick={() => handleOpenUnsuspend(selectedUser.id)}
-                        variant="ghost"
-                        size="sm"
-                      >
-                        Unsuspend
-                      </AdminButton>
-                      <AdminButton
-                        onClick={() => handleOpenBan(selectedUser.id)}
-                        tone="red"
-                        size="sm"
-                      >
-                        Ban User
-                      </AdminButton>
-                    </>
+                    <AdminButton
+                      onClick={() => handleOpenBan(selectedUser.id)}
+                      tone="red"
+                      size="sm"
+                      className="col-span-2"
+                    >
+                      Ban User
+                    </AdminButton>
                   ) : selectedUser.status === "banned" ? (
                     <AdminButton
                       onClick={() => handleOpenUnban(selectedUser.id)}
@@ -644,11 +587,11 @@ export default function Users() {
         }}
       >
         <AdminDialogContent className="max-w-lg">
-          <DialogHeader>
+          <DialogHeader className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] px-6 py-5">
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>Update user information</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 px-6 py-5">
             <div>
               <label className="text-sm font-semibold text-admin-text-primary">
                 Full Name
@@ -659,7 +602,7 @@ export default function Users() {
                   setFormData({ ...formData, fullName: e.target.value })
                 }
                 placeholder="John Doe"
-                className={`mt-1 ${adminInputClassName}`}
+                className={`mt-2 ${adminInputClassName}`}
               />
             </div>
             <div>
@@ -673,7 +616,7 @@ export default function Users() {
                 }
                 placeholder="user@example.com"
                 disabled
-                className={`mt-1 ${adminInputClassName} opacity-50`}
+                className={`mt-2 ${adminInputClassName} opacity-50`}
               />
             </div>
             <div>
@@ -687,10 +630,10 @@ export default function Users() {
                 }
                 placeholder="+254712345678"
                 disabled
-                className={`mt-1 ${adminInputClassName} opacity-50`}
+                className={`mt-2 ${adminInputClassName} opacity-50`}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-[rgba(13,33,55,0.16)] p-3">
               <input
                 type="checkbox"
                 id="verified"
@@ -698,18 +641,19 @@ export default function Users() {
                 onChange={(e) =>
                   setFormData({ ...formData, isVerified: e.target.checked })
                 }
+                className="cursor-pointer"
               />
               <label
                 htmlFor="verified"
-                className="text-sm text-admin-text-primary"
+                className="text-sm text-admin-text-primary cursor-pointer flex-1"
               >
-                Verified
+                Mark as verified
               </label>
             </div>
-            <div className="flex gap-2 pt-4">
+            <div className="flex gap-2 pt-2 border-t border-white/10">
               <AdminButton
                 variant="ghost"
-                className="flex-1"
+                className="flex-1 mt-4"
                 onClick={() => {
                   setActionDialog(null);
                   setEditingUserId(null);
@@ -718,7 +662,7 @@ export default function Users() {
                 Cancel
               </AdminButton>
               <AdminButton
-                className="flex-1"
+                className="flex-1 mt-4"
                 onClick={handleSaveEdit}
                 disabled={isSubmitting}
               >
@@ -739,42 +683,50 @@ export default function Users() {
         }}
       >
         <AdminDialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Ban User</DialogTitle>
+          <DialogHeader className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] px-6 py-5">
+            <DialogTitle className="text-red-400">Ban User</DialogTitle>
             <DialogDescription>
-              This will permanently ban the user from the platform
+              This action is permanent and will prevent the user from accessing the platform.
             </DialogDescription>
           </DialogHeader>
-          <div>
-            <label className="text-sm font-semibold text-admin-text-primary">
-              Reason (optional)
-            </label>
-            <Input
-              value={actionReason}
-              onChange={(e) => setActionReason(e.target.value)}
-              placeholder="E.g., Fraudulent activity"
-              className={`mt-2 ${adminInputClassName}`}
-            />
-          </div>
-          <div className="flex gap-2 pt-4">
-            <AdminButton
-              variant="ghost"
-              className="flex-1"
-              onClick={() => {
-                setActionDialog(null);
-                setActionReason("");
-              }}
-            >
-              Cancel
-            </AdminButton>
-            <AdminButton
-              tone="red"
-              className="flex-1"
-              onClick={handleBanUser}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Banning..." : "Ban User"}
-            </AdminButton>
+          <div className="space-y-4 px-6 py-5">
+            <div className="rounded-lg border border-admin-red/30 bg-admin-red/10 p-3">
+              <p className="text-xs font-semibold text-admin-red uppercase">Warning</p>
+              <p className="text-sm text-admin-red/80 mt-1">
+                Banning this user cannot be undone. Ensure you have a valid reason.
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-admin-text-primary">
+                Reason for ban (optional)
+              </label>
+              <Input
+                value={actionReason}
+                onChange={(e) => setActionReason(e.target.value)}
+                placeholder="E.g., Fraudulent activity, Terms violation"
+                className={`mt-2 ${adminInputClassName}`}
+              />
+            </div>
+            <div className="flex gap-2 pt-2 border-t border-white/10">
+              <AdminButton
+                variant="ghost"
+                className="flex-1 mt-4"
+                onClick={() => {
+                  setActionDialog(null);
+                  setActionReason("");
+                }}
+              >
+                Cancel
+              </AdminButton>
+              <AdminButton
+                tone="red"
+                className="flex-1 mt-4"
+                onClick={handleBanUser}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Banning..." : "Ban User"}
+              </AdminButton>
+            </div>
           </div>
         </AdminDialogContent>
       </Dialog>

@@ -208,7 +208,10 @@ export async function updateUserPasswordAction(
   },
 ) {
   try {
-    const response = await api.patch(`/admin/users/${userId}/password`, payload);
+    const response = await api.patch(
+      `/admin/users/${userId}/password`,
+      payload,
+    );
     return response.data;
   } catch (err) {
     throw err instanceof Error ? err : new Error("Failed to update password");

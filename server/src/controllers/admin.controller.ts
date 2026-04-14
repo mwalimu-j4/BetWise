@@ -1971,7 +1971,9 @@ export async function updateUserPassword(req: Request, res: Response) {
 
   // Validation
   if (!password || !confirmPassword) {
-    return res.status(400).json({ message: "Password and confirmation are required" });
+    return res
+      .status(400)
+      .json({ message: "Password and confirmation are required" });
   }
 
   if (password !== confirmPassword) {
@@ -1979,7 +1981,9 @@ export async function updateUserPassword(req: Request, res: Response) {
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ message: "Password must be at least 6 characters" });
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 6 characters" });
   }
 
   const user = await prisma.user.findUnique({
