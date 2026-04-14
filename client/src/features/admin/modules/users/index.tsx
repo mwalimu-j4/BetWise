@@ -801,7 +801,8 @@ export default function Users() {
         onOpenChange={(open) => {
           if (!open) {
             setActionDialog(null);
-            setPasswordData({ password: "", confirmPassword: "" });
+            setPasswordData({ password: "" });
+            setShowPassword(false);
           }
         }}
       >
@@ -825,32 +826,28 @@ export default function Users() {
               <label className="text-sm font-semibold text-admin-text-primary">
                 New Password
               </label>
-              <Input
-                type="password"
-                value={passwordData.password}
-                onChange={(e) =>
-                  setPasswordData({ ...passwordData, password: e.target.value })
-                }
-                placeholder="Minimum 6 characters"
-                className={`mt-2 ${adminInputClassName}`}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-admin-text-primary">
-                Confirm Password
-              </label>
-              <Input
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={(e) =>
-                  setPasswordData({
-                    ...passwordData,
-                    confirmPassword: e.target.value,
-                  })
-                }
-                placeholder="Confirm password"
-                className={`mt-2 ${adminInputClassName}`}
-              />
+              <div className="relative mt-2">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={passwordData.password}
+                  onChange={(e) =>
+                    setPasswordData({ password: e.target.value })
+                  }
+                  placeholder="Minimum 6 characters"
+                  className={`${adminInputClassName} pr-10`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-muted hover:text-admin-text-primary transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
             </div>
             <div className="flex gap-2 pt-2 border-t border-white/10">
               <AdminButton
@@ -858,7 +855,8 @@ export default function Users() {
                 className="flex-1 mt-4"
                 onClick={() => {
                   setActionDialog(null);
-                  setPasswordData({ password: "", confirmPassword: "" });
+                  setPasswordData({ password: "" });
+                  setShowPassword(false);
                 }}
               >
                 Cancel
@@ -866,18 +864,25 @@ export default function Users() {
               <AdminButton
                 className="flex-1 mt-4"
                 onClick={handleChangePassword}
-                disabled={
-                  isSubmitting ||
-                  !passwordData.password ||
-                  !passwordData.confirmPassword
-                }
+                disabled={!passwordData.password}
               >
-                {isSubmitting ? "Updating..." : "Update Password"}
+                Update Password
               </AdminButton>
             </div>
           </div>
         </AdminDialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmPasswordDialog}
+        onOpenChange={setConfirmPasswordDialog}
+        title="Confirm Password Change"
+        description={`Are you sure you want to change the password to: ${passwordData.password}`}
+        confirmText="Change Password"
+        cancelText="Cancel"
+        onConfirm={handleConfirmPasswordChange}
+        isLoading={isSubmitting}
+      />
 
       <Dialog
         open={actionDialog?.type === "create"}
