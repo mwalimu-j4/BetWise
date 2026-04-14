@@ -115,6 +115,15 @@ export default function AdminShell() {
     );
   };
 
+  const isBanAppealNotification = (notification: AppNotification) => {
+    if (notification.audience !== "ADMIN" || notification.type !== "SYSTEM") {
+      return false;
+    }
+
+    const haystack = `${notification.title} ${notification.message}`.toLowerCase();
+    return haystack.includes("ban appeal");
+  };
+
   const isWithdrawalNotification = (notification: AppNotification) =>
     notification.type === "WITHDRAWAL_SUCCESS" ||
     notification.type === "WITHDRAWAL_FAILED" ||
@@ -125,6 +134,8 @@ export default function AdminShell() {
       return <CheckCircle2 size={20} className="text-emerald-500" />;
     if (notification.type === "WITHDRAWAL_FAILED")
       return <XCircle size={20} className="text-red-500" />;
+    if (isBanAppealNotification(notification))
+      return <Activity size={20} className="text-amber-400" />;
     if (isWithdrawalNotification(notification))
       return <Activity size={20} className="text-blue-400" />;
     return <Bell size={20} className="text-admin-text-secondary" />;
@@ -155,6 +166,16 @@ export default function AdminShell() {
 
     for (const item of incomingNotifications) {
       seen.add(item.id);
+    }
+
+    const newBanAppeals = incomingNotifications.filter(
+      isBanAppealNotification,
+    );
+
+    for (const notification of newBanAppeals) {
+      toast.error(notification.title || "New Ban Appeal", {
+        description: notification.message,
+      });
     }
 
     if (!withdrawalSoundEnabled) {
@@ -249,13 +270,13 @@ export default function AdminShell() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col overflow-hidden border-r border-admin-border bg-admin-card",
+            "fixed inset-y-0 left-0 z-50 flex w-70 max-w-[85vw] flex-col overflow-hidden border-r border-admin-border bg-admin-card",
             "shadow-[2px_0_12px_rgba(0,0,0,0.08)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0 lg:shadow-none",
             sidebarExpanded
-              ? "lg:w-[260px] lg:min-w-[260px]"
-              : "lg:w-[80px] lg:min-w-[80px]",
+              ? "lg:w-65 lg:min-w-65"
+              : "lg:w-20 lg:min-w-20",
           )}
         >
           {/* Sidebar Header */}
@@ -271,7 +292,7 @@ export default function AdminShell() {
                 !showNavLabels && "lg:hidden",
               )}
             >
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-dark)] shadow-sm">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-linear-to-br from-(--color-accent) to-(--color-accent-dark) shadow-sm">
                 <Zap
                   size={16}
                   color="var(--color-text-dark)"
@@ -453,7 +474,7 @@ export default function AdminShell() {
                     )}
                   />
                   {unreadCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-admin-card bg-admin-red px-1 text-[9px] font-bold text-white shadow-sm">
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-admin-card bg-admin-red px-1 text-[9px] font-bold text-white shadow-sm">
                       {Math.min(unreadCount, 99)}
                     </span>
                   )}
@@ -472,7 +493,7 @@ export default function AdminShell() {
                       )}
                     </div>
 
-                    <div className="app-scrollbar max-h-[400px] overflow-y-auto p-2">
+                    <div className="app-scrollbar max-h-100 overflow-y-auto p-2">
                       {notifications.length > 0 ? (
                         <div className="space-y-1">
                           {notifications.map((notification) => (
@@ -559,7 +580,7 @@ export default function AdminShell() {
                       : "border-transparent hover:bg-admin-bg/50 hover:border-admin-border/80",
                   )}
                 >
-                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-[11px] font-bold text-white shadow-inner">
+                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 text-[11px] font-bold text-white shadow-inner">
                     {user?.email.charAt(0).toUpperCase()}
                   </div>
                   <div className="hidden flex-col items-start text-left sm:flex">
@@ -575,7 +596,7 @@ export default function AdminShell() {
                 {userMenuOpen && (
                   <div className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-64 origin-top-right overflow-hidden rounded-[1.6rem] border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card/95 shadow-[0_16px_42px_-18px_rgba(0,0,0,0.42)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-3 border-b border-admin-border/50 p-4">
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-sm font-bold text-white shadow-inner">
+                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 text-sm font-bold text-white shadow-inner">
                         {user?.email.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -652,7 +673,7 @@ export default function AdminShell() {
                             align="end"
                             side="left"
                             sideOffset={12}
-                            className="min-w-[140px] rounded-xl shadow-[0_12px_28px_rgba(2,8,23,0.22)]"
+                            className="min-w-35 rounded-xl shadow-[0_12px_28px_rgba(2,8,23,0.22)]"
                           >
                             <DropdownMenuItem
                               onClick={() => setTheme("light")}

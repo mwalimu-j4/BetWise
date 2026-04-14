@@ -243,3 +243,19 @@ export async function createBanAppealAction(
     throw err instanceof Error ? err : new Error("Failed to submit appeal");
   }
 }
+
+export async function respondToBanAppealAction(
+  appealId: string,
+  action: "APPROVE" | "REJECT",
+  responseText: string,
+) {
+  try {
+    const response = await api.post(`/admin/appeals/${appealId}/respond`, {
+      action,
+      responseText,
+    });
+    return response.data;
+  } catch (err) {
+    throw err instanceof Error ? err : new Error("Failed to respond to appeal");
+  }
+}
