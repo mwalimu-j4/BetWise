@@ -780,85 +780,75 @@ export default function Users() {
       </Dialog>
 
       <Dialog
-        open={actionDialog?.type === "suspend"}
+        open={actionDialog?.type === "changePassword"}
         onOpenChange={(open) => {
           if (!open) {
             setActionDialog(null);
-            setActionReason("");
+            setPasswordData({ password: "", confirmPassword: "" });
           }
         }}
       >
         <AdminDialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Suspend User</DialogTitle>
+          <DialogHeader className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] px-6 py-5">
+            <DialogTitle>Change User Password</DialogTitle>
             <DialogDescription>
-              Suspended users cannot access the platform until unsuspended
+              Set a new password for this user account.
             </DialogDescription>
           </DialogHeader>
-          <div>
-            <label className="text-sm font-semibold text-admin-text-primary">
-              Reason (optional)
-            </label>
-            <Input
-              value={actionReason}
-              onChange={(e) => setActionReason(e.target.value)}
-              placeholder="E.g., Suspicious activity"
-              className={`mt-2 ${adminInputClassName}`}
-            />
-          </div>
-          <div className="flex gap-2 pt-4">
-            <AdminButton
-              variant="ghost"
-              className="flex-1"
-              onClick={() => {
-                setActionDialog(null);
-                setActionReason("");
-              }}
-            >
-              Cancel
-            </AdminButton>
-            <AdminButton
-              tone="gold"
-              className="flex-1"
-              onClick={handleSuspendUser}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Suspending..." : "Suspend User"}
-            </AdminButton>
-          </div>
-        </AdminDialogContent>
-      </Dialog>
-
-      <Dialog
-        open={actionDialog?.type === "unsuspend"}
-        onOpenChange={(open) => {
-          if (!open) {
-            setActionDialog(null);
-          }
-        }}
-      >
-        <AdminDialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Unsuspend User</DialogTitle>
-            <DialogDescription>
-              This will restore the user's access to the platform
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-2 pt-4">
-            <AdminButton
-              variant="ghost"
-              className="flex-1"
-              onClick={() => setActionDialog(null)}
-            >
-              Cancel
-            </AdminButton>
-            <AdminButton
-              className="flex-1"
-              onClick={handleUnsuspendUser}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Unsuspending..." : "Unsuspend User"}
-            </AdminButton>
+          <div className="space-y-4 px-6 py-5">
+            <div className="rounded-lg border border-admin-accent/30 bg-admin-accent/10 p-3">
+              <p className="text-xs font-semibold text-admin-accent uppercase">Note</p>
+              <p className="text-sm text-admin-accent/80 mt-1">
+                The user will need to use this new password to log in.
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-admin-text-primary">
+                New Password
+              </label>
+              <Input
+                type="password"
+                value={passwordData.password}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, password: e.target.value })
+                }
+                placeholder="Minimum 6 characters"
+                className={`mt-2 ${adminInputClassName}`}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-admin-text-primary">
+                Confirm Password
+              </label>
+              <Input
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                }
+                placeholder="Confirm password"
+                className={`mt-2 ${adminInputClassName}`}
+              />
+            </div>
+            <div className="flex gap-2 pt-2 border-t border-white/10">
+              <AdminButton
+                variant="ghost"
+                className="flex-1 mt-4"
+                onClick={() => {
+                  setActionDialog(null);
+                  setPasswordData({ password: "", confirmPassword: "" });
+                }}
+              >
+                Cancel
+              </AdminButton>
+              <AdminButton
+                className="flex-1 mt-4"
+                onClick={handleChangePassword}
+                disabled={isSubmitting || !passwordData.password || !passwordData.confirmPassword}
+              >
+                {isSubmitting ? "Updating..." : "Update Password"}
+              </AdminButton>
+            </div>
           </div>
         </AdminDialogContent>
       </Dialog>
