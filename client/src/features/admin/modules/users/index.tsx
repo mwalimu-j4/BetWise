@@ -112,7 +112,8 @@ export default function Users() {
   };
 
   const handleOpenChangePassword = (userId: string) => {
-    setPasswordData({ password: "", confirmPassword: "" });
+    setPasswordData({ password: "" });
+    setShowPassword(false);
     setActionDialog({ type: "changePassword", userId });
   };
 
