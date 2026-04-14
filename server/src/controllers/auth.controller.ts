@@ -223,11 +223,22 @@ export async function login(req: Request, res: Response) {
       createdAt: true,
       passwordHash: true,
       accountStatus: true,
+      bannedAt: true,
+      banReason: true,
     },
   });
 
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  if (user.bannedAt) {
+    return res.status(403).json({
+      message: "Your account has been banned and is no longer active.",
+      isBanned: true,
+      banReason: user.banReason || "No reason provided",
+      bannedAt: user.bannedAt?.toISOString(),
+    });
   }
 
   if (user.accountStatus === "SUSPENDED") {
