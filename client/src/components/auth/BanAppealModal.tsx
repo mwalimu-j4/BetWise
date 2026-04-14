@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { createBanAppealAction } from "@/hooks/useBanAppeals";
 import { toast } from "sonner";
 
@@ -43,8 +43,8 @@ export const BanAppealModal: React.FC<BanAppealModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <Dialog.Content className="max-w-md">
-        <Dialog.Title>Ban Appeal</Dialog.Title>
+      <DialogContent className="max-w-md">
+        <DialogTitle>Ban Appeal</DialogTitle>
         {banReason && (
           <div className="mb-2 rounded bg-red-100/10 p-2 text-red-400 text-sm">
             <strong>Ban Reason:</strong> {banReason}
@@ -52,7 +52,7 @@ export const BanAppealModal: React.FC<BanAppealModalProps> = ({
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <textarea
-            className="w-full rounded border border-gray-700 bg-black/30 p-2 text-sm text-white min-h-[80px]"
+            className="w-full rounded border border-gray-700 bg-black/30 p-2 text-sm text-white min-h-20"
             placeholder="Explain why you believe your ban should be lifted..."
             value={appealText}
             onChange={(e) => setAppealText(e.target.value)}
@@ -78,7 +78,7 @@ export const BanAppealModal: React.FC<BanAppealModalProps> = ({
             </button>
           </div>
         </form>
-      </Dialog.Content>
+      </DialogContent>
     </Dialog>
   );
 };
