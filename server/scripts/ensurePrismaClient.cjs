@@ -41,9 +41,21 @@ function findPnPmPrismaDir() {
 }
 
 function ensurePrismaLink() {
-  if (fs.existsSync(linkPath)) {
+  // Check if link exists - use lstatSync to detect broken symlinks
+  try {
+    fs.lstatSync(linkPath);
     console.log("[prisma-link] node_modules/.prisma already exists");
     return;
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      // Link exists but might be broken, so remove it
+      try {
+        fs.rmSync(linkPath, { recursive: true, force: true });
+        console.log("[prisma-link] removed existing broken link");
+      } catch (rmErr) {
+        console.error("[prisma-link] failed to remove existing link:", rmErr.message);
+      }
+    }
   }
 
   let target = findPnPmPrismaDir();
