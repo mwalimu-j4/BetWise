@@ -1,5 +1,8 @@
+/// <reference types="node" />
+
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 
 const prisma = new PrismaClient();
 
@@ -55,13 +58,29 @@ async function main() {
   try {
     console.log("Seeding admin and user accounts...");
 
+    const isProduction = process.env.NODE_ENV === "production";
+
+    const createStrongDevPassword = () => {
+      const randomSegment = randomBytes(12).toString("base64url");
+      return `Seed@${randomSegment}9!`;
+    };
+
     const adminEmail = process.env.ADMIN_EMAIL || "admin@betwise.local";
     const adminPhone = process.env.ADMIN_PHONE || "+254712345678";
-    const adminPassword = process.env.ADMIN_PASSWORD || "Admin@12345";
+    const adminPassword =
+      process.env.ADMIN_PASSWORD || createStrongDevPassword();
 
     const userEmail = process.env.USER_EMAIL || "user@betwise.local";
     const userPhone = process.env.USER_PHONE || "+254701234567";
-    const userPassword = process.env.USER_PASSWORD || "User@12345";
+    const userPassword = process.env.USER_PASSWORD || createStrongDevPassword();
+
+    if (isProduction) {
+      if (!process.env.ADMIN_PASSWORD || !process.env.USER_PASSWORD) {
+        throw new Error(
+          "ADMIN_PASSWORD and USER_PASSWORD must be set in production.",
+        );
+      }
+    }
 
     const [adminPasswordHash, userPasswordHash] = await Promise.all([
       bcrypt.hash(adminPassword, 12),
@@ -84,8 +103,11 @@ async function main() {
     ]);
 
     console.log("Seed complete.");
-    console.log(`ADMIN: ${admin.phone} / ${adminPassword}`);
-    console.log(`USER:  ${user.phone} / ${userPassword}`);
+
+    if (!isProduction) {
+      console.log(`ADMIN: ${admin.phone} / ${adminPassword}`);
+      console.log(`USER:  ${user.phone} / ${userPassword}`);
+    }
   } catch (error) {
     console.error("Seed failed:", error);
     process.exit(1);

@@ -29,10 +29,12 @@ type AuthResponse = {
 
 type AdminMfaRequiredResponse = {
   mfaRequired: true;
-  challengeId: string;
+  mfaMode: "totp_setup" | "totp_verify";
+  mfaToken: string;
   expiresInSeconds: number;
   message: string;
-  emailHint: string;
+  qrCodeDataUrl?: string;
+  manualEntryKey?: string;
 };
 
 type LoginResult =
@@ -42,10 +44,12 @@ type LoginResult =
     }
   | {
       status: "mfa_required";
-      challengeId: string;
+      mfaMode: "totp_setup" | "totp_verify";
+      mfaToken: string;
       expiresInSeconds: number;
       message: string;
-      emailHint: string;
+      qrCodeDataUrl?: string;
+      manualEntryKey?: string;
     };
 
 type MeResponse = {
@@ -73,7 +77,7 @@ type AuthContextValue = {
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<LoginResult>;
   verifyAdminMfa: (payload: {
-    challengeId: string;
+    mfaToken: string;
     otpCode: string;
   }) => Promise<AuthUser>;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
@@ -158,10 +162,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.status === 202 && "mfaRequired" in response.data) {
         return {
           status: "mfa_required" as const,
-          challengeId: response.data.challengeId,
+          mfaMode: response.data.mfaMode,
+          mfaToken: response.data.mfaToken,
           expiresInSeconds: response.data.expiresInSeconds,
           message: response.data.message,
-          emailHint: response.data.emailHint,
+          qrCodeDataUrl: response.data.qrCodeDataUrl,
+          manualEntryKey: response.data.manualEntryKey,
         };
       }
 
@@ -176,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const verifyAdminMfa = useCallback(
-    async (payload: { challengeId: string; otpCode: string }) => {
+    async (payload: { mfaToken: string; otpCode: string }) => {
       const { data } = await api.post<AuthResponse>(
         "/auth/login/verify-admin-mfa",
         payload,

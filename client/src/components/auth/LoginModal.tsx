@@ -38,9 +38,15 @@ export default function LoginModal() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+  const [mfaMode, setMfaMode] = useState<"totp_setup" | "totp_verify" | null>(
+    null,
+  );
   const [mfaCode, setMfaCode] = useState("");
-  const [mfaHint, setMfaHint] = useState("");
+  const [mfaQrCodeDataUrl, setMfaQrCodeDataUrl] = useState<string | null>(null);
+  const [mfaManualEntryKey, setMfaManualEntryKey] = useState<string | null>(
+    null,
+  );
 
   const formValid = useMemo(() => {
     return KENYAN_PHONE_REGEX.test(phone.trim()) && password.length > 0;
@@ -64,14 +70,12 @@ export default function LoginModal() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (mfaChallengeId && !/^\d{6}$/.test(mfaCode.trim())) {
-      setErrorMessage(
-        "Enter the 6-digit verification code sent to your email.",
-      );
+    if (mfaToken && !/^\d{6}$/.test(mfaCode.trim())) {
+      setErrorMessage("Enter the 6-digit code from Microsoft Authenticator.");
       return;
     }
 
-    if (!mfaChallengeId && !formValid) {
+    if (!mfaToken && !formValid) {
       setErrorMessage("Enter a valid Kenyan phone number and password.");
       return;
     }
@@ -80,9 +84,9 @@ export default function LoginModal() {
     setErrorMessage("");
 
     try {
-      if (mfaChallengeId) {
+      if (mfaToken) {
         await verifyAdminMfa({
-          challengeId: mfaChallengeId,
+          mfaToken,
           otpCode: mfaCode.trim(),
         });
 
@@ -91,17 +95,21 @@ export default function LoginModal() {
         await navigate({ to: "/admin" });
         setPhone("");
         setPassword("");
-        setMfaChallengeId(null);
+        setMfaToken(null);
+        setMfaMode(null);
         setMfaCode("");
-        setMfaHint("");
+        setMfaQrCodeDataUrl(null);
+        setMfaManualEntryKey(null);
         return;
       }
 
       const result = await login({ phone, password });
 
       if (result.status === "mfa_required") {
-        setMfaChallengeId(result.challengeId);
-        setMfaHint(result.emailHint);
+        setMfaToken(result.mfaToken);
+        setMfaMode(result.mfaMode);
+        setMfaQrCodeDataUrl(result.qrCodeDataUrl ?? null);
+        setMfaManualEntryKey(result.manualEntryKey ?? null);
         setErrorMessage("");
         toast.success(result.message);
         return;
@@ -122,9 +130,11 @@ export default function LoginModal() {
 
       setPhone("");
       setPassword("");
-      setMfaChallengeId(null);
+      setMfaToken(null);
+      setMfaMode(null);
       setMfaCode("");
-      setMfaHint("");
+      setMfaQrCodeDataUrl(null);
+      setMfaManualEntryKey(null);
     } catch (error: unknown) {
       const message = getLoginErrorMessage(error);
       setErrorMessage(message);
@@ -138,9 +148,11 @@ export default function LoginModal() {
     closeAuthModal();
     setPhone("");
     setPassword("");
-    setMfaChallengeId(null);
+    setMfaToken(null);
+    setMfaMode(null);
     setMfaCode("");
-    setMfaHint("");
+    setMfaQrCodeDataUrl(null);
+    setMfaManualEntryKey(null);
     setErrorMessage("");
   };
 
@@ -196,7 +208,7 @@ export default function LoginModal() {
             )}
 
             {/* Phone field */}
-            {!mfaChallengeId && (
+            {!mfaToken && (
               <div className="space-y-2">
                 <label
                   className="text-sm font-semibold text-white"
@@ -229,7 +241,7 @@ export default function LoginModal() {
             )}
 
             {/* Password field */}
-            {!mfaChallengeId && (
+            {!mfaToken && (
               <div className="space-y-2">
                 <label
                   className="text-sm font-semibold text-white"
@@ -263,13 +275,13 @@ export default function LoginModal() {
               </div>
             )}
 
-            {mfaChallengeId && (
+            {mfaToken && (
               <div className="space-y-2">
                 <label
                   className="text-sm font-semibold text-white"
                   htmlFor="login-mfa-code"
                 >
-                  Admin verification code
+                  Microsoft Authenticator code
                 </label>
                 <input
                   id="login-mfa-code"
@@ -286,13 +298,35 @@ export default function LoginModal() {
                   required
                 />
                 <p className="text-xs text-[#a8c4e0]">
-                  Code sent to {mfaHint || "your admin email"}.
+                  Enter the current 6-digit code from Microsoft Authenticator.
                 </p>
               </div>
             )}
 
+            {mfaToken && mfaMode === "totp_setup" && (
+              <div className="space-y-3 rounded-xl border border-[#3d6ba3]/40 bg-[#1a3a6b]/35 p-4">
+                <p className="text-xs text-[#a8c4e0]">
+                  First-time setup: scan this QR in Microsoft Authenticator,
+                  then enter the 6-digit code below.
+                </p>
+                {mfaQrCodeDataUrl && (
+                  <img
+                    src={mfaQrCodeDataUrl}
+                    alt="Authenticator setup QR code"
+                    className="h-40 w-40 rounded-lg border border-[#3d6ba3]/50 bg-white p-2"
+                  />
+                )}
+                {mfaManualEntryKey && (
+                  <p className="text-xs text-[#a8c4e0] break-all">
+                    Manual key:{" "}
+                    <span className="text-white">{mfaManualEntryKey}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Forgot Password Link */}
-            {!mfaChallengeId && (
+            {!mfaToken && (
               <div className="text-right pt-1">
                 <button
                   type="button"
@@ -310,8 +344,8 @@ export default function LoginModal() {
             <button
               type="submit"
               disabled={
-                (!mfaChallengeId && !formValid) ||
-                (Boolean(mfaChallengeId) && mfaCode.trim().length !== 6) ||
+                (!mfaToken && !formValid) ||
+                (Boolean(mfaToken) && mfaCode.trim().length !== 6) ||
                 isSubmitting
               }
               className="w-full py-3 mt-8 rounded-xl bg-gradient-to-r from-[#f5c518] to-[#e6b800] font-bold text-[#0d2137] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-xl hover:shadow-[#f5c518]/50 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
@@ -323,9 +357,7 @@ export default function LoginModal() {
                 </>
               ) : (
                 <>
-                  <span>
-                    {mfaChallengeId ? "Verify admin login" : "Sign in"}
-                  </span>
+                  <span>{mfaToken ? "Verify admin login" : "Sign in"}</span>
                   <ArrowRight size={16} />
                 </>
               )}

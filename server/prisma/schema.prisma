@@ -112,6 +112,8 @@ model User {
   passwordHash  String               @map("password_hash")
   isVerified    Boolean              @default(false) @map("is_verified")
   accountStatus AccountStatus        @default(ACTIVE) @map("account_status")
+  adminTotpEnabled Boolean           @default(false) @map("admin_totp_enabled")
+  adminTotpSecret  String?           @map("admin_totp_secret")
   bannedAt      DateTime?            @map("banned_at")
   role          UserRole             @default(USER)
   createdAt     DateTime             @default(now()) @map("created_at")

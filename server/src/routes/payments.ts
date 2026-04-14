@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate";
 import { requireAdmin } from "../middleware/requireAdmin";
-import { withdrawalRateLimiter } from "../middleware/rateLimiter";
+import {
+  depositRateLimiter,
+  withdrawalRateLimiter,
+} from "../middleware/rateLimiter";
 import { verifyMpesaCallback } from "../middleware/verifyMpesaCallback";
 import {
   approveWithdrawal,
@@ -41,7 +44,12 @@ paymentRouter.post(
 paymentRouter.get("/payments/wallet/summary", authenticate, getWalletSummary);
 
 // Deposit endpoints
-paymentRouter.post("/payments/mpesa/stk-push", authenticate, initiateStk);
+paymentRouter.post(
+  "/payments/mpesa/stk-push",
+  authenticate,
+  depositRateLimiter,
+  initiateStk,
+);
 paymentRouter.get(
   "/payments/mpesa/status/:transactionId",
   authenticate,

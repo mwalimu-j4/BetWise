@@ -51,20 +51,30 @@ export function getResetTokenSecret() {
 }
 
 export function createAccessToken(payload: AccessTokenPayload) {
-  return jwt.sign(payload, getAccessTokenSecret(), {
+  const options: jwt.SignOptions = {
     expiresIn: ACCESS_TOKEN_TTL_SECONDS,
     issuer: ACCESS_TOKEN_ISSUER,
-    audience: ACCESS_TOKEN_AUDIENCE,
     algorithm: "HS256",
-  });
+  };
+
+  if (ACCESS_TOKEN_AUDIENCE) {
+    options.audience = ACCESS_TOKEN_AUDIENCE;
+  }
+
+  return jwt.sign(payload, getAccessTokenSecret(), options);
 }
 
 export function verifyAccessToken(token: string) {
-  const decoded = jwt.verify(token, getAccessTokenSecret(), {
+  const options: jwt.VerifyOptions = {
     algorithms: ["HS256"],
     issuer: ACCESS_TOKEN_ISSUER,
-    audience: ACCESS_TOKEN_AUDIENCE,
-  });
+  };
+
+  if (ACCESS_TOKEN_AUDIENCE) {
+    options.audience = ACCESS_TOKEN_AUDIENCE;
+  }
+
+  const decoded = jwt.verify(token, getAccessTokenSecret(), options);
 
   if (
     !decoded ||

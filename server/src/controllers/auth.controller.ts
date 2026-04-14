@@ -1,14 +1,17 @@
 import type { Request, Response } from "express";
-import { randomBytes, randomInt } from "node:crypto";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
+import { verifySync } from "otplib";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import {
-  sendAdminLoginOtpEmail,
-  sendPasswordResetEmail,
-} from "../utils/emailUtils";
+  decryptAdminTotpSecret,
+  encryptAdminTotpSecret,
+} from "../utils/adminTotpSecretCrypto";
+import { sendPasswordResetEmail } from "../utils/emailUtils";
 import {
+  getAccessTokenSecret,
   createAccessToken,
   createRefreshToken,
   createResetToken,
@@ -22,9 +25,16 @@ import {
 const PASSWORD_SALT_ROUNDS = 12;
 const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
 const PASSWORD_MIN_LENGTH = 10;
-const ADMIN_MFA_CODE_LENGTH = 6;
 const ADMIN_MFA_TTL_MS = 10 * 60 * 1000;
-const ADMIN_MFA_MAX_ATTEMPTS = 5;
+const ADMIN_MFA_TOKEN_ISSUER = "betixpro-admin-mfa";
+const ADMIN_MFA_TOKEN_AUDIENCE = "betixpro-admin";
+
+type AdminMfaTokenPayload = {
+  sub: string;
+  role: "ADMIN";
+  purpose: "totp_setup" | "totp_verify";
+  secret?: string;
+};
 
 const registerSchema = z.object({
   email: z.string().trim().email("Provide a valid email address."),
@@ -39,7 +49,7 @@ const loginSchema = z.object({
 });
 
 const verifyAdminMfaSchema = z.object({
-  challengeId: z.string().trim().min(16),
+  mfaToken: z.string().trim().min(1),
   otpCode: z
     .string()
     .trim()
@@ -87,21 +97,6 @@ function validatePassword(password: string) {
   }
 
   return errors;
-}
-
-function generateAdminOtpCode() {
-  const min = 10 ** (ADMIN_MFA_CODE_LENGTH - 1);
-  const max = 10 ** ADMIN_MFA_CODE_LENGTH;
-  return String(randomInt(min, max));
-}
-
-function maskEmail(email: string) {
-  const [namePart, domainPart] = email.split("@");
-  if (!namePart || !domainPart || namePart.length < 2) {
-    return "***";
-  }
-
-  return `${namePart.slice(0, 1)}***${namePart.slice(-1)}@${domainPart}`;
 }
 
 async function isAdminTwoFactorRequired() {
@@ -168,6 +163,47 @@ function getAdminMfaFailureResponse(error: unknown) {
     status: 500,
     message: "Internal server error",
   };
+}
+
+function createAdminMfaToken(payload: AdminMfaTokenPayload) {
+  return jwt.sign(payload, getAccessTokenSecret(), {
+    algorithm: "HS256",
+    issuer: ADMIN_MFA_TOKEN_ISSUER,
+    audience: ADMIN_MFA_TOKEN_AUDIENCE,
+    expiresIn: Math.floor(ADMIN_MFA_TTL_MS / 1000),
+  });
+}
+
+function verifyAdminMfaToken(token: string) {
+  const decoded = jwt.verify(token, getAccessTokenSecret(), {
+    algorithms: ["HS256"],
+    issuer: ADMIN_MFA_TOKEN_ISSUER,
+    audience: ADMIN_MFA_TOKEN_AUDIENCE,
+  });
+
+  if (!decoded || typeof decoded !== "object") {
+    throw new Error("Invalid admin MFA token.");
+  }
+
+  const sub = "sub" in decoded ? decoded.sub : undefined;
+  const role = "role" in decoded ? decoded.role : undefined;
+  const purpose = "purpose" in decoded ? decoded.purpose : undefined;
+  const secret = "secret" in decoded ? decoded.secret : undefined;
+
+  if (
+    typeof sub !== "string" ||
+    role !== "ADMIN" ||
+    (purpose !== "totp_setup" && purpose !== "totp_verify")
+  ) {
+    throw new Error("Invalid admin MFA token payload.");
+  }
+
+  return {
+    sub,
+    role,
+    purpose,
+    secret: typeof secret === "string" ? secret : undefined,
+  } as AdminMfaTokenPayload;
 }
 
 function normalizeKenyanPhone(rawPhone: string) {
@@ -373,6 +409,8 @@ export async function login(req: Request, res: Response) {
       createdAt: true,
       passwordHash: true,
       accountStatus: true,
+      adminTotpEnabled: true,
+      adminTotpSecret: true,
     },
   });
 
@@ -395,48 +433,26 @@ export async function login(req: Request, res: Response) {
   }
 
   const requireAdminMfa =
-    user.role === "ADMIN" && (await isAdminTwoFactorRequired());
+    user.role === "ADMIN" &&
+    (await isAdminTwoFactorRequired()) &&
+    user.adminTotpEnabled &&
+    Boolean(user.adminTotpSecret);
 
   if (requireAdminMfa) {
     try {
-      await prisma.adminLoginChallenge.deleteMany({
-        where: {
-          userId: user.id,
-          OR: [
-            { consumedAt: { not: null } },
-            { expiresAt: { lte: new Date() } },
-          ],
-        },
-      });
-
-      const otpCode = generateAdminOtpCode();
-      const rawChallengeId = randomBytes(32).toString("hex");
-      const challengeHash = hashToken(rawChallengeId, getRefreshTokenSecret());
-      const otpHash = hashToken(otpCode, getRefreshTokenSecret());
-
-      await prisma.adminLoginChallenge.create({
-        data: {
-          userId: user.id,
-          challengeHash,
-          otpHash,
-          expiresAt: new Date(Date.now() + ADMIN_MFA_TTL_MS),
-          ipAddress: getIpAddress(req),
-          deviceInfo: req.headers["user-agent"] ?? null,
-        },
-      });
-
-      await sendAdminLoginOtpEmail({
-        email: user.email,
-        otpCode,
-        expiresInMinutes: Math.floor(ADMIN_MFA_TTL_MS / 60000),
+      const mfaToken = createAdminMfaToken({
+        sub: user.id,
+        role: "ADMIN",
+        purpose: "totp_verify",
       });
 
       return res.status(202).json({
         mfaRequired: true,
-        challengeId: rawChallengeId,
+        mfaMode: "totp_verify",
+        mfaToken,
         expiresInSeconds: Math.floor(ADMIN_MFA_TTL_MS / 1000),
-        message: "Admin verification code sent to your email.",
-        emailHint: maskEmail(user.email),
+        message:
+          "Enter the verification code from Microsoft Authenticator to continue.",
       });
     } catch (error) {
       console.error("Admin MFA login setup failed:", error);
@@ -463,94 +479,92 @@ export async function verifyAdminMfaLogin(req: Request, res: Response) {
     return res.status(400).json({ message: "Invalid verification request." });
   }
 
-  const challengeHash = hashToken(
-    parsed.data.challengeId,
-    getRefreshTokenSecret(),
-  );
-  const otpHash = hashToken(parsed.data.otpCode, getRefreshTokenSecret());
+  let tokenPayload: AdminMfaTokenPayload;
+  try {
+    tokenPayload = verifyAdminMfaToken(parsed.data.mfaToken);
+  } catch {
+    return res.status(401).json({ message: "Verification challenge invalid." });
+  }
 
-  const challenge = await prisma.adminLoginChallenge.findUnique({
-    where: { challengeHash },
-    include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          phone: true,
-          role: true,
-          isVerified: true,
-          createdAt: true,
-          accountStatus: true,
-        },
-      },
+  const user = await prisma.user.findUnique({
+    where: { id: tokenPayload.sub },
+    select: {
+      id: true,
+      email: true,
+      phone: true,
+      role: true,
+      isVerified: true,
+      createdAt: true,
+      accountStatus: true,
+      adminTotpEnabled: true,
+      adminTotpSecret: true,
     },
   });
 
-  if (!challenge || !challenge.user || challenge.user.role !== "ADMIN") {
+  if (!user || user.role !== "ADMIN") {
     return res.status(401).json({ message: "Verification challenge invalid." });
   }
 
-  if (challenge.consumedAt || challenge.expiresAt <= new Date()) {
-    return res.status(401).json({ message: "Verification challenge expired." });
-  }
-
-  if (challenge.attempts >= ADMIN_MFA_MAX_ATTEMPTS) {
-    return res.status(429).json({
-      message: "Maximum verification attempts exceeded. Log in again.",
-    });
-  }
-
-  const requestIp = getIpAddress(req);
-  const requestDeviceInfo = getDeviceInfo(req);
-  const enforceIpBinding = process.env.ADMIN_MFA_ENFORCE_IP === "true";
-
-  if (
-    challenge.deviceInfo &&
-    requestDeviceInfo &&
-    challenge.deviceInfo !== requestDeviceInfo
-  ) {
-    return res.status(401).json({ message: "Verification challenge invalid." });
-  }
-
-  if (
-    enforceIpBinding &&
-    challenge.ipAddress &&
-    requestIp &&
-    challenge.ipAddress !== requestIp
-  ) {
-    return res.status(401).json({ message: "Verification challenge invalid." });
-  }
-
-  if (challenge.otpHash !== otpHash) {
-    await prisma.adminLoginChallenge.update({
-      where: { id: challenge.id },
-      data: {
-        attempts: {
-          increment: 1,
-        },
-      },
-    });
-
-    return res.status(401).json({ message: "Invalid verification code." });
-  }
-
-  if (challenge.user.accountStatus === "SUSPENDED") {
+  if (user.accountStatus === "SUSPENDED") {
     return res
       .status(403)
       .json({ message: "This account has been suspended." });
   }
 
-  await prisma.adminLoginChallenge.update({
-    where: { id: challenge.id },
-    data: {
-      consumedAt: new Date(),
-    },
-  });
+  if (tokenPayload.purpose === "totp_setup") {
+    if (!tokenPayload.secret) {
+      return res.status(400).json({ message: "Invalid verification request." });
+    }
+
+    const result = verifySync({
+      token: parsed.data.otpCode,
+      secret: tokenPayload.secret,
+    });
+
+    if (!result.valid) {
+      return res.status(401).json({ message: "Invalid verification code." });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        adminTotpEnabled: true,
+        adminTotpSecret: encryptAdminTotpSecret(tokenPayload.secret),
+      },
+    });
+  } else {
+    if (!user.adminTotpEnabled || !user.adminTotpSecret) {
+      return res.status(400).json({
+        message:
+          "Authenticator is not configured for this account. Log in again to set up.",
+      });
+    }
+
+    const decryptedSecret = decryptAdminTotpSecret(user.adminTotpSecret);
+
+    const result = verifySync({
+      token: parsed.data.otpCode,
+      secret: decryptedSecret.secret,
+    });
+
+    if (!result.valid) {
+      return res.status(401).json({ message: "Invalid verification code." });
+    }
+
+    if (decryptedSecret.isLegacyPlaintext) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          adminTotpSecret: encryptAdminTotpSecret(decryptedSecret.secret),
+        },
+      });
+    }
+  }
 
   const session = await createAuthenticatedSession({
     req,
     res,
-    user: challenge.user,
+    user,
   });
 
   return res.status(200).json({
@@ -594,10 +608,23 @@ export async function refresh(req: Request, res: Response) {
     }
 
     const requestDeviceInfo = getDeviceInfo(req);
+    const requestIpAddress = getIpAddress(req);
     if (
       tokenRecord.deviceInfo &&
       requestDeviceInfo &&
       tokenRecord.deviceInfo !== requestDeviceInfo
+    ) {
+      await prisma.refreshToken.deleteMany({
+        where: { id: tokenRecord.id },
+      });
+      res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (
+      tokenRecord.ipAddress &&
+      requestIpAddress &&
+      tokenRecord.ipAddress !== requestIpAddress
     ) {
       await prisma.refreshToken.deleteMany({
         where: { id: tokenRecord.id },
@@ -629,7 +656,7 @@ export async function refresh(req: Request, res: Response) {
           userId: tokenRecord.userId,
           tokenHash: newRefreshHash,
           deviceInfo: getDeviceInfo(req),
-          ipAddress: getIpAddress(req),
+          ipAddress: requestIpAddress,
           expiresAt: getRefreshExpiryDate(),
         },
       }),

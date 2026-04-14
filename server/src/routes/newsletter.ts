@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticate, requireAuth } from "../middleware/authenticate";
 import { requireAdmin } from "../middleware/requireAdmin";
+import { newsletterRateLimiter } from "../middleware/rateLimiter";
 import {
   subscribeToNewsletter,
   unsubscribeFromNewsletter,
@@ -10,8 +11,16 @@ import {
 const newsletterRouter = Router();
 
 // Public routes - anyone can subscribe/unsubscribe
-newsletterRouter.post("/newsletter/subscribe", subscribeToNewsletter);
-newsletterRouter.post("/newsletter/unsubscribe", unsubscribeFromNewsletter);
+newsletterRouter.post(
+  "/newsletter/subscribe",
+  newsletterRateLimiter,
+  subscribeToNewsletter,
+);
+newsletterRouter.post(
+  "/newsletter/unsubscribe",
+  newsletterRateLimiter,
+  unsubscribeFromNewsletter,
+);
 
 // Admin routes - require admin authentication
 newsletterRouter.get(

@@ -1,8 +1,19 @@
 import type { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { generateSecret, generateURI, verifySync } from "otplib";
+import QRCode from "qrcode";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { getRefreshTokenCookieOptions } from "../utils/tokenUtils";
+import {
+  decryptAdminTotpSecret,
+  encryptAdminTotpSecret,
+} from "../utils/adminTotpSecretCrypto";
+import { sendMicrosoftAuthenticatorInstallEmail } from "../utils/emailUtils";
+import {
+  getAccessTokenSecret,
+  getRefreshTokenCookieOptions,
+} from "../utils/tokenUtils";
 
 const transactionsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -22,6 +33,77 @@ const deleteAccountSchema = z.object({
     .max(128, "Password is too long")
     .regex(/^[^<>]+$/, "Password contains unsupported characters"),
 });
+
+const adminTwoFactorEnableSchema = z.object({
+  setupToken: z.string().trim().min(1),
+  otpCode: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
+});
+
+const adminTwoFactorDisableSchema = z.object({
+  otpCode: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/),
+});
+
+const ADMIN_MFA_TTL_MS = 10 * 60 * 1000;
+const ADMIN_MFA_ISSUER =
+  process.env.ADMIN_TOTP_ISSUER?.trim() || "BetixPro Admin";
+const ADMIN_MFA_TOKEN_ISSUER = "betixpro-admin-mfa";
+const ADMIN_MFA_TOKEN_AUDIENCE = "betixpro-admin";
+
+type AdminMfaSetupTokenPayload = {
+  sub: string;
+  role: "ADMIN";
+  purpose: "totp_setup";
+  secret: string;
+};
+
+function createAdminMfaSetupToken(payload: AdminMfaSetupTokenPayload) {
+  return jwt.sign(payload, getAccessTokenSecret(), {
+    algorithm: "HS256",
+    issuer: ADMIN_MFA_TOKEN_ISSUER,
+    audience: ADMIN_MFA_TOKEN_AUDIENCE,
+    expiresIn: Math.floor(ADMIN_MFA_TTL_MS / 1000),
+  });
+}
+
+function verifyAdminMfaSetupToken(token: string) {
+  const decoded = jwt.verify(token, getAccessTokenSecret(), {
+    algorithms: ["HS256"],
+    issuer: ADMIN_MFA_TOKEN_ISSUER,
+    audience: ADMIN_MFA_TOKEN_AUDIENCE,
+  });
+
+  if (!decoded || typeof decoded !== "object") {
+    throw new Error("Invalid setup token.");
+  }
+
+  const sub = "sub" in decoded ? decoded.sub : undefined;
+  const role = "role" in decoded ? decoded.role : undefined;
+  const purpose = "purpose" in decoded ? decoded.purpose : undefined;
+  const secret = "secret" in decoded ? decoded.secret : undefined;
+
+  if (
+    typeof sub !== "string" ||
+    role !== "ADMIN" ||
+    purpose !== "totp_setup" ||
+    typeof secret !== "string" ||
+    secret.trim().length === 0
+  ) {
+    throw new Error("Invalid setup token payload.");
+  }
+
+  return {
+    sub,
+    role,
+    purpose,
+    secret,
+  } as AdminMfaSetupTokenPayload;
+}
 
 type PreferenceRecord = {
   theme: "dark" | "light";
@@ -83,6 +165,8 @@ export async function getProfile(req: Request, res: Response) {
       select: {
         phone: true,
         accountStatus: true,
+        role: true,
+        adminTotpEnabled: true,
       },
     }),
     prisma.wallet.findUnique({
@@ -119,6 +203,8 @@ export async function getProfile(req: Request, res: Response) {
       bonus: bonusAggregate._sum.amount ?? 0,
       preferences,
       live: true,
+      adminTwoFactorEnabled:
+        user.role === "ADMIN" ? user.adminTotpEnabled : undefined,
     },
   });
 }
@@ -245,6 +331,232 @@ export async function updateProfilePreferences(req: Request, res: Response) {
   return res.status(200).json({
     message: "Preferences updated",
     preferences: nextPreferences,
+  });
+}
+
+export async function getAdminTwoFactorStatus(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {
+      adminTotpEnabled: true,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "Account not found" });
+  }
+
+  return res.status(200).json({
+    enabled: user.adminTotpEnabled,
+  });
+}
+
+export async function startAdminTwoFactorSetup(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {
+      id: true,
+      email: true,
+      adminTotpEnabled: true,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "Account not found" });
+  }
+
+  if (user.adminTotpEnabled) {
+    return res.status(400).json({
+      message: "Two-factor authentication is already enabled.",
+    });
+  }
+
+  const secret = generateSecret();
+  const otpauthUrl = generateURI({
+    issuer: ADMIN_MFA_ISSUER,
+    label: user.email,
+    secret,
+  });
+  const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+  const setupToken = createAdminMfaSetupToken({
+    sub: user.id,
+    role: "ADMIN",
+    purpose: "totp_setup",
+    secret,
+  });
+
+  return res.status(200).json({
+    setupToken,
+    expiresInSeconds: Math.floor(ADMIN_MFA_TTL_MS / 1000),
+    qrCodeDataUrl,
+    manualEntryKey: secret,
+    message:
+      "Scan this code in Microsoft Authenticator, then submit a 6-digit code to enable 2FA.",
+  });
+}
+
+export async function sendAdminTwoFactorAppLink(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { email: true },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "Account not found" });
+  }
+
+  if (!user.email || user.email.trim().length === 0) {
+    return res.status(400).json({
+      message:
+        "Your account has no email address configured. You can skip this step and continue setup.",
+    });
+  }
+
+  try {
+    await sendMicrosoftAuthenticatorInstallEmail(user.email);
+  } catch (error: unknown) {
+    console.error("Failed to send Microsoft Authenticator install link:", {
+      userId: req.user.id,
+      error,
+    });
+
+    return res.status(503).json({
+      message:
+        "Unable to send Microsoft Authenticator install link right now. You can skip this step and continue setup.",
+    });
+  }
+
+  return res.status(200).json({
+    message:
+      "Microsoft Authenticator install links have been sent to your email.",
+  });
+}
+
+export async function enableAdminTwoFactor(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const parsed = adminTwoFactorEnableSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Invalid two-factor payload." });
+  }
+
+  let tokenPayload: AdminMfaSetupTokenPayload;
+
+  try {
+    tokenPayload = verifyAdminMfaSetupToken(parsed.data.setupToken);
+  } catch {
+    return res.status(401).json({ message: "Invalid setup token." });
+  }
+
+  if (tokenPayload.sub !== req.user.id) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const result = verifySync({
+    token: parsed.data.otpCode,
+    secret: tokenPayload.secret,
+  });
+
+  if (!result.valid) {
+    return res.status(401).json({ message: "Invalid verification code." });
+  }
+
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      adminTotpEnabled: true,
+      adminTotpSecret: encryptAdminTotpSecret(tokenPayload.secret),
+    },
+  });
+
+  return res.status(200).json({
+    message: "Two-factor authentication enabled successfully.",
+  });
+}
+
+export async function disableAdminTwoFactor(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const parsed = adminTwoFactorDisableSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Invalid two-factor payload." });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {
+      adminTotpEnabled: true,
+      adminTotpSecret: true,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "Account not found" });
+  }
+
+  if (!user.adminTotpEnabled || !user.adminTotpSecret) {
+    return res.status(400).json({
+      message: "Two-factor authentication is not enabled.",
+    });
+  }
+
+  const decryptedSecret = decryptAdminTotpSecret(user.adminTotpSecret);
+
+  const result = verifySync({
+    token: parsed.data.otpCode,
+    secret: decryptedSecret.secret,
+  });
+
+  if (!result.valid) {
+    return res.status(401).json({ message: "Invalid verification code." });
+  }
+
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      adminTotpEnabled: false,
+      adminTotpSecret: null,
+    },
+  });
+
+  return res.status(200).json({
+    message: "Two-factor authentication disabled successfully.",
   });
 }
 

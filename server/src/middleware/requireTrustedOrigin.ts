@@ -1,7 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 
 function getAllowedOrigins() {
-  const raw = process.env.FRONTEND_URL ?? "http://localhost:5173";
+  const raw =
+    process.env.CORS_ORIGINS ??
+    process.env.FRONTEND_URL ??
+    "http://localhost:5173";
 
   return raw
     .split(",")

@@ -4,11 +4,16 @@ import { requireOwnership } from "../middleware/requireOwnership";
 import { profileUpdateRateLimiter } from "../middleware/rateLimiter";
 import {
   deleteOwnAccount,
+  disableAdminTwoFactor,
+  enableAdminTwoFactor,
+  getAdminTwoFactorStatus,
   getProfile,
   getProfileBalance,
   getProfileTransactions,
+  sendAdminTwoFactorAppLink,
   getSingleProfileTransaction,
   getTransactionOwnerId,
+  startAdminTwoFactorSetup,
   updateProfilePreferences,
 } from "../controllers/profile.controller";
 
@@ -33,6 +38,31 @@ profileRouter.post(
   "/profile/delete-account",
   profileUpdateRateLimiter,
   deleteOwnAccount,
+);
+profileRouter.get(
+  "/profile/admin-2fa/status",
+  profileUpdateRateLimiter,
+  getAdminTwoFactorStatus,
+);
+profileRouter.post(
+  "/profile/admin-2fa/setup",
+  profileUpdateRateLimiter,
+  startAdminTwoFactorSetup,
+);
+profileRouter.post(
+  "/profile/admin-2fa/send-app-link",
+  profileUpdateRateLimiter,
+  sendAdminTwoFactorAppLink,
+);
+profileRouter.post(
+  "/profile/admin-2fa/enable",
+  profileUpdateRateLimiter,
+  enableAdminTwoFactor,
+);
+profileRouter.post(
+  "/profile/admin-2fa/disable",
+  profileUpdateRateLimiter,
+  disableAdminTwoFactor,
 );
 
 export { profileRouter };
