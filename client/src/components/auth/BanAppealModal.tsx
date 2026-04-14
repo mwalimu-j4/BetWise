@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { createBanAppealAction } from "@/hooks/useBanAppeals";
+import { createBanAppealAction } from "@/hooks/useUsers";
 import { toast } from "sonner";
 
 interface BanAppealModalProps {

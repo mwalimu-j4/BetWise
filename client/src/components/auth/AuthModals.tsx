@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import BanAppealModal from "./BanAppealModal";
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
 
@@ -21,7 +20,6 @@ export default function AuthModals() {
   return createPortal(
     <>
       <LoginModal />
-      <BanAppealModal />
       <RegisterModal />
     </>,
     document.body,
