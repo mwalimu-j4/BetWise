@@ -78,26 +78,26 @@ appealsRouter.get(
   "/appeals/my",
   authenticate,
   async (req: Request, res: Response) => {
-  if (!req.user?.id) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-  const appeals = await prisma.banAppeal.findMany({
-    where: { userId: req.user.id },
-    orderBy: { createdAt: "desc" },
-  });
+    const appeals = await prisma.banAppeal.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: "desc" },
+    });
 
-  return res.status(200).json({
-    appeals: appeals.map((appeal) => ({
-      id: appeal.id,
-      appealText: appeal.appealText,
-      status: appeal.status,
-      responseText: appeal.responseText,
-      createdAt: appeal.createdAt.toISOString(),
-      updatedAt: appeal.updatedAt.toISOString(),
-      reviewedAt: appeal.reviewedAt?.toISOString() || null,
-    })),
-  });
+    return res.status(200).json({
+      appeals: appeals.map((appeal) => ({
+        id: appeal.id,
+        appealText: appeal.appealText,
+        status: appeal.status,
+        responseText: appeal.responseText,
+        createdAt: appeal.createdAt.toISOString(),
+        updatedAt: appeal.updatedAt.toISOString(),
+        reviewedAt: appeal.reviewedAt?.toISOString() || null,
+      })),
+    });
   },
 );
 
@@ -110,29 +110,29 @@ appealsRouter.get(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-  const appealId = String(req.params.appealId);
+    const appealId = String(req.params.appealId);
 
-  const appeal = await prisma.banAppeal.findUnique({
-    where: { id: appealId },
-  });
+    const appeal = await prisma.banAppeal.findUnique({
+      where: { id: appealId },
+    });
 
-  if (!appeal) {
-    return res.status(404).json({ message: "Appeal not found" });
-  }
+    if (!appeal) {
+      return res.status(404).json({ message: "Appeal not found" });
+    }
 
-  if (appeal.userId !== req.user.id && req.user.role !== "ADMIN") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
+    if (appeal.userId !== req.user.id && req.user.role !== "ADMIN") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
 
-  return res.status(200).json({
-    id: appeal.id,
-    appealText: appeal.appealText,
-    status: appeal.status,
-    responseText: appeal.responseText,
-    createdAt: appeal.createdAt.toISOString(),
-    updatedAt: appeal.updatedAt.toISOString(),
-    reviewedAt: appeal.reviewedAt?.toISOString() || null,
-  });
+    return res.status(200).json({
+      id: appeal.id,
+      appealText: appeal.appealText,
+      status: appeal.status,
+      responseText: appeal.responseText,
+      createdAt: appeal.createdAt.toISOString(),
+      updatedAt: appeal.updatedAt.toISOString(),
+      reviewedAt: appeal.reviewedAt?.toISOString() || null,
+    });
   },
 );
 
