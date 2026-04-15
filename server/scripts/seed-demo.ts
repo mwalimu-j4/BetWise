@@ -688,7 +688,9 @@ async function seedTransactionsAndBets(
   );
   const walletBalance = new Map(wallets.map((wallet) => [wallet.walletId, 0]));
 
-  console.log(`  ▪ Generating deposits and bonuses for ${activeUsers.length} active user(s)...`);
+  console.log(
+    `  ▪ Generating deposits and bonuses for ${activeUsers.length} active user(s)...`,
+  );
   let depositCount = 0;
   let bonusCount = 0;
 
