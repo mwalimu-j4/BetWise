@@ -549,4 +549,34 @@ model NewsletterSubscription {
   @@map("newsletter_subscriptions")
 }
 
+model CustomEvent {
+  id             String    @id @default(uuid()) @db.Uuid
+  eventId        String    @unique @map("event_id")
+  userId         String    @map("user_id") @db.Uuid
+  homeTeam       String    @map("home_team")
+  awayTeam       String    @map("away_team")
+  sport          String    @default("custom")
+  league         String?
+  commenceTime   DateTime  @map("commence_time")
+  status         EventStatus @default(UPCOMING)
+  homeScore      Int?      @map("home_score")
+  awayScore      Int?      @map("away_score")
+  
+  // Market odds for user-created events
+  h2hOdds        Json?     @map("h2h_odds") // { home: number, draw?: number, away: number }
+  spreadsOdds    Json?     @map("spreads_odds") // { spread: number, odds: { team1: number, team2: number } }
+  totalsOdds     Json?     @map("totals_odds") // { total: number, odds: { over: number, under: number } }
+  
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  
+  @@index([userId])
+  @@index([status])
+  @@index([commenceTime])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("custom_events")
+}
+
 
