@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   AlertCircle,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -103,10 +104,11 @@ export default function Dashboard() {
   const [viewDetailsDialogOpen, setViewDetailsDialogOpen] = useState(false);
   const [showAllStatsMobile, setShowAllStatsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [financePeriod, setFinancePeriod] = useState<"1m" | "6m">("1m");
-  const [registrationPeriod, setRegistrationPeriod] = useState<"1m" | "6m">(
-    "1m",
-  );
+  const [financePeriod, setFinancePeriod] = useState<"1w" | "1m" | "6m">("1w");
+  const [registrationPeriod, setRegistrationPeriod] = useState<
+    "1w" | "1m" | "6m"
+  >("1w");
+
   const itemsPerPage = 5;
 
   const handleExportCSV = () => {
@@ -310,15 +312,26 @@ export default function Dashboard() {
                   <AdminButton
                     variant="ghost"
                     size="sm"
-                    className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-accent/10"
+                    className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-accent/10 flex items-center gap-1"
                   >
-                    {financePeriod === "1m" ? "1 Month" : "6 Months"}
+                    {financePeriod === "1w"
+                      ? "1 Week"
+                      : financePeriod === "1m"
+                        ? "1 Month"
+                        : "6 Months"}
+                    <ChevronDown size={14} />
                   </AdminButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
                   className={adminDropdownContentClassName}
                 >
+                  <DropdownMenuItem
+                    className={adminDropdownItemClassName}
+                    onClick={() => setFinancePeriod("1w")}
+                  >
+                    {financePeriod === "1w" && "✓ "}Past 1 Week
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     className={adminDropdownItemClassName}
                     onClick={() => setFinancePeriod("1m")}
@@ -354,15 +367,26 @@ export default function Dashboard() {
                   <AdminButton
                     variant="ghost"
                     size="sm"
-                    className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-accent/10"
+                    className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-accent/10 flex items-center gap-1"
                   >
-                    {registrationPeriod === "1m" ? "1 Month" : "6 Months"}
+                    {registrationPeriod === "1w"
+                      ? "1 Week"
+                      : registrationPeriod === "1m"
+                        ? "1 Month"
+                        : "6 Months"}
+                    <ChevronDown size={14} />
                   </AdminButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
                   className={adminDropdownContentClassName}
                 >
+                  <DropdownMenuItem
+                    className={adminDropdownItemClassName}
+                    onClick={() => setRegistrationPeriod("1w")}
+                  >
+                    {registrationPeriod === "1w" && "✓ "}Past 1 Week
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     className={adminDropdownItemClassName}
                     onClick={() => setRegistrationPeriod("1m")}

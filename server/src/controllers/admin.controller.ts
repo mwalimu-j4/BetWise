@@ -545,12 +545,19 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
   }
 
   // Parse period query parameters
-  const financePeriod = (req.query.financePeriod as string) || "1m";
-  const registrationPeriod = (req.query.registrationPeriod as string) || "1m";
+  const financePeriod = (req.query.financePeriod as string) || "1w";
+  const registrationPeriod = (req.query.registrationPeriod as string) || "1w";
 
-  const getFinanceTrendDays = (period: string) => (period === "6m" ? 180 : 30);
-  const getRegistrationTrendDays = (period: string) =>
-    period === "6m" ? 180 : 30;
+  const getFinanceTrendDays = (period: string) => {
+    if (period === "6m") return 180;
+    if (period === "1m") return 30;
+    return 7; // 1w
+  };
+  const getRegistrationTrendDays = (period: string) => {
+    if (period === "6m") return 180;
+    if (period === "1m") return 30;
+    return 7; // 1w
+  };
 
   const financeTrendDays = getFinanceTrendDays(financePeriod);
   const registrationTrendDays = getRegistrationTrendDays(registrationPeriod);
