@@ -104,7 +104,9 @@ export default function Dashboard() {
   const [showAllStatsMobile, setShowAllStatsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [financePeriod, setFinancePeriod] = useState<"1m" | "6m">("1m");
-  const [registrationPeriod, setRegistrationPeriod] = useState<"1m" | "6m">("1m");
+  const [registrationPeriod, setRegistrationPeriod] = useState<"1m" | "6m">(
+    "1m",
+  );
   const itemsPerPage = 5;
 
   const handleExportCSV = () => {
@@ -313,7 +315,10 @@ export default function Dashboard() {
                     {financePeriod === "1m" ? "1 Month" : "6 Months"}
                   </AdminButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className={adminDropdownContentClassName}>
+                <DropdownMenuContent
+                  align="end"
+                  className={adminDropdownContentClassName}
+                >
                   <DropdownMenuItem
                     className={adminDropdownItemClassName}
                     onClick={() => setFinancePeriod("1m")}
@@ -354,7 +359,10 @@ export default function Dashboard() {
                     {registrationPeriod === "1m" ? "1 Month" : "6 Months"}
                   </AdminButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className={adminDropdownContentClassName}>
+                <DropdownMenuContent
+                  align="end"
+                  className={adminDropdownContentClassName}
+                >
                   <DropdownMenuItem
                     className={adminDropdownItemClassName}
                     onClick={() => setRegistrationPeriod("1m")}

@@ -549,7 +549,8 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
   const registrationPeriod = (req.query.registrationPeriod as string) || "1m";
 
   const getFinanceTrendDays = (period: string) => (period === "6m" ? 180 : 30);
-  const getRegistrationTrendDays = (period: string) => (period === "6m" ? 180 : 30);
+  const getRegistrationTrendDays = (period: string) =>
+    period === "6m" ? 180 : 30;
 
   const financeTrendDays = getFinanceTrendDays(financePeriod);
   const registrationTrendDays = getRegistrationTrendDays(registrationPeriod);
@@ -559,11 +560,15 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
 
   // Finance trend dates
   const financeTrendStart = startOfDay(new Date(todayStart));
-  financeTrendStart.setDate(financeTrendStart.getDate() - (financeTrendDays - 1));
+  financeTrendStart.setDate(
+    financeTrendStart.getDate() - (financeTrendDays - 1),
+  );
 
   // Registration trend dates
   const registrationTrendStart = startOfDay(new Date(todayStart));
-  registrationTrendStart.setDate(registrationTrendStart.getDate() - (registrationTrendDays - 1));
+  registrationTrendStart.setDate(
+    registrationTrendStart.getDate() - (registrationTrendDays - 1),
+  );
 
   const yesterdayStart = startOfDay(new Date(todayStart));
   yesterdayStart.setDate(yesterdayStart.getDate() - 1);
@@ -750,10 +755,10 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     const key = formatDateKey(date);
 
     trendByDate.set(key, {
-      period: date.toLocaleDateString("en-KE", { 
+      period: date.toLocaleDateString("en-KE", {
         weekday: financeTrendDays <= 30 ? "short" : undefined,
         month: financeTrendDays > 30 ? "short" : undefined,
-        day: "numeric"
+        day: "numeric",
       }),
       deposits: 0,
       withdrawals: 0,
@@ -805,13 +810,17 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     }
   >();
 
-  for (let offset = 0; offset < TREND_DAYS; offset += 1) {
-    const date = new Date(trendStart);
-    date.setDate(trendStart.getDate() + offset);
+  for (let offset = 0; offset < registrationTrendDays; offset += 1) {
+    const date = new Date(registrationTrendStart);
+    date.setDate(registrationTrendStart.getDate() + offset);
     const key = formatDateKey(date);
 
     registrationByDate.set(key, {
-      period: date.toLocaleDateString("en-KE", { weekday: "short" }),
+      period: date.toLocaleDateString("en-KE", {
+        weekday: registrationTrendDays <= 30 ? "short" : undefined,
+        month: registrationTrendDays > 30 ? "short" : undefined,
+        day: "numeric",
+      }),
       registrations: 0,
     });
   }
