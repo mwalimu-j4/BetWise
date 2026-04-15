@@ -147,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // No-op: clear local auth state even if backend call fails.
     } finally {
       clearAuthState(setUser, setAccessTokenState);
+      setAuthModal("none");
     }
   }, []);
 

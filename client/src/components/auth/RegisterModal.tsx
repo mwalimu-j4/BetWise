@@ -9,6 +9,7 @@ import {
   Mail,
   Phone,
   UserPlus,
+  X,
 } from "lucide-react";
 import { useCallback, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
@@ -93,6 +94,21 @@ export default function RegisterModal() {
     }));
   }, []);
 
+  const resetAuthState = useCallback(() => {
+    setEmail("");
+    setPhone("");
+    setPassword("");
+    setConfirmPassword("");
+    setErrors({});
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    closeAuthModal();
+    resetAuthState();
+  }, [closeAuthModal, resetAuthState]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSubmit) {
@@ -114,13 +130,9 @@ export default function RegisterModal() {
       });
 
       toast.success("Account created successfully. Welcome to BetixPro.");
-      closeAuthModal();
+      handleClose();
 
       // Navigate to user dashboard after successful registration
-      setEmail("");
-      setPhone("");
-      setPassword("");
-      setConfirmPassword("");
       await navigate({ to: "/user" });
     } catch (error: unknown) {
       const parsedErrors = extractRegisterErrors(error);
@@ -139,7 +151,8 @@ export default function RegisterModal() {
         <>
           {/* Overlay - Full page coverage */}
           <div
-            className="fixed top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"
+            onClick={handleClose}
+            className="fixed top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 animate-in fade-in cursor-pointer"
             style={{
               position: "fixed",
               width: "100vw",
@@ -155,20 +168,33 @@ export default function RegisterModal() {
             className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none"
             style={{ width: "100vw", height: "100vh", zIndex: 99999 }}
           >
-            <div className="pointer-events-auto w-full max-w-md rounded-2xl border border-[#3d6ba3]/50 bg-gradient-to-br from-[#0d2137] via-[#1a3a6b] to-[#0d2137] p-8 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div
+              className="pointer-events-auto w-full max-w-md rounded-2xl border border-[#3d6ba3]/50 bg-linear-to-br from-[#0d2137] via-[#1a3a6b] to-[#0d2137] p-8 shadow-2xl shadow-black/80 animate-in fade-in slide-in-from-bottom-4 duration-300"
+              onClick={(e) => e.stopPropagation()}
+            >
               {/* Header */}
-              <div className="mb-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#f5c518] to-[#e6b800]">
+              <div className="mb-6 flex items-start justify-between">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-[#f5c518] to-[#e6b800] shrink-0">
                     <Lock size={20} className="text-slate-900" />
                   </div>
-                  <h2 className="text-xl font-bold text-white">
-                    Create account
-                  </h2>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">
+                      Create account
+                    </h2>
+                    <p className="text-sm text-[#a8c4e0]">
+                      Join BetixPro and start betting smart
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-[#a8c4e0]">
-                  Join BetixPro and start betting smart
-                </p>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="text-slate-400 hover:text-white transition-colors shrink-0 ml-2"
+                  aria-label="Close modal"
+                >
+                  <X size={24} />
+                </button>
               </div>
 
               <form className="space-y-4" onSubmit={handleSubmit}>

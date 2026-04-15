@@ -11,6 +11,7 @@ import {
   Lock,
   Phone,
   ShieldAlert,
+  X,
 } from "lucide-react";
 import {
   useCallback,
@@ -106,10 +107,11 @@ export default function LoginModal() {
     setBanReason(null);
   }, []);
 
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback(async () => {
     closeAuthModal();
     resetAuthState();
-  }, [closeAuthModal, resetAuthState]);
+    await navigate({ to: "/" });
+  }, [closeAuthModal, resetAuthState, navigate]);
 
   const handleSubmitAppeal = async () => {
     if (!banAppealToken || banAppealText.trim().length < 10) {
@@ -225,7 +227,8 @@ export default function LoginModal() {
     <>
       {/* Overlay - Full page coverage */}
       <div
-        className="fixed top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"
+        onClick={handleClose}
+        className="fixed top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 animate-in fade-in cursor-pointer"
         role="presentation"
         style={{
           position: "fixed",
@@ -247,9 +250,9 @@ export default function LoginModal() {
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-[#f5c518] to-[#e6b800] shadow-lg shadow-[#f5c518]/40">
+          <div className="mb-8 flex items-start justify-between">
+            <div className="flex items-start gap-3 flex-1">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-[#f5c518] to-[#e6b800] shadow-lg shadow-[#f5c518]/40 shrink-0">
                 <Lock size={20} className="text-[#0d2137]" />
               </div>
               <div>
@@ -259,6 +262,14 @@ export default function LoginModal() {
                 </p>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="text-slate-400 hover:text-white transition-colors shrink-0 ml-2"
+              aria-label="Close modal"
+            >
+              <X size={24} />
+            </button>
           </div>
 
           {isBanAppealMode ? (
