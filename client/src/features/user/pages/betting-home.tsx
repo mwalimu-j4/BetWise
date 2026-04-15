@@ -5,7 +5,13 @@ import LiveTicker from "../components/LiveTicker";
 import useBetSlip from "../hooks/useBetSlip";
 import useEvents from "../hooks/useEvents";
 import SportEvents from "./sport-events";
-import { ChevronLeft, ChevronRight, RefreshCw, Flame, Calendar } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  Flame,
+  Calendar,
+} from "lucide-react";
 import heroOne from "@/assets/h1.jfif";
 import heroTwo from "@/assets/h2.jfif";
 import heroThree from "@/assets/h3.jfif";
@@ -162,8 +168,6 @@ export default function BettingHome() {
                       Win Bigger
                     </span>
                   </h1>
-
-
                 </div>
 
                 {/* Dot indicators */}
@@ -215,7 +219,8 @@ export default function BettingHome() {
             <div className="flex min-w-max gap-1.5 sm:gap-2">
               {tabs.map((tab) => {
                 const isActive =
-                  selectedSport === tab.sportKey && selectedLeague === tab.league;
+                  selectedSport === tab.sportKey &&
+                  selectedLeague === tab.league;
 
                 return (
                   <button
@@ -255,7 +260,9 @@ export default function BettingHome() {
         {/* ═══════════════════════════════════════════════════
             MAIN CONTENT AREA — events + betslip (sticky right on desktop)
           ═══════════════════════════════════════════════════ */}
-        <div className={`betting-content mt-3 min-w-0 sm:mt-4 ${hasSelections ? "lg:flex lg:items-start lg:gap-5" : ""}`}>
+        <div
+          className={`betting-content mt-3 min-w-0 sm:mt-4 ${hasSelections ? "lg:flex lg:items-start lg:gap-5" : ""}`}
+        >
           <div
             className={`events-pane min-w-0 ${
               hasSelections ? "lg:min-w-0 lg:flex-1" : ""
