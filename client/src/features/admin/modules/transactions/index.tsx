@@ -245,22 +245,16 @@ export default function Transactions() {
             <table className="w-full">
               <thead className="bg-admin-surface/30 border-b border-white/10">
                 <tr>
-                  {[
-                    "#",
-                    "Phone",
-                    "Type",
-                    "Amount",
-                    "Status",
-                    "Date",
-                    "",
-                  ].map((heading, i) => (
-                    <th
-                      key={i}
-                      className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
-                    >
-                      {heading}
-                    </th>
-                  ))}
+                  {["#", "Phone", "Type", "Amount", "Status", "Date", ""].map(
+                    (heading, i) => (
+                      <th
+                        key={i}
+                        className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
+                      >
+                        {heading}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
