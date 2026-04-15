@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   AlertCircle,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -38,6 +39,7 @@ import {
   AdminSectionHeader,
   AdminStatCard,
   DepositWithdrawalChart,
+  UserRegistrationChart,
   InlinePill,
   StatusBadge,
   TableShell,
@@ -79,6 +81,10 @@ type DashboardSummaryResponse = {
       deposits: number;
       withdrawals: number;
     }>;
+    registrationTrend: Array<{
+      period: string;
+      registrations: number;
+    }>;
     totals: {
       deposits7d: number;
       withdrawals7d: number;
@@ -98,6 +104,11 @@ export default function Dashboard() {
   const [viewDetailsDialogOpen, setViewDetailsDialogOpen] = useState(false);
   const [showAllStatsMobile, setShowAllStatsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [financePeriod, setFinancePeriod] = useState<"1w" | "1m" | "6m">("1w");
+  const [registrationPeriod, setRegistrationPeriod] = useState<
+    "1w" | "1m" | "6m"
+  >("1w");
+
   const itemsPerPage = 5;
 
   const handleExportCSV = () => {
@@ -145,10 +156,16 @@ export default function Dashboard() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin-dashboard-summary"],
+    queryKey: ["admin-dashboard-summary", financePeriod, registrationPeriod],
     queryFn: async () => {
       const response = await api.get<DashboardSummaryResponse>(
         "/admin/dashboard/summary",
+        {
+          params: {
+            financePeriod,
+            registrationPeriod,
+          },
+        },
       );
 
       return response.data;
@@ -279,36 +296,122 @@ export default function Dashboard() {
         ) : null}
 
         {/* Charts */}
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-4">
+        <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
           <AdminCard className="p-3 sm:p-4 overflow-hidden w-full">
-            <AdminCardHeader
-              title="Deposit vs Withdrawal Trend"
-              subtitle="Completed transactions over last 7 days"
-            />
-            <div className="w-full overflow-x-auto">
-              <DepositWithdrawalChart data={chartData} compact />
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-admin-border/40">
+              <div>
+                <h3 className="text-sm font-semibold text-admin-text-primary">
+                  Deposit vs Withdrawal Trend
+                </h3>
+                <p className="text-xs text-admin-text-muted mt-1">
+                  Completed transactions
+                </p>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <AdminButton
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-accent/10 flex items-center gap-1"
+                  >
+                    {financePeriod === "1w"
+                      ? "1 Week"
+                      : financePeriod === "1m"
+                        ? "1 Month"
+                        : "6 Months"}
+                    <ChevronDown size={14} />
+                  </AdminButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className={adminDropdownContentClassName}
+                >
+                  <DropdownMenuItem
+                    className={adminDropdownItemClassName}
+                    onClick={() => setFinancePeriod("1w")}
+                  >
+                    {financePeriod === "1w" && "✓ "}Past 1 Week
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={adminDropdownItemClassName}
+                    onClick={() => setFinancePeriod("1m")}
+                  >
+                    {financePeriod === "1m" && "✓ "}Past Month
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={adminDropdownItemClassName}
+                    onClick={() => setFinancePeriod("6m")}
+                  >
+                    {financePeriod === "6m" && "✓ "}Past 6 Months
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="w-full">
+              <DepositWithdrawalChart
+                data={chartData}
+                compact
+                period={financePeriod}
+              />
             </div>
           </AdminCard>
 
-          <AdminCard className="hidden w-full p-3 sm:p-4 lg:block">
-            <AdminCardHeader title="7 Day Totals" subtitle="Liquidity" />
-            <div className="space-y-2.5 pt-2">
-              <div className="rounded-lg border border-admin-border bg-admin-surface/60 p-2.5">
-                <p className="text-[9px] uppercase tracking-[0.08em] text-admin-text-muted">
-                  Deposits
-                </p>
-                <p className="mt-1 text-base font-bold text-admin-accent sm:text-lg">
-                  {formatCurrency(data?.charts.totals.deposits7d ?? 0)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-admin-border bg-admin-surface/60 p-2.5">
-                <p className="text-[9px] uppercase tracking-[0.08em] text-admin-text-muted">
-                  Withdrawals
-                </p>
-                <p className="mt-1 text-base font-bold text-admin-gold sm:text-lg">
-                  {formatCurrency(data?.charts.totals.withdrawals7d ?? 0)}
+          <AdminCard className="p-3 sm:p-4 overflow-hidden w-full">
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-admin-border/40">
+              <div>
+                <h3 className="text-sm font-semibold text-admin-text-primary">
+                  User Registration Trend
+                </h3>
+                <p className="text-xs text-admin-text-muted mt-1">
+                  New user signups
                 </p>
               </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <AdminButton
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full border-admin-border/70 bg-admin-surface/65 px-3 text-[11px] font-semibold text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-accent/10 flex items-center gap-1"
+                  >
+                    {registrationPeriod === "1w"
+                      ? "1 Week"
+                      : registrationPeriod === "1m"
+                        ? "1 Month"
+                        : "6 Months"}
+                    <ChevronDown size={14} />
+                  </AdminButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className={adminDropdownContentClassName}
+                >
+                  <DropdownMenuItem
+                    className={adminDropdownItemClassName}
+                    onClick={() => setRegistrationPeriod("1w")}
+                  >
+                    {registrationPeriod === "1w" && "✓ "}Past 1 Week
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={adminDropdownItemClassName}
+                    onClick={() => setRegistrationPeriod("1m")}
+                  >
+                    {registrationPeriod === "1m" && "✓ "}Past Month
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={adminDropdownItemClassName}
+                    onClick={() => setRegistrationPeriod("6m")}
+                  >
+                    {registrationPeriod === "6m" && "✓ "}Past 6 Months
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="w-full">
+              <UserRegistrationChart
+                data={data?.charts.registrationTrend ?? []}
+                compact
+                period={registrationPeriod}
+              />
             </div>
           </AdminCard>
         </div>

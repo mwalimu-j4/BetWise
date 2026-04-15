@@ -544,11 +544,38 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     return res.status(403).json({ message: "Admin access required." });
   }
 
+  // Parse period query parameters
+  const financePeriod = (req.query.financePeriod as string) || "1w";
+  const registrationPeriod = (req.query.registrationPeriod as string) || "1w";
+
+  const getFinanceTrendDays = (period: string) => {
+    if (period === "6m") return 180;
+    if (period === "1m") return 30;
+    return 7; // 1w
+  };
+  const getRegistrationTrendDays = (period: string) => {
+    if (period === "6m") return 180;
+    if (period === "1m") return 30;
+    return 7; // 1w
+  };
+
+  const financeTrendDays = getFinanceTrendDays(financePeriod);
+  const registrationTrendDays = getRegistrationTrendDays(registrationPeriod);
+
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const trendStart = startOfDay(new Date(todayStart));
-  trendStart.setDate(trendStart.getDate() - (TREND_DAYS - 1));
+  // Finance trend dates
+  const financeTrendStart = startOfDay(new Date(todayStart));
+  financeTrendStart.setDate(
+    financeTrendStart.getDate() - (financeTrendDays - 1),
+  );
+
+  // Registration trend dates
+  const registrationTrendStart = startOfDay(new Date(todayStart));
+  registrationTrendStart.setDate(
+    registrationTrendStart.getDate() - (registrationTrendDays - 1),
+  );
 
   const yesterdayStart = startOfDay(new Date(todayStart));
   yesterdayStart.setDate(yesterdayStart.getDate() - 1);
@@ -574,6 +601,7 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     averageDepositToday,
     averageWithdrawalToday,
     trendTransactions,
+    registrationTrendUsers,
     recentTransactions,
     activeRiskAlerts,
     activeBets,
@@ -673,11 +701,21 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
       where: {
         status: "COMPLETED",
         type: { in: ["DEPOSIT", "WITHDRAWAL"] },
-        createdAt: { gte: trendStart },
+        createdAt: { gte: financeTrendStart },
       },
       select: {
         type: true,
         amount: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.user.findMany({
+      where: {
+        role: "USER",
+        createdAt: { gte: registrationTrendStart },
+      },
+      select: {
         createdAt: true,
       },
       orderBy: { createdAt: "asc" },
@@ -718,13 +756,17 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     }
   >();
 
-  for (let offset = 0; offset < TREND_DAYS; offset += 1) {
-    const date = new Date(trendStart);
-    date.setDate(trendStart.getDate() + offset);
+  for (let offset = 0; offset < financeTrendDays; offset += 1) {
+    const date = new Date(financeTrendStart);
+    date.setDate(financeTrendStart.getDate() + offset);
     const key = formatDateKey(date);
 
     trendByDate.set(key, {
-      period: date.toLocaleDateString("en-KE", { weekday: "short" }),
+      period: date.toLocaleDateString("en-KE", {
+        weekday: financeTrendDays <= 30 ? "short" : undefined,
+        month: financeTrendDays > 30 ? "short" : undefined,
+        day: "numeric",
+      }),
       deposits: 0,
       withdrawals: 0,
     });
@@ -765,6 +807,41 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
 
   const averageDeposit = Math.round(averageDepositToday._avg.amount ?? 0);
   const averageWithdrawal = Math.round(averageWithdrawalToday._avg.amount ?? 0);
+
+  // Build registration trend
+  const registrationByDate = new Map<
+    string,
+    {
+      period: string;
+      registrations: number;
+    }
+  >();
+
+  for (let offset = 0; offset < registrationTrendDays; offset += 1) {
+    const date = new Date(registrationTrendStart);
+    date.setDate(registrationTrendStart.getDate() + offset);
+    const key = formatDateKey(date);
+
+    registrationByDate.set(key, {
+      period: date.toLocaleDateString("en-KE", {
+        weekday: registrationTrendDays <= 30 ? "short" : undefined,
+        month: registrationTrendDays > 30 ? "short" : undefined,
+        day: "numeric",
+      }),
+      registrations: 0,
+    });
+  }
+
+  for (const user of registrationTrendUsers) {
+    const key = formatDateKey(user.createdAt);
+    const row = registrationByDate.get(key);
+
+    if (!row) {
+      continue;
+    }
+
+    row.registrations += 1;
+  }
 
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
@@ -823,6 +900,7 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     ],
     charts: {
       depositWithdrawalTrend: Array.from(trendByDate.values()),
+      registrationTrend: Array.from(registrationByDate.values()),
       totals: {
         deposits7d: sevenDayDepositTotal,
         withdrawals7d: sevenDayWithdrawalTotal,
