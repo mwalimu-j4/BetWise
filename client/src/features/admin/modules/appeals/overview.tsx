@@ -24,10 +24,10 @@ export default function BanAppealsOverviewPage() {
       />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <AdminStatCard label="Total Appeals" value={totalCount} />
-        <AdminStatCard label="Pending" value={pendingCount} />
-        <AdminStatCard label="Approved" value={approvedCount} />
-        <AdminStatCard label="Rejected" value={rejectedCount} />
+        <AdminStatCard label="Total Appeals" value={totalCount.toString()} />
+        <AdminStatCard label="Pending" value={pendingCount.toString()} />
+        <AdminStatCard label="Approved" value={approvedCount.toString()} />
+        <AdminStatCard label="Rejected" value={rejectedCount.toString()} />
       </div>
 
       {error && (
@@ -46,9 +46,12 @@ export default function BanAppealsOverviewPage() {
               Click an appeal to open the dedicated review page.
             </p>
           </div>
-          <AdminButton variant="ghost" asChild>
-            <Link to="/admin/users">Back to Users</Link>
-          </AdminButton>
+          <Link
+            to="/admin/users"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-admin-border/70 bg-admin-surface/45 text-admin-text-secondary hover:border-admin-border-strong hover:bg-admin-hover hover:text-admin-text-primary h-8 px-2.5 text-[11px] font-medium transition duration-200"
+          >
+            Back to Users
+          </Link>
         </div>
 
         {loading ? (

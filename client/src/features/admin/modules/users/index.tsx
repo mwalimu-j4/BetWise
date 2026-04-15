@@ -261,14 +261,8 @@ export default function Users() {
               <RefreshCw size={13} />
               Refresh
             </AdminButton> */}
-            <AdminButton
-              variant="ghost"
-              size="sm"
-              asChild
-            >
-              <Link to="/admin/appeals">
-                View Appeals
-              </Link>
+            <AdminButton variant="ghost" size="sm" asChild>
+              <Link to="/admin/appeals">View Appeals</Link>
             </AdminButton>
             <AdminButton
               variant="solid"
@@ -616,38 +610,7 @@ export default function Users() {
                 </div>
               </div>
 
-              {selectedUser.banAppeal && (
-                <div className="rounded-2xl border border-admin-accent/20 bg-[rgba(15,118,110,0.08)] p-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-admin-text-muted">
-                      Ban Appeal
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-admin-text-primary">
-                      {selectedUser.banAppeal.status}
-                    </p>
-                  </div>
-                  <div className="mt-3 space-y-3">
-                    <div>
-                      <p className="text-xs font-semibold text-admin-text-muted">
-                        Appeal
-                      </p>
-                      <p className="mt-1 text-sm text-admin-text-primary whitespace-pre-wrap">
-                        {selectedUser.banAppeal.appealText}
-                      </p>
-                    </div>
-                    {selectedUser.banAppeal.responseText && (
-                      <div>
-                        <p className="text-xs font-semibold text-admin-text-muted">
-                          Latest Response
-                        </p>
-                        <p className="mt-1 text-sm text-admin-text-secondary whitespace-pre-wrap">
-                          {selectedUser.banAppeal.responseText}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+
 
               {/* Action Buttons */}
               <div className="border-t border-white/10 pt-4">
