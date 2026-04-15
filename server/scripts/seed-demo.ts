@@ -565,6 +565,8 @@ async function seedOdds(events: DemoEvent[]) {
     }
   }
 
+  console.log(`✓ Created odds across ${selectionsByEvent.size} event(s)\n`);
+
   return selectionsByEvent;
 }
 
@@ -676,6 +678,7 @@ async function seedTransactionsAndBets(
   oddsByEvent: Map<string, OddsSelection[]>,
   betCount: number,
 ) {
+  console.log(`→ Creating ${betCount} bet(s) with deposits and bonuses...`);
   const activeUsers = users.filter(
     (user) =>
       user.role === "USER" && user.accountStatus === "ACTIVE" && !user.bannedAt,
@@ -684,6 +687,10 @@ async function seedTransactionsAndBets(
     wallets.map((wallet) => [wallet.userId, wallet]),
   );
   const walletBalance = new Map(wallets.map((wallet) => [wallet.walletId, 0]));
+
+  console.log(`  ▪ Generating deposits and bonuses for ${activeUsers.length} active user(s)...`);
+  let depositCount = 0;
+  let bonusCount = 0;
 
   for (const user of activeUsers) {
     const wallet = walletByUserId.get(user.id);
@@ -746,6 +753,12 @@ async function seedTransactionsAndBets(
       });
     }
   }
+
+  console.log(`  ✓ ${depositCount} deposit(s), ${bonusCount} bonus(es)`);
+  console.log(`  ▪ Placing ${betCount} bet(s)...`);
+  let betPlacedCount = 0;
+  let winCount = 0;
+  let lossCount = 0;
 
   const availableEvents = events.filter((event) =>
     oddsByEvent.get(event.eventId)?.some((selection) => selection.isVisible),
