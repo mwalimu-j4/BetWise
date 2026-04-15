@@ -116,6 +116,8 @@ const statusConfig: Record<
   submitted: { tone: "gold", icon: Clock },
   read: { tone: "blue", icon: CheckCircle },
   resolved: { tone: "red", icon: CheckCircle },
+  // Transaction reversion status
+  reversed: { tone: "red", icon: ArrowUpRight },
 };
 
 interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
