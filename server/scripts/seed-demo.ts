@@ -155,7 +155,7 @@ const betAuditActions = [
 function parseOptions(argv: string[]): DemoOptions {
   const options: DemoOptions = {
     reset: argv.includes("--reset"),
-    adminCount: 2,
+    adminCount: 1,
     userCount: 18,
     eventCount: 16,
     betCount: 54,
@@ -425,7 +425,7 @@ async function seedUsers(options: DemoOptions) {
     ),
   }));
 
-  await prisma.user.createMany({ data: userRecords });
+  await prisma.user.createMany({ data: userRecords, skipDuplicates: true });
 
   console.log(`  ✓ Created ${admins.length} admin(s)`);
   console.log(`  ✓ Created ${regularUsers.length} regular user(s)\n`);
