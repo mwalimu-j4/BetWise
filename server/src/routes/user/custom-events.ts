@@ -12,25 +12,31 @@ const createCustomEventSchema = z.object({
   sport: z.string().trim().default("custom"),
   league: z.string().trim().optional(),
   commenceTime: z.string().datetime(),
-  h2hOdds: z.object({
-    home: z.number().positive(),
-    draw: z.number().positive().optional(),
-    away: z.number().positive(),
-  }).optional(),
-  spreadsOdds: z.object({
-    spread: z.number(),
-    odds: z.object({
-      team1: z.number().positive(),
-      team2: z.number().positive(),
-    }),
-  }).optional(),
-  totalsOdds: z.object({
-    total: z.number().positive(),
-    odds: z.object({
-      over: z.number().positive(),
-      under: z.number().positive(),
-    }),
-  }).optional(),
+  h2hOdds: z
+    .object({
+      home: z.number().positive(),
+      draw: z.number().positive().optional(),
+      away: z.number().positive(),
+    })
+    .optional(),
+  spreadsOdds: z
+    .object({
+      spread: z.number(),
+      odds: z.object({
+        team1: z.number().positive(),
+        team2: z.number().positive(),
+      }),
+    })
+    .optional(),
+  totalsOdds: z
+    .object({
+      total: z.number().positive(),
+      odds: z.object({
+        over: z.number().positive(),
+        under: z.number().positive(),
+      }),
+    })
+    .optional(),
 });
 
 const updateCustomEventSchema = z.object({
@@ -41,25 +47,31 @@ const updateCustomEventSchema = z.object({
   status: z.enum(["UPCOMING", "LIVE", "FINISHED", "CANCELLED"]).optional(),
   homeScore: z.number().int().optional(),
   awayScore: z.number().int().optional(),
-  h2hOdds: z.object({
-    home: z.number().positive(),
-    draw: z.number().positive().optional(),
-    away: z.number().positive(),
-  }).optional(),
-  spreadsOdds: z.object({
-    spread: z.number(),
-    odds: z.object({
-      team1: z.number().positive(),
-      team2: z.number().positive(),
-    }),
-  }).optional(),
-  totalsOdds: z.object({
-    total: z.number().positive(),
-    odds: z.object({
-      over: z.number().positive(),
-      under: z.number().positive(),
-    }),
-  }).optional(),
+  h2hOdds: z
+    .object({
+      home: z.number().positive(),
+      draw: z.number().positive().optional(),
+      away: z.number().positive(),
+    })
+    .optional(),
+  spreadsOdds: z
+    .object({
+      spread: z.number(),
+      odds: z.object({
+        team1: z.number().positive(),
+        team2: z.number().positive(),
+      }),
+    })
+    .optional(),
+  totalsOdds: z
+    .object({
+      total: z.number().positive(),
+      odds: z.object({
+        over: z.number().positive(),
+        under: z.number().positive(),
+      }),
+    })
+    .optional(),
 });
 
 userCustomEventsRouter.use("/user/custom-events", authenticate);
@@ -74,7 +86,7 @@ userCustomEventsRouter.get("/user/custom-events", async (req, res, next) => {
 
     const status = req.query.status as string | undefined;
     const where: any = { userId };
-    
+
     if (status) {
       where.status = status;
     }
@@ -91,29 +103,32 @@ userCustomEventsRouter.get("/user/custom-events", async (req, res, next) => {
 });
 
 // Get single custom event
-userCustomEventsRouter.get("/user/custom-events/:eventId", async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+userCustomEventsRouter.get(
+  "/user/custom-events/:eventId",
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const event = await prisma.customEvent.findFirst({
+        where: {
+          eventId: req.params.eventId,
+          userId,
+        },
+      });
+
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      return res.status(200).json(event);
+    } catch (error) {
+      next(error);
     }
-
-    const event = await prisma.customEvent.findFirst({
-      where: {
-        eventId: req.params.eventId,
-        userId,
-      },
-    });
-
-    if (!event) {
-      return res.status(404).json({ error: "Event not found" });
-    }
-
-    return res.status(200).json(event);
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Create custom event
 userCustomEventsRouter.post("/user/custom-events", async (req, res, next) => {
@@ -125,14 +140,14 @@ userCustomEventsRouter.post("/user/custom-events", async (req, res, next) => {
 
     const parsed = createCustomEventSchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Invalid event data",
         issues: parsed.error.issues,
       });
     }
 
     const eventId = `custom-${Date.now()}-${uuid().substring(0, 8)}`;
-    
+
     const customEvent = await prisma.customEvent.create({
       data: {
         eventId,
@@ -142,9 +157,15 @@ userCustomEventsRouter.post("/user/custom-events", async (req, res, next) => {
         sport: parsed.data.sport,
         league: parsed.data.league,
         commenceTime: new Date(parsed.data.commenceTime),
-        h2hOdds: parsed.data.h2hOdds ? JSON.stringify(parsed.data.h2hOdds) : null,
-        spreadsOdds: parsed.data.spreadsOdds ? JSON.stringify(parsed.data.spreadsOdds) : null,
-        totalsOdds: parsed.data.totalsOdds ? JSON.stringify(parsed.data.totalsOdds) : null,
+        h2hOdds: parsed.data.h2hOdds
+          ? JSON.stringify(parsed.data.h2hOdds)
+          : null,
+        spreadsOdds: parsed.data.spreadsOdds
+          ? JSON.stringify(parsed.data.spreadsOdds)
+          : null,
+        totalsOdds: parsed.data.totalsOdds
+          ? JSON.stringify(parsed.data.totalsOdds)
+          : null,
       },
     });
 
@@ -155,82 +176,95 @@ userCustomEventsRouter.post("/user/custom-events", async (req, res, next) => {
 });
 
 // Update custom event
-userCustomEventsRouter.patch("/user/custom-events/:eventId", async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+userCustomEventsRouter.patch(
+  "/user/custom-events/:eventId",
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
 
-    const event = await prisma.customEvent.findFirst({
-      where: {
-        eventId: req.params.eventId,
-        userId,
-      },
-    });
-
-    if (!event) {
-      return res.status(404).json({ error: "Event not found" });
-    }
-
-    const parsed = updateCustomEventSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ 
-        error: "Invalid event data",
-        issues: parsed.error.issues,
+      const event = await prisma.customEvent.findFirst({
+        where: {
+          eventId: req.params.eventId,
+          userId,
+        },
       });
+
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      const parsed = updateCustomEventSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          error: "Invalid event data",
+          issues: parsed.error.issues,
+        });
+      }
+
+      const updateData: any = {};
+      if (parsed.data.homeTeam) updateData.homeTeam = parsed.data.homeTeam;
+      if (parsed.data.awayTeam) updateData.awayTeam = parsed.data.awayTeam;
+      if (parsed.data.league !== undefined)
+        updateData.league = parsed.data.league;
+      if (parsed.data.commenceTime)
+        updateData.commenceTime = new Date(parsed.data.commenceTime);
+      if (parsed.data.status) updateData.status = parsed.data.status;
+      if (parsed.data.homeScore !== undefined)
+        updateData.homeScore = parsed.data.homeScore;
+      if (parsed.data.awayScore !== undefined)
+        updateData.awayScore = parsed.data.awayScore;
+      if (parsed.data.h2hOdds)
+        updateData.h2hOdds = JSON.stringify(parsed.data.h2hOdds);
+      if (parsed.data.spreadsOdds)
+        updateData.spreadsOdds = JSON.stringify(parsed.data.spreadsOdds);
+      if (parsed.data.totalsOdds)
+        updateData.totalsOdds = JSON.stringify(parsed.data.totalsOdds);
+
+      const updated = await prisma.customEvent.update({
+        where: { eventId: event.eventId },
+        data: updateData,
+      });
+
+      return res.status(200).json(updated);
+    } catch (error) {
+      next(error);
     }
-
-    const updateData: any = {};
-    if (parsed.data.homeTeam) updateData.homeTeam = parsed.data.homeTeam;
-    if (parsed.data.awayTeam) updateData.awayTeam = parsed.data.awayTeam;
-    if (parsed.data.league !== undefined) updateData.league = parsed.data.league;
-    if (parsed.data.commenceTime) updateData.commenceTime = new Date(parsed.data.commenceTime);
-    if (parsed.data.status) updateData.status = parsed.data.status;
-    if (parsed.data.homeScore !== undefined) updateData.homeScore = parsed.data.homeScore;
-    if (parsed.data.awayScore !== undefined) updateData.awayScore = parsed.data.awayScore;
-    if (parsed.data.h2hOdds) updateData.h2hOdds = JSON.stringify(parsed.data.h2hOdds);
-    if (parsed.data.spreadsOdds) updateData.spreadsOdds = JSON.stringify(parsed.data.spreadsOdds);
-    if (parsed.data.totalsOdds) updateData.totalsOdds = JSON.stringify(parsed.data.totalsOdds);
-
-    const updated = await prisma.customEvent.update({
-      where: { eventId: event.eventId },
-      data: updateData,
-    });
-
-    return res.status(200).json(updated);
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Delete custom event
-userCustomEventsRouter.delete("/user/custom-events/:eventId", async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+userCustomEventsRouter.delete(
+  "/user/custom-events/:eventId",
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const event = await prisma.customEvent.findFirst({
+        where: {
+          eventId: req.params.eventId,
+          userId,
+        },
+      });
+
+      if (!event) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      await prisma.customEvent.delete({
+        where: { eventId: event.eventId },
+      });
+
+      return res.status(200).json({ message: "Event deleted" });
+    } catch (error) {
+      next(error);
     }
-
-    const event = await prisma.customEvent.findFirst({
-      where: {
-        eventId: req.params.eventId,
-        userId,
-      },
-    });
-
-    if (!event) {
-      return res.status(404).json({ error: "Event not found" });
-    }
-
-    await prisma.customEvent.delete({
-      where: { eventId: event.eventId },
-    });
-
-    return res.status(200).json({ message: "Event deleted" });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 export { userCustomEventsRouter };

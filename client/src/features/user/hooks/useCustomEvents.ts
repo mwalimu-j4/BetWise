@@ -56,9 +56,12 @@ export const useCustomEvents = () => {
     setError("");
     try {
       const params = status ? { status } : {};
-      const res = await api.get<{ events: CustomEvent[] }>("/user/custom-events", {
-        params,
-      });
+      const res = await api.get<{ events: CustomEvent[] }>(
+        "/user/custom-events",
+        {
+          params,
+        },
+      );
       setEvents(res.data.events);
     } catch (err: any) {
       const msg = err?.response?.data?.error || "Failed to load events";
@@ -69,23 +72,20 @@ export const useCustomEvents = () => {
     }
   }, []);
 
-  const createEvent = useCallback(
-    async (data: CreateCustomEventData) => {
-      try {
-        const res = await api.post<CustomEvent>("/user/custom-events", data);
-        setEvents((prev) => [res.data, ...prev]);
-        toast.success("Event created successfully! ✨", {
-          description: `${data.homeTeam} vs ${data.awayTeam}`,
-        });
-        return res.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to create event";
-        toast.error(msg);
-        throw err;
-      }
-    },
-    [],
-  );
+  const createEvent = useCallback(async (data: CreateCustomEventData) => {
+    try {
+      const res = await api.post<CustomEvent>("/user/custom-events", data);
+      setEvents((prev) => [res.data, ...prev]);
+      toast.success("Event created successfully! ✨", {
+        description: `${data.homeTeam} vs ${data.awayTeam}`,
+      });
+      return res.data;
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || "Failed to create event";
+      toast.error(msg);
+      throw err;
+    }
+  }, []);
 
   const updateEvent = useCallback(
     async (eventId: string, data: UpdateCustomEventData) => {
