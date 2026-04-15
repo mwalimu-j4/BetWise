@@ -320,6 +320,13 @@ async function cleanupDemoData() {
     where: { email: { endsWith: `@${demoDomain}` } },
   });
 
+  // Delete bets before sport_events to avoid foreign key constraint
+  await prisma.bet.deleteMany({
+    where: {
+      betCode: { startsWith: "DEMO-BET-" },
+    },
+  });
+
   await prisma.sportEvent.deleteMany({
     where: { eventId: { startsWith: "demo-event-" } },
   });
