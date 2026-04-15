@@ -616,7 +616,11 @@ export default function Events() {
   }
 
   async function handleCreateCustomEvent() {
-    if (!createFormData.homeTeam || !createFormData.awayTeam || !createFormData.commenceTime) {
+    if (
+      !createFormData.homeTeam ||
+      !createFormData.awayTeam ||
+      !createFormData.commenceTime
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -1302,7 +1306,10 @@ export default function Events() {
                 placeholder="e.g., Team A"
                 value={createFormData.homeTeam}
                 onChange={(e) =>
-                  setCreateFormData({ ...createFormData, homeTeam: e.target.value })
+                  setCreateFormData({
+                    ...createFormData,
+                    homeTeam: e.target.value,
+                  })
                 }
                 className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary placeholder-admin-text-muted focus:border-admin-accent focus:outline-none"
               />
@@ -1316,7 +1323,10 @@ export default function Events() {
                 placeholder="e.g., Team B"
                 value={createFormData.awayTeam}
                 onChange={(e) =>
-                  setCreateFormData({ ...createFormData, awayTeam: e.target.value })
+                  setCreateFormData({
+                    ...createFormData,
+                    awayTeam: e.target.value,
+                  })
                 }
                 className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary placeholder-admin-text-muted focus:border-admin-accent focus:outline-none"
               />
@@ -1330,7 +1340,10 @@ export default function Events() {
                 placeholder="e.g., Premier League"
                 value={createFormData.league}
                 onChange={(e) =>
-                  setCreateFormData({ ...createFormData, league: e.target.value })
+                  setCreateFormData({
+                    ...createFormData,
+                    league: e.target.value,
+                  })
                 }
                 className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary placeholder-admin-text-muted focus:border-admin-accent focus:outline-none"
               />
@@ -1343,7 +1356,10 @@ export default function Events() {
                 type="datetime-local"
                 value={createFormData.commenceTime}
                 onChange={(e) =>
-                  setCreateFormData({ ...createFormData, commenceTime: e.target.value })
+                  setCreateFormData({
+                    ...createFormData,
+                    commenceTime: e.target.value,
+                  })
                 }
                 className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary focus:border-admin-accent focus:outline-none"
               />
