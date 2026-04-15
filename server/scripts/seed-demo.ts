@@ -427,10 +427,14 @@ async function seedUsers(options: DemoOptions) {
 
   await prisma.user.createMany({ data: userRecords });
 
+  console.log(`  ✓ Created ${admins.length} admin(s)`);
+  console.log(`  ✓ Created ${regularUsers.length} regular user(s)\n`);
+
   return { admins, regularUsers, allUsers: [...admins, ...regularUsers] };
 }
 
 async function seedWallets(users: DemoUser[]) {
+  console.log(`→ Creating wallets for ${users.length} user(s)...`);
   const wallets: WalletState[] = [];
 
   for (const user of users) {
@@ -445,10 +449,13 @@ async function seedWallets(users: DemoUser[]) {
     wallets.push({ userId: user.id, walletId: wallet.id, balance: 0 });
   }
 
+  console.log(`✓ Created ${wallets.length} wallet(s)\n`);
+
   return wallets;
 }
 
 async function seedNewsletterSubscriptions(count: number) {
+  console.log(`→ Creating ${count} newsletter subscription(s)...`);
   const records = Array.from({ length: count }, (_, index) => ({
     email: `newsletter.${pad(index + 1, 2)}@${demoDomain}`,
     isActive: index % 5 !== 0,
@@ -512,10 +519,14 @@ async function seedEvents(count: number) {
     });
   }
 
+  console.log(`✓ Created ${events.length} event(s)\n`);
+
   return events;
 }
 
 async function seedOdds(events: DemoEvent[]) {
+  console.log(`→ Creating odds for ${events.length} event(s)...`);
+  let oddsCount = 0;
   const selectionsByEvent = new Map<string, OddsSelection[]>();
 
   for (const event of events) {
