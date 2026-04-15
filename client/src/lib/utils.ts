@@ -20,5 +20,3 @@ export function formatLargeNumber(value: number): string {
   }
   return value.toString();
 }
-
-
