@@ -186,7 +186,7 @@ export function AdminCard({
   return (
     <section
       className={cn(
-        "relative rounded-2xl border border-admin-border bg-admin-card p-3 text-admin-text-primary shadow-[0_8px_22px_rgba(2,8,23,0.18)] sm:p-4 lg:p-5",
+        "relative rounded-2xl border border-admin-border bg-admin-card p-3 text-admin-text-primary shadow-[0_8px_22px_rgba(2,8,23,0.18)] ",
         "bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_120px)]",
         interactive &&
           "transition duration-200 hover:border-admin-border-strong",
@@ -433,7 +433,7 @@ export function InlinePill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-bold tracking-[0.03em]",
+        "inline-flex items-center gap-0.5 rounded-lg px-1.5 py-0.5 text-xs font-bold tracking-[0.03em]",
         toneSoftClasses[tone],
       )}
     >
@@ -713,7 +713,7 @@ export function DepositWithdrawalChart({
         <Line
           type="monotone"
           dataKey="withdrawals"
-          stroke="#f97316"
+          stroke="#fde047"
           strokeWidth={2}
           dot={{ r: 2 }}
           activeDot={{ r: 4 }}
@@ -781,7 +781,7 @@ export function UserRegistrationChart({
           fill="#3b82f6"
           radius={[3, 3, 0, 0]}
           fillOpacity={0.9}
-          maxBarSize={32}
+          maxBarSize={16}
           isAnimationActive={true}
           animationDuration={500}
           name="New Users"

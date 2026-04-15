@@ -4,7 +4,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Link } from "@tanstack/react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,23 +14,24 @@ import { Input } from "@/components/ui/input";
 import {
   banUserAction,
   createUserAction,
-  updateUserPasswordAction,
-  updateUserAction,
   unbanUserAction,
+  updateUserAction,
+  updateUserPasswordAction,
   useGetUserDetail,
   useUsers,
   type User,
 } from "@/hooks/useUsers";
+import { Link } from "@tanstack/react-router";
 import {
+  AlertCircle,
   Eye,
   EyeOff,
   MoreVertical,
-  Search,
-  X,
   RefreshCw,
-  UserPlus,
+  Search,
   Shield,
-  AlertCircle,
+  UserPlus,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -39,18 +39,11 @@ import {
   AdminButton,
   AdminCard,
   AdminDialogContent,
-  AdminStatCard,
   AdminSectionHeader,
-  StatusBadge,
-  TableShell,
+  AdminStatCard,
   adminDropdownContentClassName,
   adminDropdownItemClassName,
-  adminInputClassName,
-  adminCompactActionsClassName,
-  adminTableCellClassName,
-  adminTableClassName,
-  adminTableHeadCellClassName,
-  truncateEmailForTable,
+  adminInputClassName
 } from "../../components/ui";
 
 // ============ HELPER COMPONENTS ============
@@ -73,22 +66,6 @@ const FormField = ({ label, required, children, error, helper }: any) => (
 );
 
 const Divider = () => <div className="border-t border-white/10 my-4" />;
-
-const InfoRow = ({
-  label,
-  value,
-  highlight = false,
-  monospace = false,
-}: any) => (
-  <div className="flex justify-between items-center py-2.5 border-b border-white/5 last:border-0">
-    <span className="text-xs text-admin-text-muted font-medium">{label}</span>
-    <span
-      className={`text-sm ${monospace ? "font-mono" : "font-medium"} ${highlight ? "text-admin-accent" : "text-admin-text-primary"}`}
-    >
-      {value || "—"}
-    </span>
-  </div>
-);
 
 const WarningBox = ({ title, children, tone = "red" }: any) => {
   const colors = {
@@ -121,7 +98,6 @@ export default function Users() {
   // Form states
   const [formData, setFormData] = useState({
     fullName: "",
-    email: "",
     phone: "",
     isVerified: false,
   });
@@ -135,7 +111,6 @@ export default function Users() {
 
   const [createFormData, setCreateFormData] = useState({
     fullName: "",
-    email: "",
     phone: "",
     password: "",
     confirmPassword: "",
@@ -173,7 +148,6 @@ export default function Users() {
     setEditingUserId(user.id);
     setFormData({
       fullName: user.name || "",
-      email: user.email,
       phone: user.phone,
       isVerified: user.isVerified,
     });
@@ -204,7 +178,6 @@ export default function Users() {
     setSelectedUserId(null);
     setCreateFormData({
       fullName: "",
-      email: "",
       phone: "",
       password: "",
       confirmPassword: "",
@@ -343,9 +316,18 @@ export default function Users() {
   const activeUsers = visibleUsers.filter((u) => u.status === "active").length;
   const bannedUsers = visibleUsers.filter((u) => u.status === "banned").length;
 
+  // Helper to truncate email for display
+  const truncateEmail = (email: string) => {
+    const [localPart, domain] = email.split("@");
+    if (localPart.length > 8) {
+      return `${localPart.slice(0, 6)}...@${domain}`;
+    }
+    return email;
+  };
+
   return (
-    <div className="space-y-6 p-4 md:p-6 lg:p-8">
-      {/* Header */}
+    <div className="space-y-5">
+      {/* Header - Removed padding */}
       <AdminSectionHeader
         title="User Management"
         subtitle="View, manage, and moderate user accounts"
@@ -371,8 +353,8 @@ export default function Users() {
         }
       />
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Stat Cards - Reduced gap */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <AdminStatCard
           label="Total Users"
           value={totalUsers.toLocaleString()}
@@ -395,16 +377,16 @@ export default function Users() {
 
       {/* Error Display */}
       {error && (
-        <AdminCard className="border-admin-red/40 bg-admin-red-dim/20 p-4">
-          <div className="flex items-center gap-2 text-admin-red">
+        <AdminCard className="border-admin-red/40 bg-admin-red-dim/20 p-3">
+          <div className="flex items-center gap-2 text-admin-red text-sm">
             <AlertCircle size={16} />
-            <span className="text-sm">{error}</span>
+            <span>{error}</span>
           </div>
         </AdminCard>
       )}
 
       {/* Search and Filters */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-admin-text-muted" />
           <Input
@@ -414,53 +396,66 @@ export default function Users() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className={`${adminInputClassName} pl-9 pr-9`}
+            className={`${adminInputClassName} pl-9 pr-9 py-2 h-10`}
           />
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-70"
+              className="absolute right-3 top-1/2 -translate-y-1/2"
             >
-              <X className="w-4 h-4 text-admin-text-muted" />
+              <X className="w-4 h-4 text-admin-text-muted hover:text-admin-text-primary" />
             </button>
           )}
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          {[
-            { value: "", label: "All Users", icon: null },
-            { value: "active", label: "Active", icon: null },
-            { value: "banned", label: "Banned", icon: null },
-          ].map((filter) => (
-            <AdminButton
-              key={filter.value}
-              variant={status === filter.value ? "solid" : "ghost"}
-              size="sm"
-              onClick={() => {
-                setStatus(filter.value as typeof status);
-                setPage(1);
-              }}
-            >
-              {filter.label}
-            </AdminButton>
-          ))}
+          <AdminButton
+            variant={status === "" ? "solid" : "ghost"}
+            size="sm"
+            onClick={() => {
+              setStatus("");
+              setPage(1);
+            }}
+          >
+            All Users
+          </AdminButton>
+          <AdminButton
+            variant={status === "active" ? "solid" : "ghost"}
+            size="sm"
+            onClick={() => {
+              setStatus("active");
+              setPage(1);
+            }}
+          >
+            Active
+          </AdminButton>
+          <AdminButton
+            variant={status === "banned" ? "solid" : "ghost"}
+            size="sm"
+            onClick={() => {
+              setStatus("banned");
+              setPage(1);
+            }}
+          >
+            Banned
+          </AdminButton>
         </div>
       </div>
 
-      {/* Users Table */}
+      {/* Users Table - Minimal padding */}
       {loading && users.length === 0 ? (
-        <AdminCard className="text-center py-16">
+        <AdminCard className="text-center py-12">
           <div className="text-admin-text-muted">Loading users...</div>
         </AdminCard>
       ) : visibleUsers.length === 0 ? (
-        <AdminCard className="text-center py-16">
+        <AdminCard className="text-center py-12">
           <div className="text-admin-text-muted">No users found</div>
         </AdminCard>
       ) : (
-        <AdminCard className="overflow-hidden">
+        <AdminCard className="overflow-hidden p-0">
           <div className="overflow-x-auto">
-            <table className={adminTableClassName}>
-              <thead>
+            <table className="w-full">
+              <thead className="bg-admin-surface/30 border-b border-white/10">
                 <tr>
                   {[
                     "#",
@@ -472,47 +467,49 @@ export default function Users() {
                     "Created",
                     "",
                   ].map((heading, i) => (
-                    <th key={i} className={adminTableHeadCellClassName}>
+                    <th
+                      key={i}
+                      className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
+                    >
                       {heading}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-white/5">
                 {visibleUsers.map((user, index) => (
                   <tr
                     key={user.id}
-                    className="cursor-pointer hover:bg-admin-surface/40 transition-colors group"
+                    className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                     onClick={() => handleUserClick(user.id)}
                   >
-                    <td
-                      className={`${adminTableCellClassName} text-admin-text-muted font-mono text-xs`}
-                    >
+                    <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
                       {(page - 1) * 50 + index + 1}
                     </td>
-                    <td className={`${adminTableCellClassName} font-medium`}>
-                      <div
-                        className="max-w-[200px] truncate"
-                        title={user.email}
+                    <td className="px-3 py-3 text-sm text-admin-text-primary">
+                      {truncateEmail(user.email)}
+                    </td>
+                    <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                      {user.phone}
+                    </td>
+                    <td className="px-3 py-3">
+                      <span
+                        className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${
+                          user.status === "active"
+                            ? "bg-admin-accent/20 text-admin-accent"
+                            : "bg-admin-red/20 text-admin-red"
+                        }`}
                       >
-                        {truncateEmailForTable(user.email)}
-                      </div>
+                        {user.status === "active" ? "Active" : "Banned"}
+                      </span>
                     </td>
-                    <td className={adminTableCellClassName}>
-                      <span className="font-mono text-xs">{user.phone}</span>
-                    </td>
-                    <td className={adminTableCellClassName}>
-                      <StatusBadge status={user.status} />
-                    </td>
-                    <td
-                      className={`${adminTableCellClassName} font-semibold text-admin-accent`}
-                    >
+                    <td className="px-3 py-3 text-sm font-semibold text-admin-accent">
                       KES {user.balance.toLocaleString()}
                     </td>
-                    <td className={adminTableCellClassName}>
+                    <td className="px-3 py-3">
                       {user.isVerified ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-admin-accent">
-                          <span>✓</span> Yes
+                        <span className="text-xs font-semibold text-admin-accent">
+                          ✓ Yes
                         </span>
                       ) : (
                         <span className="text-xs text-admin-text-muted">
@@ -520,57 +517,52 @@ export default function Users() {
                         </span>
                       )}
                     </td>
-                    <td
-                      className={`${adminTableCellClassName} text-xs text-admin-text-muted`}
-                    >
+                    <td className="px-3 py-3 text-xs text-admin-text-muted">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
-                    <td className={adminTableCellClassName}>
-                      <div className={adminCompactActionsClassName}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <AdminButton
-                              size="sm"
-                              variant="ghost"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <MoreVertical size={14} />
-                            </AdminButton>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className={adminDropdownContentClassName}
+                    <td className="px-3 py-3">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="p-1 rounded hover:bg-white/10 transition-colors">
+                            <MoreVertical
+                              size={16}
+                              className="text-admin-text-muted"
+                            />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className={adminDropdownContentClassName}
+                        >
+                          <DropdownMenuItem
+                            onClick={() => handleOpenEdit(user)}
+                            className={adminDropdownItemClassName}
                           >
+                            Edit User
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenChangePassword(user.id)}
+                            className={adminDropdownItemClassName}
+                          >
+                            Change Password
+                          </DropdownMenuItem>
+                          {user.status === "active" ? (
                             <DropdownMenuItem
-                              onClick={() => handleOpenEdit(user)}
+                              onClick={() => handleOpenBan(user.id)}
+                              className={`${adminDropdownItemClassName} text-admin-red`}
+                            >
+                              Ban User
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={() => handleOpenUnban(user.id)}
                               className={adminDropdownItemClassName}
                             >
-                              Edit User
+                              Unban User
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleOpenChangePassword(user.id)}
-                              className={adminDropdownItemClassName}
-                            >
-                              Change Password
-                            </DropdownMenuItem>
-                            {user.status === "active" ? (
-                              <DropdownMenuItem
-                                onClick={() => handleOpenBan(user.id)}
-                                className={`${adminDropdownItemClassName} text-admin-red`}
-                              >
-                                Ban User
-                              </DropdownMenuItem>
-                            ) : user.status === "banned" ? (
-                              <DropdownMenuItem
-                                onClick={() => handleOpenUnban(user.id)}
-                                className={adminDropdownItemClassName}
-                              >
-                                Unban User
-                              </DropdownMenuItem>
-                            ) : null}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </td>
                   </tr>
                 ))}
@@ -582,13 +574,13 @@ export default function Users() {
 
       {/* ============ MODALS ============ */}
 
-      {/* User Details Modal */}
+      {/* User Details Modal - Grid layout for compactness */}
       <Dialog
         open={!!selectedUserId && !actionDialog}
         onOpenChange={(open) => !open && setSelectedUserId(null)}
       >
-        <AdminDialogContent className="max-w-md p-0">
-          <DialogHeader className="px-6 pt-6 pb-3 border-b border-white/10">
+        <AdminDialogContent className="max-w-lg p-0">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/10">
             <DialogTitle className="text-lg flex items-center gap-2">
               <Shield size={18} className="text-admin-accent" />
               User Profile
@@ -599,50 +591,89 @@ export default function Users() {
           </DialogHeader>
 
           {userLoading ? (
-            <div className="px-6 py-12 text-center text-admin-text-muted">
+            <div className="px-5 py-10 text-center text-admin-text-muted">
               Loading...
             </div>
           ) : selectedUser ? (
-            <div className="px-6 pb-6">
-              <div className="pt-2 space-y-1">
-                <InfoRow label="Email" value={selectedUser.email} />
-                <InfoRow label="Phone" value={selectedUser.phone} monospace />
-                <InfoRow
-                  label="Full Name"
-                  value={selectedUser.name || "Not set"}
-                />
-                <InfoRow
-                  label="Status"
-                  value={<StatusBadge status={selectedUser.status} />}
-                />
-                <InfoRow
-                  label="Email Verified"
-                  value={selectedUser.isVerified ? "Yes" : "No"}
-                  highlight={selectedUser.isVerified}
-                />
-                <InfoRow
-                  label="Member Since"
-                  value={new Date(selectedUser.createdAt).toLocaleDateString()}
-                />
+            <div className="px-5 pb-5">
+              {/* Grid layout for user info - saves space */}
+              <div className="grid grid-cols-2 gap-3 pt-3">
+      
+                <div className="space-y-0.5">
+                  <p className="text-xs text-admin-text-muted font-medium">
+                    Phone
+                  </p>
+                  <p className="text-sm font-mono text-admin-text-primary">
+                    {selectedUser.phone}
+                  </p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-admin-text-muted font-medium">
+                    Full Name
+                  </p>
+                  <p className="text-sm text-admin-text-primary">
+                    {selectedUser.name || "—"}
+                  </p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-admin-text-muted font-medium">
+                    Status
+                  </p>
+                  <span
+                    className={`inline-flex px-2 py-0.5 rounded text-xs font-semibold ${
+                      selectedUser.status === "active"
+                        ? "bg-admin-accent/20 text-admin-accent"
+                        : "bg-admin-red/20 text-admin-red"
+                    }`}
+                  >
+                    {selectedUser.status === "active" ? "Active" : "Banned"}
+                  </span>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-admin-text-muted font-medium">
+                    Email Verified
+                  </p>
+                  <p className="text-sm font-medium text-admin-accent">
+                    {selectedUser.isVerified ? "✓ Yes" : "No"}
+                  </p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-admin-text-muted font-medium">
+                    Member Since
+                  </p>
+                  <p className="text-sm text-admin-text-primary">
+                    {new Date(selectedUser.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
 
               <Divider />
 
+              {/* Financial info - also in grid */}
               <div className="bg-admin-accent/5 rounded-lg p-3">
-                <InfoRow
-                  label="Balance"
-                  value={`KES ${selectedUser.balance.toLocaleString()}`}
-                  highlight
-                  monospace
-                />
-                <InfoRow
-                  label="Total Bets"
-                  value={selectedUser.totalBets?.toLocaleString() || "0"}
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-admin-text-muted font-medium">
+                      Balance
+                    </p>
+                    <p className="text-base font-bold text-admin-accent font-mono">
+                      KES {selectedUser.balance.toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-admin-text-muted font-medium">
+                      Total Bets
+                    </p>
+                    <p className="text-base font-semibold text-admin-text-primary">
+                      {selectedUser.totalBets?.toLocaleString() || "0"}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <Divider />
 
+              {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-2">
                 <AdminButton
                   onClick={() => handleOpenEdit(selectedUser)}
@@ -667,7 +698,7 @@ export default function Users() {
                   >
                     Ban User
                   </AdminButton>
-                ) : selectedUser.status === "banned" ? (
+                ) : (
                   <AdminButton
                     onClick={() => handleOpenUnban(selectedUser.id)}
                     size="sm"
@@ -675,11 +706,11 @@ export default function Users() {
                   >
                     Unban User
                   </AdminButton>
-                ) : null}
+                )}
               </div>
             </div>
           ) : (
-            <div className="px-6 py-12 text-center text-admin-text-muted">
+            <div className="px-5 py-10 text-center text-admin-text-muted">
               User not found
             </div>
           )}
@@ -692,13 +723,13 @@ export default function Users() {
         onOpenChange={(open) => !open && setActionDialog(null)}
       >
         <AdminDialogContent className="max-w-md p-0">
-          <DialogHeader className="px-6 pt-6 pb-3 border-b border-white/10">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/10">
             <DialogTitle className="text-lg">Edit User</DialogTitle>
             <DialogDescription>
               Update user profile information
             </DialogDescription>
           </DialogHeader>
-          <div className="px-6 pb-6 space-y-4">
+          <div className="px-5 pb-5 space-y-4">
             <FormField label="Full Name">
               <Input
                 value={formData.fullName}
@@ -706,7 +737,7 @@ export default function Users() {
                   setFormData({ ...formData, fullName: e.target.value })
                 }
                 placeholder="Enter full name"
-                className={adminInputClassName}
+                className={`${adminInputClassName} h-9`}
               />
             </FormField>
 
@@ -714,7 +745,7 @@ export default function Users() {
               <Input
                 value={formData.email}
                 disabled
-                className={`${adminInputClassName} opacity-60`}
+                className={`${adminInputClassName} opacity-60 h-9`}
               />
               <p className="text-xs text-admin-text-muted">
                 Email cannot be changed
@@ -725,14 +756,14 @@ export default function Users() {
               <Input
                 value={formData.phone}
                 disabled
-                className={`${adminInputClassName} opacity-60`}
+                className={`${adminInputClassName} opacity-60 h-9`}
               />
               <p className="text-xs text-admin-text-muted">
                 Phone cannot be changed
               </p>
             </FormField>
 
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-admin-accent/20 bg-admin-accent/5">
+            <div className="flex items-center gap-3 p-2.5 rounded-lg border border-admin-accent/20 bg-admin-accent/5">
               <input
                 type="checkbox"
                 id="verified"
@@ -776,7 +807,7 @@ export default function Users() {
         onOpenChange={(open) => !open && setActionDialog(null)}
       >
         <AdminDialogContent className="max-w-md p-0">
-          <DialogHeader className="px-6 pt-6 pb-3 border-b border-white/10">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/10">
             <DialogTitle className="text-lg text-admin-red">
               Ban User
             </DialogTitle>
@@ -784,7 +815,7 @@ export default function Users() {
               Restrict user access to the platform
             </DialogDescription>
           </DialogHeader>
-          <div className="px-6 pb-6 space-y-4">
+          <div className="px-5 pb-5 space-y-4">
             <WarningBox tone="red">
               <ul className="space-y-1 text-sm list-disc list-inside">
                 <li>User will be locked out immediately</li>
@@ -798,7 +829,7 @@ export default function Users() {
                 value={actionReason}
                 onChange={(e) => setActionReason(e.target.value)}
                 placeholder="e.g., Terms violation, Fraudulent activity"
-                className={adminInputClassName}
+                className={`${adminInputClassName} h-9`}
               />
             </FormField>
 
@@ -829,14 +860,14 @@ export default function Users() {
         onOpenChange={(open) => !open && setActionDialog(null)}
       >
         <AdminDialogContent className="max-w-md p-0">
-          <DialogHeader className="px-6 pt-6 pb-3 border-b border-white/10">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/10">
             <DialogTitle className="text-lg">Unban User</DialogTitle>
             <DialogDescription>
               Restore user access to the platform
             </DialogDescription>
           </DialogHeader>
-          <div className="px-6 pb-6 space-y-4">
-            <WarningBox tone="green">
+          <div className="px-5 pb-5 space-y-4">
+            <WarningBox tone="blue">
               <p className="text-sm">
                 This will immediately restore the user's access and remove all
                 ban restrictions.
@@ -869,13 +900,13 @@ export default function Users() {
         onOpenChange={(open) => !open && setActionDialog(null)}
       >
         <AdminDialogContent className="max-w-md p-0">
-          <DialogHeader className="px-6 pt-6 pb-3 border-b border-white/10">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/10">
             <DialogTitle className="text-lg">Change Password</DialogTitle>
             <DialogDescription>
               Set a new password for this user account
             </DialogDescription>
           </DialogHeader>
-          <div className="px-6 pb-6 space-y-4">
+          <div className="px-5 pb-5 space-y-4">
             <WarningBox tone="blue">
               <p className="text-sm">
                 Password must be at least 6 characters. The user will need this
@@ -900,7 +931,7 @@ export default function Users() {
                     setPasswordErrors({ ...passwordErrors, password: "" });
                   }}
                   placeholder="Enter new password"
-                  className={`${adminInputClassName} pr-10`}
+                  className={`${adminInputClassName} pr-10 h-9`}
                 />
                 <button
                   type="button"
@@ -932,7 +963,7 @@ export default function Users() {
                     });
                   }}
                   placeholder="Confirm new password"
-                  className={`${adminInputClassName} pr-10`}
+                  className={`${adminInputClassName} pr-10 h-9`}
                 />
                 <button
                   type="button"
@@ -978,7 +1009,7 @@ export default function Users() {
         onOpenChange={(open) => !open && setActionDialog(null)}
       >
         <AdminDialogContent className="max-w-md p-0">
-          <DialogHeader className="px-6 pt-6 pb-3 border-b border-white/10">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/10">
             <DialogTitle className="text-lg flex items-center gap-2">
               <UserPlus size={18} className="text-admin-accent" />
               Create New User
@@ -987,7 +1018,7 @@ export default function Users() {
               Add a new user to the platform
             </DialogDescription>
           </DialogHeader>
-          <div className="px-6 pb-6 space-y-4 max-h-[60vh] overflow-y-auto">
+          <div className="px-5 pb-5 space-y-4 max-h-[60vh] overflow-y-auto">
             <FormField label="Full Name">
               <Input
                 value={createFormData.fullName}
@@ -998,7 +1029,7 @@ export default function Users() {
                   })
                 }
                 placeholder="Enter full name"
-                className={adminInputClassName}
+                className={`${adminInputClassName} h-9`}
               />
             </FormField>
 
@@ -1013,7 +1044,7 @@ export default function Users() {
                 }
                 placeholder="user@example.com"
                 type="email"
-                className={adminInputClassName}
+                className={`${adminInputClassName} h-9`}
               />
             </FormField>
 
@@ -1031,7 +1062,7 @@ export default function Users() {
                   })
                 }
                 placeholder="+254712345678"
-                className={adminInputClassName}
+                className={`${adminInputClassName} h-9`}
               />
             </FormField>
 
@@ -1046,7 +1077,7 @@ export default function Users() {
                 }
                 type="password"
                 placeholder="Minimum 6 characters"
-                className={adminInputClassName}
+                className={`${adminInputClassName} h-9`}
               />
             </FormField>
 
@@ -1061,11 +1092,11 @@ export default function Users() {
                 }
                 type="password"
                 placeholder="Confirm password"
-                className={adminInputClassName}
+                className={`${adminInputClassName} h-9`}
               />
             </FormField>
 
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-admin-accent/20 bg-admin-accent/5">
+            <div className="flex items-center gap-3 p-2.5 rounded-lg border border-admin-accent/20 bg-admin-accent/5">
               <input
                 type="checkbox"
                 id="createVerified"
