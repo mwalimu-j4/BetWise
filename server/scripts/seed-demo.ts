@@ -330,6 +330,7 @@ async function cleanupDemoData() {
 }
 
 async function seedAdminSettings() {
+  console.log("→ Seeding admin settings...");
   await prisma.adminSettings.upsert({
     where: { key: "global" },
     update: {
@@ -362,9 +363,11 @@ async function seedAdminSettings() {
       updatedBy: "demo-seed",
     },
   });
+  console.log("✓ Admin settings configured\n");
 }
 
 async function seedUsers(options: DemoOptions) {
+  console.log(`→ Creating ${options.adminCount} admin(s) and ${options.userCount} user(s)...`);
   const admins: DemoUser[] = [];
   const regularUsers: DemoUser[] = [];
 
@@ -991,9 +994,7 @@ async function seedWithdrawals(
         accountReference: "BET-WITHDRAWAL",
         description: `Withdrawal to M-Pesa (${phone})`,
         providerReceiptNumber:
-          status === "COMPLETED"
-            ? makeReference("MPESA", index + 1)
-            : null,
+          status === "COMPLETED" ? makeReference("MPESA", index + 1) : null,
         providerResponseCode:
           status === "COMPLETED"
             ? "0"
