@@ -29,7 +29,6 @@ import {
   InlinePill,
   StatusBadge,
   TableShell,
-  truncateEmailForTable,
 } from "../../components/ui";
 import {
   useAdminPayments,
@@ -112,7 +111,7 @@ export default function Transactions() {
 
     const headers = [
       "ID",
-      "User Email",
+      "User Phone",
       "Type",
       "Amount (KES)",
       "Status",
@@ -121,7 +120,7 @@ export default function Transactions() {
     ];
     const rows = transactions.map((t) => [
       t.id,
-      t.userEmail,
+      t.userPhone,
       t.type.toUpperCase(),
       t.amount.toString(),
       t.status.toUpperCase(),
@@ -280,11 +279,8 @@ export default function Transactions() {
                       <div className="flex flex-col">
                         <span
                           className="max-w-30 truncate text-sm font-semibold text-admin-text-primary"
-                          title={transaction.userEmail}
+                          title={transaction.userPhone}
                         >
-                          {truncateEmailForTable(transaction.userEmail)}
-                        </span>
-                        <span className="text-xs text-admin-text-muted">
                           {transaction.userPhone}
                         </span>
                       </div>
@@ -377,12 +373,9 @@ export default function Transactions() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-admin-text-muted">
-                      User
+                      User Phone
                     </label>
                     <p className="text-sm font-semibold">
-                      {selectedTxn.userEmail}
-                    </p>
-                    <p className="text-xs text-admin-text-muted">
                       {selectedTxn.userPhone}
                     </p>
                   </div>

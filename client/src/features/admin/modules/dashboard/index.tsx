@@ -110,8 +110,7 @@ export default function Dashboard() {
 
     const headers = [
       "#",
-      "User Email",
-      "Phone",
+      "User Phone",
       "Type",
       "Amount",
       "Fee",
@@ -120,8 +119,8 @@ export default function Dashboard() {
     ];
     const rows = recentTransactions.map((tx, idx) => [
       idx + 1,
-      tx.userEmail,
       tx.userPhone,
+      tx.type,
       tx.type,
       tx.amount,
       tx.type === "withdrawal" ? tx.fee : "-",
@@ -506,16 +505,10 @@ export default function Dashboard() {
                             </td>
                             <td
                               className={`${adminTableCellClassName} font-semibold text-admin-text-primary max-w-35 px-2 py-1 align-middle`}
-                              title={`${transaction.userEmail} • ${transaction.userPhone}`}
+                              title={transaction.userPhone}
                             >
                               <div className="flex items-center gap-1 truncate">
                                 <span className="truncate text-xs">
-                                  {transaction.userEmail}
-                                </span>
-                                <span className="hidden sm:inline text-[10px] text-admin-text-muted shrink-0">
-                                  •
-                                </span>
-                                <span className="hidden sm:inline text-[10px] text-admin-text-muted truncate">
                                   {transaction.userPhone}
                                 </span>
                               </div>

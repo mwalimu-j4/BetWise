@@ -24,7 +24,6 @@ import {
   adminTableCellClassName,
   adminTableClassName,
   adminTableHeadCellClassName,
-  truncateEmailForTable,
 } from "../../components/ui";
 import {
   Dialog,
@@ -224,7 +223,7 @@ export default function WithdrawalsAdmin() {
     if (!withdrawals.length) return toast.error("No data available to export");
 
     const headers = [
-      "User Email",
+      "User Phone",
       "User ID",
       "Phone",
       "Amount",
@@ -234,7 +233,7 @@ export default function WithdrawalsAdmin() {
       "Date",
     ];
     const csvRows = withdrawals.map((w) => [
-      w.userEmail,
+      w.userPhone,
       w.userId,
       w.phone,
       w.amount,
@@ -376,9 +375,9 @@ export default function WithdrawalsAdmin() {
                       <div>
                         <p
                           className="max-w-[110px] truncate text-xs"
-                          title={withdrawal.userEmail}
+                          title={withdrawal.userPhone}
                         >
-                          {truncateEmailForTable(withdrawal.userEmail)}
+                          {withdrawal.userPhone}
                         </p>
                         <p className="text-[10px] text-admin-text-muted">
                           {withdrawal.userId.slice(0, 8)}...
@@ -486,10 +485,10 @@ export default function WithdrawalsAdmin() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          User Email
+                          User Phone
                         </p>
                         <p className="mt-1 text-sm font-medium text-admin-text-primary">
-                          {selectedWithdrawal.userEmail}
+                          {selectedWithdrawal.userPhone}
                         </p>
                       </div>
                       <div>
