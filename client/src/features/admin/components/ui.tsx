@@ -727,18 +727,38 @@ export function DepositWithdrawalChart({
 export function UserRegistrationChart({
   data,
   compact = false,
+  period = "1w",
 }: {
   data: any[];
   compact?: boolean;
+  period?: "1w" | "1m" | "6m";
 }) {
+  // Calculate interval to avoid X-axis clutter based on period
+  const getXAxisInterval = (periodType: string, dataLength: number) => {
+    if (periodType === "1w") return 0; // Show all daily labels
+    if (periodType === "1m") {
+      // Show every ~3-4 days for 30-day period
+      return Math.max(0, Math.ceil(dataLength / 7) - 1);
+    }
+    // For 6m, show every ~20 days
+    return Math.max(0, Math.ceil(dataLength / 9) - 1);
+  };
+
+  const xAxisInterval = getXAxisInterval(period, data.length);
+
   return (
     <ResponsiveContainer width="100%" height={compact ? 230 : 320}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -24, bottom: 2 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="rgba(255,255,255,0.06)"
+          vertical={period === "1w"}
+        />
         <XAxis
           dataKey="period"
           stroke="rgba(168,196,224,0.62)"
           style={{ fontSize: "11px" }}
+          interval={xAxisInterval}
         />
         <YAxis
           stroke="rgba(168,196,224,0.62)"
