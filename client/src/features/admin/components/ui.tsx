@@ -18,7 +18,7 @@ import {
   UserX,
   XCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatLargeNumber } from "@/lib/utils";
 import { DialogContent as BaseDialogContent } from "@/components/ui/dialog";
 import {
   revenueTrend,
@@ -659,7 +659,11 @@ export function DepositWithdrawalChart({
           stroke="rgba(168,196,224,0.62)"
           style={{ fontSize: "11px" }}
         />
-        <YAxis stroke="rgba(168,196,224,0.62)" style={{ fontSize: "11px" }} />
+        <YAxis 
+          stroke="rgba(168,196,224,0.62)" 
+          style={{ fontSize: "11px" }}
+          tickFormatter={(value) => formatLargeNumber(value)}
+        />
         <Tooltip
           contentStyle={{
             background:
