@@ -438,10 +438,10 @@ export default function WithdrawalsAdmin() {
         </TableShell>
       </AdminCard>
 
-        <Dialog
-          open={detailsOpen && selectedWithdrawal !== null}
-          onOpenChange={(open) => !open && handleCloseDetails()}
-        >
+      <Dialog
+        open={detailsOpen && selectedWithdrawal !== null}
+        onOpenChange={(open) => !open && handleCloseDetails()}
+      >
           <AdminDialogContent className="max-w-md p-0">
             <DialogHeader className="border-b border-admin-border bg-admin-surface/50 px-6 py-5">
               <DialogTitle className="text-lg text-admin-text-primary">
@@ -629,7 +629,6 @@ export default function WithdrawalsAdmin() {
             )}
           </AdminDialogContent>
         </Dialog>
-      </AdminCard>
     </div>
   );
 }
