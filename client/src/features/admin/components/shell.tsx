@@ -255,7 +255,7 @@ export default function AdminShell() {
 
   return (
     <ProtectedRoute requireRole="ADMIN">
-      <div className="relative  min-h-dvh  font-admin text-admin-text-primary lg:flex">
+      <div className="relative flex h-dvh overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,197,24,0.08),transparent_28%),linear-gradient(180deg,var(--admin-bg)_0%,var(--admin-card)_100%)] font-admin text-admin-text-primary">
         {/* Mobile Sidebar Overlay */}
         {mobileSidebarOpen && (
           <button
@@ -269,10 +269,10 @@ export default function AdminShell() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-70 max-w-[85vw] flex-col overflow-hidden border-r border-admin-border bg-admin-card",
-            "shadow-[2px_0_12px_rgba(0,0,0,0.08)] transition-all duration-300 ease-in-out",
+            "fixed inset-y-0 left-0 z-50 flex h-full w-70 max-w-[85vw] flex-col overflow-hidden border-r border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02)_62%)] bg-admin-card/98 backdrop-blur-xl",
+            "shadow-[2px_0_18px_rgba(0,0,0,0.12)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
-            "lg:sticky lg:top-0 lg:h-dvh lg:max-w-none lg:translate-x-0 lg:shadow-none",
+            "lg:relative lg:translate-x-0 lg:shadow-none",
             sidebarExpanded ? "lg:w-65 lg:min-w-65" : "lg:w-20 lg:min-w-20",
           )}
         >
@@ -406,9 +406,8 @@ export default function AdminShell() {
         </aside>
 
         {/* Main Content Area */}
-        <div className="relative flex min-w-0 flex-1 flex-col bg-transparent">
-          {/* Top Header - Updated to match sidebar background */}
-          <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-admin-border bg-admin-card px-4 sm:px-6 lg:px-8">
+        <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02)_100%)] bg-admin-card/95 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 lg:hidden">
               <button
                 type="button"
@@ -723,7 +722,7 @@ export default function AdminShell() {
           </header>
 
           {/* Page Content */}
-          <main className="relative flex-1 overflow-x-hidden bg-transparent p-4 sm:p-6 lg:p-8">
+          <main className="app-scrollbar relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-transparent p-4 sm:p-6 lg:p-8">
             <div className="mx-auto max-w-7xl">
               <Outlet />
             </div>
