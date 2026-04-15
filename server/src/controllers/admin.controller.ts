@@ -574,6 +574,7 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     averageDepositToday,
     averageWithdrawalToday,
     trendTransactions,
+    registrationTrendUsers,
     recentTransactions,
     activeRiskAlerts,
     activeBets,
@@ -776,6 +777,37 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
   const averageDeposit = Math.round(averageDepositToday._avg.amount ?? 0);
   const averageWithdrawal = Math.round(averageWithdrawalToday._avg.amount ?? 0);
 
+  // Build registration trend
+  const registrationByDate = new Map<
+    string,
+    {
+      period: string;
+      registrations: number;
+    }
+  >();
+
+  for (let offset = 0; offset < TREND_DAYS; offset += 1) {
+    const date = new Date(trendStart);
+    date.setDate(trendStart.getDate() + offset);
+    const key = formatDateKey(date);
+
+    registrationByDate.set(key, {
+      period: date.toLocaleDateString("en-KE", { weekday: "short" }),
+      registrations: 0,
+    });
+  }
+
+  for (const user of registrationTrendUsers) {
+    const key = formatDateKey(user.createdAt);
+    const row = registrationByDate.get(key);
+
+    if (!row) {
+      continue;
+    }
+
+    row.registrations += 1;
+  }
+
   return res.status(200).json({
     generatedAt: new Date().toISOString(),
     metrics: [
@@ -833,6 +865,7 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     ],
     charts: {
       depositWithdrawalTrend: Array.from(trendByDate.values()),
+      registrationTrend: Array.from(registrationByDate.values()),
       totals: {
         deposits7d: sevenDayDepositTotal,
         withdrawals7d: sevenDayWithdrawalTotal,
