@@ -659,8 +659,8 @@ export function DepositWithdrawalChart({
           stroke="rgba(168,196,224,0.62)"
           style={{ fontSize: "11px" }}
         />
-        <YAxis 
-          stroke="rgba(168,196,224,0.62)" 
+        <YAxis
+          stroke="rgba(168,196,224,0.62)"
           style={{ fontSize: "11px" }}
           tickFormatter={(value) => formatLargeNumber(value)}
         />
