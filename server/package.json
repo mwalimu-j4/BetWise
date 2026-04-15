@@ -19,9 +19,12 @@
     "prisma:ensure-client": "node scripts/ensurePrismaClient.cjs",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:seed:demo": "tsx scripts/seed-demo.ts",
+    "prisma:seed:demo:reset": "tsx scripts/seed-demo.ts --reset",
     "prisma:studio": "prisma studio",
     "prisma:reset": "prisma migrate reset --force && pnpm prisma:seed",
-    "db:deploy": "pnpm prisma:generate && prisma migrate deploy && prisma db seed"
+    "db:deploy": "pnpm prisma:generate && prisma migrate deploy && prisma db seed",
+    "test:smoke": "tsx scripts/smoke-test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
