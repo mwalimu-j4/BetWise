@@ -516,7 +516,7 @@ export default function Users() {
           }
         }}
       >
-        <AdminDialogContent className="max-w-2xl p-0">
+        <AdminDialogContent className="max-w-2xl p-0 max-h-none overflow-y-visible">
           <DialogHeader className="border-b border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] px-6 py-5">
             <DialogTitle className="text-white">User Details</DialogTitle>
             <DialogDescription className="text-admin-text-secondary">
@@ -609,24 +609,13 @@ export default function Users() {
 
               {selectedUser.banAppeal && (
                 <div className="rounded-2xl border border-admin-accent/20 bg-[rgba(15,118,110,0.08)] p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-admin-text-muted">
-                        Ban Appeal
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-admin-text-primary">
-                        {selectedUser.banAppeal.status}
-                      </p>
-                    </div>
-                    <AdminButton size="sm" variant="ghost" className="px-0">
-                      <Link
-                        className="inline-flex h-full w-full items-center justify-center px-3"
-                        to="/admin/appeals/$appealId"
-                        params={{ appealId: selectedUser.banAppeal.id }}
-                      >
-                        Open Review Page
-                      </Link>
-                    </AdminButton>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-admin-text-muted">
+                      Ban Appeal
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-admin-text-primary">
+                      {selectedUser.banAppeal.status}
+                    </p>
                   </div>
                   <div className="mt-3 space-y-3">
                     <div>
