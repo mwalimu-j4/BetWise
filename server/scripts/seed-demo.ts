@@ -367,7 +367,9 @@ async function seedAdminSettings() {
 }
 
 async function seedUsers(options: DemoOptions) {
-  console.log(`→ Creating ${options.adminCount} admin(s) and ${options.userCount} user(s)...`);
+  console.log(
+    `→ Creating ${options.adminCount} admin(s) and ${options.userCount} user(s)...`,
+  );
   const admins: DemoUser[] = [];
   const regularUsers: DemoUser[] = [];
 
