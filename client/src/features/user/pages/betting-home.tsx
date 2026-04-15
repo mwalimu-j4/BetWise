@@ -5,54 +5,18 @@ import LiveTicker from "../components/LiveTicker";
 import useBetSlip from "../hooks/useBetSlip";
 import useEvents from "../hooks/useEvents";
 import SportEvents from "./sport-events";
-import { Users, Activity, Trophy, ChevronLeft, ChevronRight, RefreshCw, Flame, Calendar } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  Flame,
+  Calendar,
+} from "lucide-react";
 import heroOne from "@/assets/h1.jfif";
 import heroTwo from "@/assets/h2.jfif";
 import heroThree from "@/assets/h3.jfif";
 import heroFour from "@/assets/h4.jfif";
 import heroFive from "@/assets/h5.jfif";
-
-// Custom hook-based component for smooth number animation
-function AnimatedNumber({
-  value,
-  suffix = "",
-  isFloat = false,
-}: {
-  value: number;
-  suffix?: string;
-  isFloat?: boolean;
-}) {
-  const [displayValue, setDisplayValue] = useState(0);
-
-  useEffect(() => {
-    let startTimestamp: number;
-    const duration = 2000; // Animation duration in milliseconds
-
-    const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-
-      // Easing function (easeOutExpo) for a smooth deceleration
-      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      setDisplayValue(value * ease);
-
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      } else {
-        setDisplayValue(value); // Ensure it ends exactly on the target value
-      }
-    };
-
-    window.requestAnimationFrame(step);
-  }, [value]);
-
-  return (
-    <span>
-      {isFloat ? displayValue.toFixed(1) : Math.floor(displayValue)}
-      {suffix}
-    </span>
-  );
-}
 
 function formatTabLabel(value: string) {
   return value
@@ -158,7 +122,7 @@ export default function BettingHome() {
   return (
     <div className="betting-home-wrapper min-h-screen overflow-x-hidden bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
       <div
-        className={`betting-home-main mx-auto max-w-7xl px-3 py-3 sm:px-5 sm:py-4 lg:px-6 ${
+        className={`betting-home-main mx-auto max-w-4xl px-3 py-3 sm:px-5 sm:py-4 lg:px-6 ${
           hasSelections ? "has-betslip" : ""
         }`}
       >
@@ -204,27 +168,6 @@ export default function BettingHome() {
                       Win Bigger
                     </span>
                   </h1>
-
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1 sm:gap-1.5">
-                    <div className="hero-stat-pill flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 py-1 backdrop-blur-md sm:px-3 sm:py-1.5">
-                      <Users className="h-3 w-3 text-[#ffd500] sm:h-3.5 sm:w-3.5" />
-                      <span className="text-[9px] font-semibold text-white/90 sm:text-[10px] md:text-xs">
-                        <AnimatedNumber value={11.2} suffix="K" isFloat={true} /> Active
-                      </span>
-                    </div>
-                    <div className="hero-stat-pill flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 py-1 backdrop-blur-md sm:px-3 sm:py-1.5">
-                      <Activity className="h-3 w-3 text-[#00c853] sm:h-3.5 sm:w-3.5" />
-                      <span className="text-[9px] font-semibold text-white/90 sm:text-[10px] md:text-xs">
-                        <AnimatedNumber value={94} suffix="%" /> Engagement
-                      </span>
-                    </div>
-                    <div className="hero-stat-pill hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 py-1 backdrop-blur-md sm:flex sm:px-3 sm:py-1.5">
-                      <Trophy className="h-3 w-3 text-[#ffd500] sm:h-3.5 sm:w-3.5" />
-                      <span className="text-[9px] font-semibold text-white/90 sm:text-[10px] md:text-xs">
-                        Top Odds
-                      </span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Dot indicators */}
@@ -276,7 +219,8 @@ export default function BettingHome() {
             <div className="flex min-w-max gap-1.5 sm:gap-2">
               {tabs.map((tab) => {
                 const isActive =
-                  selectedSport === tab.sportKey && selectedLeague === tab.league;
+                  selectedSport === tab.sportKey &&
+                  selectedLeague === tab.league;
 
                 return (
                   <button
@@ -316,7 +260,9 @@ export default function BettingHome() {
         {/* ═══════════════════════════════════════════════════
             MAIN CONTENT AREA — events + betslip (sticky right on desktop)
           ═══════════════════════════════════════════════════ */}
-        <div className={`betting-content mt-3 min-w-0 sm:mt-4 ${hasSelections ? "lg:flex lg:items-start lg:gap-5" : ""}`}>
+        <div
+          className={`betting-content mt-3 min-w-0 sm:mt-4 ${hasSelections ? "lg:flex lg:items-start lg:gap-5" : ""}`}
+        >
           <div
             className={`events-pane min-w-0 ${
               hasSelections ? "lg:min-w-0 lg:flex-1" : ""
@@ -462,7 +408,7 @@ export default function BettingHome() {
                     events={upcomingEvents}
                     onOddsSelect={betSlip.addSelection}
                     selectedOdds={selectedOdds}
-                    cardsPerRow={hasSelections ? 2 : 3}
+                    cardsPerRow={1}
                   />
                 )}
               </div>

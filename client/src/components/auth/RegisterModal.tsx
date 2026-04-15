@@ -133,15 +133,6 @@ export default function RegisterModal() {
     }
   }
 
-  const handleClose = () => {
-    closeAuthModal();
-    setEmail("");
-    setPhone("");
-    setPassword("");
-    setConfirmPassword("");
-    setErrors({});
-  };
-
   return (
     <>
       {authModal === "register" && (
@@ -149,7 +140,6 @@ export default function RegisterModal() {
           {/* Overlay - Full page coverage */}
           <div
             className="fixed top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"
-            onClick={handleClose}
             style={{
               position: "fixed",
               width: "100vw",

@@ -412,8 +412,7 @@ export default function Dashboard() {
           <AdminCard className="overflow-hidden max-w-full w-full">
             <AdminCardHeader
               title="Recent Activity"
-              subtitle="Live wallet and withdrawal flow"
-              actions={
+               actions={
                 <>
                   <AdminButton
                     variant="ghost"
@@ -439,10 +438,6 @@ export default function Dashboard() {
                 </>
               }
             />
-
-            <p className="mt-2 text-[11px] text-admin-text-muted px-1">
-              Swipe the table left and right on mobile to view every column.
-            </p>
 
             <TableShell className="mt-2 w-full border-t border-admin-border/40">
               <div className="w-full overflow-x-auto pb-2 -webkit-overflow-scrolling-touch">

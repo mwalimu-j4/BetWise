@@ -40,6 +40,7 @@ import {
   Loader2,
   MoreHorizontal,
   PencilLine,
+  Plus,
   Power,
   RefreshCw,
   Search,
@@ -231,6 +232,16 @@ export default function Events() {
   const [marketsEnabled, setMarketsEnabled] = useState<string[]>(["h2h"]);
   const [actionEvent, setActionEvent] = useState<ApiEvent | null>(null);
   const [confirmDeactivateOpen, setConfirmDeactivateOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    homeTeam: "",
+    awayTeam: "",
+    league: "",
+    commenceTime: "",
+    h2hHome: "",
+    h2hAway: "",
+  });
+  const [creatingEvent, setCreatingEvent] = useState(false);
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
   const hasSelection = selectedEventIds.length > 0;
@@ -604,6 +615,55 @@ export default function Events() {
     setConfigDialogOpen(true);
   }
 
+  async function handleCreateCustomEvent() {
+    if (
+      !createFormData.homeTeam ||
+      !createFormData.awayTeam ||
+      !createFormData.commenceTime
+    ) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!createFormData.h2hHome || !createFormData.h2hAway) {
+      toast.error("Please set both odds values");
+      return;
+    }
+
+    setCreatingEvent(true);
+    try {
+      const payload = {
+        homeTeam: createFormData.homeTeam.trim(),
+        awayTeam: createFormData.awayTeam.trim(),
+        sport: "admin-created",
+        league: createFormData.league.trim() || undefined,
+        commenceTime: new Date(createFormData.commenceTime).toISOString(),
+        h2hOdds: {
+          home: Number(createFormData.h2hHome),
+          away: Number(createFormData.h2hAway),
+        },
+      };
+
+      await api.post("/user/custom-events", payload);
+      toast.success("Custom event created!");
+      setCreateDialogOpen(false);
+      setCreateFormData({
+        homeTeam: "",
+        awayTeam: "",
+        league: "",
+        commenceTime: "",
+        h2hHome: "",
+        h2hAway: "",
+      });
+      await Promise.all([loadEvents({ background: true }), loadStats()]);
+    } catch (e) {
+      const msg = getErrorMessage(e, "Failed to create custom event");
+      toast.error(msg);
+    } finally {
+      setCreatingEvent(false);
+    }
+  }
+
   function toggleSelection(eventId: string, checked: boolean) {
     setSelectedEventIds((ids) =>
       checked
@@ -683,6 +743,14 @@ export default function Events() {
               >
                 <Settings2 className="size-3.5" />
                 Bulk update
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setCreateDialogOpen(true)}
+                className="w-full bg-amber-500 text-black hover:bg-amber-600 sm:w-auto"
+              >
+                <Plus className="size-3.5" />
+                Create Custom Event
               </Button>
             </div>
           }
@@ -1213,6 +1281,150 @@ export default function Events() {
                 </>
               ) : (
                 "Apply changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Create Custom Event dialog ── */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-md sm:p-6">
+          <DialogHeader>
+            <DialogTitle>Create Custom Event</DialogTitle>
+            <DialogDescription className="text-admin-text-muted">
+              Add a new custom event with odds.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-admin-text-secondary">
+                Home Team *
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Team A"
+                value={createFormData.homeTeam}
+                onChange={(e) =>
+                  setCreateFormData({
+                    ...createFormData,
+                    homeTeam: e.target.value,
+                  })
+                }
+                className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary placeholder-admin-text-muted focus:border-admin-accent focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-admin-text-secondary">
+                Away Team *
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Team B"
+                value={createFormData.awayTeam}
+                onChange={(e) =>
+                  setCreateFormData({
+                    ...createFormData,
+                    awayTeam: e.target.value,
+                  })
+                }
+                className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary placeholder-admin-text-muted focus:border-admin-accent focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-admin-text-secondary">
+                League
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Premier League"
+                value={createFormData.league}
+                onChange={(e) =>
+                  setCreateFormData({
+                    ...createFormData,
+                    league: e.target.value,
+                  })
+                }
+                className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary placeholder-admin-text-muted focus:border-admin-accent focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-admin-text-secondary">
+                Kick-off Time *
+              </label>
+              <input
+                type="datetime-local"
+                value={createFormData.commenceTime}
+                onChange={(e) =>
+                  setCreateFormData({
+                    ...createFormData,
+                    commenceTime: e.target.value,
+                  })
+                }
+                className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary focus:border-admin-accent focus:outline-none"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs font-medium text-admin-text-secondary">
+                  Home Odds *
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g., 1.50"
+                  step="0.01"
+                  value={createFormData.h2hHome}
+                  onChange={(e) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      h2hHome: e.target.value,
+                    })
+                  }
+                  className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary placeholder-admin-text-muted focus:border-admin-accent focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-admin-text-secondary">
+                  Away Odds *
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g., 2.50"
+                  step="0.01"
+                  value={createFormData.h2hAway}
+                  onChange={(e) =>
+                    setCreateFormData({
+                      ...createFormData,
+                      h2hAway: e.target.value,
+                    })
+                  }
+                  className="mt-1 w-full rounded border border-admin-border bg-admin-surface px-2.5 py-1.5 text-sm text-admin-text-primary placeholder-admin-text-muted focus:border-admin-accent focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCreateDialogOpen(false)}
+              className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => void handleCreateCustomEvent()}
+              disabled={creatingEvent}
+              className="w-full bg-amber-500 text-black hover:bg-amber-600 sm:w-auto"
+            >
+              {creatingEvent ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Creating…
+                </>
+              ) : (
+                "Create Event"
               )}
             </Button>
           </DialogFooter>
