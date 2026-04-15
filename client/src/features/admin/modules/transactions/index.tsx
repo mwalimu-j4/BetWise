@@ -243,49 +243,43 @@ export default function Transactions() {
         ) : (
           <TableShell>
             <table className={adminTableClassName}>
-              <thead>
+              <thead className="bg-admin-surface/30 border-b border-white/10">
                 <tr>
                   {[
                     "TXN ID",
-                    "User",
+                    "Phone",
                     "Type",
                     "Amount",
                     "Status",
                     "Date",
-                    "Actions",
+                    "",
                   ].map((heading) => (
-                    <th className={adminTableHeadCellClassName} key={heading}>
+                    <th
+                      key={heading}
+                      className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
+                    >
                       {heading}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-white/5">
                 {transactions.map((transaction) => (
                   <tr
-                    className="even:bg-(--color-bg-elevated) hover:bg-admin-surface/60 cursor-pointer transition-colors"
                     key={transaction.id}
+                    className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                     onClick={() => {
                       setSelectedTxn(transaction);
                       setDetailsOpen(true);
                     }}
                   >
-                    <td
-                      className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
-                    >
+                    <td className="px-3 py-3 text-sm font-mono text-admin-text-muted">
                       {transaction.id.slice(0, 8)}
                     </td>
-                    <td className={adminTableCellClassName}>
-                      <div className="flex flex-col">
-                        <span
-                          className="max-w-30 truncate text-sm font-semibold text-admin-text-primary"
-                          title={transaction.userPhone}
-                        >
-                          {transaction.userPhone}
-                        </span>
-                      </div>
+                    <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                      {transaction.userPhone}
                     </td>
-                    <td className={adminTableCellClassName}>
+                    <td className="px-3 py-3">
                       <InlinePill
                         label={
                           transaction.type === "deposit"
@@ -295,38 +289,27 @@ export default function Transactions() {
                         tone={getToneForType(transaction.type)}
                       />
                     </td>
-                    <td className={adminTableCellClassName}>
-                      <span className="font-semibold text-admin-text-primary">
-                        {transaction.type === "deposit" ? "+" : "-"}KES{" "}
-                        {transaction.amount.toLocaleString()}
-                      </span>
-                      {transaction.fee > 0 && (
-                        <span className="block text-xs text-admin-text-muted">
-                          Fee: KES {transaction.fee.toLocaleString()}
-                        </span>
-                      )}
+                    <td className="px-3 py-3 text-sm text-admin-text-primary">
+                      {transaction.type === "deposit" ? "+" : "-"}KES{" "}
+                      {transaction.amount.toLocaleString()}
                     </td>
-                    <td className={adminTableCellClassName}>
+                    <td className="px-3 py-3">
                       <StatusBadge
                         status={getStatusForBadge(transaction.status)}
                       />
                     </td>
-                    <td className={`${adminTableCellClassName} text-xs`}>
+                    <td className="px-3 py-3 text-xs text-admin-text-muted">
                       {new Date(transaction.createdAt).toLocaleString()}
                     </td>
-                    <td
-                      className={`${adminTableCellClassName} ${adminCompactActionsClassName}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <td className="px-3 py-3">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <AdminButton
-                            size="sm"
-                            variant="ghost"
-                            aria-label="Row actions"
-                          >
-                            <MoreHorizontal size={16} />
-                          </AdminButton>
+                          <button className="p-1 rounded hover:bg-white/10 transition-colors">
+                            <MoreHorizontal
+                              size={16}
+                              className="text-admin-text-muted"
+                            />
+                          </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"

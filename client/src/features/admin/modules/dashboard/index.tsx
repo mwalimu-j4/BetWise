@@ -448,27 +448,27 @@ export default function Dashboard() {
             <TableShell className="mt-2 w-full border-t border-admin-border/40">
               <div className="w-full overflow-x-auto pb-2 -webkit-overflow-scrolling-touch">
                 <table className={`${adminTableClassName} w-full min-w-175`}>
-                  <thead>
+                  <thead className="bg-admin-surface/30 border-b border-white/10">
                     <tr>
                       {[
-                        "#", // Replaced Reference with Numbering
-                        "User",
+                        "#",
+                        "Phone",
                         "Type",
                         "Amount",
                         "Status",
                         "Time",
-                        "Actions",
+                        "",
                       ].map((heading) => (
                         <th
-                          className={adminTableHeadCellClassName}
                           key={heading}
+                          className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
                         >
                           {heading}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/5">
                     {isLoading ? (
                       <tr>
                         <td className={adminTableCellClassName} colSpan={7}>
@@ -494,28 +494,17 @@ export default function Dashboard() {
                         )
                         .map((transaction, index) => (
                           <tr
-                            className="even:bg-admin-surface/45 h-8 hover:bg-admin-surface/60 cursor-pointer transition-colors"
                             key={transaction.id}
+                            className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                             onClick={() => handleViewDetails(transaction)}
                           >
-                            <td
-                              className={`${adminTableCellClassName} text-xs font-semibold text-admin-text-muted w-8 px-1.5 py-1 align-middle`}
-                            >
-                              {index + 1}
+                            <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                              {(currentPage - 1) * itemsPerPage + index + 1}
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} font-semibold text-admin-text-primary max-w-35 px-2 py-1 align-middle`}
-                              title={transaction.userPhone}
-                            >
-                              <div className="flex items-center gap-1 truncate">
-                                <span className="truncate text-xs">
-                                  {transaction.userPhone}
-                                </span>
-                              </div>
+                            <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                              {transaction.userPhone}
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} px-1.5 py-1 align-middle`}
-                            >
+                            <td className="px-3 py-3">
                               <InlinePill
                                 label={transaction.type}
                                 tone={
@@ -525,33 +514,13 @@ export default function Dashboard() {
                                 }
                               />
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} font-semibold text-admin-text-primary px-2 py-1 align-middle whitespace-nowrap`}
-                              title={`${formatCurrency(transaction.amount)}${transaction.type === "withdrawal" ? ` • Fee ${formatCurrency(transaction.fee)}` : ""}`}
-                            >
+                            <td className="px-3 py-3 text-sm text-admin-text-primary">
                               {formatCurrency(transaction.amount)}
-                              {transaction.type === "withdrawal" ? (
-                                <span className="ml-1 text-[10px] text-admin-text-muted">
-                                  Fee {formatCurrency(transaction.fee)}
-                                </span>
-                              ) : null}
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} px-1.5 py-1 align-middle`}
-                            >
+                            <td className="px-3 py-3">
                               <StatusBadge status={transaction.status} />
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} whitespace-nowrap text-xs text-admin-text-muted px-2 py-1 align-middle`}
-                              title={new Date(
-                                transaction.createdAt,
-                              ).toLocaleString("en-KE", {
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            >
+                            <td className="px-3 py-3 text-xs text-admin-text-muted">
                               {new Date(transaction.createdAt).toLocaleString(
                                 "en-KE",
                                 {
@@ -562,19 +531,15 @@ export default function Dashboard() {
                                 },
                               )}
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} whitespace-nowrap px-1 py-1 align-middle`}
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <AdminButton
-                                    size="sm"
-                                    variant="ghost"
-                                    aria-label="Row actions"
-                                  >
-                                    <MoreHorizontal size={14} />
-                                  </AdminButton>
+                                  <button className="p-1 rounded hover:bg-white/10 transition-colors">
+                                    <MoreHorizontal
+                                      size={16}
+                                      className="text-admin-text-muted"
+                                    />
+                                  </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                   align="end"

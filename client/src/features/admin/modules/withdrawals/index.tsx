@@ -455,9 +455,6 @@ export default function WithdrawalsAdmin() {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          )}
-        </TableShell>
 
         <Dialog
           open={detailsOpen && selectedWithdrawal !== null}
