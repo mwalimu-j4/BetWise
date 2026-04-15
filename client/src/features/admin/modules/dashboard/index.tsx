@@ -290,7 +290,7 @@ export default function Dashboard() {
               title="Deposit vs Withdrawal Trend"
               subtitle="Completed transactions over last 7 days"
             />
-            <div className="w-full overflow-x-auto">
+            <div className="w-full">
               <DepositWithdrawalChart data={chartData} compact />
             </div>
           </AdminCard>
@@ -300,7 +300,7 @@ export default function Dashboard() {
               title="User Registration Trend"
               subtitle="New user signups over last 7 days"
             />
-            <div className="w-full overflow-x-auto">
+            <div className="w-full">
               <UserRegistrationChart
                 data={data?.charts.registrationTrend ?? []}
                 compact

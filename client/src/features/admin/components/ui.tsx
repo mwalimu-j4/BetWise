@@ -365,12 +365,12 @@ export function AdminStatCard({
         )}
       />
       <div className="space-y-2">
-        <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
+        <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-gray-300 sm:text-[9px]">
           {label}
         </p>
         <p
           className={cn(
-            "text-base font-bold sm:text-lg",
+            "text-lg font-bold sm:text-xl md:text-2xl",
             toneTextClasses[tone],
           )}
         >
