@@ -2572,3 +2572,221 @@ export async function getRiskSummary(req: Request, res: Response) {
     highRiskUsers: highRiskUsersWithDetails,
   });
 }
+
+// Ban Appeals
+export async function getBanAppeals(req: Request, res: Response) {
+  if (!req.user?.id || req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.max(
+    1,
+    Math.min(50, parseInt(req.query.limit as string) || 20),
+  );
+  const offset = (page - 1) * limit;
+  const status = req.query.status as string | undefined;
+
+  const where: any = {};
+  if (status && status !== "all") {
+    where.status = status;
+  }
+
+  const [appeals, total] = await Promise.all([
+    prisma.banAppeal.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+            phone: true,
+            bannedAt: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: offset,
+      take: limit,
+    }),
+    prisma.banAppeal.count({ where }),
+  ]);
+
+  return res.status(200).json({
+    appeals: appeals.map((appeal) => ({
+      id: appeal.id,
+      userId: appeal.userId,
+      user: appeal.user,
+      appealText: appeal.appealText,
+      status: appeal.status,
+      responseText: appeal.responseText,
+      createdAt: appeal.createdAt.toISOString(),
+      updatedAt: appeal.updatedAt.toISOString(),
+      reviewedAt: appeal.reviewedAt?.toISOString() || null,
+    })),
+    total,
+    page,
+    limit,
+    pages: Math.ceil(total / limit),
+  });
+}
+
+export async function getBanAppealDetail(req: Request, res: Response) {
+  if (!req.user?.id || req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const appealId = String(req.params.appealId);
+
+  const appeal = await prisma.banAppeal.findUnique({
+    where: { id: appealId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          phone: true,
+          bannedAt: true,
+          banReason: true,
+        },
+      },
+    },
+  });
+
+  if (!appeal) {
+    return res.status(404).json({ message: "Ban appeal not found" });
+  }
+
+  return res.status(200).json({
+    id: appeal.id,
+    userId: appeal.userId,
+    user: appeal.user,
+    appealText: appeal.appealText,
+    status: appeal.status,
+    responseText: appeal.responseText,
+    createdAt: appeal.createdAt.toISOString(),
+    updatedAt: appeal.updatedAt.toISOString(),
+    reviewedAt: appeal.reviewedAt?.toISOString() || null,
+    reviewedBy: appeal.reviewedBy || null,
+  });
+}
+
+export async function respondToBanAppeal(req: Request, res: Response) {
+  if (!req.user?.id || req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required." });
+  }
+
+  const appealId = String(req.params.appealId);
+  const { action, responseText } = req.body;
+
+  if (!["APPROVE", "REJECT"].includes(action)) {
+    return res.status(400).json({
+      message: "Invalid action. Must be APPROVE or REJECT.",
+    });
+  }
+
+  if (!responseText || responseText.trim().length === 0) {
+    return res.status(400).json({ message: "Response text is required" });
+  }
+
+  const appeal = await prisma.banAppeal.findUnique({
+    where: { id: appealId },
+  });
+
+  if (!appeal) {
+    return res.status(404).json({ message: "Ban appeal not found" });
+  }
+
+  if (appeal.status !== "PENDING") {
+    return res.status(400).json({
+      message: "Can only respond to pending appeals",
+    });
+  }
+
+  const newStatus = action === "APPROVE" ? "APPROVED" : "REJECTED";
+
+  // If approving, unban the user
+  if (action === "APPROVE") {
+    await prisma.user.update({
+      where: { id: appeal.userId },
+      data: {
+        bannedAt: null,
+        banReason: null,
+        accountStatus: "ACTIVE",
+      },
+    });
+  }
+
+  const updatedAppeal = await prisma.banAppeal.update({
+    where: { id: appealId },
+    data: {
+      status: newStatus,
+      responseText,
+      reviewedAt: new Date(),
+      reviewedBy: req.user.id,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+        },
+      },
+    },
+  });
+
+  return res.status(200).json({
+    message: `Ban appeal ${newStatus.toLowerCase()} successfully`,
+    appeal: {
+      id: updatedAppeal.id,
+      status: updatedAppeal.status,
+      responseText: updatedAppeal.responseText,
+      reviewedAt: updatedAppeal.reviewedAt?.toISOString(),
+    },
+  });
+}
+
+export async function withdrawBanAppeal(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const appealId = String(req.params.appealId);
+  const userId = String(req.user.id);
+
+  const appeal = await prisma.banAppeal.findUnique({
+    where: { id: appealId },
+  });
+
+  if (!appeal) {
+    return res.status(404).json({ message: "Ban appeal not found" });
+  }
+
+  if (appeal.userId !== userId && req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  if (appeal.status !== "PENDING") {
+    return res.status(400).json({
+      message: "Can only withdraw pending appeals",
+    });
+  }
+
+  const updatedAppeal = await prisma.banAppeal.update({
+    where: { id: appealId },
+    data: {
+      status: "WITHDRAWN",
+    },
+  });
+
+  return res.status(200).json({
+    message: "Ban appeal withdrawn successfully",
+    appeal: {
+      id: updatedAppeal.id,
+      status: updatedAppeal.status,
+    },
+  });
+}

@@ -1,13 +1,19 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
-import type { UserRole } from "@prisma/client";
 
 type AccessTokenPayload = {
   id: string;
-  role: UserRole;
+  role: "USER" | "ADMIN";
+};
+
+type BanAppealTokenPayload = {
+  userId: string;
+  reason?: string;
+  bannedAt: string;
 };
 
 const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
+const BAN_APPEAL_TOKEN_TTL_SECONDS = 60 * 60 * 24;
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const ACCESS_TOKEN_ISSUER =
   process.env.ACCESS_TOKEN_ISSUER?.trim() || "betwise-api";
@@ -62,6 +68,34 @@ export function createAccessToken(payload: AccessTokenPayload) {
   }
 
   return jwt.sign(payload, getAccessTokenSecret(), options);
+}
+
+export function createBanAppealToken(payload: BanAppealTokenPayload) {
+  return jwt.sign(payload, getAccessTokenSecret(), {
+    expiresIn: BAN_APPEAL_TOKEN_TTL_SECONDS,
+    issuer: ACCESS_TOKEN_ISSUER,
+    algorithm: "HS256",
+    audience: "betwise-ban-appeal",
+  });
+}
+
+export function verifyBanAppealToken(token: string) {
+  const decoded = jwt.verify(token, getAccessTokenSecret(), {
+    algorithms: ["HS256"],
+    issuer: ACCESS_TOKEN_ISSUER,
+    audience: "betwise-ban-appeal",
+  });
+
+  if (
+    !decoded ||
+    typeof decoded !== "object" ||
+    typeof decoded.userId !== "string" ||
+    typeof decoded.bannedAt !== "string"
+  ) {
+    throw new Error("Invalid ban appeal token payload.");
+  }
+
+  return decoded as BanAppealTokenPayload;
 }
 
 export function verifyAccessToken(token: string) {

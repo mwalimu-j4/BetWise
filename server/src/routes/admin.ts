@@ -20,6 +20,9 @@ import {
   getRiskAlertDetail,
   updateRiskAlert,
   getRiskSummary,
+  getBanAppeals,
+  getBanAppealDetail,
+  respondToBanAppeal,
 } from "../controllers/admin.controller";
 import { requireAdmin } from "../middleware/requireAdmin";
 
@@ -132,6 +135,21 @@ adminRouter.put(
   authenticate,
   requireAdmin,
   updateAdminSettings,
+);
+
+// Ban Appeals Management
+adminRouter.get("/admin/appeals", authenticate, requireAdmin, getBanAppeals);
+adminRouter.get(
+  "/admin/appeals/:appealId",
+  authenticate,
+  requireAdmin,
+  getBanAppealDetail,
+);
+adminRouter.post(
+  "/admin/appeals/:appealId/respond",
+  authenticate,
+  requireAdmin,
+  respondToBanAppeal,
 );
 
 export { adminRouter };

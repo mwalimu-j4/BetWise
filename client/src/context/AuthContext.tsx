@@ -20,6 +20,7 @@ type AuthUser = {
   role: Role;
   isVerified: boolean;
   createdAt: string;
+  bannedAt?: string | null;
 };
 
 type AuthResponse = {

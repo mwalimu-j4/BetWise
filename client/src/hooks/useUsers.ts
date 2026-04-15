@@ -17,6 +17,7 @@ export interface User {
 export interface UserDetail extends User {
   role: string;
   bannedAt: string | null;
+  banReason?: string | null;
 }
 
 export interface GetUsersResponse {
@@ -215,5 +216,20 @@ export async function updateUserPasswordAction(
     return response.data;
   } catch (err) {
     throw err instanceof Error ? err : new Error("Failed to update password");
+  }
+}
+
+export async function createBanAppealAction(
+  appealToken: string,
+  appealText: string,
+) {
+  try {
+    const response = await api.post(`/appeals/public`, {
+      appealToken,
+      appealText,
+    });
+    return response.data;
+  } catch (err) {
+    throw err instanceof Error ? err : new Error("Failed to submit appeal");
   }
 }
