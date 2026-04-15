@@ -383,7 +383,10 @@ export default function WithdrawalsAdmin() {
                     <td className="px-3 py-3 text-xs text-admin-text-muted">
                       {formatDateTime(withdrawal.createdAt)}
                     </td>
-                    <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                    <td
+                      className="px-3 py-3"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button className="p-1 rounded hover:bg-white/10 transition-colors">
@@ -442,193 +445,193 @@ export default function WithdrawalsAdmin() {
         open={detailsOpen && selectedWithdrawal !== null}
         onOpenChange={(open) => !open && handleCloseDetails()}
       >
-          <AdminDialogContent className="max-w-md p-0">
-            <DialogHeader className="border-b border-admin-border bg-admin-surface/50 px-6 py-5">
-              <DialogTitle className="text-lg text-admin-text-primary">
-                Withdrawal Request
-              </DialogTitle>
-              <DialogDescription className="text-xs text-admin-text-muted">
-                Review the details below before processing.
-              </DialogDescription>
-            </DialogHeader>
+        <AdminDialogContent className="max-w-md p-0">
+          <DialogHeader className="border-b border-admin-border bg-admin-surface/50 px-6 py-5">
+            <DialogTitle className="text-lg text-admin-text-primary">
+              Withdrawal Request
+            </DialogTitle>
+            <DialogDescription className="text-xs text-admin-text-muted">
+              Review the details below before processing.
+            </DialogDescription>
+          </DialogHeader>
 
-            {selectedWithdrawal && (
-              <div className="flex flex-col">
-                <ScrollArea className="max-h-[50vh] px-6 py-5">
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+          {selectedWithdrawal && (
+            <div className="flex flex-col">
+              <ScrollArea className="max-h-[50vh] px-6 py-5">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        User Phone
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-admin-text-primary">
+                        {selectedWithdrawal.userPhone}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        User Phone
+                      </p>
+                      <p className="mt-1 text-sm text-admin-text-primary">
+                        {selectedWithdrawal.userPhone}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        Withdrawal Phone
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-admin-text-primary">
+                        {selectedWithdrawal.phone}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-admin-border bg-admin-surface p-4">
+                    <div className="grid grid-cols-2 gap-y-4">
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Amount
+                        </p>
+                        <p className="mt-1 text-sm font-bold text-admin-text-primary">
+                          {formatCurrency(selectedWithdrawal.amount)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Fee
+                        </p>
+                        <p className="mt-1 text-sm text-admin-text-secondary">
+                          {formatCurrency(selectedWithdrawal.fee)}
+                        </p>
+                      </div>
+                      <div className="col-span-2 border-t border-admin-border pt-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Total Debit
+                        </p>
+                        <p className="mt-1 text-base font-bold text-admin-accent">
+                          {formatCurrency(selectedWithdrawal.totalDebit)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        Status
+                      </p>
+                      <StatusBadge status={selectedWithdrawal.status} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        Requested At
+                      </p>
+                      <p className="mt-1 text-xs text-admin-text-secondary">
+                        {formatDateTime(selectedWithdrawal.createdAt)}
+                      </p>
+                    </div>
+                    {selectedWithdrawal.processedAt && (
                       <div className="col-span-2">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          User Phone
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-admin-text-primary">
-                          {selectedWithdrawal.userPhone}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          User Phone
-                        </p>
-                        <p className="mt-1 text-sm text-admin-text-primary">
-                          {selectedWithdrawal.userPhone}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          Withdrawal Phone
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-admin-text-primary">
-                          {selectedWithdrawal.phone}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-admin-border bg-admin-surface p-4">
-                      <div className="grid grid-cols-2 gap-y-4">
-                        <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Amount
-                          </p>
-                          <p className="mt-1 text-sm font-bold text-admin-text-primary">
-                            {formatCurrency(selectedWithdrawal.amount)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Fee
-                          </p>
-                          <p className="mt-1 text-sm text-admin-text-secondary">
-                            {formatCurrency(selectedWithdrawal.fee)}
-                          </p>
-                        </div>
-                        <div className="col-span-2 border-t border-admin-border pt-3">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Total Debit
-                          </p>
-                          <p className="mt-1 text-base font-bold text-admin-accent">
-                            {formatCurrency(selectedWithdrawal.totalDebit)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          Status
-                        </p>
-                        <StatusBadge status={selectedWithdrawal.status} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          Requested At
+                          Processed At
                         </p>
                         <p className="mt-1 text-xs text-admin-text-secondary">
-                          {formatDateTime(selectedWithdrawal.createdAt)}
+                          {formatDateTime(selectedWithdrawal.processedAt)}
                         </p>
                       </div>
-                      {selectedWithdrawal.processedAt && (
-                        <div className="col-span-2">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Processed At
-                          </p>
-                          <p className="mt-1 text-xs text-admin-text-secondary">
-                            {formatDateTime(selectedWithdrawal.processedAt)}
-                          </p>
-                        </div>
-                      )}
-                      {selectedWithdrawal.reference && (
-                        <div className="col-span-2">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Reference
-                          </p>
-                          <p className="mt-1 text-xs text-admin-text-secondary">
-                            {selectedWithdrawal.reference}
-                          </p>
-                        </div>
-                      )}
-                      {selectedWithdrawal.providerMessage && (
-                        <div className="col-span-2">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Provider Message
-                          </p>
-                          <p className="mt-1 text-xs text-admin-text-secondary">
-                            {selectedWithdrawal.providerMessage}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    )}
+                    {selectedWithdrawal.reference && (
+                      <div className="col-span-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Reference
+                        </p>
+                        <p className="mt-1 text-xs text-admin-text-secondary">
+                          {selectedWithdrawal.reference}
+                        </p>
+                      </div>
+                    )}
+                    {selectedWithdrawal.providerMessage && (
+                      <div className="col-span-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Provider Message
+                        </p>
+                        <p className="mt-1 text-xs text-admin-text-secondary">
+                          {selectedWithdrawal.providerMessage}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                </ScrollArea>
+                </div>
+              </ScrollArea>
 
-                {selectedWithdrawal.status === "pending" && (
-                  <div className="border-t border-admin-border bg-admin-surface/30 px-6 py-5">
-                    <div className="mb-4">
-                      <label
-                        htmlFor="rejectReason"
-                        className="text-xs font-medium text-admin-text-primary"
-                      >
-                        Rejection Reason{" "}
-                        <span className="font-normal text-admin-text-muted">
-                          (Optional)
-                        </span>
-                      </label>
-                      <Input
-                        id="rejectReason"
-                        value={rejectReason}
-                        onChange={(e) => setRejectReason(e.target.value)}
-                        placeholder="Enter reason if rejecting..."
-                        className={`mt-1.5 ${adminInputClassName}`}
-                        onKeyDown={(e) => e.stopPropagation()} // Prevents modal from closing if pressing keys
-                      />
-                    </div>
-
-                    <div className="flex gap-3">
-                      <AdminButton
-                        onClick={() =>
-                          rejectMutation.mutate({
-                            withdrawalId: selectedWithdrawal.id,
-                            reason: rejectReason,
-                          })
-                        }
-                        disabled={
-                          rejectMutation.isPending || approveMutation.isPending
-                        }
-                        tone="red"
-                        variant="ghost"
-                        className="flex-1 border-admin-red/35 bg-admin-red/10 text-admin-red hover:bg-admin-red/15"
-                      >
-                        {rejectMutation.isPending ? (
-                          <Loader size={16} className="mr-2 animate-spin" />
-                        ) : (
-                          <XCircle size={16} className="mr-2" />
-                        )}
-                        Reject
-                      </AdminButton>
-
-                      <AdminButton
-                        onClick={() =>
-                          approveMutation.mutate(selectedWithdrawal.id)
-                        }
-                        disabled={
-                          approveMutation.isPending || rejectMutation.isPending
-                        }
-                        className="flex-1"
-                      >
-                        {approveMutation.isPending ? (
-                          <Loader size={16} className="mr-2 animate-spin" />
-                        ) : (
-                          <CheckCircle size={16} className="mr-2" />
-                        )}
-                        Approve
-                      </AdminButton>
-                    </div>
+              {selectedWithdrawal.status === "pending" && (
+                <div className="border-t border-admin-border bg-admin-surface/30 px-6 py-5">
+                  <div className="mb-4">
+                    <label
+                      htmlFor="rejectReason"
+                      className="text-xs font-medium text-admin-text-primary"
+                    >
+                      Rejection Reason{" "}
+                      <span className="font-normal text-admin-text-muted">
+                        (Optional)
+                      </span>
+                    </label>
+                    <Input
+                      id="rejectReason"
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder="Enter reason if rejecting..."
+                      className={`mt-1.5 ${adminInputClassName}`}
+                      onKeyDown={(e) => e.stopPropagation()} // Prevents modal from closing if pressing keys
+                    />
                   </div>
-                )}
-              </div>
-            )}
-          </AdminDialogContent>
-        </Dialog>
+
+                  <div className="flex gap-3">
+                    <AdminButton
+                      onClick={() =>
+                        rejectMutation.mutate({
+                          withdrawalId: selectedWithdrawal.id,
+                          reason: rejectReason,
+                        })
+                      }
+                      disabled={
+                        rejectMutation.isPending || approveMutation.isPending
+                      }
+                      tone="red"
+                      variant="ghost"
+                      className="flex-1 border-admin-red/35 bg-admin-red/10 text-admin-red hover:bg-admin-red/15"
+                    >
+                      {rejectMutation.isPending ? (
+                        <Loader size={16} className="mr-2 animate-spin" />
+                      ) : (
+                        <XCircle size={16} className="mr-2" />
+                      )}
+                      Reject
+                    </AdminButton>
+
+                    <AdminButton
+                      onClick={() =>
+                        approveMutation.mutate(selectedWithdrawal.id)
+                      }
+                      disabled={
+                        approveMutation.isPending || rejectMutation.isPending
+                      }
+                      className="flex-1"
+                    >
+                      {approveMutation.isPending ? (
+                        <Loader size={16} className="mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle size={16} className="mr-2" />
+                      )}
+                      Approve
+                    </AdminButton>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </AdminDialogContent>
+      </Dialog>
     </div>
   );
 }
