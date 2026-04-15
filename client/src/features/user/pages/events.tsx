@@ -309,10 +309,7 @@ function EventsContent() {
       <CreateCustomEventForm
         open={showCreateForm}
         onOpenChange={setShowCreateForm}
-        onSubmit={async (data) => {
-          const result = await createEvent(data);
-          return result as void;
-        }}
+        onSubmit={createEvent}
       />
     </div>
   );

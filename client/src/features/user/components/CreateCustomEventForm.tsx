@@ -15,7 +15,7 @@ import type { CreateCustomEventData } from "../hooks/useCustomEvents";
 interface CreateCustomEventFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateCustomEventData) => Promise<void>;
+  onSubmit: (data: CreateCustomEventData) => Promise<any>;
   loading?: boolean;
 }
 

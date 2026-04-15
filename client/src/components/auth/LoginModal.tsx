@@ -226,7 +226,6 @@ export default function LoginModal() {
       {/* Overlay - Full page coverage */}
       <div
         className="fixed top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"
-        onClick={handleClose}
         role="presentation"
         style={{
           position: "fixed",
