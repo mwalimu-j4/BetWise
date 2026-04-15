@@ -242,20 +242,20 @@ export default function Transactions() {
           </div>
         ) : (
           <TableShell>
-            <table className={adminTableClassName}>
+            <table className="w-full">
               <thead className="bg-admin-surface/30 border-b border-white/10">
                 <tr>
                   {[
-                    "TXN ID",
+                    "#",
                     "Phone",
                     "Type",
                     "Amount",
                     "Status",
                     "Date",
                     "",
-                  ].map((heading) => (
+                  ].map((heading, i) => (
                     <th
-                      key={heading}
+                      key={i}
                       className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
                     >
                       {heading}
@@ -264,7 +264,7 @@ export default function Transactions() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {transactions.map((transaction) => (
+                {transactions.map((transaction, index) => (
                   <tr
                     key={transaction.id}
                     className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
@@ -273,8 +273,8 @@ export default function Transactions() {
                       setDetailsOpen(true);
                     }}
                   >
-                    <td className="px-3 py-3 text-sm font-mono text-admin-text-muted">
-                      {transaction.id.slice(0, 8)}
+                    <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
                     <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
                       {transaction.userPhone}
@@ -313,7 +313,7 @@ export default function Transactions() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className={`${adminDropdownContentClassName} w-44`}
+                          className={adminDropdownContentClassName}
                         >
                           <DropdownMenuItem
                             className={adminDropdownItemClassName}

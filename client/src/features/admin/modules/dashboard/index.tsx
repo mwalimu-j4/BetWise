@@ -531,7 +531,10 @@ export default function Dashboard() {
                                 },
                               )}
                             </td>
-                            <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                            <td
+                              className="px-3 py-3"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <button className="p-1 rounded hover:bg-white/10 transition-colors">
