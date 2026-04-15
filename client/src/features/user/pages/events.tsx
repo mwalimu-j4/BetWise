@@ -7,7 +7,15 @@ import { CreateCustomEventForm } from "../components/CreateCustomEventForm";
 import { useCustomEvents } from "../hooks/useCustomEvents";
 import type { CustomEvent } from "../hooks/useCustomEvents";
 
-function CustomEventCard({ event, onEdit, onDelete }: { event: CustomEvent; onEdit: (event: CustomEvent) => void; onDelete: (eventId: string) => void }) {
+function CustomEventCard({
+  event,
+  onEdit,
+  onDelete,
+}: {
+  event: CustomEvent;
+  onEdit: (event: CustomEvent) => void;
+  onDelete: (eventId: string) => void;
+}) {
   const commenceTime = new Date(event.commenceTime);
   const isUpcoming = event.status === "UPCOMING" && new Date() < commenceTime;
   const isLive = event.status === "LIVE";
@@ -67,7 +75,9 @@ function CustomEventCard({ event, onEdit, onDelete }: { event: CustomEvent; onEd
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-400">{event.league || "Custom Match"}</p>
+          <p className="text-xs text-slate-400">
+            {event.league || "Custom Match"}
+          </p>
         </div>
         <div className="flex gap-1">
           <button
@@ -92,15 +102,23 @@ function CustomEventCard({ event, onEdit, onDelete }: { event: CustomEvent; onEd
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-xs text-slate-400">
             <Clock size={12} />
-            <span>{commenceTime.toLocaleDateString()} {commenceTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+            <span>
+              {commenceTime.toLocaleDateString()}{" "}
+              {commenceTime.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
-          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-            isLive 
-              ? "bg-red-500/20 text-red-300"
-              : isUpcoming 
-              ? "bg-blue-500/20 text-blue-300"
-              : "bg-slate-600/30 text-slate-400"
-          }`}>
+          <span
+            className={`text-xs font-semibold px-2 py-1 rounded-full ${
+              isLive
+                ? "bg-red-500/20 text-red-300"
+                : isUpcoming
+                  ? "bg-blue-500/20 text-blue-300"
+                  : "bg-slate-600/30 text-slate-400"
+            }`}
+          >
             {timeLabel}
           </span>
         </div>
@@ -109,9 +127,13 @@ function CustomEventCard({ event, onEdit, onDelete }: { event: CustomEvent; onEd
       {/* Odds display */}
       {primaryOdds && (
         <div className="rounded-lg bg-slate-700/30 px-3 py-2 mb-3">
-          <div className="text-[11px] text-slate-400 font-medium mb-1">{oddsLabel} ODDS</div>
+          <div className="text-[11px] text-slate-400 font-medium mb-1">
+            {oddsLabel} ODDS
+          </div>
           <div className="flex items-center justify-between">
-            <div className="text-sm font-bold text-amber-300">{primaryOdds}</div>
+            <div className="text-sm font-bold text-amber-300">
+              {primaryOdds}
+            </div>
             <div className="text-[11px] text-slate-500">
               {event.h2hOdds && `${event.homeTeam} / ${event.awayTeam}`}
               {event.spreadsOdds && `Spread: ${event.spreadsOdds.spread}`}
@@ -122,24 +144,31 @@ function CustomEventCard({ event, onEdit, onDelete }: { event: CustomEvent; onEd
       )}
 
       {/* Score if finished */}
-      {isFinished && event.homeScore !== undefined && event.awayScore !== undefined && (
-        <div className="rounded-lg bg-slate-700/20 px-3 py-2 text-center border border-slate-600/30">
-          <div className="text-sm font-bold text-white">{event.homeScore} - {event.awayScore}</div>
-        </div>
-      )}
+      {isFinished &&
+        event.homeScore !== undefined &&
+        event.awayScore !== undefined && (
+          <div className="rounded-lg bg-slate-700/20 px-3 py-2 text-center border border-slate-600/30">
+            <div className="text-sm font-bold text-white">
+              {event.homeScore} - {event.awayScore}
+            </div>
+          </div>
+        )}
     </Card>
   );
 }
 
 function EventsContent() {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const { events, loading, error, loadEvents, createEvent, deleteEvent } = useCustomEvents();
+  const { events, loading, error, loadEvents, createEvent, deleteEvent } =
+    useCustomEvents();
 
   useEffect(() => {
     void loadEvents();
   }, [loadEvents]);
 
-  const upcomingEvents = events.filter((e) => e.status === "UPCOMING" || e.status === "LIVE");
+  const upcomingEvents = events.filter(
+    (e) => e.status === "UPCOMING" || e.status === "LIVE",
+  );
   const finishedEvents = events.filter((e) => e.status === "FINISHED");
 
   const handleDelete = async (eventId: string) => {
@@ -165,7 +194,9 @@ function EventsContent() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white">My Matches</h1>
-              <p className="mt-1 text-sm text-slate-400">Create custom matches and set your own odds</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Create custom matches and set your own odds
+              </p>
             </div>
             <Button
               onClick={() => {
@@ -205,8 +236,12 @@ function EventsContent() {
               <div className="rounded-full bg-amber-500/10 p-3">
                 <Calendar className="text-amber-400" size={24} />
               </div>
-              <h3 className="text-lg font-semibold text-white">No matches yet</h3>
-              <p className="text-sm text-slate-400">Create your first custom match to get started</p>
+              <h3 className="text-lg font-semibold text-white">
+                No matches yet
+              </h3>
+              <p className="text-sm text-slate-400">
+                Create your first custom match to get started
+              </p>
               <Button
                 onClick={() => {
                   setShowCreateForm(true);
@@ -226,7 +261,9 @@ function EventsContent() {
               <Zap size={16} className="text-amber-400" />
               <h2 className="text-lg font-semibold text-white">
                 Active Matches
-                <span className="ml-2 text-sm font-normal text-slate-400">({upcomingEvents.length})</span>
+                <span className="ml-2 text-sm font-normal text-slate-400">
+                  ({upcomingEvents.length})
+                </span>
               </h2>
             </div>
             <div className="grid gap-3">
@@ -249,7 +286,9 @@ function EventsContent() {
               <Users size={16} className="text-slate-400" />
               <h2 className="text-lg font-semibold text-white">
                 Completed Matches
-                <span className="ml-2 text-sm font-normal text-slate-400">({finishedEvents.length})</span>
+                <span className="ml-2 text-sm font-normal text-slate-400">
+                  ({finishedEvents.length})
+                </span>
               </h2>
             </div>
             <div className="grid gap-3">
