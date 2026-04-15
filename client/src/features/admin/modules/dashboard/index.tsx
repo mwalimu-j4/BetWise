@@ -38,6 +38,7 @@ import {
   AdminSectionHeader,
   AdminStatCard,
   DepositWithdrawalChart,
+  UserRegistrationChart,
   InlinePill,
   StatusBadge,
   TableShell,
@@ -78,6 +79,10 @@ type DashboardSummaryResponse = {
       period: string;
       deposits: number;
       withdrawals: number;
+    }>;
+    registrationTrend: Array<{
+      period: string;
+      registrations: number;
     }>;
     totals: {
       deposits7d: number;

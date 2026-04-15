@@ -713,18 +713,15 @@ export function UserRegistrationChart({
 }) {
   return (
     <ResponsiveContainer width="100%" height={compact ? 230 : 320}>
-      <BarChart
-        data={data}
-        margin={{ top: 8, right: 8, left: -24, bottom: 2 }}
-      >
+      <BarChart data={data} margin={{ top: 8, right: 8, left: -24, bottom: 2 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
         <XAxis
           dataKey="period"
           stroke="rgba(168,196,224,0.62)"
           style={{ fontSize: "11px" }}
         />
-        <YAxis 
-          stroke="rgba(168,196,224,0.62)" 
+        <YAxis
+          stroke="rgba(168,196,224,0.62)"
           style={{ fontSize: "11px" }}
           tickFormatter={(value) => formatLargeNumber(value)}
         />
