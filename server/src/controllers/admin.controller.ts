@@ -600,6 +600,8 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
     pendingWithdrawalAmount,
     averageDepositToday,
     averageWithdrawalToday,
+    allTimeDeposits,
+    allTimeWithdrawals,
     trendTransactions,
     registrationTrendUsers,
     recentTransactions,
@@ -696,6 +698,20 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
         createdAt: { gte: todayStart },
       },
       _avg: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: {
+        type: "DEPOSIT",
+        status: "COMPLETED",
+      },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: {
+        type: "WITHDRAWAL",
+        status: "COMPLETED",
+      },
+      _sum: { amount: true },
     }),
     prisma.walletTransaction.findMany({
       where: {
@@ -805,6 +821,10 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
   const sevenDayDepositTotal = sevenDayDeposits._sum.amount ?? 0;
   const sevenDayWithdrawalTotal = sevenDayWithdrawals._sum.amount ?? 0;
 
+  const allTimeDepositTotal = allTimeDeposits._sum.amount ?? 0;
+  const allTimeWithdrawalTotal = allTimeWithdrawals._sum.amount ?? 0;
+  const allTimeNetFlow = allTimeDepositTotal - allTimeWithdrawalTotal;
+
   const averageDeposit = Math.round(averageDepositToday._avg.amount ?? 0);
   const averageWithdrawal = Math.round(averageWithdrawalToday._avg.amount ?? 0);
 
@@ -865,25 +885,22 @@ export async function getAdminDashboardSummary(req: Request, res: Response) {
         helper: formatMoney(pendingWithdrawalAmount._sum.amount ?? 0),
       },
       {
-        label: "Net Flow Today",
-        value: formatMoney(netFlowToday),
-        tone: netFlowToday >= 0 ? ("accent" as const) : ("red" as const),
-        helper: `${flowChange >= 0 ? "+" : ""}${flowChange.toFixed(1)}% vs yesterday`,
+        label: "Net Flow",
+        value: formatMoney(allTimeNetFlow),
+        tone: allTimeNetFlow >= 0 ? ("accent" as const) : ("red" as const),
+        helper: `All-time deposits minus withdrawals`,
       },
       {
-        label: "Completed Withdrawals",
-        value: completedWithdrawals.toLocaleString(),
-        tone: "accent" as const,
-        helper: `${failedWithdrawals.toLocaleString()} failed/rejected`,
-      },
-      {
-        label: "Deposits Today",
-        value: formatMoney(todayDeposits._sum.amount ?? 0),
+        label: "Total Deposits",
+        value: formatMoney(allTimeDepositTotal),
         tone: "blue" as const,
-        helper:
-          averageDeposit > 0
-            ? `Avg ticket ${formatMoney(averageDeposit)}`
-            : "No completed deposits yet",
+        helper: `${completedWithdrawals + allTimeDepositTotal > 0 ? (allTimeDepositTotal / 1000000).toFixed(2) : "0"}M in all-time transactions`,
+      },
+      {
+        label: "Total Withdrawals",
+        value: formatMoney(allTimeWithdrawalTotal),
+        tone: "red" as const,
+        helper: `${completedWithdrawals.toLocaleString()} completed transactions`,
       },
       {
         label: "Active Risk Alerts",

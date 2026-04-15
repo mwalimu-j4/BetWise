@@ -21,10 +21,6 @@ import {
   adminDropdownContentClassName,
   adminDropdownItemClassName,
   adminInputClassName,
-  adminTableCellClassName,
-  adminTableClassName,
-  adminTableHeadCellClassName,
-  truncateEmailForTable,
 } from "../../components/ui";
 import {
   Dialog,
@@ -73,9 +69,6 @@ export default function WithdrawalsAdmin() {
   const [selectedWithdrawal, setSelectedWithdrawal] =
     useState<Withdrawal | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [highlightedWithdrawalId, setHighlightedWithdrawalId] = useState<
-    string | null
-  >(null);
   const [rejectReason, setRejectReason] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("PENDING");
 
@@ -145,12 +138,7 @@ export default function WithdrawalsAdmin() {
 
   // Optimized stats calculation (Single pass instead of 4 filter/reduce loops)
   const stats = useMemo(() => {
-    const {
-      pendingCount,
-      pendingAmount,
-      processingCount,
-      completedCount,
-    } =
+    const { pendingCount, pendingAmount, processingCount, completedCount } =
       withdrawals.reduce(
         (acc, w) => {
           if (w.status === "pending") {
@@ -224,7 +212,7 @@ export default function WithdrawalsAdmin() {
     if (!withdrawals.length) return toast.error("No data available to export");
 
     const headers = [
-      "User Email",
+      "User Phone",
       "User ID",
       "Phone",
       "Amount",
@@ -234,7 +222,7 @@ export default function WithdrawalsAdmin() {
       "Date",
     ];
     const csvRows = withdrawals.map((w) => [
-      w.userEmail,
+      w.userPhone,
       w.userId,
       w.phone,
       w.amount,
@@ -272,7 +260,6 @@ export default function WithdrawalsAdmin() {
 
     if (!targetWithdrawal) return;
 
-    setHighlightedWithdrawalId(targetWithdrawal.id);
     const targetElement = document.querySelector(
       `[data-withdrawal-id="${targetWithdrawal.id}"]`,
     );
@@ -280,14 +267,6 @@ export default function WithdrawalsAdmin() {
     if (targetElement instanceof HTMLElement) {
       targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-
-    const timeoutId = window.setTimeout(() => {
-      setHighlightedWithdrawalId((current) =>
-        current === targetWithdrawal.id ? null : current,
-      );
-    }, 3500);
-
-    return () => window.clearTimeout(timeoutId);
   }, [locationHash, withdrawals]);
 
   // --- Render ---
@@ -339,91 +318,72 @@ export default function WithdrawalsAdmin() {
               No {statusFilter.toLowerCase()} withdrawals found.
             </div>
           ) : (
-            <table className={adminTableClassName}>
-              <thead>
+            <table className="w-full">
+              <thead className="bg-admin-surface/30 border-b border-white/10">
                 <tr>
                   {[
-                    "User",
+                    "#",
                     "Phone",
                     "Amount",
                     "Fee",
                     "Total Debit",
                     "Status",
                     "Date",
-                    "Actions",
-                  ].map((heading) => (
-                    <th className={adminTableHeadCellClassName} key={heading}>
+                    "",
+                  ].map((heading, i) => (
+                    <th
+                      key={i}
+                      className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
+                    >
                       {heading}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
-                {withdrawals.map((withdrawal) => (
+              <tbody className="divide-y divide-white/5">
+                {withdrawals.map((withdrawal, index) => (
                   <tr
                     key={withdrawal.id}
-                    data-withdrawal-id={withdrawal.id}
+                    className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                     onClick={() => openDetails(withdrawal)}
-                    className={`even:bg-(--color-bg-elevated) cursor-pointer transition-colors hover:bg-admin-surface/60 ${
-                      highlightedWithdrawalId === withdrawal.id
-                        ? "bg-admin-accent-dim"
-                        : ""
-                    }`}
                   >
-                    <td
-                      className={`${adminTableCellClassName} font-semibold text-admin-text-primary`}
-                    >
-                      <div>
-                        <p
-                          className="max-w-[110px] truncate text-xs"
-                          title={withdrawal.userEmail}
-                        >
-                          {truncateEmailForTable(withdrawal.userEmail)}
-                        </p>
-                        <p className="text-[10px] text-admin-text-muted">
-                          {withdrawal.userId.slice(0, 8)}...
-                        </p>
-                      </div>
+                    <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                      {index + 1}
                     </td>
-                    <td className={`${adminTableCellClassName} text-xs`}>
-                      {withdrawal.phone}
+                    <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                      {withdrawal.userPhone}
                     </td>
-                    <td
-                      className={`${adminTableCellClassName} font-semibold text-admin-accent`}
-                    >
+                    <td className="px-3 py-3 text-sm text-admin-accent">
                       {formatCurrency(withdrawal.amount)}
                     </td>
-                    <td className={`${adminTableCellClassName} text-xs`}>
+                    <td className="px-3 py-3 text-sm text-admin-text-primary">
                       {formatCurrency(withdrawal.fee)}
                     </td>
-                    <td className={`${adminTableCellClassName} font-semibold`}>
+                    <td className="px-3 py-3 text-sm text-admin-text-primary">
                       {formatCurrency(withdrawal.totalDebit)}
                     </td>
-                    <td className={adminTableCellClassName}>
+                    <td className="px-3 py-3">
                       <StatusBadge status={withdrawal.status} />
                     </td>
-                    <td
-                      className={`${adminTableCellClassName} text-xs text-admin-text-muted`}
-                    >
+                    <td className="px-3 py-3 text-xs text-admin-text-muted">
                       {formatDateTime(withdrawal.createdAt)}
                     </td>
                     <td
-                      className={adminTableCellClassName}
-                      onClick={(e) => e.stopPropagation()} // Prevents row click when interacting with menu
+                      className="px-3 py-3"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <AdminButton
-                            size="sm"
-                            variant="ghost"
-                            className="text-admin-text-muted hover:text-admin-text-primary"
-                          >
-                            <MoreHorizontal size={16} />
-                          </AdminButton>
+                          <button className="p-1 rounded hover:bg-white/10 transition-colors">
+                            <MoreHorizontal
+                              size={16}
+                              className="text-admin-text-muted"
+                            />
+                          </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className={`${adminDropdownContentClassName} w-44`}
+                          className={adminDropdownContentClassName}
                         >
                           <DropdownMenuItem
                             className={adminDropdownItemClassName}
@@ -464,199 +424,199 @@ export default function WithdrawalsAdmin() {
             </table>
           )}
         </TableShell>
+      </AdminCard>
 
-        <Dialog
-          open={detailsOpen && selectedWithdrawal !== null}
-          onOpenChange={(open) => !open && handleCloseDetails()}
-        >
-          <AdminDialogContent className="max-w-md p-0">
-            <DialogHeader className="border-b border-admin-border bg-admin-surface/50 px-6 py-5">
-              <DialogTitle className="text-lg text-admin-text-primary">
-                Withdrawal Request
-              </DialogTitle>
-              <DialogDescription className="text-xs text-admin-text-muted">
-                Review the details below before processing.
-              </DialogDescription>
-            </DialogHeader>
+      <Dialog
+        open={detailsOpen && selectedWithdrawal !== null}
+        onOpenChange={(open) => !open && handleCloseDetails()}
+      >
+        <AdminDialogContent className="max-w-md p-0">
+          <DialogHeader className="border-b border-admin-border bg-admin-surface/50 px-6 py-5">
+            <DialogTitle className="text-lg text-admin-text-primary">
+              Withdrawal Request
+            </DialogTitle>
+            <DialogDescription className="text-xs text-admin-text-muted">
+              Review the details below before processing.
+            </DialogDescription>
+          </DialogHeader>
 
-            {selectedWithdrawal && (
-              <div className="flex flex-col">
-                <ScrollArea className="max-h-[50vh] px-6 py-5">
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+          {selectedWithdrawal && (
+            <div className="flex flex-col">
+              <ScrollArea className="max-h-[50vh] px-6 py-5">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        User Phone
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-admin-text-primary">
+                        {selectedWithdrawal.userPhone}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        User Phone
+                      </p>
+                      <p className="mt-1 text-sm text-admin-text-primary">
+                        {selectedWithdrawal.userPhone}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        Withdrawal Phone
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-admin-text-primary">
+                        {selectedWithdrawal.phone}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-admin-border bg-admin-surface p-4">
+                    <div className="grid grid-cols-2 gap-y-4">
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Amount
+                        </p>
+                        <p className="mt-1 text-sm font-bold text-admin-text-primary">
+                          {formatCurrency(selectedWithdrawal.amount)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Fee
+                        </p>
+                        <p className="mt-1 text-sm text-admin-text-secondary">
+                          {formatCurrency(selectedWithdrawal.fee)}
+                        </p>
+                      </div>
+                      <div className="col-span-2 border-t border-admin-border pt-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Total Debit
+                        </p>
+                        <p className="mt-1 text-base font-bold text-admin-accent">
+                          {formatCurrency(selectedWithdrawal.totalDebit)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        Status
+                      </p>
+                      <StatusBadge status={selectedWithdrawal.status} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                        Requested At
+                      </p>
+                      <p className="mt-1 text-xs text-admin-text-secondary">
+                        {formatDateTime(selectedWithdrawal.createdAt)}
+                      </p>
+                    </div>
+                    {selectedWithdrawal.processedAt && (
                       <div className="col-span-2">
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          User Email
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-admin-text-primary">
-                          {selectedWithdrawal.userEmail}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          User Phone
-                        </p>
-                        <p className="mt-1 text-sm text-admin-text-primary">
-                          {selectedWithdrawal.userPhone}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          Withdrawal Phone
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-admin-text-primary">
-                          {selectedWithdrawal.phone}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-admin-border bg-admin-surface p-4">
-                      <div className="grid grid-cols-2 gap-y-4">
-                        <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Amount
-                          </p>
-                          <p className="mt-1 text-sm font-bold text-admin-text-primary">
-                            {formatCurrency(selectedWithdrawal.amount)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Fee
-                          </p>
-                          <p className="mt-1 text-sm text-admin-text-secondary">
-                            {formatCurrency(selectedWithdrawal.fee)}
-                          </p>
-                        </div>
-                        <div className="col-span-2 border-t border-admin-border pt-3">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Total Debit
-                          </p>
-                          <p className="mt-1 text-base font-bold text-admin-accent">
-                            {formatCurrency(selectedWithdrawal.totalDebit)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          Status
-                        </p>
-                        <StatusBadge status={selectedWithdrawal.status} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                          Requested At
+                          Processed At
                         </p>
                         <p className="mt-1 text-xs text-admin-text-secondary">
-                          {formatDateTime(selectedWithdrawal.createdAt)}
+                          {formatDateTime(selectedWithdrawal.processedAt)}
                         </p>
                       </div>
-                      {selectedWithdrawal.processedAt && (
-                        <div className="col-span-2">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Processed At
-                          </p>
-                          <p className="mt-1 text-xs text-admin-text-secondary">
-                            {formatDateTime(selectedWithdrawal.processedAt)}
-                          </p>
-                        </div>
-                      )}
-                      {selectedWithdrawal.reference && (
-                        <div className="col-span-2">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Reference
-                          </p>
-                          <p className="mt-1 text-xs text-admin-text-secondary">
-                            {selectedWithdrawal.reference}
-                          </p>
-                        </div>
-                      )}
-                      {selectedWithdrawal.providerMessage && (
-                        <div className="col-span-2">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                            Provider Message
-                          </p>
-                          <p className="mt-1 text-xs text-admin-text-secondary">
-                            {selectedWithdrawal.providerMessage}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    )}
+                    {selectedWithdrawal.reference && (
+                      <div className="col-span-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Reference
+                        </p>
+                        <p className="mt-1 text-xs text-admin-text-secondary">
+                          {selectedWithdrawal.reference}
+                        </p>
+                      </div>
+                    )}
+                    {selectedWithdrawal.providerMessage && (
+                      <div className="col-span-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                          Provider Message
+                        </p>
+                        <p className="mt-1 text-xs text-admin-text-secondary">
+                          {selectedWithdrawal.providerMessage}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                </ScrollArea>
+                </div>
+              </ScrollArea>
 
-                {selectedWithdrawal.status === "pending" && (
-                  <div className="border-t border-admin-border bg-admin-surface/30 px-6 py-5">
-                    <div className="mb-4">
-                      <label
-                        htmlFor="rejectReason"
-                        className="text-xs font-medium text-admin-text-primary"
-                      >
-                        Rejection Reason{" "}
-                        <span className="font-normal text-admin-text-muted">
-                          (Optional)
-                        </span>
-                      </label>
-                      <Input
-                        id="rejectReason"
-                        value={rejectReason}
-                        onChange={(e) => setRejectReason(e.target.value)}
-                        placeholder="Enter reason if rejecting..."
-                        className={`mt-1.5 ${adminInputClassName}`}
-                        onKeyDown={(e) => e.stopPropagation()} // Prevents modal from closing if pressing keys
-                      />
-                    </div>
-
-                    <div className="flex gap-3">
-                      <AdminButton
-                        onClick={() =>
-                          rejectMutation.mutate({
-                            withdrawalId: selectedWithdrawal.id,
-                            reason: rejectReason,
-                          })
-                        }
-                        disabled={
-                          rejectMutation.isPending || approveMutation.isPending
-                        }
-                        tone="red"
-                        variant="ghost"
-                        className="flex-1 border-admin-red/35 bg-admin-red/10 text-admin-red hover:bg-admin-red/15"
-                      >
-                        {rejectMutation.isPending ? (
-                          <Loader size={16} className="mr-2 animate-spin" />
-                        ) : (
-                          <XCircle size={16} className="mr-2" />
-                        )}
-                        Reject
-                      </AdminButton>
-
-                      <AdminButton
-                        onClick={() =>
-                          approveMutation.mutate(selectedWithdrawal.id)
-                        }
-                        disabled={
-                          approveMutation.isPending || rejectMutation.isPending
-                        }
-                        className="flex-1"
-                      >
-                        {approveMutation.isPending ? (
-                          <Loader size={16} className="mr-2 animate-spin" />
-                        ) : (
-                          <CheckCircle size={16} className="mr-2" />
-                        )}
-                        Approve
-                      </AdminButton>
-                    </div>
+              {selectedWithdrawal.status === "pending" && (
+                <div className="border-t border-admin-border bg-admin-surface/30 px-6 py-5">
+                  <div className="mb-4">
+                    <label
+                      htmlFor="rejectReason"
+                      className="text-xs font-medium text-admin-text-primary"
+                    >
+                      Rejection Reason{" "}
+                      <span className="font-normal text-admin-text-muted">
+                        (Optional)
+                      </span>
+                    </label>
+                    <Input
+                      id="rejectReason"
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder="Enter reason if rejecting..."
+                      className={`mt-1.5 ${adminInputClassName}`}
+                      onKeyDown={(e) => e.stopPropagation()} // Prevents modal from closing if pressing keys
+                    />
                   </div>
-                )}
-              </div>
-            )}
-          </AdminDialogContent>
-        </Dialog>
-      </AdminCard>
+
+                  <div className="flex gap-3">
+                    <AdminButton
+                      onClick={() =>
+                        rejectMutation.mutate({
+                          withdrawalId: selectedWithdrawal.id,
+                          reason: rejectReason,
+                        })
+                      }
+                      disabled={
+                        rejectMutation.isPending || approveMutation.isPending
+                      }
+                      tone="red"
+                      variant="ghost"
+                      className="flex-1 border-admin-red/35 bg-admin-red/10 text-admin-red hover:bg-admin-red/15"
+                    >
+                      {rejectMutation.isPending ? (
+                        <Loader size={16} className="mr-2 animate-spin" />
+                      ) : (
+                        <XCircle size={16} className="mr-2" />
+                      )}
+                      Reject
+                    </AdminButton>
+
+                    <AdminButton
+                      onClick={() =>
+                        approveMutation.mutate(selectedWithdrawal.id)
+                      }
+                      disabled={
+                        approveMutation.isPending || rejectMutation.isPending
+                      }
+                      className="flex-1"
+                    >
+                      {approveMutation.isPending ? (
+                        <Loader size={16} className="mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle size={16} className="mr-2" />
+                      )}
+                      Approve
+                    </AdminButton>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </AdminDialogContent>
+      </Dialog>
     </div>
   );
 }

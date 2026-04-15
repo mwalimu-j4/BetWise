@@ -2,7 +2,7 @@ import {
   Dialog,
   DialogDescription,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -19,17 +19,12 @@ import {
   AdminCard,
   AdminDialogContent,
   AdminStatCard,
-  adminCompactActionsClassName,
   adminDropdownContentClassName,
   adminDropdownItemClassName,
   AdminSectionHeader,
-  adminTableCellClassName,
-  adminTableClassName,
-  adminTableHeadCellClassName,
   InlinePill,
   StatusBadge,
   TableShell,
-  truncateEmailForTable,
 } from "../../components/ui";
 import {
   useAdminPayments,
@@ -112,7 +107,7 @@ export default function Transactions() {
 
     const headers = [
       "ID",
-      "User Email",
+      "User Phone",
       "Type",
       "Amount (KES)",
       "Status",
@@ -121,7 +116,7 @@ export default function Transactions() {
     ];
     const rows = transactions.map((t) => [
       t.id,
-      t.userEmail,
+      t.userPhone,
       t.type.toUpperCase(),
       t.amount.toString(),
       t.status.toUpperCase(),
@@ -243,53 +238,38 @@ export default function Transactions() {
           </div>
         ) : (
           <TableShell>
-            <table className={adminTableClassName}>
-              <thead>
+            <table className="w-full">
+              <thead className="bg-admin-surface/30 border-b border-white/10">
                 <tr>
-                  {[
-                    "TXN ID",
-                    "User",
-                    "Type",
-                    "Amount",
-                    "Status",
-                    "Date",
-                    "Actions",
-                  ].map((heading) => (
-                    <th className={adminTableHeadCellClassName} key={heading}>
-                      {heading}
-                    </th>
-                  ))}
+                  {["#", "Phone", "Type", "Amount", "Status", "Date", ""].map(
+                    (heading, i) => (
+                      <th
+                        key={i}
+                        className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
+                      >
+                        {heading}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
-              <tbody>
-                {transactions.map((transaction) => (
+              <tbody className="divide-y divide-white/5">
+                {transactions.map((transaction, index) => (
                   <tr
-                    className="even:bg-(--color-bg-elevated) hover:bg-admin-surface/60 cursor-pointer transition-colors"
                     key={transaction.id}
+                    className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                     onClick={() => {
                       setSelectedTxn(transaction);
                       setDetailsOpen(true);
                     }}
                   >
-                    <td
-                      className={`${adminTableCellClassName} text-xs font-semibold text-admin-blue`}
-                    >
-                      {transaction.id.slice(0, 8)}
+                    <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className={adminTableCellClassName}>
-                      <div className="flex flex-col">
-                        <span
-                          className="max-w-30 truncate text-sm font-semibold text-admin-text-primary"
-                          title={transaction.userEmail}
-                        >
-                          {truncateEmailForTable(transaction.userEmail)}
-                        </span>
-                        <span className="text-xs text-admin-text-muted">
-                          {transaction.userPhone}
-                        </span>
-                      </div>
+                    <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                      {transaction.userPhone}
                     </td>
-                    <td className={adminTableCellClassName}>
+                    <td className="px-3 py-3">
                       <InlinePill
                         label={
                           transaction.type === "deposit"
@@ -299,42 +279,31 @@ export default function Transactions() {
                         tone={getToneForType(transaction.type)}
                       />
                     </td>
-                    <td className={adminTableCellClassName}>
-                      <span className="font-semibold text-admin-text-primary">
-                        {transaction.type === "deposit" ? "+" : "-"}KES{" "}
-                        {transaction.amount.toLocaleString()}
-                      </span>
-                      {transaction.fee > 0 && (
-                        <span className="block text-xs text-admin-text-muted">
-                          Fee: KES {transaction.fee.toLocaleString()}
-                        </span>
-                      )}
+                    <td className="px-3 py-3 text-sm text-admin-text-primary">
+                      {transaction.type === "deposit" ? "+" : "-"}KES{" "}
+                      {transaction.amount.toLocaleString()}
                     </td>
-                    <td className={adminTableCellClassName}>
+                    <td className="px-3 py-3">
                       <StatusBadge
                         status={getStatusForBadge(transaction.status)}
                       />
                     </td>
-                    <td className={`${adminTableCellClassName} text-xs`}>
+                    <td className="px-3 py-3 text-xs text-admin-text-muted">
                       {new Date(transaction.createdAt).toLocaleString()}
                     </td>
-                    <td
-                      className={`${adminTableCellClassName} ${adminCompactActionsClassName}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <td className="px-3 py-3">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <AdminButton
-                            size="sm"
-                            variant="ghost"
-                            aria-label="Row actions"
-                          >
-                            <MoreHorizontal size={16} />
-                          </AdminButton>
+                          <button className="p-1 rounded hover:bg-white/10 transition-colors">
+                            <MoreHorizontal
+                              size={16}
+                              className="text-admin-text-muted"
+                            />
+                          </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className={`${adminDropdownContentClassName} w-44`}
+                          className={adminDropdownContentClassName}
                         >
                           <DropdownMenuItem
                             className={adminDropdownItemClassName}
@@ -377,12 +346,9 @@ export default function Transactions() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-admin-text-muted">
-                      User
+                      User Phone
                     </label>
                     <p className="text-sm font-semibold">
-                      {selectedTxn.userEmail}
-                    </p>
-                    <p className="text-xs text-admin-text-muted">
                       {selectedTxn.userPhone}
                     </p>
                   </div>

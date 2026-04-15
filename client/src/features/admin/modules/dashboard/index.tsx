@@ -15,20 +15,14 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
-  AlertCircle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Download,
   Filter,
   Loader,
-  MessageSquare,
   MoreHorizontal,
-  Settings,
-  TrendingUp,
   TriangleAlert,
-  Users,
-  Wallet,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -47,7 +41,6 @@ import {
   adminDropdownItemClassName,
   adminTableCellClassName,
   adminTableClassName,
-  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 type DashboardMetric = {
@@ -116,8 +109,7 @@ export default function Dashboard() {
 
     const headers = [
       "#",
-      "User Email",
-      "Phone",
+      "User Phone",
       "Type",
       "Amount",
       "Fee",
@@ -126,14 +118,13 @@ export default function Dashboard() {
     ];
     const rows = recentTransactions.map((tx, idx) => [
       idx + 1,
-      tx.userEmail,
       tx.userPhone,
+      tx.type,
       tx.type,
       tx.amount,
       tx.type === "withdrawal" ? tx.fee : "-",
       tx.status,
       new Date(tx.createdAt).toLocaleString("en-KE", {
-        year: "numeric",
         month: "short",
         day: "numeric",
         hour: "2-digit",
@@ -416,9 +407,8 @@ export default function Dashboard() {
           </AdminCard>
         </div>
 
-        {/* Recent Activity + Quick Links */}
-        <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-          {/* Recent Activity */}
+        {/* Recent Activity */}
+        <div className="w-full">
           <AdminCard className="overflow-hidden max-w-full w-full">
             <AdminCardHeader
               title="Recent Activity"
@@ -457,27 +447,27 @@ export default function Dashboard() {
             <TableShell className="mt-2 w-full border-t border-admin-border/40">
               <div className="w-full overflow-x-auto pb-2 -webkit-overflow-scrolling-touch">
                 <table className={`${adminTableClassName} w-full min-w-175`}>
-                  <thead>
+                  <thead className="bg-admin-surface/30 border-b border-white/10">
                     <tr>
                       {[
-                        "#", // Replaced Reference with Numbering
-                        "User",
+                        "#",
+                        "Phone",
                         "Type",
                         "Amount",
                         "Status",
                         "Time",
-                        "Actions",
+                        "",
                       ].map((heading) => (
                         <th
-                          className={adminTableHeadCellClassName}
                           key={heading}
+                          className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
                         >
                           {heading}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/5">
                     {isLoading ? (
                       <tr>
                         <td className={adminTableCellClassName} colSpan={7}>
@@ -503,34 +493,17 @@ export default function Dashboard() {
                         )
                         .map((transaction, index) => (
                           <tr
-                            className="even:bg-admin-surface/45 h-8 hover:bg-admin-surface/60 cursor-pointer transition-colors"
                             key={transaction.id}
+                            className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                             onClick={() => handleViewDetails(transaction)}
                           >
-                            <td
-                              className={`${adminTableCellClassName} text-xs font-semibold text-admin-text-muted w-8 px-1.5 py-1 align-middle`}
-                            >
-                              {index + 1}
+                            <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                              {(currentPage - 1) * itemsPerPage + index + 1}
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} font-semibold text-admin-text-primary max-w-35 px-2 py-1 align-middle`}
-                              title={`${transaction.userEmail} • ${transaction.userPhone}`}
-                            >
-                              <div className="flex items-center gap-1 truncate">
-                                <span className="truncate text-xs">
-                                  {transaction.userEmail}
-                                </span>
-                                <span className="hidden sm:inline text-[10px] text-admin-text-muted shrink-0">
-                                  •
-                                </span>
-                                <span className="hidden sm:inline text-[10px] text-admin-text-muted truncate">
-                                  {transaction.userPhone}
-                                </span>
-                              </div>
+                            <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                              {transaction.userPhone}
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} px-1.5 py-1 align-middle`}
-                            >
+                            <td className="px-3 py-3">
                               <InlinePill
                                 label={transaction.type}
                                 tone={
@@ -540,38 +513,16 @@ export default function Dashboard() {
                                 }
                               />
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} font-semibold text-admin-text-primary px-2 py-1 align-middle whitespace-nowrap`}
-                              title={`${formatCurrency(transaction.amount)}${transaction.type === "withdrawal" ? ` • Fee ${formatCurrency(transaction.fee)}` : ""}`}
-                            >
+                            <td className="px-3 py-3 text-sm text-admin-text-primary">
                               {formatCurrency(transaction.amount)}
-                              {transaction.type === "withdrawal" ? (
-                                <span className="ml-1 text-[10px] text-admin-text-muted">
-                                  Fee {formatCurrency(transaction.fee)}
-                                </span>
-                              ) : null}
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} px-1.5 py-1 align-middle`}
-                            >
+                            <td className="px-3 py-3">
                               <StatusBadge status={transaction.status} />
                             </td>
-                            <td
-                              className={`${adminTableCellClassName} whitespace-nowrap text-xs text-admin-text-muted px-2 py-1 align-middle`}
-                              title={new Date(
-                                transaction.createdAt,
-                              ).toLocaleString("en-KE", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            >
+                            <td className="px-3 py-3 text-xs text-admin-text-muted">
                               {new Date(transaction.createdAt).toLocaleString(
                                 "en-KE",
                                 {
-                                  year: "numeric",
                                   month: "short",
                                   day: "numeric",
                                   hour: "2-digit",
@@ -580,18 +531,17 @@ export default function Dashboard() {
                               )}
                             </td>
                             <td
-                              className={`${adminTableCellClassName} whitespace-nowrap px-1 py-1 align-middle`}
+                              className="px-3 py-3"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <AdminButton
-                                    size="sm"
-                                    variant="ghost"
-                                    aria-label="Row actions"
-                                  >
-                                    <MoreHorizontal size={14} />
-                                  </AdminButton>
+                                  <button className="p-1 rounded hover:bg-white/10 transition-colors">
+                                    <MoreHorizontal
+                                      size={16}
+                                      className="text-admin-text-muted"
+                                    />
+                                  </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                   align="end"
@@ -702,116 +652,6 @@ export default function Dashboard() {
                 </div>
               )}
             </TableShell>
-          </AdminCard>
-
-          {/* Quick Links */}
-          <AdminCard className="hidden w-full overflow-hidden lg:block">
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-admin-text">
-                Quick Links
-              </h3>
-
-              {/* 2x3 Grid for Quick Links */}
-              <div className="grid grid-cols-2 gap-2">
-                {/* Pending Payouts */}
-                <Link
-                  to="/admin/withdrawals"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-gold hover:bg-admin-surface/72"
-                >
-                  <div className="rounded-md bg-admin-gold/20 p-1.5 text-admin-gold transition-colors duration-200 group-hover:bg-admin-gold/30">
-                    <Wallet size={16} />
-                  </div>
-                  <div className="space-y-0.5 flex-1">
-                    <p className="text-xs font-bold text-admin-text-primary leading-tight">
-                      {pendingCount}
-                    </p>
-                    <p className="text-[11px] text-admin-text-muted">Payouts</p>
-                  </div>
-                </Link>
-
-                {/* Users Management */}
-                <Link
-                  to="/admin/users"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-accent hover:bg-admin-surface/72"
-                >
-                  <div className="rounded-md bg-admin-accent/20 p-1.5 text-admin-accent transition-colors duration-200 group-hover:bg-admin-accent/30">
-                    <Users size={16} />
-                  </div>
-                  <div className="space-y-0.5 flex-1">
-                    <p className="text-xs font-bold text-admin-text-primary leading-tight">
-                      Users
-                    </p>
-                    <p className="text-[11px] text-admin-text-muted">Manage</p>
-                  </div>
-                </Link>
-
-                {/* Analytics Page */}
-                <Link
-                  to="/admin/analytics"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-blue hover:bg-admin-surface/72"
-                >
-                  <div className="rounded-md bg-admin-blue/20 p-1.5 text-admin-blue transition-colors duration-200 group-hover:bg-admin-blue/30">
-                    <TrendingUp size={16} />
-                  </div>
-                  <div className="space-y-0.5 flex-1">
-                    <p className="text-xs font-bold text-admin-text-primary leading-tight">
-                      Analytics
-                    </p>
-                    <p className="text-[11px] text-admin-text-muted">
-                      Insights
-                    </p>
-                  </div>
-                </Link>
-
-                {/* Risk Management */}
-                <Link
-                  to="/admin/risk"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-red/60 hover:bg-admin-surface/72"
-                >
-                  <div className="rounded-md bg-admin-red/20 p-1.5 text-admin-red transition-colors duration-200 group-hover:bg-admin-red/30">
-                    <AlertCircle size={16} />
-                  </div>
-                  <div className="space-y-0.5 flex-1">
-                    <p className="text-xs font-bold text-admin-text-primary leading-tight">
-                      Risk
-                    </p>
-                    <p className="text-[11px] text-admin-text-muted">Alerts</p>
-                  </div>
-                </Link>
-
-                {/* Settings */}
-                <Link
-                  to="/admin/settings"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-admin-text-secondary hover:bg-admin-surface/72"
-                >
-                  <div className="rounded-md bg-admin-text-secondary/20 p-1.5 text-admin-text-secondary transition-colors duration-200 group-hover:bg-admin-text-secondary/30">
-                    <Settings size={16} />
-                  </div>
-                  <div className="space-y-0.5 flex-1">
-                    <p className="text-xs font-bold text-admin-text-primary leading-tight">
-                      Settings
-                    </p>
-                    <p className="text-[11px] text-admin-text-muted">Config</p>
-                  </div>
-                </Link>
-
-                {/* Contact Messages */}
-                <Link
-                  to="/admin/contacts"
-                  className="group flex flex-col items-start gap-2 rounded-lg border border-admin-border/50 bg-admin-surface/50 p-3 transition-all duration-200 hover:border-purple-500/60 hover:bg-admin-surface/72"
-                >
-                  <div className="rounded-md bg-purple-500/20 p-1.5 text-purple-500 transition-colors duration-200 group-hover:bg-purple-500/30">
-                    <MessageSquare size={16} />
-                  </div>
-                  <div className="space-y-0.5 flex-1">
-                    <p className="text-xs font-bold text-admin-text-primary leading-tight">
-                      Messages
-                    </p>
-                    <p className="text-[11px] text-admin-text-muted">Contact</p>
-                  </div>
-                </Link>
-              </div>
-            </div>
           </AdminCard>
         </div>
       </div>
