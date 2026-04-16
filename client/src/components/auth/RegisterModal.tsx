@@ -269,7 +269,7 @@ export default function RegisterModal() {
                         clearFieldError("phone");
                       }}
                       placeholder="0712345678"
-                      autoComplete="tel"
+                      autoComplete="username"
                       className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
                         phone && !KENYAN_PHONE_REGEX.test(phone)
                           ? "border-red-500/50 bg-red-500/10"
