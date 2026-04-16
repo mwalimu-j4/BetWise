@@ -7,7 +7,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ChevronRight,
-  Phone,
   User,
   Award,
   TrendingUp,
@@ -71,6 +70,10 @@ export default function UserProfilePage() {
     }
   };
 
+  const memberSinceYear = profile?.createdAt
+    ? new Date(profile.createdAt).getFullYear()
+    : new Date().getFullYear();
+
   return (
     <ProtectedRoute requireRole="USER" redirectTo="/profile">
       <div className="min-h-screen bg-linear-to-br from-[#0a0f1a] via-[#0f172a] to-[#0a0f1a]">
@@ -115,12 +118,6 @@ export default function UserProfilePage() {
                         {profile.phoneMasked || "User"}
                       </h2>
                       <div className="mt-3 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-                        <div className="flex items-center gap-1.5 rounded-full bg-[#1a2332] px-3 py-1">
-                          <Phone size={12} className="text-[#f5c518]" />
-                          <span className="text-xs text-gray-300">
-                            {profile.phoneMasked}
-                          </span>
-                        </div>
                         <div className="flex items-center gap-1.5 rounded-full bg-[#1a2332] px-3 py-1">
                           <User size={12} className="text-[#f5c518]" />
                           <span className="text-xs text-gray-300 capitalize">
@@ -277,7 +274,7 @@ export default function UserProfilePage() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-400">Member Since</p>
-                      <p className="text-sm font-semibold text-white">2024</p>
+                      <p className="text-sm font-semibold text-white">{memberSinceYear}</p>
                     </div>
                   </div>
                 </div>

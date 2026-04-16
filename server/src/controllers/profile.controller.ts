@@ -175,6 +175,7 @@ export async function getProfile(req: Request, res: Response) {
         accountStatus: true,
         role: true,
         adminTotpEnabled: true,
+        createdAt: true,
       },
     }),
     prisma.wallet.findUnique({
@@ -211,6 +212,7 @@ export async function getProfile(req: Request, res: Response) {
       bonus: bonusAggregate._sum.amount ?? 0,
       preferences,
       live: true,
+      createdAt: user.createdAt.toISOString(),
       adminTwoFactorEnabled:
         user.role === "ADMIN" ? user.adminTotpEnabled : undefined,
     },
