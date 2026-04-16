@@ -59,6 +59,21 @@ async function main() {
     console.log("Seeding admin and user accounts...");
 
     const isProduction = process.env.NODE_ENV === "production";
+    const hasProdSeedCredentials =
+      !!process.env.ADMIN_EMAIL &&
+      !!process.env.ADMIN_PHONE &&
+      !!process.env.ADMIN_PASSWORD &&
+      !!process.env.USER_EMAIL &&
+      !!process.env.USER_PHONE &&
+      !!process.env.USER_PASSWORD;
+
+    // In production, only seed when all credentials are explicitly provided.
+    if (isProduction && !hasProdSeedCredentials) {
+      console.log(
+        "Skipping user seed in production: ADMIN_* and USER_* credentials are not fully set.",
+      );
+      return;
+    }
 
     const createStrongDevPassword = () => {
       const randomSegment = randomBytes(12).toString("base64url");
@@ -73,14 +88,6 @@ async function main() {
     const userEmail = process.env.USER_EMAIL || "user@betwise.local";
     const userPhone = process.env.USER_PHONE || "+254701234567";
     const userPassword = process.env.USER_PASSWORD || createStrongDevPassword();
-
-    if (isProduction) {
-      if (!process.env.ADMIN_PASSWORD || !process.env.USER_PASSWORD) {
-        throw new Error(
-          "ADMIN_PASSWORD and USER_PASSWORD must be set in production.",
-        );
-      }
-    }
 
     const [adminPasswordHash, userPasswordHash] = await Promise.all([
       bcrypt.hash(adminPassword, 12),
