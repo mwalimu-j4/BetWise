@@ -29,9 +29,6 @@ const PASSWORD_MIN_LENGTH = 10;
 const ADMIN_MFA_TTL_MS = 10 * 60 * 1000;
 const ADMIN_MFA_TOKEN_ISSUER = "betixpro-admin-mfa";
 const ADMIN_MFA_TOKEN_AUDIENCE = "betixpro-admin";
-const PASSWORD_CHANGE_TOKEN_TTL_MS = 15 * 60 * 1000;
-const PASSWORD_CHANGE_TOKEN_ISSUER = "betixpro-password-change";
-const PASSWORD_CHANGE_TOKEN_AUDIENCE = "betixpro-admin";
 
 type LoginUserRecord = {
   id: string;
@@ -54,12 +51,6 @@ type AdminMfaTokenPayload = {
   role: "ADMIN";
   purpose: "totp_setup" | "totp_verify";
   secret?: string;
-};
-
-type ForcePasswordChangeTokenPayload = {
-  sub: string;
-  role: "ADMIN";
-  purpose: "force_password_change";
 };
 
 const LEGACY_USERS_COLUMNS = [
@@ -405,51 +396,6 @@ function verifyAdminMfaToken(token: string) {
   } as AdminMfaTokenPayload;
 }
 
-function createForcePasswordChangeToken(userId: string) {
-  const payload: ForcePasswordChangeTokenPayload = {
-    sub: userId,
-    role: "ADMIN",
-    purpose: "force_password_change",
-  };
-
-  return jwt.sign(payload, getAccessTokenSecret(), {
-    algorithm: "HS256",
-    issuer: PASSWORD_CHANGE_TOKEN_ISSUER,
-    audience: PASSWORD_CHANGE_TOKEN_AUDIENCE,
-    expiresIn: Math.floor(PASSWORD_CHANGE_TOKEN_TTL_MS / 1000),
-  });
-}
-
-function verifyForcePasswordChangeToken(token: string) {
-  const decoded = jwt.verify(token, getAccessTokenSecret(), {
-    algorithms: ["HS256"],
-    issuer: PASSWORD_CHANGE_TOKEN_ISSUER,
-    audience: PASSWORD_CHANGE_TOKEN_AUDIENCE,
-  });
-
-  if (!decoded || typeof decoded !== "object") {
-    throw new Error("Invalid password change token.");
-  }
-
-  const sub = "sub" in decoded ? decoded.sub : undefined;
-  const role = "role" in decoded ? decoded.role : undefined;
-  const purpose = "purpose" in decoded ? decoded.purpose : undefined;
-
-  if (
-    typeof sub !== "string" ||
-    role !== "ADMIN" ||
-    purpose !== "force_password_change"
-  ) {
-    throw new Error("Invalid password change token payload.");
-  }
-
-  return {
-    sub,
-    role,
-    purpose,
-  } as ForcePasswordChangeTokenPayload;
-}
-
 function normalizeKenyanPhone(rawPhone: string) {
   const trimmed = rawPhone.trim();
   if (!KENYAN_PHONE_REGEX.test(trimmed)) {
@@ -548,11 +494,13 @@ async function createAuthenticatedSession(args: {
     role: "USER" | "ADMIN";
     isVerified: boolean;
     createdAt: Date;
+    mustChangePassword?: boolean;
   };
 }) {
   const accessToken = createAccessToken({
     id: args.user.id,
     role: args.user.role,
+    mustChangePassword: args.user.mustChangePassword === true,
   });
 
   await setRefreshTokenCookieAndPersist(args.req, args.res, args.user.id);
@@ -651,11 +599,6 @@ export async function login(req: Request, res: Response) {
       : null;
   const rawPhone =
     typeof req.body?.phone === "string" ? req.body.phone.trim() : null;
-  console.log("LOGIN DEBUG: request received", {
-    email: rawEmail,
-    phoneProvided: Boolean(rawPhone),
-    passwordProvided: typeof req.body?.password === "string",
-  });
 
   try {
     const parsed = loginSchema.safeParse(req.body);
@@ -683,11 +626,6 @@ export async function login(req: Request, res: Response) {
       ? await findLoginUserByEmail(normalizedEmail)
       : await findLoginUserByPhone(normalizedPhone!);
 
-    console.log("LOGIN DEBUG: user found", {
-      found: Boolean(user),
-      lookup: normalizedEmail ? "email" : "phone",
-    });
-
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -695,16 +633,8 @@ export async function login(req: Request, res: Response) {
     const passwordFieldExists =
       typeof user.passwordHash === "string" &&
       user.passwordHash.trim().length > 0;
-    console.log("LOGIN DEBUG: password field exists", {
-      exists: passwordFieldExists,
-      userId: user.id,
-    });
 
     if (!passwordFieldExists) {
-      console.error("LOGIN DEBUG: password missing", {
-        userId: user.id,
-        email: user.email,
-      });
       throw new Error("User password hash is missing.");
     }
 
@@ -738,12 +668,19 @@ export async function login(req: Request, res: Response) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    if (user.role === "ADMIN" && user.mustChangePassword) {
-      return res.status(403).json({
-        message: "Password change is required before admin access is granted.",
-        mustChangePassword: true,
-        changePasswordToken: createForcePasswordChangeToken(user.id),
-        expiresInSeconds: Math.floor(PASSWORD_CHANGE_TOKEN_TTL_MS / 1000),
+    if (user.mustChangePassword) {
+      const session = await createAuthenticatedSession({
+        req,
+        res,
+        user,
+      });
+
+      return res.status(200).json({
+        message: "Password change required",
+        requirePasswordChange: true,
+        userId: user.id,
+        accessToken: session.accessToken,
+        user: session.user,
       });
     }
 
@@ -851,11 +788,18 @@ export async function verifyAdminMfaLogin(req: Request, res: Response) {
   }
 
   if (user.mustChangePassword) {
-    return res.status(403).json({
-      message: "Password change is required before admin access is granted.",
-      mustChangePassword: true,
-      changePasswordToken: createForcePasswordChangeToken(user.id),
-      expiresInSeconds: Math.floor(PASSWORD_CHANGE_TOKEN_TTL_MS / 1000),
+    const session = await createAuthenticatedSession({
+      req,
+      res,
+      user,
+    });
+
+    return res.status(200).json({
+      message: "Password change required",
+      requirePasswordChange: true,
+      userId: user.id,
+      accessToken: session.accessToken,
+      user: session.user,
     });
   }
 
@@ -945,6 +889,7 @@ export async function refresh(req: Request, res: Response) {
             isVerified: true,
             createdAt: true,
             accountStatus: true,
+            mustChangePassword: true,
           },
         },
       },
@@ -1013,6 +958,7 @@ export async function refresh(req: Request, res: Response) {
     const accessToken = createAccessToken({
       id: tokenRecord.user.id,
       role: tokenRecord.user.role,
+      mustChangePassword: tokenRecord.user.mustChangePassword,
     });
 
     res.cookie(
@@ -1201,19 +1147,12 @@ export async function changePassword(req: Request, res: Response) {
   }
 
   let userId: string;
-  let isForcedAdminPasswordChange = false;
 
   try {
     const accessPayload = verifyAccessToken(bearerToken);
     userId = accessPayload.id;
   } catch {
-    try {
-      const forcedPayload = verifyForcePasswordChangeToken(bearerToken);
-      userId = forcedPayload.sub;
-      isForcedAdminPasswordChange = true;
-    } catch {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
   const user = await prisma.user.findUnique({
@@ -1229,17 +1168,6 @@ export async function changePassword(req: Request, res: Response) {
 
   if (!user) {
     return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  if (isForcedAdminPasswordChange && user.role !== "ADMIN") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
-  if (isForcedAdminPasswordChange && !user.mustChangePassword) {
-    return res.status(403).json({
-      message:
-        "Password change challenge is no longer required for this account.",
-    });
   }
 
   if (user.accountStatus === "SUSPENDED") {

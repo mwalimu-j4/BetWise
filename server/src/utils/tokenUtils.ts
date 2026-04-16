@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 type AccessTokenPayload = {
   id: string;
   role: "USER" | "ADMIN";
+  mustChangePassword: boolean;
 };
 
 type BanAppealTokenPayload = {
@@ -119,7 +120,14 @@ export function verifyAccessToken(token: string) {
     throw new Error("Invalid access token payload.");
   }
 
-  return decoded as AccessTokenPayload;
+  const mustChangePassword =
+    "mustChangePassword" in decoded && decoded.mustChangePassword === true;
+
+  return {
+    id: decoded.id as string,
+    role: decoded.role as "USER" | "ADMIN",
+    mustChangePassword,
+  } as AccessTokenPayload;
 }
 
 export function createRefreshToken() {

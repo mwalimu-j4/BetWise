@@ -23,6 +23,7 @@ export async function authenticate(
         id: true,
         role: true,
         accountStatus: true,
+        mustChangePassword: true,
       },
     });
 
@@ -34,9 +35,24 @@ export async function authenticate(
       return res.status(403).json({ message: "Account suspended" });
     }
 
+    const requestPath = req.path.toLowerCase();
+    const requestOriginalPath = req.originalUrl.split("?")[0].toLowerCase();
+    const isChangePasswordRoute =
+      requestPath === "/auth/change-password" ||
+      requestOriginalPath.endsWith("/auth/change-password");
+    const mustChangePassword =
+      payload.mustChangePassword === true || user.mustChangePassword === true;
+
+    if (mustChangePassword && !isChangePasswordRoute) {
+      return res.status(403).json({
+        message: "You must change your password before accessing this resource",
+      });
+    }
+
     req.user = {
       id: user.id,
       role: user.role,
+      mustChangePassword,
     };
 
     return next();
