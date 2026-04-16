@@ -37,16 +37,16 @@ function getRelativeTime(value: string) {
   const diffMinutes = Math.round(diffMs / 60000);
 
   if (Math.abs(diffMinutes) < 60) {
-    return `in ${Math.max(diffMinutes, 1)} min`;
+    return `${Math.max(diffMinutes, 1)}m`;
   }
 
   const diffHours = Math.round(diffMinutes / 60);
   if (Math.abs(diffHours) < 24) {
-    return `in ${Math.max(diffHours, 1)} hrs`;
+    return `${Math.max(diffHours, 1)}h`;
   }
 
   const diffDays = Math.round(diffHours / 24);
-  return `in ${Math.max(diffDays, 1)} day${Math.abs(diffDays) === 1 ? "" : "s"}`;
+  return `${Math.max(diffDays, 1)}d`;
 }
 
 type OddsPreview = {
@@ -87,26 +87,30 @@ function OddsPreviewButton({
           commenceTime: event.commenceTime,
         });
       }}
-      className={`odds-btn group/odds flex min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-lg border px-1 py-1.5 text-center transition-all duration-200 sm:px-2 sm:py-2 ${
+      className={`odds-btn group/odds relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-xl border px-1 py-2 text-center transition-all duration-200 sm:px-2 sm:py-2.5 ${
         disabled
-          ? "cursor-not-allowed border-[#1e3350]/30 bg-[#111d2e] text-[#3d5478]"
+          ? "cursor-not-allowed border-[#1a2a40]/50 bg-[#0d1829] text-[#3d5478]"
           : isSelected
-            ? "border-[#ffd500]/50 bg-[#ffd500]/10 text-[#ffd500] shadow-[0_0_12px_rgba(255,213,0,0.12)]"
-            : "border-[#1e3350]/50 bg-[#0f1a2d] text-white hover:border-[#ffd500]/30 hover:bg-[#ffd500]/[0.05]"
+            ? "border-[#ffd500]/50 bg-gradient-to-b from-[#ffd500]/15 to-[#ffd500]/5 text-[#ffd500] shadow-[0_0_16px_rgba(255,213,0,0.1),inset_0_1px_0_rgba(255,213,0,0.15)]"
+            : "border-[#1e3350]/60 bg-gradient-to-b from-[#131f33] to-[#0f1a2d] text-white hover:border-[#ffd500]/30 hover:bg-gradient-to-b hover:from-[#162540] hover:to-[#111d2e] active:scale-[0.97]"
       }`}
     >
       <span
-        className={`text-[8px] font-medium uppercase tracking-wider sm:text-[9px] ${
+        className={`text-[9px] font-bold uppercase tracking-[0.1em] sm:text-[10px] ${
           disabled
             ? "text-[#3d5478]"
             : isSelected
-              ? "text-[#ffd500]/70"
+              ? "text-[#ffd500]/80"
               : "text-[#637fa0]"
         }`}
       >
         {entry.label}
       </span>
-      <span className="text-xs font-bold sm:text-sm">
+      <span
+        className={`text-sm font-extrabold tabular-nums sm:text-base ${
+          isSelected ? "text-[#ffd500]" : ""
+        }`}
+      >
         {typeof entry.odds === "number" ? entry.odds.toFixed(2) : "—"}
       </span>
     </button>
@@ -180,59 +184,68 @@ export default function EventCard({
   );
 
   return (
-    <article className="event-card group relative overflow-hidden rounded-xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770] sm:rounded-xl w-full max-w-full">
+    <article className="event-card group relative overflow-hidden rounded-2xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770] w-full max-w-full">
       {/* Subtle top accent line */}
-      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#ffd500]/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#ffd500]/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
-      <div className="relative flex h-full flex-col justify-between gap-1.5 p-2 sm:p-2.5">
-        {/* League + Markets badge row */}
-        <div className="min-w-0">
-          <div className="flex items-center justify-between gap-1">
-            <p className="truncate text-[7px] font-semibold uppercase tracking-[0.12em] text-[#637fa0] sm:text-[8px]">
-              {event.leagueName ?? "Featured Match"}
-            </p>
+      <div className="relative flex h-full flex-col justify-between gap-0 p-0">
+        {/* Top section: League + time + markets badge */}
+        <div className="flex items-center justify-between gap-1 px-3 pt-2.5 sm:px-3.5 sm:pt-3">
+          <p className="min-w-0 truncate text-[9px] font-semibold uppercase tracking-[0.12em] text-[#546e8f] sm:text-[10px]">
+            {event.leagueName ?? "Featured Match"}
+          </p>
 
+          <div className="flex shrink-0 items-center gap-1.5">
+            {/* Countdown chip */}
+            <span className="inline-flex items-center gap-0.5 rounded-md border border-[#1e3350]/50 bg-[#0b1525]/80 px-1.5 py-[3px] text-[8px] font-bold tabular-nums text-[#7a94b8] sm:text-[9px]">
+              <Clock size={8} className="text-[#546e8f]" />
+              {getRelativeTime(event.commenceTime)}
+            </span>
+
+            {/* Markets badge */}
             <button
               type="button"
               onClick={() => setShowMarkets(true)}
-              className="inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1 py-0.5 text-[6px] font-semibold uppercase tracking-wider text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[7px]"
+              className="inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1.5 py-[3px] text-[7px] font-bold uppercase tracking-wider text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[8px]"
             >
               <TrendingUp size={8} className="sm:h-[9px] sm:w-[9px]" />+
               {marketCount}
             </button>
           </div>
-
-          {/* Match name */}
-          <button
-            type="button"
-            onClick={() => setShowMarkets(true)}
-            className="mt-1 w-full text-left sm:mt-1.5"
-          >
-            <h3 className="text-[11px] font-bold leading-tight text-white break-words transition-colors group-hover:text-[#ffd500]/90 sm:text-[12px]">
-              {event.homeTeam}{" "}
-              <span className="font-normal text-[#4a6a8f]">vs</span>{" "}
-              {event.awayTeam}
-            </h3>
-          </button>
-
-          {/* Date and countdown — single compact row */}
-          <div className="mt-0.5 flex items-center gap-0.5 sm:mt-1 sm:gap-1">
-            <span className="inline-flex min-w-0 items-center gap-0.5 rounded border border-[#1e3350]/40 bg-[#0b1525] px-0.5 py-[2px] text-[6px] text-[#7a94b8] sm:px-1 sm:py-0.5 sm:text-[7px]">
-              <Calendar size={8} className="shrink-0 text-[#637fa0]" />
-              <span className="truncate">
-                {formatCardDateTime(event.commenceTime)}
-              </span>
-            </span>
-            <span className="inline-flex items-center gap-0.5 rounded border border-[#1e3350]/40 bg-[#0b1525] px-0.5 py-[2px] text-[6px] text-[#7a94b8] sm:px-1 sm:py-0.5 sm:text-[7px]">
-              <Clock size={8} className="shrink-0 text-[#637fa0]" />
-              <span>{getRelativeTime(event.commenceTime)}</span>
-            </span>
-          </div>
         </div>
 
+        {/* Teams — full-width matchup row */}
+        <button
+          type="button"
+          onClick={() => setShowMarkets(true)}
+          className="w-full text-left px-3 py-2 sm:px-3.5 sm:py-2.5"
+        >
+          <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="truncate text-[12px] font-bold leading-tight text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
+                {event.homeTeam}
+              </span>
+              <span className="truncate text-[12px] font-bold leading-tight text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
+                {event.awayTeam}
+              </span>
+            </div>
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#ffd500]/[0.07] text-[8px] font-black tracking-wider text-[#4a6a8f] sm:h-7 sm:w-7 sm:text-[9px]">
+              VS
+            </span>
+          </div>
+
+          {/* Date row */}
+          <div className="mt-1.5 flex items-center gap-1">
+            <Calendar size={9} className="shrink-0 text-[#4a6a8f]" />
+            <span className="truncate text-[8px] text-[#546e8f] sm:text-[9px]">
+              {formatCardDateTime(event.commenceTime)}
+            </span>
+          </div>
+        </button>
+
         {/* Odds row — 3 columns */}
-        <div className="rounded-lg border border-[#1e3350]/30 bg-[#0b1525]/60 p-1 sm:p-1.5">
-          <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
+        <div className="border-t border-[#1e3350]/30 px-2.5 pb-2.5 pt-2 sm:px-3 sm:pb-3 sm:pt-2.5">
+          <div className="flex gap-1.5 sm:gap-2">
             {oddsPreview.map((entry) => (
               <OddsPreviewButton
                 key={entry.label}

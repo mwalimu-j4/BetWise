@@ -94,7 +94,12 @@ export interface CreateCustomEventData {
 // ── Hook ──
 
 export function useAdminCustomEvents() {
-  const { accessToken, isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const {
+    accessToken,
+    isAuthenticated,
+    isLoading: authLoading,
+    user,
+  } = useAuth();
   const [events, setEvents] = useState<AdminCustomEvent[]>([]);
   const [stats, setStats] = useState<CustomEventStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -108,7 +113,8 @@ export function useAdminCustomEvents() {
       return {
         ...(config ?? {}),
         headers: {
-          ...((config as { headers?: Record<string, string> } | undefined)?.headers ?? {}),
+          ...((config as { headers?: Record<string, string> } | undefined)
+            ?.headers ?? {}),
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
       };
@@ -181,23 +187,26 @@ export function useAdminCustomEvents() {
     [ensureAdminSession, getAuthConfig],
   );
 
-  const loadEvent = useCallback(async (id: string) => {
-    if (!ensureAdminSession()) {
-      return null;
-    }
+  const loadEvent = useCallback(
+    async (id: string) => {
+      if (!ensureAdminSession()) {
+        return null;
+      }
 
-    try {
-      const res = await api.get<AdminCustomEvent>(
-        `/admin/custom-events/${id}`,
-        getAuthConfig(),
-      );
-      return res.data;
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || "Failed to load event";
-      toast.error(msg);
-      return null;
-    }
-  }, [ensureAdminSession, getAuthConfig]);
+      try {
+        const res = await api.get<AdminCustomEvent>(
+          `/admin/custom-events/${id}`,
+          getAuthConfig(),
+        );
+        return res.data;
+      } catch (err: any) {
+        const msg = err?.response?.data?.error || "Failed to load event";
+        toast.error(msg);
+        return null;
+      }
+    },
+    [ensureAdminSession, getAuthConfig],
+  );
 
   const createEvent = useCallback(
     async (data: CreateCustomEventData) => {
@@ -255,10 +264,14 @@ export function useAdminCustomEvents() {
       }
 
       try {
-        await api.patch(`/admin/custom-events/${eventId}/odds`, {
-          selectionId,
-          odds,
-        }, getAuthConfig());
+        await api.patch(
+          `/admin/custom-events/${eventId}/odds`,
+          {
+            selectionId,
+            odds,
+          },
+          getAuthConfig(),
+        );
         toast.success("Odds updated!");
       } catch (err: any) {
         const msg = err?.response?.data?.error || "Failed to update odds";
@@ -353,9 +366,7 @@ export function useAdminCustomEvents() {
         );
         setEvents((prev) => prev.map((e) => (e.id === id ? res.data : e)));
         toast.success(
-          res.data.status === "SUSPENDED"
-            ? "Event suspended"
-            : "Event resumed",
+          res.data.status === "SUSPENDED" ? "Event suspended" : "Event resumed",
         );
         await loadStats();
         return res.data;
@@ -369,20 +380,20 @@ export function useAdminCustomEvents() {
   );
 
   const settleMarket = useCallback(
-    async (
-      eventId: string,
-      marketId: string,
-      winningSelectionId: string,
-    ) => {
+    async (eventId: string, marketId: string, winningSelectionId: string) => {
       if (!ensureAdminSession()) {
         throw new Error("Unauthorized");
       }
 
       try {
-        const res = await api.post(`/admin/custom-events/${eventId}/settle`, {
-          marketId,
-          winningSelectionId,
-        }, getAuthConfig());
+        const res = await api.post(
+          `/admin/custom-events/${eventId}/settle`,
+          {
+            marketId,
+            winningSelectionId,
+          },
+          getAuthConfig(),
+        );
         toast.success("Market settled successfully!");
         await loadStats();
         return res.data;
@@ -398,7 +409,10 @@ export function useAdminCustomEvents() {
   const addMarket = useCallback(
     async (
       eventId: string,
-      market: { name: string; selections: { label: string; name: string; odds: number }[] },
+      market: {
+        name: string;
+        selections: { label: string; name: string; odds: number }[];
+      },
     ) => {
       if (!ensureAdminSession()) {
         throw new Error("Unauthorized");
