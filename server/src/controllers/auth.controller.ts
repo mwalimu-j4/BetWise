@@ -20,6 +20,7 @@ import {
   getRefreshTokenSecret,
   getResetTokenSecret,
   hashToken,
+  verifyAccessToken,
 } from "../utils/tokenUtils";
 
 const PASSWORD_SALT_ROUNDS = 12;
@@ -28,6 +29,9 @@ const PASSWORD_MIN_LENGTH = 10;
 const ADMIN_MFA_TTL_MS = 10 * 60 * 1000;
 const ADMIN_MFA_TOKEN_ISSUER = "betixpro-admin-mfa";
 const ADMIN_MFA_TOKEN_AUDIENCE = "betixpro-admin";
+const PASSWORD_CHANGE_TOKEN_TTL_MS = 15 * 60 * 1000;
+const PASSWORD_CHANGE_TOKEN_ISSUER = "betixpro-password-change";
+const PASSWORD_CHANGE_TOKEN_AUDIENCE = "betixpro-admin";
 
 type LoginUserRecord = {
   id: string;
@@ -42,6 +46,7 @@ type LoginUserRecord = {
   banReason: string | null;
   adminTotpEnabled: boolean;
   adminTotpSecret: string | null;
+  mustChangePassword: boolean;
 };
 
 type AdminMfaTokenPayload = {
@@ -51,7 +56,14 @@ type AdminMfaTokenPayload = {
   secret?: string;
 };
 
+type ForcePasswordChangeTokenPayload = {
+  sub: string;
+  role: "ADMIN";
+  purpose: "force_password_change";
+};
+
 const LEGACY_USERS_COLUMNS = [
+  "users.must_change_password",
   "users.ban_reason",
   "users.admin_totp_enabled",
   "users.admin_totp_secret",
@@ -108,6 +120,11 @@ const resetPasswordSchema = z.object({
   token: z.string().trim().min(1),
   newPassword: z.string(),
   confirmPassword: z.string(),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string(),
+  newPassword: z.string(),
 });
 
 function validatePassword(password: string) {
@@ -238,6 +255,7 @@ async function findLoginUserByPhone(
         banReason: true,
         adminTotpEnabled: true,
         adminTotpSecret: true,
+        mustChangePassword: true,
       },
     });
   } catch (error) {
@@ -269,6 +287,7 @@ async function findLoginUserByPhone(
       banReason: null,
       adminTotpEnabled: false,
       adminTotpSecret: null,
+      mustChangePassword: false,
     };
   }
 }
@@ -312,6 +331,51 @@ function verifyAdminMfaToken(token: string) {
     purpose,
     secret: typeof secret === "string" ? secret : undefined,
   } as AdminMfaTokenPayload;
+}
+
+function createForcePasswordChangeToken(userId: string) {
+  const payload: ForcePasswordChangeTokenPayload = {
+    sub: userId,
+    role: "ADMIN",
+    purpose: "force_password_change",
+  };
+
+  return jwt.sign(payload, getAccessTokenSecret(), {
+    algorithm: "HS256",
+    issuer: PASSWORD_CHANGE_TOKEN_ISSUER,
+    audience: PASSWORD_CHANGE_TOKEN_AUDIENCE,
+    expiresIn: Math.floor(PASSWORD_CHANGE_TOKEN_TTL_MS / 1000),
+  });
+}
+
+function verifyForcePasswordChangeToken(token: string) {
+  const decoded = jwt.verify(token, getAccessTokenSecret(), {
+    algorithms: ["HS256"],
+    issuer: PASSWORD_CHANGE_TOKEN_ISSUER,
+    audience: PASSWORD_CHANGE_TOKEN_AUDIENCE,
+  });
+
+  if (!decoded || typeof decoded !== "object") {
+    throw new Error("Invalid password change token.");
+  }
+
+  const sub = "sub" in decoded ? decoded.sub : undefined;
+  const role = "role" in decoded ? decoded.role : undefined;
+  const purpose = "purpose" in decoded ? decoded.purpose : undefined;
+
+  if (
+    typeof sub !== "string" ||
+    role !== "ADMIN" ||
+    purpose !== "force_password_change"
+  ) {
+    throw new Error("Invalid password change token payload.");
+  }
+
+  return {
+    sub,
+    role,
+    purpose,
+  } as ForcePasswordChangeTokenPayload;
 }
 
 function normalizeKenyanPhone(rawPhone: string) {
@@ -369,6 +433,16 @@ function getDeviceInfo(req: Request) {
 function getRefreshCookie(req: Request) {
   const value = req.cookies.refreshToken;
   return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function getBearerToken(req: Request) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return null;
+  }
+
+  const token = authHeader.slice(7).trim();
+  return token.length > 0 ? token : null;
 }
 
 async function setRefreshTokenCookieAndPersist(
@@ -474,6 +548,7 @@ export async function register(req: Request, res: Response) {
       email: parsed.data.email,
       phone: normalizedPhone!,
       passwordHash,
+      mustChangePassword: false,
     },
     select: {
       id: true,
@@ -542,6 +617,15 @@ export async function login(req: Request, res: Response) {
   );
   if (!isValidPassword) {
     return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  if (user.role === "ADMIN" && user.mustChangePassword) {
+    return res.status(403).json({
+      message: "Password change is required before admin access is granted.",
+      mustChangePassword: true,
+      changePasswordToken: createForcePasswordChangeToken(user.id),
+      expiresInSeconds: Math.floor(PASSWORD_CHANGE_TOKEN_TTL_MS / 1000),
+    });
   }
 
   let requireAdminMfa = false;
@@ -618,6 +702,7 @@ export async function verifyAdminMfaLogin(req: Request, res: Response) {
       accountStatus: true,
       adminTotpEnabled: true,
       adminTotpSecret: true,
+      mustChangePassword: true,
     },
   });
 
@@ -629,6 +714,15 @@ export async function verifyAdminMfaLogin(req: Request, res: Response) {
     return res
       .status(403)
       .json({ message: "This account has been suspended." });
+  }
+
+  if (user.mustChangePassword) {
+    return res.status(403).json({
+      message: "Password change is required before admin access is granted.",
+      mustChangePassword: true,
+      changePasswordToken: createForcePasswordChangeToken(user.id),
+      expiresInSeconds: Math.floor(PASSWORD_CHANGE_TOKEN_TTL_MS / 1000),
+    });
   }
 
   if (tokenPayload.purpose === "totp_setup") {
@@ -948,6 +1042,126 @@ export async function resetPassword(req: Request, res: Response) {
   res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
 
   return res.status(200).json({ message: "Password reset successful." });
+}
+
+export async function changePassword(req: Request, res: Response) {
+  const parsed = changePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      errors: parsed.error.flatten().fieldErrors,
+    });
+  }
+
+  const passwordErrors = validatePassword(parsed.data.newPassword);
+  if (passwordErrors.length > 0) {
+    return res.status(400).json({
+      errors: {
+        newPassword: passwordErrors,
+      },
+    });
+  }
+
+  const bearerToken = getBearerToken(req);
+  if (!bearerToken) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  let userId: string;
+  let isForcedAdminPasswordChange = false;
+
+  try {
+    const accessPayload = verifyAccessToken(bearerToken);
+    userId = accessPayload.id;
+  } catch {
+    try {
+      const forcedPayload = verifyForcePasswordChangeToken(bearerToken);
+      userId = forcedPayload.sub;
+      isForcedAdminPasswordChange = true;
+    } catch {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      role: true,
+      passwordHash: true,
+      accountStatus: true,
+      mustChangePassword: true,
+    },
+  });
+
+  if (!user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (isForcedAdminPasswordChange && user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  if (isForcedAdminPasswordChange && !user.mustChangePassword) {
+    return res.status(403).json({
+      message: "Password change challenge is no longer required for this account.",
+    });
+  }
+
+  if (user.accountStatus === "SUSPENDED") {
+    return res.status(403).json({ message: "This account has been suspended." });
+  }
+
+  const isCurrentPasswordValid = await bcrypt.compare(
+    parsed.data.currentPassword,
+    user.passwordHash,
+  );
+
+  if (!isCurrentPasswordValid) {
+    return res.status(400).json({
+      errors: {
+        currentPassword: ["Current password is incorrect."],
+      },
+    });
+  }
+
+  const isSamePassword = await bcrypt.compare(
+    parsed.data.newPassword,
+    user.passwordHash,
+  );
+  if (isSamePassword) {
+    return res.status(400).json({
+      errors: {
+        newPassword: ["New password must be different from current password."],
+      },
+    });
+  }
+
+  const passwordHash = await bcrypt.hash(
+    parsed.data.newPassword,
+    PASSWORD_SALT_ROUNDS,
+  );
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        mustChangePassword: false,
+      },
+    }),
+    prisma.refreshToken.deleteMany({
+      where: {
+        userId: user.id,
+      },
+    }),
+  ]);
+
+  res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
+
+  return res.status(200).json({
+    message: "Password changed successfully. Please log in again.",
+    mustChangePassword: false,
+  });
 }
 
 export async function me(req: Request, res: Response) {

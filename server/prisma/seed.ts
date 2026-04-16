@@ -10,7 +10,6 @@ async function upsertSeedUser(args: {
   email: string;
   phone: string;
   passwordHash: string;
-  role: "ADMIN" | "USER";
 }) {
   const byEmail = await prisma.user.findUnique({
     where: { email: args.email },
@@ -37,7 +36,8 @@ async function upsertSeedUser(args: {
         email: args.email,
         phone: args.phone,
         passwordHash: args.passwordHash,
-        role: args.role,
+        role: "USER",
+        mustChangePassword: false,
         isVerified: true,
       },
     });
@@ -48,7 +48,8 @@ async function upsertSeedUser(args: {
       email: args.email,
       phone: args.phone,
       passwordHash: args.passwordHash,
-      role: args.role,
+      role: "USER",
+      mustChangePassword: false,
       isVerified: true,
     },
   });
@@ -56,22 +57,13 @@ async function upsertSeedUser(args: {
 
 async function main() {
   try {
-    console.log("Seeding admin and user accounts...");
+    console.log("Seeding demo user account...");
 
     const isProduction = process.env.NODE_ENV === "production";
-    const hasProdSeedCredentials =
-      !!process.env.ADMIN_EMAIL &&
-      !!process.env.ADMIN_PHONE &&
-      !!process.env.ADMIN_PASSWORD &&
-      !!process.env.USER_EMAIL &&
-      !!process.env.USER_PHONE &&
-      !!process.env.USER_PASSWORD;
 
-    // In production, only seed when all credentials are explicitly provided.
-    if (isProduction && !hasProdSeedCredentials) {
-      console.log(
-        "Skipping user seed in production: ADMIN_* and USER_* credentials are not fully set.",
-      );
+    // Never use seed files for privileged account creation in production.
+    if (isProduction) {
+      console.log("Skipping seed in production.");
       return;
     }
 
@@ -80,41 +72,21 @@ async function main() {
       return `Seed@${randomSegment}9!`;
     };
 
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@betwise.local";
-    const adminPhone = process.env.ADMIN_PHONE || "+254712345678";
-    const adminPassword =
-      process.env.ADMIN_PASSWORD || createStrongDevPassword();
-
     const userEmail = process.env.USER_EMAIL || "user@betwise.local";
     const userPhone = process.env.USER_PHONE || "+254701234567";
     const userPassword = process.env.USER_PASSWORD || createStrongDevPassword();
 
-    const [adminPasswordHash, userPasswordHash] = await Promise.all([
-      bcrypt.hash(adminPassword, 12),
-      bcrypt.hash(userPassword, 12),
-    ]);
+    const userPasswordHash = await bcrypt.hash(userPassword, 12);
 
-    const [admin, user] = await Promise.all([
-      upsertSeedUser({
-        email: adminEmail,
-        phone: adminPhone,
-        passwordHash: adminPasswordHash,
-        role: "ADMIN",
-      }),
-      upsertSeedUser({
-        email: userEmail,
-        phone: userPhone,
-        passwordHash: userPasswordHash,
-        role: "USER",
-      }),
-    ]);
+    const user = await upsertSeedUser({
+      email: userEmail,
+      phone: userPhone,
+      passwordHash: userPasswordHash,
+    });
 
     console.log("Seed complete.");
 
-    if (!isProduction) {
-      console.log(`ADMIN: ${admin.phone} / ${adminPassword}`);
-      console.log(`USER:  ${user.phone} / ${userPassword}`);
-    }
+    console.log(`USER:  ${user.phone} / ${userPassword}`);
   } catch (error) {
     console.error("Seed failed:", error);
     process.exit(1);
