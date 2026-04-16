@@ -32,7 +32,7 @@ export default function Layout() {
     <div className="bc-layout-root">
       <Navbar onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
       <div
-        className="flex lg:-mx-4"
+        className="flex lg:-mx-4 "
         style={{
           marginTop: "var(--navbar-height)",
           minHeight: "calc(100vh - var(--navbar-height))",
