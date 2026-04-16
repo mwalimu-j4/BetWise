@@ -14,11 +14,12 @@ const configuredOrigins =
   "http://localhost:5173";
 const allowedOrigins = configuredOrigins
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
 function isAllowedOrigin(origin: string) {
-  return allowedOrigins.includes(origin);
+  const normalizedOrigin = origin.trim().replace(/\/$/, "");
+  return allowedOrigins.includes(normalizedOrigin);
 }
 
 app.disable("x-powered-by");
@@ -32,6 +33,10 @@ app.use(
         return;
       }
 
+      console.error("CORS BLOCKED ORIGIN", {
+        origin,
+        allowedOrigins,
+      });
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
