@@ -1,8 +1,9 @@
 import { Router } from "express";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { authenticate } from "../../middleware/authenticate";
-import { v4 as uuid } from "uuid";
 
 const userCustomEventsRouter = Router();
 
@@ -146,7 +147,7 @@ userCustomEventsRouter.post("/user/custom-events", async (req, res, next) => {
       });
     }
 
-    const eventId = `custom-${Date.now()}-${uuid().substring(0, 8)}`;
+    const eventId = `custom-${Date.now()}-${randomUUID().substring(0, 8)}`;
 
     const customEvent = await prisma.customEvent.create({
       data: {
@@ -157,9 +158,9 @@ userCustomEventsRouter.post("/user/custom-events", async (req, res, next) => {
         sport: parsed.data.sport,
         league: parsed.data.league,
         commenceTime: new Date(parsed.data.commenceTime),
-        h2hOdds: parsed.data.h2hOdds || null,
-        spreadsOdds: parsed.data.spreadsOdds || null,
-        totalsOdds: parsed.data.totalsOdds || null,
+        h2hOdds: parsed.data.h2hOdds ?? Prisma.DbNull,
+        spreadsOdds: parsed.data.spreadsOdds ?? Prisma.DbNull,
+        totalsOdds: parsed.data.totalsOdds ?? Prisma.DbNull,
       },
     });
 

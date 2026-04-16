@@ -29,6 +29,21 @@ const ADMIN_MFA_TTL_MS = 10 * 60 * 1000;
 const ADMIN_MFA_TOKEN_ISSUER = "betixpro-admin-mfa";
 const ADMIN_MFA_TOKEN_AUDIENCE = "betixpro-admin";
 
+type LoginUserRecord = {
+  id: string;
+  email: string;
+  phone: string;
+  role: "USER" | "ADMIN";
+  isVerified: boolean;
+  createdAt: Date;
+  passwordHash: string;
+  accountStatus: "ACTIVE" | "SUSPENDED";
+  bannedAt: Date | null;
+  banReason: string | null;
+  adminTotpEnabled: boolean;
+  adminTotpSecret: string | null;
+};
+
 type AdminMfaTokenPayload = {
   sub: string;
   role: "ADMIN";
@@ -169,6 +184,66 @@ function getAdminMfaFailureResponse(error: unknown) {
     status: 500,
     message: "Internal server error",
   };
+}
+
+async function findLoginUserByPhone(
+  normalizedPhone: string,
+): Promise<LoginUserRecord | null> {
+  try {
+    return await prisma.user.findUnique({
+      where: { phone: normalizedPhone },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        role: true,
+        isVerified: true,
+        createdAt: true,
+        passwordHash: true,
+        accountStatus: true,
+        bannedAt: true,
+        banReason: true,
+        adminTotpEnabled: true,
+        adminTotpSecret: true,
+      },
+    });
+  } catch (error) {
+    const missingBanReasonColumn =
+      isPrismaKnownRequestError(error) &&
+      error.code === "P2022" &&
+      error instanceof Error &&
+      error.message.includes("users.ban_reason");
+
+    if (!missingBanReasonColumn) {
+      throw error;
+    }
+
+    const legacyUser = await prisma.user.findUnique({
+      where: { phone: normalizedPhone },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        role: true,
+        isVerified: true,
+        createdAt: true,
+        passwordHash: true,
+        accountStatus: true,
+        bannedAt: true,
+        adminTotpEnabled: true,
+        adminTotpSecret: true,
+      },
+    });
+
+    if (!legacyUser) {
+      return null;
+    }
+
+    return {
+      ...legacyUser,
+      banReason: null,
+    };
+  }
 }
 
 function createAdminMfaToken(payload: AdminMfaTokenPayload) {
@@ -406,23 +481,7 @@ export async function login(req: Request, res: Response) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { phone: normalizedPhone },
-    select: {
-      id: true,
-      email: true,
-      phone: true,
-      role: true,
-      isVerified: true,
-      createdAt: true,
-      passwordHash: true,
-      accountStatus: true,
-      bannedAt: true,
-      banReason: true,
-      adminTotpEnabled: true,
-      adminTotpSecret: true,
-    },
-  });
+  const user = await findLoginUserByPhone(normalizedPhone);
 
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
