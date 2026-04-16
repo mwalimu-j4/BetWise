@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  changePassword,
   verifyAdminMfaLogin,
   forgotPassword,
   login,
@@ -46,6 +47,7 @@ authRouter.post(
   forgotPassword,
 );
 authRouter.post("/auth/reset-password", authGeneralRateLimiter, resetPassword);
+authRouter.post("/auth/change-password", authGeneralRateLimiter, changePassword);
 authRouter.get("/auth/me", authGeneralRateLimiter, authenticate, me);
 
 export { authRouter };

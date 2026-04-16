@@ -117,6 +117,7 @@ model User {
   email         String               @unique
   phone         String               @unique
   passwordHash  String               @map("password_hash")
+  mustChangePassword Boolean         @default(true) @map("must_change_password")
   isVerified    Boolean              @default(false) @map("is_verified")
   accountStatus AccountStatus        @default(ACTIVE) @map("account_status")
   adminTotpEnabled Boolean           @default(false) @map("admin_totp_enabled")

@@ -35,3 +35,8 @@ Thumbs.db
 
 # Prisma artifacts
 **/prisma/migrations/**/migration_lock.toml
+
+# Local seed scripts (never commit credentials)
+server/prisma/seed.ts
+server/prisma/seed*.local.ts
+server/scripts/seed*.local.ts
