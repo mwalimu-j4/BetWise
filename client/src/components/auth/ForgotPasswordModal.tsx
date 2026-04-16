@@ -30,7 +30,8 @@ export default function ForgotPasswordModal() {
 
   if (authModal !== "forgot-password") return null;
 
-  const isValid = email.length > 4;
+  const isValid =
+    email.length > 0 && email.includes("@") && email.includes(".");
 
   function setBackToLogin() {
     closeAuthModal();
@@ -76,7 +77,7 @@ export default function ForgotPasswordModal() {
     setLoading(true);
     setFeedback({
       tone: "info",
-      message: "Validating email...",
+      message: "Checking email...",
     });
 
     try {
@@ -85,8 +86,11 @@ export default function ForgotPasswordModal() {
         { email },
       );
 
-      // Check if email was not found
-      if (data.message.includes("No account found")) {
+      // Check if email was NOT found in database
+      if (
+        data.message.includes("No account found") ||
+        data.message.toLowerCase().includes("not found")
+      ) {
         setFeedback({
           tone: "error",
           message: "Email does not exist in our system.",
@@ -95,21 +99,21 @@ export default function ForgotPasswordModal() {
         return;
       }
 
-      // Email exists and reset link was sent
+      // Email EXISTS and reset link was sent successfully
       setSentEmail(email);
       setStep("success");
       setFeedback(null);
+      setLoading(false);
 
       // Auto-transition to instructions after 2 seconds
       setTimeout(() => {
         setStep("instructions");
       }, 2000);
-    } catch {
+    } catch (error) {
       setFeedback({
         tone: "error",
         message: "An error occurred. Please try again.",
       });
-    } finally {
       setLoading(false);
     }
   }
