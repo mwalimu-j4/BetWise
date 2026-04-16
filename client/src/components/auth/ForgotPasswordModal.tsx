@@ -1,15 +1,15 @@
-import { useState, type FormEvent } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { api } from "@/api/axiosConfig";
+import { useAuth } from "@/context/AuthContext";
 import {
+  AlertCircle,
   ArrowLeft,
   CheckCircle2,
   CircleAlert,
   Loader2,
   Mail,
   ShieldAlert,
-  AlertCircle,
 } from "lucide-react";
+import { useState, type FormEvent } from "react";
 
 type Step = "email" | "success" | "instructions";
 
@@ -20,12 +20,9 @@ type FeedbackState = {
   message: string;
 };
 
-const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
-
 export default function ForgotPasswordModal() {
   const { authModal, closeAuthModal, openAuthModal } = useAuth();
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [step, setStep] = useState<Step>("email");
@@ -33,7 +30,7 @@ export default function ForgotPasswordModal() {
 
   if (authModal !== "forgot-password") return null;
 
-  const isValid = email.length > 4 && KENYAN_PHONE_REGEX.test(phone.trim());
+  const isValid = email.length > 4;
 
   function setBackToLogin() {
     closeAuthModal();
@@ -42,7 +39,6 @@ export default function ForgotPasswordModal() {
 
   function handleReset() {
     setEmail("");
-    setPhone("");
     setFeedback(null);
     setStep("email");
     setSentEmail("");
@@ -86,7 +82,7 @@ export default function ForgotPasswordModal() {
     try {
       const { data } = await api.post<{ message: string }>(
         "/auth/forgot-password",
-        { email, phone },
+        { email },
       );
 
       // Check if email was not found
@@ -170,25 +166,6 @@ export default function ForgotPasswordModal() {
               className="h-11 w-full rounded-xl border border-admin-border bg-(--color-bg-elevated) pl-11 pr-3 text-sm text-admin-text-primary outline-none disabled:opacity-60"
             />
           </div>
-        </div>
-
-        <div className="grid gap-1.5">
-          <label
-            className="text-sm font-medium text-admin-text-primary"
-            htmlFor="forgot-phone"
-          >
-            Phone
-          </label>
-          <input
-            id="forgot-phone"
-            type="tel"
-            required
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            placeholder="07XXXXXXXX or +2547XXXXXXXX"
-            disabled={loading}
-            className="h-11 w-full rounded-xl border border-admin-border bg-(--color-bg-elevated) px-3 text-sm text-admin-text-primary outline-none disabled:opacity-60"
-          />
         </div>
 
         <button
