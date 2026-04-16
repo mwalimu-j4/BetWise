@@ -130,7 +130,7 @@ export default function BettingHome() {
             HERO CAROUSEL — compact, professional banner
           ═══════════════════════════════════════════════════ */}
         <section className="hero-section relative overflow-hidden rounded-xl border border-[#1e3350]/60 shadow-[0_4px_20px_rgba(0,0,0,0.35)] sm:rounded-2xl">
-          <div className="relative h-[110px] w-full sm:h-[120px] md:h-[140px] lg:h-[160px]">
+          <div className="relative h-[70px] w-full sm:h-[80px] md:h-[95px] lg:h-[110px]">
             {heroImages.map((image, index) => (
               <article
                 key={`hero-image-${index}`}
@@ -171,17 +171,17 @@ export default function BettingHome() {
                 </div>
 
                 {/* Dot indicators */}
-                <div className="z-10 flex items-center gap-1.5 self-start sm:self-auto">
+                <div className="z-10 flex items-center gap-2 self-start sm:self-auto sm:gap-2.5">
                   {heroImages.map((_, index) => (
                     <button
                       key={`hero-dot-${index}`}
                       type="button"
                       onClick={() => setActiveHeroIndex(index)}
                       aria-label={`Show slide ${index + 1}`}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                      className={`rounded-full transition-all duration-300 ${
                         index === activeHeroIndex
-                          ? "w-6 bg-[#ffd500] shadow-[0_0_8px_rgba(255,213,0,0.5)]"
-                          : "w-1.5 bg-white/30 hover:bg-white/60"
+                          ? "h-2.5 w-7 bg-[#ffd500] shadow-[0_0_12px_rgba(255,213,0,0.6)] hover:shadow-[0_0_16px_rgba(255,213,0,0.8)]"
+                          : "h-2 w-2 bg-white/40 hover:bg-white/70 hover:w-3"
                       }`}
                     />
                   ))}
