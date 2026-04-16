@@ -47,6 +47,60 @@ DROP INDEX "custom_events_is_active_idx";
 DROP INDEX "custom_events_user_id_idx";
 
 -- AlterTable
+ALTER TABLE "custom_events"
+ADD COLUMN     "banner_url" TEXT,
+ADD COLUMN     "category" TEXT,
+ADD COLUMN     "created_by" UUID,
+ADD COLUMN     "description" TEXT,
+ADD COLUMN     "end_time" TIMESTAMP(3),
+ADD COLUMN     "published_at" TIMESTAMP(3),
+ADD COLUMN     "start_time" TIMESTAMP(3),
+ADD COLUMN     "team_away" TEXT,
+ADD COLUMN     "team_home" TEXT,
+ADD COLUMN     "title" TEXT,
+ADD COLUMN     "status_new" "CustomEventStatus";
+
+UPDATE "custom_events"
+SET
+    "category" = COALESCE("category", 'Football'),
+    "created_by" = COALESCE(
+        "user_id",
+        (SELECT "id" FROM "users" WHERE "role" = 'ADMIN' ORDER BY "created_at" ASC LIMIT 1),
+        (SELECT "id" FROM "users" ORDER BY "created_at" ASC LIMIT 1),
+        '00000000-0000-0000-0000-000000000000'::uuid
+    ),
+    "description" = COALESCE("description", NULL),
+    "end_time" = COALESCE("end_time", NULL),
+    "published_at" = COALESCE("published_at", "commence_time", "created_at", NOW()),
+    "start_time" = COALESCE("start_time", "commence_time", "created_at", NOW()),
+    "team_away" = COALESCE("team_away", "away_team", 'TBD Away'),
+    "team_home" = COALESCE("team_home", "home_team", 'TBD Home'),
+    "title" = COALESCE("title", CONCAT(COALESCE("home_team", 'Home'), ' vs ', COALESCE("away_team", 'Away'))),
+    "league" = COALESCE("league", 'Custom League'),
+    "status_new" = CASE
+        WHEN "status"::text = 'LIVE' THEN 'LIVE'::"CustomEventStatus"
+        WHEN "status"::text = 'FINISHED' THEN 'FINISHED'::"CustomEventStatus"
+        WHEN "status"::text = 'CANCELLED' THEN 'CANCELLED'::"CustomEventStatus"
+        ELSE 'PUBLISHED'::"CustomEventStatus"
+    END;
+
+ALTER TABLE "custom_events"
+ALTER COLUMN "category" SET DEFAULT 'Football',
+ALTER COLUMN "category" SET NOT NULL,
+ALTER COLUMN "created_by" SET NOT NULL,
+ALTER COLUMN "start_time" SET NOT NULL,
+ALTER COLUMN "team_away" SET NOT NULL,
+ALTER COLUMN "team_home" SET NOT NULL,
+ALTER COLUMN "title" SET NOT NULL,
+ALTER COLUMN "league" SET NOT NULL,
+ALTER COLUMN "league" SET DEFAULT 'Custom League';
+
+ALTER TABLE "custom_events" DROP COLUMN "status";
+ALTER TABLE "custom_events" RENAME COLUMN "status_new" TO "status";
+ALTER TABLE "custom_events"
+ALTER COLUMN "status" SET NOT NULL,
+ALTER COLUMN "status" SET DEFAULT 'DRAFT';
+
 ALTER TABLE "custom_events" DROP COLUMN "away_score",
 DROP COLUMN "away_team",
 DROP COLUMN "commence_time",
@@ -58,21 +112,7 @@ DROP COLUMN "is_active",
 DROP COLUMN "sport",
 DROP COLUMN "spreads_odds",
 DROP COLUMN "totals_odds",
-DROP COLUMN "user_id",
-ADD COLUMN     "banner_url" TEXT,
-ADD COLUMN     "category" TEXT NOT NULL DEFAULT 'Football',
-ADD COLUMN     "created_by" UUID NOT NULL,
-ADD COLUMN     "description" TEXT,
-ADD COLUMN     "end_time" TIMESTAMP(3),
-ADD COLUMN     "published_at" TIMESTAMP(3),
-ADD COLUMN     "start_time" TIMESTAMP(3) NOT NULL,
-ADD COLUMN     "team_away" TEXT NOT NULL,
-ADD COLUMN     "team_home" TEXT NOT NULL,
-ADD COLUMN     "title" TEXT NOT NULL,
-ALTER COLUMN "league" SET NOT NULL,
-ALTER COLUMN "league" SET DEFAULT 'Custom League',
-DROP COLUMN "status",
-ADD COLUMN     "status" "CustomEventStatus" NOT NULL DEFAULT 'DRAFT';
+DROP COLUMN "user_id";
 
 -- CreateTable
 CREATE TABLE "custom_markets" (
