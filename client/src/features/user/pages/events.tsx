@@ -223,7 +223,7 @@ function EventsContent() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-48 rounded-lg border border-slate-600/30 bg-slate-800/30 animate-pulse"
+                className="h-48 rounded-lg border border-[#31455f]/30 bg-[#243244]/30 animate-pulse"
               />
             ))}
           </div>

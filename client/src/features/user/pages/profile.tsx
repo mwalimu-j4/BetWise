@@ -116,7 +116,7 @@ export default function UserProfilePage() {
                   </p>
                   <Link
                     to="/user/payments/deposit"
-                    className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-xl bg-[#f5c518] text-sm font-semibold text-[#0d1117]"
+                    className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-xl bg-[#f5c518] text-sm font-semibold text-[#0b1120]"
                   >
                     Open Deposit
                   </Link>

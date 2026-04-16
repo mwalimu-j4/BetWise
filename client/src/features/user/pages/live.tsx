@@ -464,7 +464,7 @@ function EmptyLiveState() {
       <h3 className="mt-4 text-xl font-bold text-white">
         No live matches right now
       </h3>
-      <p className="mt-2 text-sm text-[#93a4b9]">
+      <p className="mt-2 text-sm text-[#8a9bb0]">
         Check back soon or explore upcoming matches
       </p>
       <Link
@@ -531,7 +531,7 @@ function ExpandedMarkets({
               "whitespace-nowrap rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide",
               tab === item
                 ? "border-[#F5C518] bg-[#F5C518]/15 text-[#F5C518]"
-                : "border-[#243244] text-[#93a4b9]",
+                : "border-[#31455f] text-[#8a9bb0]",
             ].join(" ")}
           >
             {item}
@@ -540,7 +540,7 @@ function ExpandedMarkets({
       </div>
 
       {loading ? (
-        <div className="flex h-24 items-center justify-center text-[#93a4b9]">
+        <div className="flex h-24 items-center justify-center text-[#8a9bb0]">
           <Loader2 size={16} className="animate-spin" />
           <span className="ml-2 text-sm">Loading markets...</span>
         </div>
@@ -646,7 +646,7 @@ function BetSlipContent({
               }
               className={[
                 "relative pb-2 text-xs font-semibold uppercase tracking-wide",
-                tab === entry.value ? "text-[#F5C518]" : "text-[#93a4b9]",
+                tab === entry.value ? "text-[#F5C518]" : "text-[#8a9bb0]",
               ].join(" ")}
             >
               {entry.label} ({entry.count})
@@ -659,7 +659,7 @@ function BetSlipContent({
       </div>
 
       <div className="space-y-2">
-        <p className="text-[11px] text-[#93a4b9]">Shared Betslip</p>
+        <p className="text-[11px] text-[#8a9bb0]">Shared Betslip</p>
         <input
           value={loadCode}
           onChange={(event) => setLoadCode(event.target.value)}
@@ -682,7 +682,7 @@ function BetSlipContent({
       {betSlip.selections.length === 0 ? (
         <div className="mt-4 rounded-xl border border-dashed border-[#273140] px-3 py-5 text-center">
           <p className="text-sm font-semibold text-white">No selections yet</p>
-          <p className="mt-1 text-xs text-[#93a4b9]">
+          <p className="mt-1 text-xs text-[#8a9bb0]">
             Tap odds to build your ticket.
           </p>
         </div>
@@ -696,7 +696,7 @@ function BetSlipContent({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-[11px] text-[#93a4b9]">
+                    <p className="text-[11px] text-[#8a9bb0]">
                       {selection.leagueName}
                     </p>
                     <p className="text-sm font-semibold text-white">
@@ -706,12 +706,12 @@ function BetSlipContent({
                   <button
                     type="button"
                     onClick={() => betSlip.removeSelection(selection.eventId)}
-                    className="rounded-full bg-[#1f2937] p-1 text-[#93a4b9]"
+                    className="rounded-full bg-[#0c1018] p-1 text-[#8a9bb0]"
                   >
                     <X size={12} />
                   </button>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-xs text-[#93a4b9]">
+                <div className="mt-2 flex items-center justify-between text-xs text-[#8a9bb0]">
                   <span>{selection.marketType}</span>
                   <span>{selection.side}</span>
                   <span className="font-semibold text-[#F5C518]">
@@ -724,13 +724,13 @@ function BetSlipContent({
 
           <div className="rounded-xl border border-[#273140] bg-[#0d1117] p-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-[#93a4b9]">Total odds</span>
+              <span className="text-[#8a9bb0]">Total odds</span>
               <span className="font-bold text-[#F5C518]">
                 {totalOdds.toFixed(2)}
               </span>
             </div>
             <div className="mt-3">
-              <label className="text-xs text-[#93a4b9]">Stake (KES)</label>
+              <label className="text-xs text-[#8a9bb0]">Stake (KES)</label>
               <input
                 type="number"
                 min={50}
@@ -739,12 +739,12 @@ function BetSlipContent({
                 onChange={(event) =>
                   betSlip.setStake(Number(event.target.value) || 0)
                 }
-                className="mt-1 h-10 w-full rounded-lg border border-[#273140] bg-[#111827] px-3 text-sm outline-none focus:border-[#F5C518]"
+                className="mt-1 h-10 w-full rounded-lg border border-[#31455f] bg-[#0c1018] px-3 text-sm outline-none focus:border-[#F5C518]"
               />
             </div>
 
             <div className="mt-3 flex items-center justify-between text-sm">
-              <span className="text-[#93a4b9]">Possible payout</span>
+              <span className="text-[#8a9bb0]">Possible payout</span>
               <span className="font-bold text-[#22c55e]">
                 {formatCurrency(betSlip.potentialPayout)}
               </span>
