@@ -77,23 +77,23 @@ function toSidebarSportName(raw: string) {
 function sportIcon(name: string): React.ReactNode {
   switch (name) {
     case "Soccer":
-      return <Goal size={16} />;
+      return "⚽";
     case "Basketball":
       return "🏀";
     case "Tennis":
-      return <Trophy size={16} />;
+      return "🎾";
     case "Ice Hockey":
-      return <Dumbbell size={16} />;
+      return "🏒";
     case "Volleyball":
-      return <Trophy size={16} />;
+      return "🏐";
     case "Cricket":
-      return <Trophy size={16} />;
+      return "🏏";
     case "Handball":
-      return <Trophy size={16} />;
+      return "🤾";
     case "Table Tennis":
-      return <Trophy size={16} />;
+      return "🏓";
     default:
-      return <Trophy size={16} />;
+      return "🎯";
   }
 }
 

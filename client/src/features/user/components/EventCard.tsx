@@ -180,7 +180,7 @@ export default function EventCard({
   );
 
   return (
-    <article className="event-card group relative overflow-hidden rounded-xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770] sm:rounded-xl">
+    <article className="event-card group relative overflow-hidden rounded-xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770] sm:rounded-xl w-full max-w-full">
       {/* Subtle top accent line */}
       <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#ffd500]/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
