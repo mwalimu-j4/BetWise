@@ -51,12 +51,31 @@ type AdminMfaTokenPayload = {
   secret?: string;
 };
 
+const LEGACY_USERS_COLUMNS = [
+  "users.ban_reason",
+  "users.admin_totp_enabled",
+  "users.admin_totp_secret",
+  "users.account_status",
+  "users.banned_at",
+];
+
 function isPrismaKnownRequestError(error: unknown): error is { code: string } {
   return (
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
     typeof (error as { code?: unknown }).code === "string"
+  );
+}
+
+function isMissingUsersColumnError(error: unknown) {
+  return (
+    isPrismaKnownRequestError(error) &&
+    error.code === "P2022" &&
+    error instanceof Error &&
+    LEGACY_USERS_COLUMNS.some((columnName) =>
+      error.message.includes(columnName),
+    )
   );
 }
 
@@ -124,12 +143,26 @@ function validatePassword(password: string) {
 }
 
 async function isAdminTwoFactorRequired() {
-  const settings = await prisma.adminSettings.findUnique({
-    where: { key: "global" },
-    select: { adminTwoFactorRequired: true },
-  });
+  try {
+    const settings = await prisma.adminSettings.findUnique({
+      where: { key: "global" },
+      select: { adminTwoFactorRequired: true },
+    });
 
-  return settings?.adminTwoFactorRequired ?? true;
+    return settings?.adminTwoFactorRequired ?? true;
+  } catch (error) {
+    const missingAdminSettingsTableOrColumn =
+      (isPrismaKnownRequestError(error) &&
+        (error.code === "P2021" || error.code === "P2022")) ||
+      (error instanceof Error &&
+        error.message.toLowerCase().includes("admin_settings"));
+
+    if (missingAdminSettingsTableOrColumn) {
+      return true;
+    }
+
+    throw error;
+  }
 }
 
 function getAdminMfaFailureResponse(error: unknown) {
@@ -208,13 +241,7 @@ async function findLoginUserByPhone(
       },
     });
   } catch (error) {
-    const missingBanReasonColumn =
-      isPrismaKnownRequestError(error) &&
-      error.code === "P2022" &&
-      error instanceof Error &&
-      error.message.includes("users.ban_reason");
-
-    if (!missingBanReasonColumn) {
+    if (!isMissingUsersColumnError(error)) {
       throw error;
     }
 
@@ -228,10 +255,6 @@ async function findLoginUserByPhone(
         isVerified: true,
         createdAt: true,
         passwordHash: true,
-        accountStatus: true,
-        bannedAt: true,
-        adminTotpEnabled: true,
-        adminTotpSecret: true,
       },
     });
 
@@ -241,7 +264,11 @@ async function findLoginUserByPhone(
 
     return {
       ...legacyUser,
+      accountStatus: "ACTIVE",
+      bannedAt: null,
       banReason: null,
+      adminTotpEnabled: false,
+      adminTotpSecret: null,
     };
   }
 }
@@ -517,11 +544,19 @@ export async function login(req: Request, res: Response) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
-  const requireAdminMfa =
-    user.role === "ADMIN" &&
-    (await isAdminTwoFactorRequired()) &&
-    user.adminTotpEnabled &&
-    Boolean(user.adminTotpSecret);
+  let requireAdminMfa = false;
+  if (user.role === "ADMIN") {
+    try {
+      requireAdminMfa =
+        (await isAdminTwoFactorRequired()) &&
+        user.adminTotpEnabled &&
+        Boolean(user.adminTotpSecret);
+    } catch (error) {
+      console.error("Admin MFA policy lookup failed:", error);
+      const failure = getAdminMfaFailureResponse(error);
+      return res.status(failure.status).json({ message: failure.message });
+    }
+  }
 
   if (requireAdminMfa) {
     try {
