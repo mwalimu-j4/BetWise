@@ -11,12 +11,7 @@ import {
 } from "../../lib/socket";
 
 const adminCustomEventsRouter = Router();
-
-adminCustomEventsRouter.use(
-  "/admin/custom-events",
-  authenticate,
-  requireAdmin,
-);
+const adminOnly = [authenticate, requireAdmin] as const;
 
 // ── Schemas ──
 
@@ -111,25 +106,39 @@ async function createAuditLog(
 
 adminCustomEventsRouter.get(
   "/admin/custom-events/stats",
+  ...adminOnly,
   async (_req, res, next) => {
     try {
-      const [draftCount, publishedCount, liveCount, finishedCount, totalBets, totalStake] =
-        await Promise.all([
-          prisma.customEvent.count({ where: { status: "DRAFT" } }),
-          prisma.customEvent.count({ where: { status: "PUBLISHED" } }),
-          prisma.customEvent.count({ where: { status: "LIVE" } }),
-          prisma.customEvent.count({ where: { status: "FINISHED" } }),
-          prisma.customBet.count(),
-          prisma.customBet.aggregate({ _sum: { stake: true } }),
-        ]);
+      const grouped = await prisma.customEvent.groupBy({
+        by: ["status"],
+        _count: { status: true },
+      });
 
+      const result = {
+        draft: 0,
+        published: 0,
+        live: 0,
+        finished: 0,
+        suspended: 0,
+        cancelled: 0,
+        total: 0,
+      };
+
+      grouped.forEach((row) => {
+        const key = row.status.toLowerCase() as keyof typeof result;
+        if (key in result) {
+          result[key] = row._count.status;
+          result.total += row._count.status;
+        }
+      });
+
+      res.setHeader("Cache-Control", "s-maxage=10, stale-while-revalidate=30");
       return res.status(200).json({
-        draftCount,
-        publishedCount,
-        liveCount,
-        finishedCount,
-        totalBets,
-        totalStake: totalStake._sum.stake ?? 0,
+        ...result,
+        draftCount: result.draft,
+        publishedCount: result.published,
+        liveCount: result.live,
+        finishedCount: result.finished,
       });
     } catch (error) {
       next(error);
@@ -141,6 +150,7 @@ adminCustomEventsRouter.get(
 
 adminCustomEventsRouter.get(
   "/admin/custom-events",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const parsed = listQuerySchema.safeParse(req.query);
@@ -168,38 +178,39 @@ adminCustomEventsRouter.get(
         prisma.customEvent.count({ where }),
         prisma.customEvent.findMany({
           where,
-          include: {
-            markets: {
-              include: {
-                selections: true,
+          select: {
+            id: true,
+            title: true,
+            teamHome: true,
+            teamAway: true,
+            category: true,
+            league: true,
+            startTime: true,
+            endTime: true,
+            status: true,
+            description: true,
+            bannerUrl: true,
+            createdBy: true,
+            publishedAt: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
+              select: {
+                bets: true,
+                markets: true,
               },
             },
-            _count: {
-              select: { bets: true },
-            },
           },
-          orderBy: [{ createdAt: "desc" }],
+          orderBy: [{ startTime: "asc" }],
           skip: (page - 1) * limit,
           take: limit,
         }),
       ]);
 
-      // Calculate total stake per event
-      const eventIds = events.map((e) => e.id);
-      const stakeAggs = await prisma.customBet.groupBy({
-        by: ["eventId"],
-        where: { eventId: { in: eventIds } },
-        _sum: { stake: true },
-      });
-      const stakeMap = new Map(
-        stakeAggs.map((a) => [a.eventId, a._sum.stake ?? 0]),
-      );
-
       const enrichedEvents = events.map((event) => ({
         ...event,
-        totalStake: stakeMap.get(event.id) ?? 0,
         totalBets: event._count.bets,
-        marketsCount: event.markets.length,
+        marketsCount: event._count.markets,
       }));
 
       return res.status(200).json({
@@ -218,6 +229,7 @@ adminCustomEventsRouter.get(
 
 adminCustomEventsRouter.get(
   "/admin/custom-events/:id",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const event = await prisma.customEvent.findUnique({
@@ -298,6 +310,7 @@ adminCustomEventsRouter.get(
 
 adminCustomEventsRouter.post(
   "/admin/custom-events",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const adminId = req.user?.id;
@@ -361,6 +374,7 @@ adminCustomEventsRouter.post(
 
 adminCustomEventsRouter.patch(
   "/admin/custom-events/:id",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const adminId = req.user?.id;
@@ -452,6 +466,7 @@ adminCustomEventsRouter.patch(
 
 adminCustomEventsRouter.patch(
   "/admin/custom-events/:id/odds",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const adminId = req.user?.id;
@@ -510,6 +525,7 @@ adminCustomEventsRouter.patch(
 
 adminCustomEventsRouter.delete(
   "/admin/custom-events/:id",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const adminId = req.user?.id;
@@ -561,6 +577,7 @@ adminCustomEventsRouter.delete(
 
 adminCustomEventsRouter.post(
   "/admin/custom-events/:id/publish",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const adminId = req.user?.id;
@@ -641,6 +658,7 @@ adminCustomEventsRouter.post(
 
 adminCustomEventsRouter.post(
   "/admin/custom-events/:id/unpublish",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const adminId = req.user?.id;
@@ -700,6 +718,7 @@ adminCustomEventsRouter.post(
 
 adminCustomEventsRouter.post(
   "/admin/custom-events/:id/suspend",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const adminId = req.user?.id;
@@ -778,6 +797,7 @@ adminCustomEventsRouter.post(
 
 adminCustomEventsRouter.post(
   "/admin/custom-events/:id/settle",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const adminId = req.user?.id;
@@ -937,6 +957,7 @@ adminCustomEventsRouter.post(
 
 adminCustomEventsRouter.post(
   "/admin/custom-events/:id/markets",
+  ...adminOnly,
   async (req, res, next) => {
     try {
       const adminId = req.user?.id;

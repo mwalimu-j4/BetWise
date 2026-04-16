@@ -603,6 +603,7 @@ model CustomEvent {
 
   @@index([status])
   @@index([startTime])
+  @@index([status, startTime])
   @@index([createdBy])
   @@index([createdAt])
   @@map("custom_events")

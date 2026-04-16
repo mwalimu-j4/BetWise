@@ -1707,8 +1707,17 @@ export default function Events() {
       ) : (
         <Suspense
           fallback={
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-6 animate-spin text-admin-accent" />
+            <div className="space-y-3 py-2">
+              <div className="h-10 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card" />
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <div
+                    key={`custom-events-fallback-${idx}`}
+                    className="h-20 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card"
+                  />
+                ))}
+              </div>
+              <div className="h-72 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card" />
             </div>
           }
         >

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   CalendarClock,
@@ -897,6 +897,10 @@ export default function CustomEventsManager() {
     suspendEvent,
     deleteEvent,
     settleMarket,
+    optimisticSetEventStatus,
+    authLoading,
+    isAuthenticated,
+    isAdmin,
   } = useAdminCustomEvents();
 
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("ALL");
@@ -918,20 +922,117 @@ export default function CustomEventsManager() {
 
   // Load events when filters change
   useEffect(() => {
+    if (authLoading || !isAuthenticated || !isAdmin) {
+      return;
+    }
+
     void loadEvents({
       status: activeFilter,
       search: debouncedSearch || undefined,
       page: currentPage,
       limit: 20,
     });
-  }, [activeFilter, debouncedSearch, currentPage, loadEvents]);
+  }, [
+    activeFilter,
+    authLoading,
+    currentPage,
+    debouncedSearch,
+    isAdmin,
+    isAuthenticated,
+    loadEvents,
+  ]);
 
   // Load stats on mount + interval
   useEffect(() => {
+    if (authLoading || !isAuthenticated || !isAdmin) {
+      return;
+    }
+
     void loadStats();
     const si = window.setInterval(() => void loadStats(), 30000);
-    return () => window.clearInterval(si);
-  }, [loadStats]);
+
+    const onFocus = () => {
+      void loadStats();
+    };
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      window.clearInterval(si);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [authLoading, isAdmin, isAuthenticated, loadStats]);
+
+  const filteredEvents = useMemo(
+    () =>
+      events
+        .filter((event) => activeFilter === "ALL" || event.status === activeFilter)
+        .filter((event) => {
+          if (!debouncedSearch) {
+            return true;
+          }
+
+          const q = debouncedSearch.toLowerCase();
+          return (
+            event.title.toLowerCase().includes(q) ||
+            event.teamHome.toLowerCase().includes(q) ||
+            event.teamAway.toLowerCase().includes(q) ||
+            event.league.toLowerCase().includes(q)
+          );
+        }),
+    [activeFilter, debouncedSearch, events],
+  );
+
+  const handlePublishOptimistic = useCallback(
+    async (eventId: string) => {
+      optimisticSetEventStatus(eventId, "PUBLISHED");
+      try {
+        await publishEvent(eventId);
+      } catch {
+        optimisticSetEventStatus(eventId, "DRAFT");
+        toast.error("Failed to publish event");
+      } finally {
+        await loadEvents({
+          status: activeFilter,
+          search: debouncedSearch || undefined,
+          page: currentPage,
+        });
+      }
+    },
+    [
+      activeFilter,
+      currentPage,
+      debouncedSearch,
+      loadEvents,
+      optimisticSetEventStatus,
+      publishEvent,
+    ],
+  );
+
+  const handleUnpublishOptimistic = useCallback(
+    async (eventId: string) => {
+      optimisticSetEventStatus(eventId, "DRAFT");
+      try {
+        await unpublishEvent(eventId);
+      } catch {
+        optimisticSetEventStatus(eventId, "PUBLISHED");
+        toast.error("Failed to unpublish event");
+      } finally {
+        await loadEvents({
+          status: activeFilter,
+          search: debouncedSearch || undefined,
+          page: currentPage,
+        });
+      }
+    },
+    [
+      activeFilter,
+      currentPage,
+      debouncedSearch,
+      loadEvents,
+      optimisticSetEventStatus,
+      unpublishEvent,
+    ],
+  );
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -994,11 +1095,7 @@ export default function CustomEventsManager() {
     {
       label: "All",
       value: "ALL",
-      count:
-        (stats?.draftCount ?? 0) +
-        (stats?.publishedCount ?? 0) +
-        (stats?.liveCount ?? 0) +
-        (stats?.finishedCount ?? 0),
+      count: stats?.total ?? 0,
     },
     { label: "Draft", value: "DRAFT", count: stats?.draftCount ?? 0 },
     {
@@ -1142,7 +1239,7 @@ export default function CustomEventsManager() {
                 </div>
               ))}
             </div>
-          ) : events.length === 0 ? (
+          ) : filteredEvents.length === 0 ? (
             <div className="flex flex-col items-center py-12 text-center">
               <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-admin-surface/50">
                 <CalendarClock size={24} className="text-admin-text-muted" />
@@ -1191,7 +1288,7 @@ export default function CustomEventsManager() {
                   </tr>
                 </thead>
                 <tbody>
-                  {events.map((event) => (
+                  {filteredEvents.map((event) => (
                     <tr
                       key={event.id}
                       className="border-b border-admin-border/40 transition hover:bg-admin-surface/20 last:border-0"
@@ -1278,15 +1375,7 @@ export default function CustomEventsManager() {
                             >
                               {event.status === "DRAFT" && (
                                 <DropdownMenuItem
-                                  onClick={() =>
-                                    void publishEvent(event.id).then(() =>
-                                      loadEvents({
-                                        status: activeFilter,
-                                        search: debouncedSearch || undefined,
-                                        page: currentPage,
-                                      }),
-                                    )
-                                  }
+                                  onClick={() => void handlePublishOptimistic(event.id)}
                                   className="gap-2 text-sm"
                                 >
                                   <Zap size={14} />
@@ -1295,15 +1384,7 @@ export default function CustomEventsManager() {
                               )}
                               {event.status === "PUBLISHED" && (
                                 <DropdownMenuItem
-                                  onClick={() =>
-                                    void unpublishEvent(event.id).then(() =>
-                                      loadEvents({
-                                        status: activeFilter,
-                                        search: debouncedSearch || undefined,
-                                        page: currentPage,
-                                      }),
-                                    )
-                                  }
+                                  onClick={() => void handleUnpublishOptimistic(event.id)}
                                   className="gap-2 text-sm"
                                 >
                                   <X size={14} />
@@ -1379,7 +1460,7 @@ export default function CustomEventsManager() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-admin-border/50 px-3 py-2">
               <p className="text-[11px] text-admin-text-muted">
-                Showing {events.length} of {total} events
+                Showing {filteredEvents.length} of {total} events
               </p>
               <div className="flex items-center gap-1">
                 <button
