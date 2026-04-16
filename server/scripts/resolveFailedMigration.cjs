@@ -29,7 +29,11 @@ if (result.status === 0) {
 }
 
 // If migration is not marked failed (or not present), continue deploy.
-if (/P3011|P3012|could not be found|No migration found|not in a failed state/i.test(output)) {
+if (
+  /P3011|P3012|could not be found|No migration found|not in a failed state/i.test(
+    output,
+  )
+) {
   process.stdout.write(output);
   process.stdout.write(
     `[prisma-resolve] No failed marker to resolve for ${FAILED_MIGRATION}; continuing.\n`,

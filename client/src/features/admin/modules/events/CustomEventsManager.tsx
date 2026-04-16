@@ -965,7 +965,9 @@ export default function CustomEventsManager() {
   const filteredEvents = useMemo(
     () =>
       events
-        .filter((event) => activeFilter === "ALL" || event.status === activeFilter)
+        .filter(
+          (event) => activeFilter === "ALL" || event.status === activeFilter,
+        )
         .filter((event) => {
           if (!debouncedSearch) {
             return true;
@@ -1375,7 +1377,9 @@ export default function CustomEventsManager() {
                             >
                               {event.status === "DRAFT" && (
                                 <DropdownMenuItem
-                                  onClick={() => void handlePublishOptimistic(event.id)}
+                                  onClick={() =>
+                                    void handlePublishOptimistic(event.id)
+                                  }
                                   className="gap-2 text-sm"
                                 >
                                   <Zap size={14} />
@@ -1384,7 +1388,9 @@ export default function CustomEventsManager() {
                               )}
                               {event.status === "PUBLISHED" && (
                                 <DropdownMenuItem
-                                  onClick={() => void handleUnpublishOptimistic(event.id)}
+                                  onClick={() =>
+                                    void handleUnpublishOptimistic(event.id)
+                                  }
                                   className="gap-2 text-sm"
                                 >
                                   <X size={14} />

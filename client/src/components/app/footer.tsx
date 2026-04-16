@@ -41,12 +41,12 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full border-t border-[#23384f] bg-[#0b1120]">
+    <footer className="bc-footer w-full overflow-hidden border-t border-[#1e3350]/40 bg-[#0b1120]">
       {/* Main Footer Content */}
-      <div className="mx-auto w-full max-w-full px-3 py-6 sm:px-6 sm:py-8 md:max-w-[1280px] md:py-10 lg:px-8 lg:py-12">
+      <div className="mx-auto w-full max-w-[1280px] px-3 py-6 sm:px-6 sm:py-8 md:py-10 lg:px-8 lg:py-12">
         <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3 lg:gap-8">
           {/* Brand Section */}
-          <div className="col-span-1">
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <Link to="/">
                 <img
@@ -56,14 +56,14 @@ export default function Footer() {
                 />
               </Link>
             </div>
-            <p className="mt-2 text-xs text-[#8a9bb0] sm:mt-3 sm:text-sm">
+            <p className="mt-2 text-xs leading-relaxed text-[#637fa0] sm:mt-3 sm:text-sm">
               Smart betting with fast M-Pesa deposits and a secure wallet
               experience. Play responsibly.
             </p>
             <div className="mt-3 flex gap-2 sm:mt-4">
               <a
                 href="#"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#294157] text-[#8a9bb0] transition hover:border-[#f5c518] hover:text-[#f5c518] sm:h-9 sm:w-9"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#1e3350]/60 bg-[#111d2e] text-[#637fa0] transition hover:border-[#ffd500]/30 hover:text-[#ffd500] sm:h-9 sm:w-9"
               >
                 <svg
                   className="h-3.5 w-3.5 sm:h-4 sm:w-4"
@@ -75,7 +75,7 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#294157] text-[#8a9bb0] transition hover:border-[#f5c518] hover:text-[#f5c518] sm:h-9 sm:w-9"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#1e3350]/60 bg-[#111d2e] text-[#637fa0] transition hover:border-[#ffd500]/30 hover:text-[#ffd500] sm:h-9 sm:w-9"
               >
                 <svg
                   className="h-3.5 w-3.5 sm:h-4 sm:w-4"
@@ -87,7 +87,7 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#294157] text-[#8a9bb0] transition hover:border-[#f5c518] hover:text-[#f5c518] sm:h-9 sm:w-9"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#1e3350]/60 bg-[#111d2e] text-[#637fa0] transition hover:border-[#ffd500]/30 hover:text-[#ffd500] sm:h-9 sm:w-9"
               >
                 <svg
                   className="h-3.5 w-3.5 sm:h-4 sm:w-4"
@@ -104,40 +104,40 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 sm:contents sm:gap-6">
+          <div className="grid min-w-0 grid-cols-2 gap-4 sm:contents sm:gap-6">
             {/* Quick Links */}
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-white sm:text-sm">
+            <div className="min-w-0">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9bb0] sm:text-xs">
                 Quick Links
               </h4>
-              <nav className="mt-2 grid gap-2 sm:mt-4 sm:gap-3">
+              <nav className="mt-2 grid gap-1.5 sm:mt-4 sm:gap-2.5">
                 <Link
                   to="/"
-                  className="text-xs text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5 sm:text-sm"
+                  className="text-xs text-[#637fa0] transition hover:text-[#ffd500] sm:text-sm"
                 >
                   Home
                 </Link>
                 <Link
                   to="/user/payments"
-                  className="text-xs text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5 sm:text-sm"
+                  className="text-xs text-[#637fa0] transition hover:text-[#ffd500] sm:text-sm"
                 >
                   Deposits
                 </Link>
                 <Link
                   to="/user/how-it-works"
-                  className="text-xs text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5 sm:text-sm"
+                  className="text-xs text-[#637fa0] transition hover:text-[#ffd500] sm:text-sm"
                 >
                   How It Works
                 </Link>
                 <Link
                   to="/user/faqs"
-                  className="text-xs text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5 sm:text-sm"
+                  className="text-xs text-[#637fa0] transition hover:text-[#ffd500] sm:text-sm"
                 >
                   FAQ
                 </Link>
                 <Link
                   to="/user/contact"
-                  className="text-xs text-[#8a9bb0] transition hover:text-[#f5c518] hover:translate-x-0.5 sm:text-sm"
+                  className="text-xs text-[#637fa0] transition hover:text-[#ffd500] sm:text-sm"
                 >
                   Contact
                 </Link>
@@ -145,20 +145,20 @@ export default function Footer() {
             </div>
 
             {/* Contact */}
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-white sm:text-sm">
+            <div className="min-w-0">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9bb0] sm:text-xs">
                 Contact
               </h4>
-              <div className="mt-2 grid gap-2 text-xs text-[#8a9bb0] sm:mt-4 sm:gap-3 sm:text-sm">
+              <div className="mt-2 grid gap-1.5 text-xs text-[#637fa0] sm:mt-4 sm:gap-2.5 sm:text-sm">
                 <a
                   href="mailto:support@betrixpro.com"
-                  className="transition hover:text-[#f5c518]"
+                  className="break-all transition hover:text-[#ffd500]"
                 >
                   support@betrixpro.com
                 </a>
                 <a
                   href="tel:+254700000000"
-                  className="transition hover:text-[#f5c518]"
+                  className="transition hover:text-[#ffd500]"
                 >
                   +254 700 000 000
                 </a>
@@ -168,11 +168,11 @@ export default function Footer() {
           </div>
 
           {/* Stay Updated - Newsletter Card */}
-          <div className="col-span-2 sm:col-span-1 lg:col-span-2 rounded-lg border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-4 sm:p-5 md:p-6">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white sm:text-sm">
+          <div className="col-span-1 min-w-0 rounded-xl border border-[#1e3350]/40 bg-gradient-to-br from-[#111d2e] to-[#0f1a2a] p-3 sm:col-span-2 sm:p-5 md:p-6 lg:col-span-2">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-white sm:text-xs">
               Stay Updated
             </h4>
-            <p className="mt-1 text-[10px] text-[#8a9bb0] sm:mt-2 sm:text-xs">
+            <p className="mt-1 text-[10px] text-[#546e8f] sm:mt-1.5 sm:text-xs">
               Get betting tips & exclusive deals
             </p>
 
@@ -181,29 +181,29 @@ export default function Footer() {
               className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:gap-2.5"
             >
               {isSubscribed ? (
-                <div className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2.5">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                  <span className="text-xs font-bold text-green-400">
+                <div className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5">
+                  <CheckCircle className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <span className="text-xs font-bold text-emerald-400">
                     Subscribed!
                   </span>
                 </div>
               ) : (
                 <>
-                  <div className="relative flex-1">
-                    <Mail className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8a9bb0] sm:h-4 sm:w-4" />
+                  <div className="relative min-w-0 flex-1">
+                    <Mail className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#546e8f] sm:h-4 sm:w-4" />
                     <input
                       type="email"
                       placeholder="your@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-9 sm:h-10 w-full rounded-lg border border-[#294157] bg-[#0f1a2a] pl-9 sm:pl-10 pr-3 text-xs text-white outline-none transition placeholder:text-[#5a6b7d] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
+                      className="h-9 w-full rounded-xl border border-[#1e3350]/60 bg-[#0b1525] pl-9 pr-3 text-xs text-white outline-none transition placeholder:text-[#3d5478] focus:border-[#ffd500]/50 focus:shadow-[0_0_0_2px_rgba(255,213,0,0.08)] sm:h-10 sm:pl-10"
                       disabled={isSubmitting}
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-lg bg-[#f5c518] px-4 sm:px-6 text-xs font-bold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ffd500] to-[#ffaa00] px-4 text-xs font-bold text-[#0b1120] transition hover:shadow-[0_4px_16px_rgba(255,213,0,0.2)] disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:px-6"
                   >
                     {isSubmitting ? "..." : "Subscribe"}
                     <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
@@ -214,31 +214,31 @@ export default function Footer() {
           </div>
 
           {/* Why BetRixPro */}
-          <div className="col-span-2 sm:col-span-1 hidden rounded-lg border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-4 sm:block sm:p-5 md:p-6">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white sm:text-sm">
+          <div className="col-span-1 hidden min-w-0 rounded-xl border border-[#1e3350]/40 bg-gradient-to-br from-[#111d2e] to-[#0f1a2a] p-4 sm:block sm:p-5 md:p-6">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-white sm:text-xs">
               Why BetRixPro
             </h4>
             <ul className="mt-3 grid gap-2 sm:mt-4 sm:gap-2.5">
-              <li className="flex items-center gap-2 text-xs text-[#8a9bb0]">
-                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#f5c518] text-sm">
+              <li className="flex items-center gap-2 text-xs text-[#637fa0]">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#ffd500] text-sm">
                   ✓
                 </span>
                 <span>Instant M-Pesa deposits</span>
               </li>
-              <li className="flex items-center gap-2 text-xs text-[#8a9bb0]">
-                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#f5c518] text-sm">
+              <li className="flex items-center gap-2 text-xs text-[#637fa0]">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#ffd500] text-sm">
                   ✓
                 </span>
                 <span>Secure transactions</span>
               </li>
-              <li className="flex items-center gap-2 text-xs text-[#8a9bb0]">
-                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#f5c518] text-sm">
+              <li className="flex items-center gap-2 text-xs text-[#637fa0]">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#ffd500] text-sm">
                   ✓
                 </span>
                 <span>Fast withdrawals</span>
               </li>
-              <li className="flex items-center gap-2 text-xs text-[#8a9bb0]">
-                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#f5c518] text-sm">
+              <li className="flex items-center gap-2 text-xs text-[#637fa0]">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[#ffd500] text-sm">
                   ✓
                 </span>
                 <span>24/7 support</span>
@@ -248,25 +248,25 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="mt-4 border-t border-[#23384f] sm:mt-6 md:mt-8" />
+        <div className="mt-5 border-t border-[#1e3350]/30 sm:mt-6 md:mt-8" />
 
         {/* Bottom Footer */}
-        <div className="mt-3 flex flex-col gap-2 text-[10px] text-[#5a6b7d] sm:mt-4 sm:gap-3 sm:text-xs md:mt-6 md:flex-row md:items-center md:justify-between">
+        <div className="mt-3 flex flex-col gap-2 text-[10px] text-[#4a6a8f] sm:mt-4 sm:gap-3 sm:text-xs md:mt-6 md:flex-row md:items-center md:justify-between">
           <p>© {year} BetRixPro. All rights reserved.</p>
-          <div className="flex flex-wrap gap-2 text-[10px] sm:text-xs">
-            <a href="#" className="transition hover:text-[#f5c518]">
+          <div className="flex flex-wrap gap-x-2 gap-y-1 text-[10px] sm:text-xs">
+            <a href="#" className="transition hover:text-[#ffd500]">
               Terms
             </a>
-            <span className="text-[#294157]">·</span>
-            <a href="#" className="transition hover:text-[#f5c518]">
+            <span className="text-[#1e3350]">·</span>
+            <a href="#" className="transition hover:text-[#ffd500]">
               Privacy
             </a>
-            <span className="text-[#294157]">·</span>
-            <a href="#" className="transition hover:text-[#f5c518]">
+            <span className="text-[#1e3350]">·</span>
+            <a href="#" className="transition hover:text-[#ffd500]">
               Cookies
             </a>
           </div>
-          <p className="hidden text-xs font-medium text-[#8a9bb0] md:block">
+          <p className="text-[9px] font-medium text-[#3d5478] sm:text-xs md:block">
             Play Responsibly · 18+
           </p>
         </div>

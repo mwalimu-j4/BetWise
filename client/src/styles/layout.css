@@ -72,7 +72,7 @@
   transition: all 0.2s ease;
 }
 
-/* ── Event Card — Compact, premium design ──────────── */
+/* ── Event Card — Premium design with micro-animations ── */
 .event-card {
   transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -84,7 +84,7 @@
   inset: 0;
   border-radius: inherit;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.35s ease;
   background: radial-gradient(
     ellipse at top left,
     rgba(255, 213, 0, 0.04) 0%,
@@ -101,17 +101,62 @@
 .event-card:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 12px 32px rgba(0, 0, 0, 0.35),
     0 0 0 1px rgba(255, 213, 0, 0.08);
+}
+
+/* ── Custom Event Card — Premium design ─────────────── */
+.custom-event-card {
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.custom-event-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background: radial-gradient(
+    ellipse at top right,
+    rgba(245, 166, 35, 0.03) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.custom-event-card:hover::before {
+  opacity: 1;
+}
+
+.custom-event-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(245, 166, 35, 0.06);
 }
 
 /* Odds button press effect */
 .odds-btn {
-  transition: all 0.15s ease;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .odds-btn:active:not(:disabled) {
   transform: scale(0.95);
+}
+
+/* ── Footer — no overflow ──────────────────────────── */
+.bc-footer {
+  overflow-x: clip;
+  max-width: 100vw;
+  min-width: 0;
+}
+
+.bc-footer * {
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* ── Betslip sticky sidebar ────────────────────────── */
@@ -185,7 +230,8 @@
   }
 
   /* Force all children to not exceed viewport */
-  .betting-home-wrapper * {
+  .betting-home-wrapper *,
+  .bc-footer * {
     max-width: 100%;
     box-sizing: border-box;
   }
@@ -208,26 +254,54 @@
 
   /* ── Premium mobile event cards ──────────────────── */
   .event-card {
-    border-radius: 14px !important;
-    border-color: rgba(30, 51, 80, 0.45) !important;
+    border-radius: 16px !important;
+    border-color: rgba(30, 51, 80, 0.4) !important;
     background: linear-gradient(
-      145deg,
-      rgba(17, 29, 46, 0.95) 0%,
-      rgba(13, 22, 36, 0.98) 100%
+      155deg,
+      rgba(17, 29, 46, 0.98) 0%,
+      rgba(13, 22, 36, 1) 100%
     ) !important;
     box-shadow:
-      0 2px 12px rgba(0, 0, 0, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
-    backdrop-filter: blur(8px);
+      0 4px 16px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
   }
 
   .event-card:hover {
     transform: none;
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
   }
 
   .event-card:active {
     transform: scale(0.985);
-    transition: transform 0.1s ease;
+    transition: transform 0.12s ease;
+  }
+
+  /* ── Premium mobile custom event cards ──────────── */
+  .custom-event-card {
+    border-radius: 16px !important;
+    border-color: rgba(30, 51, 80, 0.4) !important;
+    background: linear-gradient(
+      155deg,
+      rgba(17, 29, 46, 0.98) 0%,
+      rgba(13, 22, 36, 1) 100%
+    ) !important;
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  }
+
+  .custom-event-card:hover {
+    transform: none;
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  }
+
+  .custom-event-card:active {
+    transform: scale(0.985);
+    transition: transform 0.12s ease;
   }
 
   .hero-section {
@@ -237,8 +311,15 @@
   /* Prevent odds buttons from overflowing */
   .odds-btn {
     min-width: 0;
-    word-break: break-all;
-    border-radius: 10px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 12px !important;
+  }
+
+  /* Footer mobile overflow fix */
+  .bc-footer {
+    overflow: hidden;
+    max-width: 100vw;
   }
 }
 
