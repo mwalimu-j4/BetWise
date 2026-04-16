@@ -1078,14 +1078,16 @@ export default function Settings() {
     }
 
     if (!/[A-Z]/.test(newPassword)) {
-      const message = "New password must include at least one uppercase letter.";
+      const message =
+        "New password must include at least one uppercase letter.";
       setPasswordChangeError(message);
       toast.error(message);
       return;
     }
 
     if (!/[a-z]/.test(newPassword)) {
-      const message = "New password must include at least one lowercase letter.";
+      const message =
+        "New password must include at least one lowercase letter.";
       setPasswordChangeError(message);
       toast.error(message);
       return;
@@ -1133,14 +1135,19 @@ export default function Settings() {
         mutationError !== null &&
         "response" in mutationError &&
         typeof (mutationError as { response?: unknown }).response === "object"
-          ? (mutationError as { response?: { data?: ChangePasswordErrorResponse } })
-              .response?.data
+          ? (
+              mutationError as {
+                response?: { data?: ChangePasswordErrorResponse };
+              }
+            ).response?.data
           : undefined;
 
       const messageFromFieldErrors = responseData?.errors
         ? Object.values(responseData.errors)
             .flatMap((entries) => entries ?? [])
-            .find((entry) => typeof entry === "string" && entry.trim().length > 0)
+            .find(
+              (entry) => typeof entry === "string" && entry.trim().length > 0,
+            )
         : undefined;
 
       const message =
@@ -1206,7 +1213,11 @@ export default function Settings() {
                       : "Show current password"
                   }
                 >
-                  {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showCurrentPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
                 </button>
               </div>
             </label>
@@ -1227,7 +1238,9 @@ export default function Settings() {
                   type="button"
                   onClick={() => setShowNewPassword((value) => !value)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-muted transition hover:text-admin-text-primary"
-                  aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                  aria-label={
+                    showNewPassword ? "Hide new password" : "Show new password"
+                  }
                 >
                   {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -1256,7 +1269,11 @@ export default function Settings() {
                       : "Show confirm password"
                   }
                 >
-                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showConfirmPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
                 </button>
               </div>
             </label>
