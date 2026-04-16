@@ -320,10 +320,6 @@ export default function UserProfilePage() {
                 Sign Out
               </button>
 
-              {/* Footer */}
-              <footer className="pt-4 pb-8 text-center text-xs text-gray-600">
-                © 2024 BetixPro. All rights reserved.
-              </footer>
             </div>
           ) : (
             <div className="flex min-h-96 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 p-8">
