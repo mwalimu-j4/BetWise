@@ -23,8 +23,7 @@ export default function ForgotPasswordModal() {
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>({
     tone: "info",
-    message:
-      "Enter the email linked to your account. We'll guide you through the reset.",
+    message: "Enter your email.",
   });
 
   if (authModal !== "forgot-password") return null;
@@ -45,8 +44,7 @@ export default function ForgotPasswordModal() {
     if (!nextValue) {
       setFeedback({
         tone: "info",
-        message:
-          "Enter the email linked to your account. We'll guide you through the reset.",
+        message: "Enter your email.",
       });
       return;
     }
@@ -54,7 +52,7 @@ export default function ForgotPasswordModal() {
     if (nextValue.length > 4) {
       setFeedback({
         tone: "success",
-        message: "Email looks good. You can request a reset link now.",
+        message: "Email looks good.",
       });
       return;
     }
@@ -71,7 +69,7 @@ export default function ForgotPasswordModal() {
     setLoading(true);
     setFeedback({
       tone: "info",
-      message: "Sending reset instructions...",
+      message: "Checking email...",
     });
     try {
       const { data } = await api.post<{ message: string }>(
@@ -85,8 +83,7 @@ export default function ForgotPasswordModal() {
     } catch {
       setFeedback({
         tone: "error",
-        message:
-          "We couldn't send the reset email right now. Check your connection and try again.",
+        message: "Try again.",
       });
     } finally {
       setLoading(false);
@@ -128,9 +125,6 @@ export default function ForgotPasswordModal() {
                 <h1 className="text-2xl font-bold text-white">
                   Forgot password
                 </h1>
-                <p className="text-xs text-[#a8c4e0] mt-0.5">
-                  We'll send a secure reset link if your email matches.
-                </p>
               </div>
             </div>
           </div>
@@ -191,7 +185,7 @@ export default function ForgotPasswordModal() {
               </div>
               {!isValid && email.length > 0 ? (
                 <p className="text-xs text-amber-400 font-medium">
-                  Enter a valid email address to continue.
+                  Enter a valid email address.
                 </p>
               ) : null}
             </div>
@@ -219,9 +213,6 @@ export default function ForgotPasswordModal() {
               <ArrowLeft size={15} />
               Back to login
             </button>
-            <p className="text-xs text-[#90a2bb] sm:text-sm">
-              We only send a reset link if the email exists in our system.
-            </p>
           </div>
         </div>
       </div>

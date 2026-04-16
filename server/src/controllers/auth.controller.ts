@@ -1046,12 +1046,12 @@ export async function logout(req: Request, res: Response) {
 
 export async function forgotPassword(req: Request, res: Response) {
   const parsed = forgotPasswordSchema.safeParse(req.body);
-  const genericMessage = {
-    message: "If that email matches our records, a reset link has been sent",
+  const notFoundMessage = {
+    message: "No account found for that email.",
   };
 
   if (!parsed.success) {
-    return res.status(200).json(genericMessage);
+    return res.status(200).json(notFoundMessage);
   }
 
   const user = await prisma.user.findFirst({
@@ -1091,9 +1091,13 @@ export async function forgotPassword(req: Request, res: Response) {
     ]);
 
     await sendPasswordResetEmail(user.email, rawResetToken);
+
+    return res.status(200).json({
+      message: "Account found. Reset link sent.",
+    });
   }
 
-  return res.status(200).json(genericMessage);
+  return res.status(200).json(notFoundMessage);
 }
 
 export async function resetPassword(req: Request, res: Response) {
