@@ -10,11 +10,12 @@ import {
   HelpCircle,
   History,
   Home,
+  LogOut,
   MessageCircle,
   TrendingUp,
   User,
   Wallet,
-  Zap
+  Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -448,9 +449,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 closeIfMobile();
               }}
             >
-              <span className="bc-side-icon" aria-hidden="true">
-                x
-              </span>
+              <LogOut size={18} className="bc-side-icon" />
               <span>Logout</span>
             </button>
           ) : null}
