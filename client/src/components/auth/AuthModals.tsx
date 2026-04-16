@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 /**
  * Renders all auth modals globally using a portal.
@@ -21,6 +22,7 @@ export default function AuthModals() {
     <>
       <LoginModal />
       <RegisterModal />
+      <ForgotPasswordModal />
     </>,
     document.body,
   );
