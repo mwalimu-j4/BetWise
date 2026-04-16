@@ -95,9 +95,15 @@ function OddsPreviewButton({
             : "border-[#1e3350]/50 bg-[#0f1a2d] text-white hover:border-[#ffd500]/30 hover:bg-[#ffd500]/[0.05]"
       }`}
     >
-      <span className={`text-[8px] font-medium uppercase tracking-wider sm:text-[9px] ${
-        disabled ? "text-[#3d5478]" : isSelected ? "text-[#ffd500]/70" : "text-[#637fa0]"
-      }`}>
+      <span
+        className={`text-[8px] font-medium uppercase tracking-wider sm:text-[9px] ${
+          disabled
+            ? "text-[#3d5478]"
+            : isSelected
+              ? "text-[#ffd500]/70"
+              : "text-[#637fa0]"
+        }`}
+      >
         {entry.label}
       </span>
       <span className="text-xs font-bold sm:text-sm">
@@ -174,25 +180,25 @@ export default function EventCard({
   );
 
   return (
-    <article className="event-card group relative overflow-hidden rounded-xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770] sm:rounded-xl">
+    <article className="event-card group relative overflow-hidden rounded-xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770] sm:rounded-xl w-full max-w-full">
       {/* Subtle top accent line */}
       <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#ffd500]/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
-      <div className="relative flex h-full flex-col justify-between gap-1.5 p-2.5 sm:gap-2 sm:p-3">
+      <div className="relative flex h-full flex-col justify-between gap-1.5 p-2 sm:p-2.5">
         {/* League + Markets badge row */}
         <div className="min-w-0">
           <div className="flex items-center justify-between gap-1">
-            <p className="truncate text-[8px] font-semibold uppercase tracking-[0.12em] text-[#637fa0] sm:text-[9px]">
+            <p className="truncate text-[7px] font-semibold uppercase tracking-[0.12em] text-[#637fa0] sm:text-[8px]">
               {event.leagueName ?? "Featured Match"}
             </p>
 
             <button
               type="button"
               onClick={() => setShowMarkets(true)}
-              className="inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1.5 py-0.5 text-[7px] font-semibold uppercase tracking-wider text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[8px] md:text-[9px]"
+              className="inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1 py-0.5 text-[6px] font-semibold uppercase tracking-wider text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[7px]"
             >
-              <TrendingUp size={8} className="sm:h-[9px] sm:w-[9px]" />
-              +{marketCount}
+              <TrendingUp size={8} className="sm:h-[9px] sm:w-[9px]" />+
+              {marketCount}
             </button>
           </div>
 
@@ -202,7 +208,7 @@ export default function EventCard({
             onClick={() => setShowMarkets(true)}
             className="mt-1 w-full text-left sm:mt-1.5"
           >
-            <h3 className="text-[12px] font-bold leading-snug text-white break-words transition-colors group-hover:text-[#ffd500]/90 sm:text-[13px] md:text-sm">
+            <h3 className="text-[11px] font-bold leading-tight text-white break-words transition-colors group-hover:text-[#ffd500]/90 sm:text-[12px]">
               {event.homeTeam}{" "}
               <span className="font-normal text-[#4a6a8f]">vs</span>{" "}
               {event.awayTeam}
@@ -210,14 +216,14 @@ export default function EventCard({
           </button>
 
           {/* Date and countdown — single compact row */}
-          <div className="mt-1 flex items-center gap-1 sm:mt-1.5 sm:gap-1.5">
-            <span className="inline-flex min-w-0 items-center gap-0.5 rounded border border-[#1e3350]/40 bg-[#0b1525] px-1 py-[2px] text-[7px] text-[#7a94b8] sm:px-1.5 sm:py-0.5 sm:text-[8px] md:text-[9px]">
+          <div className="mt-0.5 flex items-center gap-0.5 sm:mt-1 sm:gap-1">
+            <span className="inline-flex min-w-0 items-center gap-0.5 rounded border border-[#1e3350]/40 bg-[#0b1525] px-0.5 py-[2px] text-[6px] text-[#7a94b8] sm:px-1 sm:py-0.5 sm:text-[7px]">
               <Calendar size={8} className="shrink-0 text-[#637fa0]" />
               <span className="truncate">
                 {formatCardDateTime(event.commenceTime)}
               </span>
             </span>
-            <span className="inline-flex items-center gap-0.5 rounded border border-[#1e3350]/40 bg-[#0b1525] px-1 py-[2px] text-[7px] text-[#7a94b8] sm:px-1.5 sm:py-0.5 sm:text-[8px] md:text-[9px]">
+            <span className="inline-flex items-center gap-0.5 rounded border border-[#1e3350]/40 bg-[#0b1525] px-0.5 py-[2px] text-[6px] text-[#7a94b8] sm:px-1 sm:py-0.5 sm:text-[7px]">
               <Clock size={8} className="shrink-0 text-[#637fa0]" />
               <span>{getRelativeTime(event.commenceTime)}</span>
             </span>
@@ -225,7 +231,7 @@ export default function EventCard({
         </div>
 
         {/* Odds row — 3 columns */}
-        <div className="mt-0.5 rounded-lg border border-[#1e3350]/30 bg-[#0b1525]/60 p-1 sm:p-1.5">
+        <div className="rounded-lg border border-[#1e3350]/30 bg-[#0b1525]/60 p-1 sm:p-1.5">
           <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
             {oddsPreview.map((entry) => (
               <OddsPreviewButton

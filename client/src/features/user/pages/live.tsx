@@ -306,7 +306,7 @@ const MatchRow = memo(function MatchRow({
   const totalReds = match.stats.reds_home + match.stats.reds_away;
 
   return (
-    <article className="group border-b border-[#1e293b] bg-[#111827] transition-colors hover:bg-[#1a2332]">
+    <article className="group border-b border-[#31455f] bg-[#0f172a] transition-colors hover:bg-[#0f172a]/80">
       <div className="grid grid-cols-[55%_45%] gap-1 px-[10px] py-[6px]">
         <div className="min-w-0">
           <div className="mb-1 flex items-center gap-1">
@@ -442,7 +442,7 @@ const MatchRow = memo(function MatchRow({
 
 function MatchRowSkeleton() {
   return (
-    <div className="rounded-xl border border-[#1f2937] bg-[#111827] p-3">
+    <div className="rounded-xl border border-[#31455f] bg-[#0f172a] p-3">
       <div className="h-4 w-1/3 animate-pulse rounded bg-[#1f2937]" />
       <div className="mt-3 h-4 w-5/6 animate-pulse rounded bg-[#1f2937]" />
       <div className="mt-2 h-4 w-2/3 animate-pulse rounded bg-[#1f2937]" />
@@ -457,14 +457,14 @@ function MatchRowSkeleton() {
 
 function EmptyLiveState() {
   return (
-    <div className="flex min-h-[380px] flex-col items-center justify-center rounded-2xl border border-[#1f2937] bg-[#111827] p-8 text-center">
+    <div className="flex min-h-[380px] flex-col items-center justify-center rounded-2xl border border-[#31455f] bg-[#0f172a] p-8 text-center">
       <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#1f2937] text-[#F5C518]">
         <Goal size={24} />
       </span>
       <h3 className="mt-4 text-xl font-bold text-white">
         No live matches right now
       </h3>
-      <p className="mt-2 text-sm text-[#93a4b9]">
+      <p className="mt-2 text-sm text-[#8a9bb0]">
         Check back soon or explore upcoming matches
       </p>
       <Link
@@ -531,7 +531,7 @@ function ExpandedMarkets({
               "whitespace-nowrap rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide",
               tab === item
                 ? "border-[#F5C518] bg-[#F5C518]/15 text-[#F5C518]"
-                : "border-[#243244] text-[#93a4b9]",
+                : "border-[#31455f] text-[#8a9bb0]",
             ].join(" ")}
           >
             {item}
@@ -540,7 +540,7 @@ function ExpandedMarkets({
       </div>
 
       {loading ? (
-        <div className="flex h-24 items-center justify-center text-[#93a4b9]">
+        <div className="flex h-24 items-center justify-center text-[#8a9bb0]">
           <Loader2 size={16} className="animate-spin" />
           <span className="ml-2 text-sm">Loading markets...</span>
         </div>
@@ -626,7 +626,7 @@ function BetSlipContent({
   }, [betSlip, loadCode]);
 
   return (
-    <div className="rounded-2xl border border-[#1f2937] bg-[#111827] p-4 text-white">
+    <div className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4 text-white">
       <div className="mb-3 border-b border-[#1f2937] pb-2">
         <div className="flex gap-5">
           {[
@@ -646,7 +646,7 @@ function BetSlipContent({
               }
               className={[
                 "relative pb-2 text-xs font-semibold uppercase tracking-wide",
-                tab === entry.value ? "text-[#F5C518]" : "text-[#93a4b9]",
+                tab === entry.value ? "text-[#F5C518]" : "text-[#8a9bb0]",
               ].join(" ")}
             >
               {entry.label} ({entry.count})
@@ -659,7 +659,7 @@ function BetSlipContent({
       </div>
 
       <div className="space-y-2">
-        <p className="text-[11px] text-[#93a4b9]">Shared Betslip</p>
+        <p className="text-[11px] text-[#8a9bb0]">Shared Betslip</p>
         <input
           value={loadCode}
           onChange={(event) => setLoadCode(event.target.value)}
@@ -682,7 +682,7 @@ function BetSlipContent({
       {betSlip.selections.length === 0 ? (
         <div className="mt-4 rounded-xl border border-dashed border-[#273140] px-3 py-5 text-center">
           <p className="text-sm font-semibold text-white">No selections yet</p>
-          <p className="mt-1 text-xs text-[#93a4b9]">
+          <p className="mt-1 text-xs text-[#8a9bb0]">
             Tap odds to build your ticket.
           </p>
         </div>
@@ -696,7 +696,7 @@ function BetSlipContent({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-[11px] text-[#93a4b9]">
+                    <p className="text-[11px] text-[#8a9bb0]">
                       {selection.leagueName}
                     </p>
                     <p className="text-sm font-semibold text-white">
@@ -706,12 +706,12 @@ function BetSlipContent({
                   <button
                     type="button"
                     onClick={() => betSlip.removeSelection(selection.eventId)}
-                    className="rounded-full bg-[#1f2937] p-1 text-[#93a4b9]"
+                    className="rounded-full bg-[#0c1018] p-1 text-[#8a9bb0]"
                   >
                     <X size={12} />
                   </button>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-xs text-[#93a4b9]">
+                <div className="mt-2 flex items-center justify-between text-xs text-[#8a9bb0]">
                   <span>{selection.marketType}</span>
                   <span>{selection.side}</span>
                   <span className="font-semibold text-[#F5C518]">
@@ -724,13 +724,13 @@ function BetSlipContent({
 
           <div className="rounded-xl border border-[#273140] bg-[#0d1117] p-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-[#93a4b9]">Total odds</span>
+              <span className="text-[#8a9bb0]">Total odds</span>
               <span className="font-bold text-[#F5C518]">
                 {totalOdds.toFixed(2)}
               </span>
             </div>
             <div className="mt-3">
-              <label className="text-xs text-[#93a4b9]">Stake (KES)</label>
+              <label className="text-xs text-[#8a9bb0]">Stake (KES)</label>
               <input
                 type="number"
                 min={50}
@@ -739,12 +739,12 @@ function BetSlipContent({
                 onChange={(event) =>
                   betSlip.setStake(Number(event.target.value) || 0)
                 }
-                className="mt-1 h-10 w-full rounded-lg border border-[#273140] bg-[#111827] px-3 text-sm outline-none focus:border-[#F5C518]"
+                className="mt-1 h-10 w-full rounded-lg border border-[#31455f] bg-[#0c1018] px-3 text-sm outline-none focus:border-[#F5C518]"
               />
             </div>
 
             <div className="mt-3 flex items-center justify-between text-sm">
-              <span className="text-[#93a4b9]">Possible payout</span>
+              <span className="text-[#8a9bb0]">Possible payout</span>
               <span className="font-bold text-[#22c55e]">
                 {formatCurrency(betSlip.potentialPayout)}
               </span>
@@ -1015,16 +1015,16 @@ export default function LivePage() {
   ]);
 
   return (
-    <div className="h-[calc(100vh-118px)] min-h-0 overflow-hidden bg-[#0d1117] text-white">
+    <div className="h-[calc(100vh-118px)] min-h-0 overflow-hidden bg-gradient-to-br from-[#0b1120] to-[#0f172a] text-white">
       <div className="mx-auto h-full min-h-0 max-w-[1440px] px-2 py-2 sm:px-3 sm:py-3 lg:px-5 lg:py-4">
         <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <section className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-[#1f2937] bg-[#0d1117]">
-            <div className="z-20 border-b border-[#1f2937] bg-[#0d1117] px-[10px] py-2">
+          <section className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-[#31455f] bg-[#0f172a]">
+            <div className="z-20 border-b border-[#31455f] bg-[#0f172a] px-[10px] py-2">
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setFiltersOpen((value) => !value)}
-                  className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#334155] bg-[#1e293b] px-[10px] text-[11px] font-medium text-[#cbd5e1]"
+                  className="inline-flex h-7 items-center gap-1.5 rounded-[5px] border border-[#31455f] bg-[#0c1018] px-[10px] text-[11px] font-medium text-[#90a2bb]"
                 >
                   <Filter size={12} />
                   Filters
@@ -1044,7 +1044,7 @@ export default function LivePage() {
                       highlights: event.target.value === "highlights",
                     }))
                   }
-                  className="h-7 rounded-[5px] border border-[#334155] bg-[#1e293b] px-[10px] text-[11px] font-medium text-[#cbd5e1] outline-none"
+                  className="h-7 rounded-[5px] border border-[#31455f] bg-[#0c1018] px-[10px] text-[11px] font-medium text-[#90a2bb] outline-none"
                 >
                   <option value="all">All Matches</option>
                   <option value="highlights">Highlights</option>
@@ -1058,7 +1058,7 @@ export default function LivePage() {
                       market: event.target.value as LiveMarketKey,
                     }))
                   }
-                  className="h-7 rounded-[5px] border border-[#334155] bg-[#1e293b] px-[10px] text-[11px] font-medium text-[#cbd5e1] outline-none"
+                  className="h-7 rounded-[5px] border border-[#31455f] bg-[#0c1018] px-[10px] text-[11px] font-medium text-[#90a2bb] outline-none"
                 >
                   {getMarketOptions().map((option) => (
                     <option key={option.value} value={option.value}>
@@ -1076,13 +1076,13 @@ export default function LivePage() {
                     }))
                   }
                   placeholder="Search live games"
-                  className="h-7 min-w-[160px] flex-1 rounded-[5px] border border-[#334155] bg-[#0b1421] px-2.5 text-[11px] text-[#cbd5e1] outline-none placeholder:text-[#55667a] focus:border-[#F5C518]"
+                  className="h-7 min-w-[160px] flex-1 rounded-[5px] border border-[#31455f] bg-[#0c1018] px-2.5 text-[11px] text-[#90a2bb] outline-none placeholder:text-[#8a9bb0] focus:border-[#F5C518]"
                 />
 
                 <button
                   type="button"
                   onClick={() => void refresh()}
-                  className="ml-auto inline-flex h-7 items-center gap-1 rounded-[5px] px-0 text-[10px] font-medium text-[#475569]"
+                  className="ml-auto inline-flex h-7 items-center gap-1 rounded-[5px] px-0 text-[10px] font-medium text-[#8a9bb0]"
                 >
                   <Clock3 size={11} />
                   Updated {formatTimeAgo(lastUpdatedAt)}
@@ -1090,15 +1090,15 @@ export default function LivePage() {
               </div>
 
               {filtersOpen ? (
-                <div className="mt-2 rounded-md border border-[#334155] bg-[#1e293b] p-2">
-                  <p className="text-[10px] text-[#7a8ba1]">
+                <div className="mt-2 rounded-md border border-[#31455f] bg-[#0c1018] p-2">
+                  <p className="text-[10px] text-[#8a9bb0]">
                     Extra filters panel
                   </p>
                 </div>
               ) : null}
             </div>
 
-            <div className="z-10 grid grid-cols-[55%_45%] border-b border-[#1f2937] bg-[#0d1623] px-[10px] py-1.5 text-[10px] font-medium uppercase tracking-wide text-[#64748b]">
+            <div className="z-10 grid grid-cols-[55%_45%] border-b border-[#31455f] bg-[#0c1018] px-[10px] py-1.5 text-[10px] font-medium uppercase tracking-wide text-[#8a9bb0]">
               <span>Teams</span>
               <span
                 className={`grid ${getColumnLabels(filters.market).length === 3 ? "grid-cols-3" : "grid-cols-2"} gap-1 text-center`}
@@ -1167,17 +1167,17 @@ export default function LivePage() {
                                     left: 0,
                                     right: 0,
                                   }}
-                                  className="border-b border-[#1e293b] bg-[#0a0f1a] px-[10px] py-[5px]"
+                                  className="border-b border-[#31455f] bg-[#0a0f1a] px-[10px] py-[5px]"
                                 >
                                   <button
                                     type="button"
                                     onClick={() => toggleLeague(row.leagueKey)}
                                     className="flex w-full items-center justify-between"
                                   >
-                                    <span className="truncate text-[10px] font-medium tracking-[0.3px] text-[#94a3b8]">
+                                    <span className="truncate text-[10px] font-medium tracking-[0.3px] text-[#90a2bb]">
                                       {getSportGlyph(row.sport)} {row.leagueKey}
                                     </span>
-                                    <span className="text-[9px] text-[#475569]">
+                                    <span className="text-[9px] text-[#8a9bb0]">
                                       {count} matches
                                     </span>
                                   </button>
@@ -1245,21 +1245,21 @@ export default function LivePage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="overflow-hidden bg-[#0d1117]">
+                    <div className="overflow-hidden bg-[#0f172a]">
                       {leagueEntries.map(([leagueKey, leagueMatches]) => (
                         <section key={leagueKey}>
                           <button
                             type="button"
                             onClick={() => toggleLeague(leagueKey)}
-                            className="flex w-full items-center justify-between border-b border-[#1e293b] bg-[#0a0f1a] px-[10px] py-[5px]"
+                            className="flex w-full items-center justify-between border-b border-[#31455f] bg-[#0a0f1a] px-[10px] py-[5px]"
                           >
-                            <span className="truncate text-[10px] font-medium tracking-[0.3px] text-[#94a3b8]">
+                            <span className="truncate text-[10px] font-medium tracking-[0.3px] text-[#90a2bb]">
                               {getSportGlyph(
                                 leagueMatches[0]?.sport ?? "football",
                               )}{" "}
                               {leagueKey}
                             </span>
-                            <span className="text-[9px] text-[#475569]">
+                            <span className="text-[9px] text-[#8a9bb0]">
                               {leagueMatches.length} matches
                             </span>
                           </button>
@@ -1309,7 +1309,7 @@ export default function LivePage() {
           <aside className="hidden min-h-0 overflow-hidden lg:block">
             <div className="sticky top-0 h-full min-h-0">
               <BetSlipContent betSlip={betSlip} isDesktop />
-              <div className="flex items-center gap-1.5 border-x border-b border-[#1e293b] bg-[#111827] px-3 py-2 text-[11px] text-[#475569]">
+              <div className="flex items-center gap-1.5 border-x border-b border-[#31455f] bg-[#0f172a] px-3 py-2 text-[11px] text-[#8a9bb0]">
                 <span
                   className={`inline-block h-[6px] w-[6px] rounded-full ${isSocketConnected ? "bg-[#22c55e]" : "bg-[#ef4444]"} animate-pulse`}
                 />
@@ -1332,13 +1332,13 @@ export default function LivePage() {
         <button
           type="button"
           onClick={() => setMobileSlipOpen(true)}
-          className="flex h-12 w-full items-center justify-between rounded-xl border border-[#243244] bg-[#111827] px-3 text-sm text-white shadow-[0_16px_36px_rgba(0,0,0,0.42)]"
+          className="flex h-12 w-full items-center justify-between rounded-xl border border-[#31455f] bg-[#0f172a] px-3 text-sm text-white shadow-[0_16px_36px_rgba(0,0,0,0.42)]"
         >
           <span className="inline-flex items-center gap-2 font-semibold">
             <Ticket size={15} className="text-[#F5C518]" />
             {betSlip.selections.length} selections
           </span>
-          <span className="text-xs text-[#93a4b9]">
+          <span className="text-xs text-[#8a9bb0]">
             Total odds:{" "}
             {Math.max(
               1,
@@ -1361,7 +1361,7 @@ export default function LivePage() {
         />
         <div
           className={[
-            "absolute bottom-0 left-0 right-0 max-h-[86vh] overflow-y-auto rounded-t-2xl border-t border-[#243244] bg-[#0d1117] p-3 transition-transform duration-300",
+            "absolute bottom-0 left-0 right-0 max-h-[86vh] overflow-y-auto rounded-t-2xl border-t border-[#31455f] bg-[#0f172a] p-3 transition-transform duration-300",
             mobileSlipOpen ? "translate-y-0" : "translate-y-full",
           ].join(" ")}
         >
@@ -1372,7 +1372,7 @@ export default function LivePage() {
             <button
               type="button"
               onClick={() => setMobileSlipOpen(false)}
-              className="rounded-full bg-[#1f2937] p-1 text-[#93a4b9]"
+              className="rounded-full bg-[#0c1018] p-1 text-[#8a9bb0]"
             >
               <X size={14} />
             </button>

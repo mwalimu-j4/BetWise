@@ -10,9 +10,9 @@ type BalanceCardsProps = {
 function BalanceCardsComponent({ balance, bonus, live }: BalanceCardsProps) {
   return (
     <section className="grid grid-cols-2 gap-3" aria-label="Balance cards">
-      <article className="rounded-xl border border-[#2b3a4e] bg-[#1e293b] p-4">
+      <article className="rounded-xl border border-[#31455f] bg-[#0f172a] p-4">
         <div className="flex items-center gap-2">
-          <span className="text-xs uppercase tracking-[0.12em] text-[#91a4bc]">
+          <span className="text-xs uppercase tracking-[0.12em] text-[#8a9bb0]">
             Balance
           </span>
           <span
@@ -25,8 +25,8 @@ function BalanceCardsComponent({ balance, bonus, live }: BalanceCardsProps) {
         </p>
       </article>
 
-      <article className="rounded-xl border border-[#2b3a4e] bg-[#1e293b] p-4">
-        <p className="text-xs uppercase tracking-[0.12em] text-[#91a4bc]">
+      <article className="rounded-xl border border-[#31455f] bg-[#0f172a] p-4">
+        <p className="text-xs uppercase tracking-[0.12em] text-[#8a9bb0]">
           Bonus
         </p>
         <p className="mt-2 text-lg font-bold text-[#f5c518]">

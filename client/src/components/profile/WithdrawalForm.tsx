@@ -42,9 +42,9 @@ export default function WithdrawalForm({ onSuccess }: WithdrawalFormProps) {
   };
 
   return (
-    <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+    <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
       <h3 className="text-sm font-semibold text-white">Withdrawal</h3>
-      <p className="mt-1 text-xs text-[#95a6be]">
+      <p className="mt-1 text-xs text-[#8a9bb0]">
         Daily M-PESA withdrawal limits. Min KES {minAmount}. Max KES{" "}
         {maxAmount.toLocaleString()}. All transactions subject to {taxPercent}%
         tax.
@@ -61,11 +61,11 @@ export default function WithdrawalForm({ onSuccess }: WithdrawalFormProps) {
           placeholder="Enter amount to withdraw"
         />
 
-        <div className="rounded-xl border border-[#31455f] bg-[#0f172a] px-3 py-2 text-xs text-[#9fb0c7]">
+        <div className="rounded-xl border border-[#31455f] bg-[#0f172a] px-3 py-2 text-xs text-[#8a9bb0]">
           Phone linked from your account is used automatically for payout.
         </div>
 
-        <div className="rounded-xl border border-[#31455f] bg-[#0f172a] px-3 py-2 text-xs text-[#b7c5d7]">
+        <div className="rounded-xl border border-[#31455f] bg-[#0f172a] px-3 py-2 text-xs text-[#90a2bb]">
           <p>
             Fee ({taxPercent}%): KES {feeAmount.toLocaleString()}
           </p>

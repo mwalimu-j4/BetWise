@@ -49,7 +49,7 @@ export default function SupportLinks({ onSignOut }: SupportLinksProps) {
 
   return (
     <>
-      <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+      <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
         <h3 className="text-sm font-semibold text-white">Support</h3>
 
         <div className="mt-3 space-y-2">
@@ -64,7 +64,7 @@ export default function SupportLinks({ onSignOut }: SupportLinksProps) {
 
           <button
             type="button"
-            className="flex w-full items-center gap-2 rounded-lg border border-[#5a2d2d] bg-[#2a1616] px-3 py-2 text-left text-sm text-[#fecaca]"
+            className="flex w-full items-center gap-2 rounded-lg border border-[#74312f] bg-[#3d1819] px-3 py-2 text-left text-sm text-[#fecaca]"
             onClick={() => setDialogOpen(true)}
           >
             <Trash2 size={14} />
@@ -93,10 +93,10 @@ export default function SupportLinks({ onSignOut }: SupportLinksProps) {
       </section>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="border-[#31455f] bg-[#111827] text-white">
+        <DialogContent className="border-[#31455f] bg-[#0f172a] text-white">
           <DialogHeader>
             <DialogTitle>Confirm Account Deletion</DialogTitle>
-            <DialogDescription className="text-[#9fb0c7]">
+            <DialogDescription className="text-[#8a9bb0]">
               Enter your password to permanently delete your account.
             </DialogDescription>
           </DialogHeader>
@@ -112,7 +112,7 @@ export default function SupportLinks({ onSignOut }: SupportLinksProps) {
           <DialogFooter>
             <button
               type="button"
-              className="h-10 rounded-lg border border-[#31455f] px-4 text-sm text-[#c4d1e1]"
+              className="h-10 rounded-lg border border-[#31455f] px-4 text-sm text-[#90a2bb]"
               onClick={() => setDialogOpen(false)}
             >
               Cancel

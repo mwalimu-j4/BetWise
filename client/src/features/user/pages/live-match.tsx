@@ -67,18 +67,18 @@ export default function LiveMatchPage() {
   }, [matchId]);
 
   return (
-    <div className="min-h-screen bg-[#0d1117] px-3 py-4 text-white sm:px-4 lg:px-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#0b1120] to-[#0f172a] px-3 py-4 text-white sm:px-4 lg:px-6">
       <div className="mx-auto max-w-5xl">
         <button
           type="button"
           onClick={() => window.history.back()}
-          className="mb-3 inline-flex items-center gap-2 rounded-lg border border-[#243244] bg-[#111827] px-3 py-2 text-sm font-semibold"
+          className="mb-3 inline-flex items-center gap-2 rounded-lg border border-[#31455f] bg-[#0c1018] px-3 py-2 text-sm font-semibold"
         >
           <ArrowLeft size={14} /> Back to live list
         </button>
 
         {loading ? (
-          <div className="flex h-64 items-center justify-center rounded-xl border border-[#243244] bg-[#111827]">
+          <div className="flex h-64 items-center justify-center rounded-xl border border-[#31455f] bg-[#0f172a]">
             <Loader2 className="animate-spin" size={18} />
             <span className="ml-2">Loading match markets...</span>
           </div>
@@ -88,8 +88,8 @@ export default function LiveMatchPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-xl border border-[#243244] bg-[#111827] p-4">
-              <p className="text-xs uppercase tracking-wide text-[#93a4b9]">
+            <div className="rounded-xl border border-[#31455f] bg-[#0f172a] p-4 rounded-2xl">
+              <p className="text-xs uppercase tracking-wide text-[#8a9bb0]">
                 {match.league.flag_emoji} {match.league.country} •{" "}
                 {match.league.name}
               </p>
@@ -99,17 +99,17 @@ export default function LiveMatchPage() {
               </h1>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-[#243244] bg-[#111827] p-4">
+            <div className="space-y-3 rounded-xl border border-[#31455f] bg-[#0f172a] p-4 rounded-2xl">
               {match.markets.map((market) => (
                 <section
                   key={market.id}
-                  className="rounded-lg border border-[#243244] bg-[#0d1117] p-3"
+                  className="rounded-lg border border-[#31455f] bg-[#0c1018] p-3"
                 >
                   <div className="mb-2 flex items-center justify-between">
                     <h2 className="text-sm font-semibold uppercase tracking-wide text-[#F5C518]">
                       {market.name}
                     </h2>
-                    <span className="text-[11px] uppercase tracking-wide text-[#93a4b9]">
+                    <span className="text-[11px] uppercase tracking-wide text-[#8a9bb0]">
                       {market.status}
                     </span>
                   </div>
@@ -117,9 +117,9 @@ export default function LiveMatchPage() {
                     {market.selections.map((selection) => (
                       <div
                         key={selection.id}
-                        className="rounded-md border border-[#243244] bg-[#111827] p-2 text-center"
+                        className="rounded-md border border-[#31455f] bg-[#0c1018] p-2 text-center"
                       >
-                        <p className="text-[11px] text-[#93a4b9]">
+                        <p className="text-[11px] text-[#8a9bb0]">
                           {selection.label}
                         </p>
                         <p className="text-sm font-bold text-white">

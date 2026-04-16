@@ -1,9 +1,24 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { ChevronDown, Zap } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  BarChart3,
+  ChevronDown,
+  FileText,
+  Flame,
+  HelpCircle,
+  History,
+  Home,
+  MessageCircle,
+  TrendingUp,
+  User,
+  Wallet,
+  Zap
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 type SidebarProps = {
   isOpen: boolean;
@@ -13,15 +28,16 @@ type SidebarProps = {
 type Item = {
   label: string;
   to: string;
-  icon: string;
+  icon: React.ReactNode;
   liveBadge?: string;
   warn?: boolean;
+  notificationBadge?: boolean;
 };
 
 type Group = {
   key: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   children: Item[];
 };
 
@@ -55,26 +71,26 @@ function toSidebarSportName(raw: string) {
   return "Soccer";
 }
 
-function sportIcon(name: string) {
+function sportIcon(name: string): React.ReactNode {
   switch (name) {
     case "Soccer":
-      return "SO";
+      return "⚽";
     case "Basketball":
-      return "BK";
+      return "🏀";
     case "Tennis":
-      return "TN";
+      return "🎾";
     case "Ice Hockey":
-      return "IH";
+      return "🏒";
     case "Volleyball":
-      return "VB";
+      return "🏐";
     case "Cricket":
-      return "CK";
+      return "🏏";
     case "Handball":
-      return "HB";
+      return "🤾";
     case "Table Tennis":
-      return "TT";
+      return "🏓";
     default:
-      return "SP";
+      return "🎯";
   }
 }
 
@@ -91,10 +107,10 @@ const sectionOne: Item[] = [
   },
   { label: "Profile", to: "/user/profile", icon: "U" },
   {
-    label: "Virtual Games",
-    to: "/user/coming-soon?feature=virtual-games",
-    icon: "V",
-    warn: true,
+    label: "Live Betting",
+    to: "/user/live",
+    icon: <Flame size={18} />,
+    liveBadge: "LIVE",
   },
 ];
 
@@ -102,264 +118,50 @@ const myAccount: Item[] = [
   {
     label: "My Profile",
     to: "/user/profile",
-    icon: "U",
+    icon: <User size={18} />,
   },
-  { label: "My Wallet", to: "/user/payments", icon: "W", warn: true },
-  { label: "My Bets", to: "/user/bets", icon: "B" },
-  { label: "My Results", to: "/user/payments/history", icon: "R" },
-  { label: "Reports", to: "/user/reports", icon: "📊" },
-  { label: "Deposit", to: "/user/payments/deposit", icon: "+" },
-  { label: "Withdrawal", to: "/user/payments/withdrawal", icon: "^" },
-  { label: "Transaction History", to: "/user/payments/history", icon: "T" },
+  { label: "My Wallet", to: "/user/payments", icon: <Wallet size={18} /> },
+  { label: "My Bets", to: "/my-bets", icon: <TrendingUp size={18} /> },
+];
+
+const payments: Item[] = [
   {
-    label: "Dashboard",
-    to: "/user/coming-soon?feature=dashboard",
-    icon: "D",
-    warn: true,
+    label: "Transaction History",
+    to: "/user/payments/history",
+    icon: <History size={18} />,
+  },
+  {
+    label: "Deposit",
+    to: "/user/payments/deposit",
+    icon: <ArrowDownToLine size={18} />,
+  },
+  {
+    label: "Withdrawal",
+    to: "/user/payments/withdrawal",
+    icon: <ArrowUpFromLine size={18} />,
   },
 ];
 
-const topLeagues: Item[] = [
-  {
-    label: "UEFA Champions League",
-    to: "/user/coming-soon?feature=uefa-champions-league",
-    icon: "U",
-    warn: true,
-  },
-  {
-    label: "Championship",
-    to: "/user/coming-soon?feature=championship",
-    icon: "C",
-    warn: true,
-  },
-  {
-    label: "Premier League",
-    to: "/user/coming-soon?feature=premier-league",
-    icon: "P",
-    warn: true,
-  },
-  {
-    label: "La Liga",
-    to: "/user/coming-soon?feature=la-liga",
-    icon: "L",
-    warn: true,
-  },
-  {
-    label: "Bundesliga",
-    to: "/user/coming-soon?feature=bundesliga",
-    icon: "B",
-    warn: true,
-  },
-  {
-    label: "Serie A",
-    to: "/user/coming-soon?feature=serie-a",
-    icon: "S",
-    warn: true,
-  },
-  {
-    label: "Ligue 1",
-    to: "/user/coming-soon?feature=ligue-1",
-    icon: "G",
-    warn: true,
-  },
+const analytics: Item[] = [
+  { label: "Reports", to: "/user/reports", icon: <BarChart3 size={18} /> },
 ];
 
-const sportsGroups: Group[] = [
-  {
-    key: "football",
-    label: "Football",
-    icon: "F",
-    children: [
-      {
-        label: "UEFA Champions League",
-        to: "/user/coming-soon?feature=uefa-champions-league",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "Championship",
-        to: "/user/coming-soon?feature=championship",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "Copa Libertadores",
-        to: "/user/coming-soon?feature=copa-libertadores",
-        icon: "-",
-        warn: true,
-      },
-    ],
-  },
-  {
-    key: "basketball",
-    label: "Basketball",
-    icon: "B",
-    children: [
-      {
-        label: "NCAAB",
-        to: "/user/coming-soon?feature=ncaab",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "NBA",
-        to: "/user/coming-soon?feature=nba",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "Basketball Euroleague",
-        to: "/user/coming-soon?feature=basketball-euroleague",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "NBL",
-        to: "/user/coming-soon?feature=nbl",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "WNCAAB",
-        to: "/user/coming-soon?feature=wncaab",
-        icon: "-",
-        warn: true,
-      },
-    ],
-  },
-  {
-    key: "american-football",
-    label: "American Football",
-    icon: "A",
-    children: [
-      {
-        label: "NCAAF",
-        to: "/user/coming-soon?feature=ncaaf",
-        icon: "-",
-        warn: true,
-      },
-    ],
-  },
-  {
-    key: "baseball",
-    label: "Baseball",
-    icon: "B",
-    children: [
-      {
-        label: "MLB Preseason",
-        to: "/user/coming-soon?feature=mlb-preseason",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "NCAA Baseball",
-        to: "/user/coming-soon?feature=ncaa-baseball",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "MLB",
-        to: "/user/coming-soon?feature=mlb",
-        icon: "-",
-        warn: true,
-      },
-    ],
-  },
-  {
-    key: "ice-hockey",
-    label: "Ice Hockey",
-    icon: "I",
-    children: [
-      {
-        label: "SHL",
-        to: "/user/coming-soon?feature=shl",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "NHL",
-        to: "/user/coming-soon?feature=nhl",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "AHL",
-        to: "/user/coming-soon?feature=ahl",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "Liiga",
-        to: "/user/coming-soon?feature=liiga",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "Mestis",
-        to: "/user/coming-soon?feature=mestis",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "HockeyAllsvenskan",
-        to: "/user/coming-soon?feature=hockey-allsvenskan",
-        icon: "-",
-        warn: true,
-      },
-    ],
-  },
-  {
-    key: "cricket",
-    label: "Cricket",
-    icon: "C",
-    children: [
-      {
-        label: "International Twenty20",
-        to: "/user/coming-soon?feature=international-twenty20",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "T20 World Cup",
-        to: "/user/coming-soon?feature=t20-world-cup",
-        icon: "-",
-        warn: true,
-      },
-      {
-        label: "One Day Internationals",
-        to: "/user/coming-soon?feature=one-day-internationals",
-        icon: "-",
-        warn: true,
-      },
-    ],
-  },
-  {
-    key: "mma",
-    label: "MMA",
-    icon: "M",
-    children: [
-      {
-        label: "MMA",
-        to: "/user/coming-soon?feature=mma",
-        icon: "-",
-        warn: true,
-      },
-    ],
-  },
-];
+const topLeagues: Item[] = [];
 
-const quickLinks: Item[] = [
+const sportsGroups: Group[] = [];
+
+const helpLinks: Item[] = [
   {
-    label: "Favorites",
-    to: "/user/coming-soon?feature=favorites",
-    icon: "*",
-    warn: true,
+    label: "How It Works",
+    to: "/user/how-it-works",
+    icon: <HelpCircle size={18} />,
   },
-  { label: "My Bets", to: "/user/bets", icon: "B" },
-  { label: "Analytics", to: "/user/payments/history", icon: "A" },
-  { label: "How It Works", to: "/user/how-it-works", icon: "?" },
-  { label: "FAQs", to: "/user/faqs", icon: "!" },
-  { label: "Responsible Gambling", to: "/user/register", icon: "R" },
+  { label: "FAQs", to: "/user/faqs", icon: <FileText size={18} /> },
+  {
+    label: "Contact Us",
+    to: "/user/contact",
+    icon: <MessageCircle size={18} />,
+  },
 ];
 
 function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
@@ -390,11 +192,12 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isAuthenticated, logout, openAuthModal } = useAuth();
+  const navigate = useNavigate();
   const [openSports, setOpenSports] = useState<Record<string, boolean>>({
     football: true,
     basketball: true,
   });
-  const [liveSportsOpen, setLiveSportsOpen] = useState(true);
+  const [liveSportsOpen, setLiveSportsOpen] = useState(!isAuthenticated);
   const [liveCounts, setLiveCounts] = useState<Record<string, number>>(() => ({
     Soccer: 0,
     Basketball: 0,
@@ -409,6 +212,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const accountSection = useMemo(() => {
     if (!isAuthenticated) return [];
     return myAccount;
+  }, [isAuthenticated]);
+
+  // Update Live Sports section visibility based on auth state
+  useEffect(() => {
+    setLiveSportsOpen(!isAuthenticated);
   }, [isAuthenticated]);
 
   function closeIfMobile() {
@@ -476,6 +284,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <>
       <aside className={`bc-sidebar ${isOpen ? "is-open" : ""}`}>
         <div className="bc-side-scroll">
+          {/* LIVE SPORTS SECTION */}
           <div className="bc-side-section max-md:mt-12">
             <button
               type="button"
@@ -494,12 +303,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
               {liveSportsOrder.map((name) => {
                 const count = liveCounts[name] ?? 0;
+                const sportKey = name.toLowerCase().replace(/\s+/g, "_");
                 return (
-                  <Link
+                  <button
                     key={name}
-                    to="/user/live"
-                    className="bc-live-sport-item"
-                    onClick={closeIfMobile}
+                    type="button"
+                    onClick={() => {
+                      navigate({
+                        to: "/user/live",
+                        search: { sport: sportKey },
+                      });
+                      closeIfMobile();
+                    }}
+                    disabled={count === 0}
+                    className={`bc-live-sport-item ${count === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     <span className="bc-side-icon" aria-hidden="true">
                       {sportIcon(name)}
@@ -510,22 +327,24 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         {count > 99 ? "99+" : count}
                       </span>
                     ) : null}
-                  </Link>
+                  </button>
                 );
               })}
             </div>
           </div>
 
+          {/* MAIN NAVIGATION */}
           <div className="bc-side-section">
-            {sectionOne.map((item) => (
+            {navigationLinks.map((item) => (
               <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
             ))}
           </div>
 
+          {/* MY ACCOUNT SECTION */}
           {accountSection.length > 0 ? (
             <div className="bc-side-section">
               <p className="bc-side-heading">My Account</p>
-              {accountSection.map((item) => (
+              {myAccount.map((item) => (
                 <ItemLink
                   key={item.label}
                   item={item}
@@ -535,52 +354,94 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
           ) : null}
 
-          <div className="bc-side-section">
-            <p className="bc-side-heading">Top Leagues</p>
-            {topLeagues.map((item) => (
-              <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
-            ))}
-          </div>
+          {/* PAYMENTS & TRANSACTIONS SECTION */}
+          {accountSection.length > 0 ? (
+            <div className="bc-side-section">
+              <p className="bc-side-heading">Transactions & Payments</p>
+              {payments.map((item) => (
+                <ItemLink
+                  key={item.label}
+                  item={item}
+                  onClick={closeIfMobile}
+                />
+              ))}
+            </div>
+          ) : null}
 
-          <div className="bc-side-section">
-            <p className="bc-side-heading">All Sports</p>
-            {sportsGroups.map((group) => {
-              const open = openSports[group.key] ?? false;
-              return (
-                <div key={group.key} className="bc-side-group">
-                  <button
-                    type="button"
-                    className="bc-side-toggle"
-                    onClick={() =>
-                      setOpenSports((prev) => ({ ...prev, [group.key]: !open }))
-                    }
-                  >
-                    <span className="bc-side-icon" aria-hidden="true">
-                      {group.icon}
-                    </span>
-                    <span>{group.label}</span>
-                    <ChevronDown
-                      className={`bc-side-chevron ${open ? "is-open" : ""}`}
-                      size={14}
-                    />
-                  </button>
-                  <div className={`bc-side-children ${open ? "is-open" : ""}`}>
-                    {group.children.map((child) => (
-                      <ItemLink
-                        key={child.label}
-                        item={child}
-                        onClick={closeIfMobile}
+          {/* ANALYTICS & REPORTS SECTION */}
+          {accountSection.length > 0 ? (
+            <div className="bc-side-section">
+              <p className="bc-side-heading">Analytics</p>
+              {analytics.map((item) => (
+                <ItemLink
+                  key={item.label}
+                  item={item}
+                  onClick={closeIfMobile}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {topLeagues.length > 0 ? (
+            <div className="bc-side-section">
+              <p className="bc-side-heading">Top Leagues</p>
+              {topLeagues.map((item) => (
+                <ItemLink
+                  key={item.label}
+                  item={item}
+                  onClick={closeIfMobile}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {sportsGroups.length > 0 ? (
+            <div className="bc-side-section">
+              <p className="bc-side-heading">All Sports</p>
+              {sportsGroups.map((group) => {
+                const open = openSports[group.key] ?? false;
+                return (
+                  <div key={group.key} className="bc-side-group">
+                    <button
+                      type="button"
+                      className="bc-side-toggle"
+                      onClick={() =>
+                        setOpenSports((prev) => ({
+                          ...prev,
+                          [group.key]: !open,
+                        }))
+                      }
+                    >
+                      <span className="bc-side-icon" aria-hidden="true">
+                        {group.icon}
+                      </span>
+                      <span>{group.label}</span>
+                      <ChevronDown
+                        className={`bc-side-chevron ${open ? "is-open" : ""}`}
+                        size={14}
                       />
-                    ))}
+                    </button>
+                    <div
+                      className={`bc-side-children ${open ? "is-open" : ""}`}
+                    >
+                      {group.children.map((child) => (
+                        <ItemLink
+                          key={child.label}
+                          item={child}
+                          onClick={closeIfMobile}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : null}
 
+          {/* HELP & SUPPORT SECTION */}
           <div className="bc-side-section">
-            <p className="bc-side-heading">Quick Access</p>
-            {quickLinks.map((item) => (
+            <p className="bc-side-heading">Help & Support</p>
+            {helpLinks.map((item) => (
               <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
             ))}
           </div>
