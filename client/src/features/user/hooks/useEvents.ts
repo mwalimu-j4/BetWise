@@ -119,12 +119,19 @@ export function useEvents() {
   }, [fetchEvents, fetchLiveEvents]);
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
+    const liveInterval = window.setInterval(() => {
       void fetchLiveEvents();
     }, 30_000);
 
-    return () => window.clearInterval(interval);
-  }, [fetchLiveEvents]);
+    const eventsInterval = window.setInterval(() => {
+      void fetchEvents();
+    }, 120_000);
+
+    return () => {
+      window.clearInterval(liveInterval);
+      window.clearInterval(eventsInterval);
+    };
+  }, [fetchEvents, fetchLiveEvents]);
 
   return {
     events,

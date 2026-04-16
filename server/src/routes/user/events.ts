@@ -160,9 +160,21 @@ async function getEvents(args: {
   page: number;
   limit: number;
 }) {
+  const upcomingSafetyThreshold = new Date(Date.now() - 150 * 60 * 1000);
+
   const where: Prisma.SportEventWhereInput = {
     isActive: true,
-    status: args.status ? args.status : { in: ["UPCOMING", "LIVE"] },
+    ...(args.status
+      ? { status: args.status }
+      : {
+          OR: [
+            { status: "LIVE" },
+            {
+              status: "UPCOMING",
+              commenceTime: { gt: upcomingSafetyThreshold },
+            },
+          ],
+        }),
     sportKey: args.sport || undefined,
     leagueName: args.league
       ? { contains: args.league, mode: "insensitive" }
@@ -242,8 +254,19 @@ userEventsRouter.get("/user/events/live", async (req, res, next) => {
 
 userEventsRouter.get("/user/events/sports", async (_req, res, next) => {
   try {
+    const upcomingSafetyThreshold = new Date(Date.now() - 150 * 60 * 1000);
+
     const rows = await prisma.sportEvent.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        OR: [
+          { status: "LIVE" },
+          {
+            status: "UPCOMING",
+            commenceTime: { gt: upcomingSafetyThreshold },
+          },
+        ],
+      },
       select: {
         sportKey: true,
         leagueName: true,
@@ -267,10 +290,12 @@ userEventsRouter.get("/user/events/sports", async (_req, res, next) => {
     }, new Map<string, Set<string>>());
 
     return res.status(200).json({
-      sports: Array.from(groupedSports.entries()).map(([sportKey, leagues]) => ({
-        sportKey,
-        leagues: Array.from(leagues),
-      })),
+      sports: Array.from(groupedSports.entries()).map(
+        ([sportKey, leagues]) => ({
+          sportKey,
+          leagues: Array.from(leagues),
+        }),
+      ),
     });
   } catch (error) {
     next(error);
