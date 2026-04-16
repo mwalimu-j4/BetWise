@@ -82,6 +82,7 @@ const sectionOne: Item[] = [
   { label: "Homepage", to: "/user", icon: "H" },
   { label: "Pre-match", to: "/user/payments", icon: "P" },
   { label: "Live", to: "/user/live", icon: "L", liveBadge: "LIVE" },
+  { label: "Custom Events", to: "/user/custom-events", icon: "⚡" },
   {
     label: "Sports",
     to: "/user/coming-soon?feature=sports",

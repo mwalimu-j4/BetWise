@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import BetSlip from "../components/BetSlip";
 import EventCard from "../components/EventCard";
+import { CustomEventCard } from "../components/CustomEventCard";
 import LiveTicker from "../components/LiveTicker";
-import useBetSlip from "../hooks/useBetSlip";
+import useBetSlip, { type BetSelection } from "../hooks/useBetSlip";
 import useEvents from "../hooks/useEvents";
+import { useCustomEvents } from "../hooks/useCustomEvents";
 import SportEvents from "./sport-events";
 import {
   ChevronLeft,
@@ -50,6 +52,7 @@ export default function BettingHome() {
     refetch,
   } = useEvents();
   const betSlip = useBetSlip();
+  const { events: customEvents } = useCustomEvents();
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const tabsRef = useRef<HTMLDivElement>(null);
 
@@ -97,8 +100,47 @@ export default function BettingHome() {
 
   const upcomingEvents = events.filter((event) => event.status !== "LIVE");
   const featuredLiveEvents = liveEvents.slice(0, 6);
+  const liveCustomEvents = customEvents.filter((e) => e.status === "LIVE");
+  const upcomingCustomEvents = customEvents.filter((e) => e.status === "PUBLISHED");
   const heroImages = [heroOne, heroTwo, heroThree, heroFour, heroFive];
   const hasSelections = betSlip.selections.length > 0;
+
+  const customActiveSelections = useMemo(
+    () =>
+      betSlip.selections.map((s) => ({
+        eventId: s.eventId,
+        side: s.side,
+      })),
+    [betSlip.selections],
+  );
+
+  const handleCustomSelect = useCallback(
+    (params: {
+      eventId: string;
+      eventName: string;
+      leagueName: string;
+      marketType: string;
+      side: string;
+      odds: number;
+      commenceTime: string;
+      isCustomEvent: boolean;
+      customSelectionId: string;
+    }) => {
+      const selection: BetSelection = {
+        eventId: params.eventId,
+        eventName: params.eventName,
+        leagueName: params.leagueName,
+        marketType: params.marketType,
+        side: params.side,
+        odds: params.odds,
+        commenceTime: params.commenceTime,
+        isCustomEvent: true,
+        customSelectionId: params.customSelectionId,
+      };
+      betSlip.addSelection(selection);
+    },
+    [betSlip],
+  );
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -310,6 +352,40 @@ export default function BettingHome() {
                 </div>
               </section>
             ) : null}
+
+            {/* CUSTOM EVENTS section */}
+            {(liveCustomEvents.length > 0 || upcomingCustomEvents.length > 0) && (
+              <section className="mb-3 overflow-hidden rounded-xl border border-amber-400/10 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:mb-4 sm:rounded-2xl">
+                <div className="flex items-center justify-between border-b border-[#1e3350]/40 px-3 py-2 sm:px-4 sm:py-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-400">⚡</span>
+                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white sm:text-[11px]">
+                      Custom Events
+                    </h2>
+                    <span className="rounded-md bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-400">
+                      {liveCustomEvents.length + upcomingCustomEvents.length}
+                    </span>
+                  </div>
+                  <a
+                    href="/user/custom-events"
+                    className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#ffd500] transition hover:text-[#ffe566] sm:text-[10px]"
+                  >
+                    View all →
+                  </a>
+                </div>
+
+                <div className="grid gap-2 p-2 sm:grid-cols-2 sm:gap-3 sm:p-3">
+                  {[...liveCustomEvents, ...upcomingCustomEvents].slice(0, 4).map((event) => (
+                    <CustomEventCard
+                      key={event.id}
+                      event={event}
+                      onSelectOutcome={handleCustomSelect}
+                      activeSelections={customActiveSelections}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* UPCOMING MATCHES section */}
             <section className="matches-section min-w-0 overflow-hidden rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:rounded-2xl">

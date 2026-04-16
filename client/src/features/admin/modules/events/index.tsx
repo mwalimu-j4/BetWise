@@ -1,3 +1,4 @@
+import { lazy, Suspense, useState as useTabState } from "react";
 import { api } from "@/api/axiosConfig";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+
+const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
 import {
   AdminSectionHeader,
   AdminStatCard,
@@ -199,7 +202,7 @@ function DetailField({
   );
 }
 
-export default function Events() {
+function FeedEvents() {
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [stats, setStats] = useState<EventStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -716,6 +719,8 @@ export default function Events() {
   return (
     <>
       <div className="space-y-2">
+        {/* ── Tab Selector ── */}
+        {/* Note: tab state is managed by the wrapper */}
         {/* ── Header ── */}
         <AdminSectionHeader
           title="Events"
@@ -1656,5 +1661,60 @@ export default function Events() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+// ── Tab Wrapper ──
+
+type EventsTab = "feed" | "custom";
+
+export default function Events() {
+  const [activeTab, setActiveTab] = useTabState<EventsTab>("feed");
+
+  return (
+    <div className="space-y-3">
+      {/* Tab Bar */}
+      <div className="flex items-center gap-1 rounded-xl border border-admin-border/60 bg-admin-card p-1">
+        <button
+          type="button"
+          onClick={() => setActiveTab("feed")}
+          className={cn(
+            "flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition",
+            activeTab === "feed"
+              ? "bg-admin-accent/15 text-admin-accent shadow-sm"
+              : "text-admin-text-muted hover:text-admin-text-secondary",
+          )}
+        >
+          Feed Events
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("custom")}
+          className={cn(
+            "flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition",
+            activeTab === "custom"
+              ? "bg-admin-accent/15 text-admin-accent shadow-sm"
+              : "text-admin-text-muted hover:text-admin-text-secondary",
+          )}
+        >
+          Custom Events
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === "feed" ? (
+        <FeedEvents />
+      ) : (
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-6 animate-spin text-admin-accent" />
+            </div>
+          }
+        >
+          <CustomEventsManager />
+        </Suspense>
+      )}
+    </div>
   );
 }

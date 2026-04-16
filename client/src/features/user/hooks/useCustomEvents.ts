@@ -1,106 +1,61 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "@/api/axiosConfig";
 import { toast } from "sonner";
+import type { CustomEventData } from "../components/CustomEventCard";
 
-export interface CustomEvent {
-  id: string;
+export interface PlaceCustomBetData {
   eventId: string;
-  userId: string;
-  homeTeam: string;
-  awayTeam: string;
-  sport: string;
-  league?: string;
-  commenceTime: string;
-  status: "UPCOMING" | "LIVE" | "FINISHED" | "CANCELLED";
-  homeScore?: number;
-  awayScore?: number;
-  h2hOdds?: { home: number; draw?: number; away: number };
-  spreadsOdds?: { spread: number; odds: { team1: number; team2: number } };
-  totalsOdds?: { total: number; odds: { over: number; under: number } };
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateCustomEventData {
-  homeTeam: string;
-  awayTeam: string;
-  sport?: string;
-  league?: string;
-  commenceTime: string;
-  h2hOdds?: { home: number; draw?: number; away: number };
-  spreadsOdds?: { spread: number; odds: { team1: number; team2: number } };
-  totalsOdds?: { total: number; odds: { over: number; under: number } };
-}
-
-export interface UpdateCustomEventData {
-  homeTeam?: string;
-  awayTeam?: string;
-  league?: string;
-  commenceTime?: string;
-  status?: "UPCOMING" | "LIVE" | "FINISHED" | "CANCELLED";
-  homeScore?: number;
-  awayScore?: number;
-  h2hOdds?: { home: number; draw?: number; away: number };
-  spreadsOdds?: { spread: number; odds: { team1: number; team2: number } };
-  totalsOdds?: { total: number; odds: { over: number; under: number } };
+  selectionId: string;
+  stake: number;
 }
 
 export const useCustomEvents = () => {
-  const [events, setEvents] = useState<CustomEvent[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState<CustomEventData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadEvents = useCallback(async (status?: string) => {
+  const loadEvents = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const params = status ? { status } : {};
-      const res = await api.get<{ events: CustomEvent[] }>(
+      const res = await api.get<{ events: CustomEventData[] }>(
         "/user/custom-events",
-        {
-          params,
-        },
       );
       setEvents(res.data.events);
     } catch (err: any) {
-      const msg = err?.response?.data?.error || "Failed to load events";
+      const msg = err?.response?.data?.error || "Failed to load custom events";
       setError(msg);
-      toast.error(msg);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const createEvent = useCallback(async (data: CreateCustomEventData) => {
+  const loadEvent = useCallback(async (id: string) => {
     try {
-      const res = await api.post<CustomEvent>("/user/custom-events", data);
-      setEvents((prev) => [res.data, ...prev]);
-      toast.success("Event created successfully! ✨", {
-        description: `${data.homeTeam} vs ${data.awayTeam}`,
-      });
+      const res = await api.get<CustomEventData>(`/user/custom-events/${id}`);
       return res.data;
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || "Failed to create event";
-      toast.error(msg);
-      throw err;
+    } catch {
+      return null;
     }
   }, []);
 
-  const updateEvent = useCallback(
-    async (eventId: string, data: UpdateCustomEventData) => {
+  const placeBet = useCallback(
+    async (data: PlaceCustomBetData) => {
       try {
-        const res = await api.patch<CustomEvent>(
-          `/user/custom-events/${eventId}`,
-          data,
-        );
-        setEvents((prev) =>
-          prev.map((e) => (e.eventId === eventId ? res.data : e)),
-        );
-        toast.success("Event updated successfully!");
+        const res = await api.post<{
+          success: boolean;
+          bet: any;
+          newBalance: number;
+          message: string;
+        }>(`/user/custom-events/${data.eventId}/bet`, {
+          selectionId: data.selectionId,
+          stake: data.stake,
+        });
+
+        toast.success(res.data.message || "Bet placed successfully!");
         return res.data;
       } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to update event";
+        const msg = err?.response?.data?.error || "Failed to place bet";
         toast.error(msg);
         throw err;
       }
@@ -108,25 +63,26 @@ export const useCustomEvents = () => {
     [],
   );
 
-  const deleteEvent = useCallback(async (eventId: string) => {
-    try {
-      await api.delete(`/user/custom-events/${eventId}`);
-      setEvents((prev) => prev.filter((e) => e.eventId !== eventId));
-      toast.success("Event deleted!");
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || "Failed to delete event";
-      toast.error(msg);
-      throw err;
-    }
-  }, []);
+  useEffect(() => {
+    void loadEvents();
+  }, [loadEvents]);
+
+  // Auto-refresh every 30s
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      void loadEvents();
+    }, 30000);
+    return () => window.clearInterval(interval);
+  }, [loadEvents]);
 
   return {
     events,
     loading,
     error,
     loadEvents,
-    createEvent,
-    updateEvent,
-    deleteEvent,
+    loadEvent,
+    placeBet,
   };
 };
+
+export type { CustomEventData };

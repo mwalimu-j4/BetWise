@@ -37,8 +37,18 @@ const userEventsPageRoute = createRoute({
   component: lazyRouteComponent(() => import("@/features/user/pages/events")),
 });
 
+const userCustomEventsPageRoute = createRoute({
+  getParentRoute: () => userIndexLayoutRoute,
+  path: "/custom-events",
+  component: lazyRouteComponent(
+    () => import("@/features/user/pages/custom-events"),
+  ),
+});
+
 export const userIndexRoute = userIndexLayoutRoute.addChildren([
   userHomePageRoute,
   userBetsPageRoute.addChildren([userBetDetailPageRoute]),
   userEventsPageRoute,
+  userCustomEventsPageRoute,
 ]);
+

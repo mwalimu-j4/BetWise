@@ -15,6 +15,8 @@ export interface BetSelection {
   side: string;
   odds: number;
   commenceTime: string;
+  isCustomEvent?: boolean;
+  customSelectionId?: string;
 }
 
 type PlaceBetResponse = {
@@ -186,17 +188,29 @@ export function useBetSlip() {
 
       for (const selection of selections) {
         try {
-          const { data } = await api.post<PlaceBetResponse>(
-            "/user/bets/place",
-            {
-              eventId: selection.eventId,
-              marketType: selection.marketType,
-              side: selection.side,
-              stake,
-              odds: selection.odds,
-              confirmOddsChange: false,
-            },
-          );
+          // Route to custom events endpoint if it's a custom event bet
+          const isCustom =
+            selection.isCustomEvent && selection.customSelectionId;
+
+          const { data } = isCustom
+            ? await api.post<PlaceBetResponse>(
+                `/user/custom-events/${selection.eventId}/bet`,
+                {
+                  selectionId: selection.customSelectionId,
+                  stake,
+                },
+              )
+            : await api.post<PlaceBetResponse>(
+                "/user/bets/place",
+                {
+                  eventId: selection.eventId,
+                  marketType: selection.marketType,
+                  side: selection.side,
+                  stake,
+                  odds: selection.odds,
+                  confirmOddsChange: false,
+                },
+              );
 
           latestBalance = data.newBalance;
         } catch (attemptError) {
