@@ -39,6 +39,7 @@ function QuickRow({
 export default function UserProfilePage() {
   const navigate = useNavigate();
   const { logout, openAuthModal } = useAuth();
+  const [expanded, setExpanded] = useState(true);
   const {
     data: profile,
     isLoading: profileLoading,
@@ -77,6 +78,8 @@ export default function UserProfilePage() {
           avatarLetter={profile?.avatarLetter ?? "U"}
           phoneMasked={profile?.phoneMasked ?? "07******"}
           status={profile?.status ?? "ACTIVE"}
+          expanded={expanded}
+          onToggleExpand={() => setExpanded((prev) => !prev)}
         />
 
         {profileLoading && !profile ? <ProfileSkeleton /> : null}
@@ -89,7 +92,9 @@ export default function UserProfilePage() {
               live={profile.live}
             />
 
-            <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+            <div
+              className={`grid gap-4 transition-all ${expanded ? "lg:grid-cols-2 lg:items-start" : "lg:grid-cols-1"}`}
+            >
               <div className="space-y-4">
                 <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
                   <h3 className="text-sm font-semibold text-white">
@@ -123,52 +128,36 @@ export default function UserProfilePage() {
                 </section>
               </div>
 
-              <div className="space-y-4">
-                <WithdrawalForm
-                  onSuccess={() => {
+              {expanded && (
+                <div className="space-y-4">
+                  <WithdrawalForm
+                    onSuccess={() => {
+                      void refetchTransactions();
+                    }}
+                  />
+
+          
+                </div>
+              )}
+            </div>
+
+            {expanded && (
+              <>
+                <TransactionPreview
+                  transactions={transactionsData?.transactions ?? []}
+                  isLoading={transactionsLoading && transactionsEnabled}
+                  isRefreshing={transactionsRefreshing}
+                  onRefresh={() => {
+                    setTransactionsEnabled(true);
                     void refetchTransactions();
                   }}
                 />
 
-                <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
-                  <h3 className="text-sm font-semibold text-white">
-                    Other Info & Preferences
-                  </h3>
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded-lg border border-[#31455f] bg-[#0f172a] p-3 text-[#9fb0c7]">
-                      <p className="text-[11px] uppercase tracking-[0.1em]">
-                        Wallet
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-white">
-                        Secure
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-[#31455f] bg-[#0f172a] p-3 text-[#9fb0c7]">
-                      <p className="text-[11px] uppercase tracking-[0.1em]">
-                        Session
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-white">
-                        {profileRefreshing ? "Syncing" : "Active"}
-                      </p>
-                    </div>
-                  </div>
-                </section>
-              </div>
-            </div>
+                <PreferencesPanel preferences={profile.preferences} />
 
-            <TransactionPreview
-              transactions={transactionsData?.transactions ?? []}
-              isLoading={transactionsLoading && transactionsEnabled}
-              isRefreshing={transactionsRefreshing}
-              onRefresh={() => {
-                setTransactionsEnabled(true);
-                void refetchTransactions();
-              }}
-            />
-
-            <PreferencesPanel preferences={profile.preferences} />
-
-            <SupportLinks onSignOut={handleSignOut} />
+                <SupportLinks onSignOut={handleSignOut} />
+              </>
+            )}
 
             <footer className="pb-20 text-center text-xs text-[#7f93ae] md:pb-4">
               BetixPro App 6.01

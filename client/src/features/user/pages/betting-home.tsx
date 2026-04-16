@@ -122,7 +122,7 @@ export default function BettingHome() {
   return (
     <div className="betting-home-wrapper min-h-screen overflow-x-hidden bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
       <div
-        className={`betting-home-main mx-auto max-w-4xl px-3 py-3 sm:px-5 sm:py-4 lg:px-6 ${
+        className={`betting-home-main mx-auto max-w-6xl px-3 py-3 sm:px-5 sm:py-4 lg:px-8 xl:px-12 ${
           hasSelections ? "has-betslip" : ""
         }`}
       >
