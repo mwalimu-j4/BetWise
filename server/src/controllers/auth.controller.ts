@@ -25,7 +25,7 @@ import {
 
 const PASSWORD_SALT_ROUNDS = 12;
 const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
-const PASSWORD_MIN_LENGTH = 10;
+const PASSWORD_MIN_LENGTH = 6;
 const ADMIN_MFA_TTL_MS = 10 * 60 * 1000;
 const ADMIN_MFA_TOKEN_ISSUER = "betixpro-admin-mfa";
 const ADMIN_MFA_TOKEN_AUDIENCE = "betixpro-admin";
@@ -143,22 +143,6 @@ function validatePassword(password: string) {
 
   if (password.length > 128) {
     errors.push("Password must be at most 128 characters long.");
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push("Password must include at least one uppercase letter.");
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push("Password must include at least one lowercase letter.");
-  }
-
-  if (!/\d/.test(password)) {
-    errors.push("Password must include at least one number.");
-  }
-
-  if (!/[^A-Za-z0-9]/.test(password)) {
-    errors.push("Password must include at least one special character.");
   }
 
   return errors;

@@ -106,7 +106,7 @@ export const adminSettingsSchema = z.object({
   }),
   securityConfig: z.object({
     adminTwoFactorRequired: z.boolean(),
-    passwordMinLength: z.number().int().min(8).max(64),
+    passwordMinLength: z.number().int().min(6).max(64),
     requireUppercase: z.boolean(),
     requireNumber: z.boolean(),
     requireSpecialChar: z.boolean(),
@@ -247,7 +247,7 @@ export const defaultAdminSettings: AdminSettingsConfig = {
   },
   securityConfig: {
     adminTwoFactorRequired: true,
-    passwordMinLength: 8,
+    passwordMinLength: 6,
     requireUppercase: true,
     requireNumber: true,
     requireSpecialChar: true,

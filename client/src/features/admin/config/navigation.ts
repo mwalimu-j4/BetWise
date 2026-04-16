@@ -12,6 +12,7 @@ import {
   Trophy,
   Users,
   ArrowUpRight,
+  ClipboardList,
 } from "lucide-react";
 
 export type AdminNavId =
@@ -120,7 +121,7 @@ export const adminNavigation: AdminNavSection[] = [
     id: "reports",
     label: "Reports",
     category: "insights",
-    icon: BarChart3,
+    icon: ClipboardList,
     to: "/admin/reports",
   },
   {

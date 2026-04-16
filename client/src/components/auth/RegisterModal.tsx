@@ -65,15 +65,10 @@ export default function RegisterModal() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Validation Logic
-  const passwordValid =
-    password.length >= 10 &&
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /\d/.test(password) &&
-    /[^A-Za-z0-9]/.test(password);
+  const passwordValid = password.length >= 6;
   const emailValid = email.length > 0 && isValidEmail(email);
   const phoneValid = phone.length > 0 && KENYAN_PHONE_REGEX.test(phone);
-  const passwordsMatch = password === confirmPassword && passwordValid;
+  const passwordsMatch = password === confirmPassword && password.length >= 6;
 
   // Require all fields to be filled and valid
   const canSubmit = useMemo(
@@ -340,8 +335,7 @@ export default function RegisterModal() {
                   </div>
                   {password && !passwordValid && (
                     <p className="text-xs text-red-400">
-                      Use 10+ chars with uppercase, lowercase, number, and
-                      symbol
+                      Password must be at least 6 characters
                     </p>
                   )}
                   {password && passwordValid && (
