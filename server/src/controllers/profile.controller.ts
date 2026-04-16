@@ -40,6 +40,7 @@ const updatePhoneSchema = z.object({
 });
 
 const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
+const PASSWORD_SALT_ROUNDS = 12;
 
 const adminTwoFactorEnableSchema = z.object({
   setupToken: z.string().trim().min(1),

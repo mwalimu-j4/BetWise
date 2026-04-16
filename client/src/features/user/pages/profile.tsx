@@ -14,7 +14,6 @@ import {
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import ProfileHeader from "@/components/profile/ProfileHeader";
 import EditPhoneModal from "@/components/profile/EditPhoneModal";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 import { useProfile } from "@/hooks/useProfile";
@@ -41,7 +40,7 @@ export default function UserProfilePage() {
 
   return (
     <ProtectedRoute requireRole="USER" redirectTo="/profile">
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0f1a] via-[#0f172a] to-[#0a0f1a]">
+      <div className="min-h-screen bg-linear-to-br from-[#0a0f1a] via-[#0f172a] to-[#0a0f1a]">
         <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 md:py-8 lg:px-8">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
@@ -62,12 +61,12 @@ export default function UserProfilePage() {
           ) : profile ? (
             <div className="space-y-6">
               {/* Profile Card */}
-              <div className="overflow-hidden rounded-2xl border border-[#2a3a4a] bg-gradient-to-br from-[#111827] to-[#0f172a] shadow-xl">
+              <div className="overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#111827] to-[#0f172a] shadow-xl">
                 <div className="relative px-6 py-8">
                   <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
                     {/* Avatar */}
                     <div className="relative">
-                      <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f5c518] to-[#d4a800] shadow-lg">
+                      <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-linear-to-br from-[#f5c518] to-[#d4a800] shadow-lg">
                         <span className="text-3xl font-bold text-black">
                           {profile.avatarLetter || "U"}
                         </span>
@@ -134,7 +133,7 @@ export default function UserProfilePage() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Link
                   to="/user/payments/deposit"
-                  className="group relative overflow-hidden rounded-2xl border border-[#2a3a4a] bg-gradient-to-br from-[#1a2332] to-[#111827] p-6 transition-all hover:border-[#22c55e]/50 hover:shadow-lg"
+                  className="group relative overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#1a2332] to-[#111827] p-6 transition-all hover:border-[#22c55e]/50 hover:shadow-lg"
                 >
                   <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -158,8 +157,8 @@ export default function UserProfilePage() {
                 </Link>
 
                 <Link
-                  to="/user/wallet"
-                  className="group relative overflow-hidden rounded-2xl border border-[#2a3a4a] bg-gradient-to-br from-[#1a2332] to-[#111827] p-6 transition-all hover:border-[#f5c518]/50 hover:shadow-lg"
+                  to="/user"
+                  className="group relative overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#1a2332] to-[#111827] p-6 transition-all hover:border-[#f5c518]/50 hover:shadow-lg"
                 >
                   <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -241,7 +240,7 @@ export default function UserProfilePage() {
               </footer>
             </div>
           ) : (
-            <div className="flex min-h-[400px] items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 p-8">
+            <div className="flex min-h-96 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/10 p-8">
               <div className="text-center">
                 <p className="text-red-300">Could not load profile data.</p>
                 <button
