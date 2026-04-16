@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Wallet,
   Zap,
@@ -10,13 +10,15 @@ import {
   Phone,
   User,
   Award,
+  TrendingUp,
+  History,
 } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import EditPhoneModal from "@/components/profile/EditPhoneModal";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, useProfileTransactions } from "@/hooks/useProfile";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "@/features/user/payments/data";
 
@@ -31,11 +33,42 @@ export default function UserProfilePage() {
     refetch: refetchProfile,
   } = useProfile();
 
+  const {
+    data: transactionsData,
+    isLoading: transactionsLoading,
+  } = useProfileTransactions(true, 100, 1);
+
+  const { totalDeposits, totalWithdrawals } = useMemo(() => {
+    if (!transactionsData?.transactions) {
+      return { totalDeposits: 0, totalWithdrawals: 0 };
+    }
+
+    let deposits = 0;
+    let withdrawals = 0;
+
+    transactionsData.transactions.forEach((tx) => {
+      if (tx.status === "completed") {
+        if (tx.type === "deposit") {
+          deposits += tx.amount;
+        } else if (tx.type === "withdrawal") {
+          withdrawals += tx.amount;
+        }
+      }
+    });
+
+    return { totalDeposits: deposits, totalWithdrawals: withdrawals };
+  }, [transactionsData]);
+
   const handleSignOut = async () => {
-    await logout();
-    toast.success("Logged out successfully");
-    openAuthModal("login");
-    await navigate({ to: "/" });
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      openAuthModal("login");
+      await navigate({ to: "/" });
+    } catch (error) {
+      toast.error("Failed to sign out");
+      console.error(error);
+    }
   };
 
   return (
@@ -157,7 +190,7 @@ export default function UserProfilePage() {
                 </Link>
 
                 <Link
-                  to="/user"
+                  to="/user/payments/withdrawal"
                   className="group relative overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#1a2332] to-[#111827] p-6 transition-all hover:border-[#f5c518]/50 hover:shadow-lg"
                 >
                   <div className="relative flex items-center justify-between">
@@ -171,6 +204,59 @@ export default function UserProfilePage() {
                         </h3>
                         <p className="text-sm text-gray-400">
                           Cash out your winnings
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight
+                      size={20}
+                      className="text-gray-600 group-hover:text-[#f5c518] transition"
+                    />
+                  </div>
+                </Link>
+              </div>
+
+              {/* Quick Navigation */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <Link
+                  to="/my-bets"
+                  className="group relative overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#1a2332] to-[#111827] p-6 transition-all hover:border-[#22c55e]/50 hover:shadow-lg"
+                >
+                  <div className="relative flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#22c55e]/10 group-hover:bg-[#22c55e]/20 transition">
+                        <TrendingUp size={24} className="text-[#22c55e]" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white">
+                          My Bets
+                        </h3>
+                        <p className="text-sm text-gray-400">
+                          View your betting history
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight
+                      size={20}
+                      className="text-gray-600 group-hover:text-[#22c55e] transition"
+                    />
+                  </div>
+                </Link>
+
+                <Link
+                  to="/user/payments/history"
+                  className="group relative overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#1a2332] to-[#111827] p-6 transition-all hover:border-[#f5c518]/50 hover:shadow-lg"
+                >
+                  <div className="relative flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#f5c518]/10 group-hover:bg-[#f5c518]/20 transition">
+                        <History size={24} className="text-[#f5c518]" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white">
+                          Transactions
+                        </h3>
+                        <p className="text-sm text-gray-400">
+                          View transaction history
                         </p>
                       </div>
                     </div>
@@ -204,7 +290,7 @@ export default function UserProfilePage() {
                     <div>
                       <p className="text-xs text-gray-400">Total Deposits</p>
                       <p className="text-sm font-semibold text-white">
-                        Coming Soon
+                        {transactionsLoading ? "Loading..." : formatMoney(totalDeposits)}
                       </p>
                     </div>
                   </div>
@@ -218,7 +304,7 @@ export default function UserProfilePage() {
                     <div>
                       <p className="text-xs text-gray-400">Total Withdrawals</p>
                       <p className="text-sm font-semibold text-white">
-                        Coming Soon
+                        {transactionsLoading ? "Loading..." : formatMoney(totalWithdrawals)}
                       </p>
                     </div>
                   </div>
