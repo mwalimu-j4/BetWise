@@ -1,24 +1,24 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { toast } from "sonner";
-import {
-  ChevronDown,
-  Zap,
-  Home,
-  Flame,
-  User,
-  Wallet,
-  TrendingUp,
-  History,
-  BarChart3,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  HelpCircle,
-  MessageCircle,
-  FileText,
-} from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  BarChart3,
+  ChevronDown,
+  FileText,
+  Flame,
+  HelpCircle,
+  History,
+  Home,
+  MessageCircle,
+  TrendingUp,
+  User,
+  Wallet,
+  Zap
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 type SidebarProps = {
   isOpen: boolean;
@@ -71,7 +71,7 @@ function toSidebarSportName(raw: string) {
   return "Soccer";
 }
 
-function sportIcon(name: string) {
+function sportIcon(name: string): React.ReactNode {
   switch (name) {
     case "Soccer":
       return "⚽";
@@ -182,11 +182,12 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isAuthenticated, logout, openAuthModal } = useAuth();
+  const navigate = useNavigate();
   const [openSports, setOpenSports] = useState<Record<string, boolean>>({
     football: true,
     basketball: true,
   });
-  const [liveSportsOpen, setLiveSportsOpen] = useState(true);
+  const [liveSportsOpen, setLiveSportsOpen] = useState(!isAuthenticated);
   const [liveCounts, setLiveCounts] = useState<Record<string, number>>(() => ({
     Soccer: 0,
     Basketball: 0,
@@ -201,6 +202,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const accountSection = useMemo(() => {
     if (!isAuthenticated) return [];
     return myAccount;
+  }, [isAuthenticated]);
+
+  // Update Live Sports section visibility based on auth state
+  useEffect(() => {
+    setLiveSportsOpen(!isAuthenticated);
   }, [isAuthenticated]);
 
   function closeIfMobile() {
@@ -287,12 +293,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
               {liveSportsOrder.map((name) => {
                 const count = liveCounts[name] ?? 0;
+                const sportKey = name.toLowerCase().replace(/\s+/g, "_");
                 return (
-                  <Link
+                  <button
                     key={name}
-                    to="/user/live"
-                    className="bc-live-sport-item"
-                    onClick={closeIfMobile}
+                    type="button"
+                    onClick={() => {
+                      navigate({
+                        to: "/user/live",
+                        search: { sport: sportKey },
+                      });
+                      closeIfMobile();
+                    }}
+                    disabled={count === 0}
+                    className={`bc-live-sport-item ${count === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     <span className="bc-side-icon" aria-hidden="true">
                       {sportIcon(name)}
@@ -303,7 +317,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         {count > 99 ? "99+" : count}
                       </span>
                     ) : null}
-                  </Link>
+                  </button>
                 );
               })}
             </div>

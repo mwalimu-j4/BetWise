@@ -120,9 +120,9 @@ export default function BettingHome() {
   };
 
   return (
-    <div className="betting-home-wrapper min-h-screen overflow-x-hidden bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
+    <div className="betting-home-wrapper min-h-screen   bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
       <div
-        className={`betting-home-main mx-auto max-w-6xl px-3 py-3 sm:px-5 sm:py-4 lg:px-8 xl:px-12 ${
+        className={`betting-home-main mx-auto max-md:-mt-16 w-full max-w-7xl px-2 py-3 sm:px-4 sm:py-4 md:px-6 lg:px-8 xl:px-12 ${
           hasSelections ? "has-betslip" : ""
         }`}
       >
@@ -270,7 +270,7 @@ export default function BettingHome() {
           >
             {/* LIVE NOW section */}
             {liveEvents.length > 0 ? (
-              <section className="mb-3 overflow-hidden rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:mb-4 sm:rounded-2xl">
+              <section className="mb-3 rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:mb-4 sm:rounded-2xl">
                 <div className="flex items-center justify-between border-b border-[#1e3350]/40 px-3 py-2 sm:px-4 sm:py-2.5">
                   <div className="flex items-center gap-2">
                     <span className="relative flex h-2 w-2">
@@ -298,7 +298,7 @@ export default function BettingHome() {
                   ) : null}
                 </div>
 
-                <div className="space-y-1.5 p-2 sm:space-y-2 sm:p-3">
+                <div className="space-y-2 p-2 sm:space-y-3 sm:p-3 md:p-4">
                   {featuredLiveEvents.map((event) => (
                     <EventCard
                       key={event.eventId}
@@ -312,7 +312,7 @@ export default function BettingHome() {
             ) : null}
 
             {/* UPCOMING MATCHES section */}
-            <section className="matches-section min-w-0 overflow-hidden rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:rounded-2xl">
+            <section className="matches-section min-w-0 rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:rounded-2xl">
               {/* Match Centre header */}
               <div className="border-b border-[#1e3350]/40 px-3 py-3 sm:px-4 sm:py-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -345,15 +345,9 @@ export default function BettingHome() {
               </div>
 
               {/* Match content */}
-              <div className="p-2 sm:p-3">
+              <div className="p-2 sm:p-3 md:p-4">
                 {loading ? (
-                  <div
-                    className={`grid gap-2 ${
-                      hasSelections
-                        ? "lg:grid-cols-2"
-                        : "md:grid-cols-2 xl:grid-cols-3"
-                    }`}
-                  >
+                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {Array.from({ length: hasSelections ? 4 : 6 }).map(
                       (_, index) => (
                         <div
