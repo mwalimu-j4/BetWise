@@ -1363,56 +1363,56 @@
   letter-spacing: 0.5px;
 }
 
-.bc-side-group {
-  overflow: hidden;
-}
-
 .bc-side-chevron {
   margin-left: auto;
-  transition: transform 0.2s;
+  transition: transform 0.25s cubic-bezier(0.3, 0, 0.5, 1);
+  color: var(--nav-accent);
+  opacity: 0.6;
 }
 
 .bc-side-chevron.is-open {
   transform: rotate(180deg);
+  opacity: 1;
 }
 
 .bc-side-children {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.25s ease;
+  transition: max-height 0.3s cubic-bezier(0.3, 0, 0.5, 1);
 }
 
 .bc-side-children.is-open {
-  max-height: 500px;
+  max-height: 600px;
 }
 
 .bc-side-children .bc-sidebar-link {
-  padding-left: 36px;
+  padding-left: 44px;
   font-size: 12px;
+  margin: 2px 0;
 }
 
 .bc-live-sports-toggle {
   width: 100%;
-  min-height: 44px;
+  min-height: 42px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 10px 16px;
-  margin: 0;
+  margin: 0 0 8px 0;
   text-decoration: none;
   color: var(--nav-text);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   border: 0;
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--nav-accent) 15%, transparent),
-    color-mix(in srgb, var(--nav-accent2) 10%, transparent)
+    color-mix(in srgb, var(--nav-accent2) 8%, transparent)
   );
   text-align: left;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.3, 0, 0.5, 1);
   border: 1px solid color-mix(in srgb, var(--nav-accent) 20%, transparent);
 }
 
@@ -1420,15 +1420,16 @@
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--nav-accent) 25%, transparent),
-    color-mix(in srgb, var(--nav-accent2) 20%, transparent)
+    color-mix(in srgb, var(--nav-accent2) 15%, transparent)
   );
-  border-color: var(--nav-accent);
+  border-color: color-mix(in srgb, var(--nav-accent) 40%, transparent);
   color: var(--nav-accent);
+  transform: translateX(2px);
 }
 
 .bc-live-sports-chevron {
   margin-left: auto;
-  transition: transform 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.3, 0, 0.5, 1);
   color: var(--nav-accent);
 }
 
@@ -1439,36 +1440,36 @@
 .bc-live-sports-list {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease;
+  transition: max-height 0.3s cubic-bezier(0.3, 0, 0.5, 1);
 }
 
 .bc-live-sports-list.is-open {
-  max-height: 800px;
+  max-height: 900px;
 }
 
 .bc-live-sport-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 16px 9px 32px;
+  gap: 12px;
+  padding: 8px 16px 8px 40px;
   text-decoration: none;
   color: var(--nav-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   border: 0;
   background: transparent;
   text-align: left;
-  margin: 1px 0;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  margin: 3px 0;
+  border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.3, 0, 0.5, 1);
   width: 100%;
   cursor: pointer;
 }
 
 .bc-live-sport-item:hover {
-  color: var(--nav-text);
-  background: var(--color-bg-hover);
-  padding-left: 36px;
+  color: var(--nav-accent);
+  background: color-mix(in srgb, var(--nav-accent) 10%, transparent);
+  padding-left: 44px;
 }
 
 .bc-live-sport-name {
@@ -1476,32 +1477,33 @@
 }
 
 .bc-live-sport-count {
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, var(--nav-red), #ff8a8a);
+  padding: 2px 8px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, var(--nav-red), #ff7a7a);
   color: #ffffff;
   font-size: 10px;
   font-weight: 700;
-  min-width: 24px;
+  min-width: 26px;
   text-align: center;
+  line-height: 1.4;
 }
 
 .bc-side-bottom {
-  border-top: 1px solid var(--color-border-primary);
+  border-top: 1px solid color-mix(in srgb, var(--nav-accent) 10%, transparent);
   padding: 16px;
-  margin-top: 16px;
+  margin-top: auto;
 }
 
 .bc-side-logout {
   color: var(--nav-red);
-  border-radius: 6px;
   background: transparent;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.3, 0, 0.5, 1);
 }
 
 .bc-side-logout:hover {
   background: color-mix(in srgb, var(--nav-red) 15%, transparent);
-  padding-left: 18px;
+  color: var(--nav-red);
+  transform: translateX(4px);
 }
 
 .bc-live-sports-toggle {
