@@ -347,13 +347,7 @@ export default function BettingHome() {
               {/* Match content */}
               <div className="p-2 sm:p-3 md:p-4">
                 {loading ? (
-                  <div
-                    className={`grid gap-2 ${
-                      hasSelections
-                        ? "lg:grid-cols-2"
-                        : "md:grid-cols-2 xl:grid-cols-3"
-                    }`}
-                  >
+                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {Array.from({ length: hasSelections ? 4 : 6 }).map(
                       (_, index) => (
                         <div

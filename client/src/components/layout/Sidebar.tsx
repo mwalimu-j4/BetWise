@@ -1,4 +1,4 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   ChevronDown,
@@ -15,6 +15,9 @@ import {
   HelpCircle,
   MessageCircle,
   FileText,
+  Goal,
+  Dumbbell,
+  Trophy,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/api/axiosConfig";
@@ -71,26 +74,26 @@ function toSidebarSportName(raw: string) {
   return "Soccer";
 }
 
-function sportIcon(name: string) {
+function sportIcon(name: string): React.ReactNode {
   switch (name) {
     case "Soccer":
-      return "⚽";
+      return <Goal size={16} />;
     case "Basketball":
       return "🏀";
     case "Tennis":
-      return "🎾";
+      return <Trophy size={16} />;
     case "Ice Hockey":
-      return "🏒";
+      return <Dumbbell size={16} />;
     case "Volleyball":
-      return "🏐";
+      return <Trophy size={16} />;
     case "Cricket":
-      return "🏏";
+      return <Trophy size={16} />;
     case "Handball":
-      return "🤾";
+      return <Trophy size={16} />;
     case "Table Tennis":
-      return "🏓";
+      return <Trophy size={16} />;
     default:
-      return "🎯";
+      return <Trophy size={16} />;
   }
 }
 
@@ -182,6 +185,7 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isAuthenticated, logout, openAuthModal } = useAuth();
+  const navigate = useNavigate();
   const [openSports, setOpenSports] = useState<Record<string, boolean>>({
     football: true,
     basketball: true,
@@ -292,12 +296,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
               {liveSportsOrder.map((name) => {
                 const count = liveCounts[name] ?? 0;
+                const sportKey = name.toLowerCase().replace(/\s+/g, "_");
                 return (
-                  <Link
+                  <button
                     key={name}
-                    to="/user/live"
-                    className="bc-live-sport-item"
-                    onClick={closeIfMobile}
+                    type="button"
+                    onClick={() => {
+                      navigate({
+                        to: "/user/live",
+                        search: { sport: sportKey },
+                      });
+                      closeIfMobile();
+                    }}
+                    disabled={count === 0}
+                    className={`bc-live-sport-item ${count === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     <span className="bc-side-icon" aria-hidden="true">
                       {sportIcon(name)}
@@ -308,7 +320,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         {count > 99 ? "99+" : count}
                       </span>
                     ) : null}
-                  </Link>
+                  </button>
                 );
               })}
             </div>
