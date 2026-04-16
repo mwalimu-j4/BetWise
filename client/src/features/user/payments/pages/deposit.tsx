@@ -6,11 +6,9 @@ import {
   LoaderCircle,
   Check,
   Smartphone,
-  ChevronDown,
-  Info,
-  Clock,
-  Zap,
-  AlertCircle,
+  Copy,
+  Check as CheckIcon,
+  ArrowRight,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -34,7 +32,6 @@ import {
   type WalletSummaryResponse,
 } from "../wallet";
 
-// Reduced to exactly 4 options
 const quickAmounts = [500, 1000, 2500, 5000];
 const paymentStages = [
   "STK sent",
@@ -47,7 +44,6 @@ function normalizePhone(phone: string) {
   if (compact.startsWith("0")) {
     return `254${compact.slice(1)}`;
   }
-
   return compact;
 }
 
@@ -55,9 +51,17 @@ function isPhoneValid(phone: string) {
   return /^254(7|1)\d{8}$/.test(phone);
 }
 
+const copyToClipboard = async (text: string, label: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success(`${label} copied!`);
+  } catch {
+    toast.error("Failed to copy");
+  }
+};
+
 export default function PaymentsDepositPage() {
   const { user } = useAuth();
-  const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("100");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<StkPushResponse | null>(null);
@@ -74,10 +78,8 @@ export default function PaymentsDepositPage() {
   const [depositConfirmed, setDepositConfirmed] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const [paymentFailed, setPaymentFailed] = useState<string | null>(null);
-  const [expandedDetails, setExpandedDetails] = useState(false);
-  const [expandedTutorial, setExpandedTutorial] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  // Kept under the hood for optimistic UI updates, but removed from the visible layout
   const queryClient = useQueryClient();
   const { data: walletData } = useWalletSummary();
   const currentBalance = walletData?.wallet.balance ?? 0;
@@ -87,19 +89,16 @@ export default function PaymentsDepositPage() {
   );
   const accountPhoneValid = isPhoneValid(accountPhone);
 
-  useEffect(() => {
-    if (user?.phone && !phone) {
-      setPhone(user.phone);
-    }
-  }, [phone, user?.phone]);
-
-  const sanitizedPhone = normalizePhone(phone);
-  const phoneInputValid = phone ? isPhoneValid(sanitizedPhone) : true;
-
   const isFormValid = useMemo(() => {
     const amountValue = Number(amount);
-    return phoneInputValid && amountValue >= 1 && amountValue <= 250000;
-  }, [amount, phoneInputValid]);
+    return accountPhoneValid && amountValue >= 1 && amountValue <= 250000;
+  }, [accountPhoneValid, amount]);
+
+  const handleCopy = async (text: string, field: string) => {
+    await copyToClipboard(text, field);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   useEffect(() => {
     if (
@@ -216,17 +215,21 @@ export default function PaymentsDepositPage() {
     return () => {
       active = false;
     };
-  }, [depositConfirmed, paymentFailed, submittedTransactionId]);
+  }, [
+    currentBalance,
+    depositConfirmed,
+    paymentFailed,
+    queryClient,
+    submissionAmount,
+    submissionBalance,
+    submittedTransactionId,
+  ]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!isFormValid) {
-      if (!accountPhoneValid) {
-        toast.error("Your account phone is invalid for M-PESA deposits.");
-      } else {
-        toast.error("Enter a valid deposit amount.");
-      }
+      toast.error("Your account phone is missing or invalid in your profile.");
       return;
     }
 
@@ -240,14 +243,13 @@ export default function PaymentsDepositPage() {
     setSubmissionAmount(Number(amount));
     setSubmittedTransactionId(null);
 
-    const normalizedPhone = sanitizedPhone.startsWith("0")
-      ? `254${sanitizedPhone.slice(1)}`
-      : sanitizedPhone;
-
     try {
       const { data } = await api.post<StkPushResponse>(
         "/payments/mpesa/stk-push",
-        { phone: normalizedPhone, amount: Number(amount) },
+        {
+          phone: accountPhone,
+          amount: Number(amount),
+        },
       );
 
       setResponse(data);
@@ -272,112 +274,172 @@ export default function PaymentsDepositPage() {
   const shouldShowDialog =
     feedbackDialogOpen &&
     Boolean(isSubmitting || response || depositConfirmed || paymentFailed);
-
-  const currentStepIndex = depositConfirmed ? 3 : response ? 1 : 0;
+  const currentStepIndex = depositConfirmed ? 2 : response ? 1 : 0;
 
   return (
-    // Restricted max-width to make it a neat, compact widget instead of a massive spanning grid
-    <section className="mx-auto max-w-4xl space-y-4">
-      {/* Main Deposit Form */}
-      <article className="rounded-3xl border border-[#23384f] bg-[#111d2e] p-5 shadow-sm sm:p-6">
-        <div className="mb-6 flex items-center justify-between border-b border-[#23384f] pb-5">
-          <div>
-            <h2 className="text-xl font-bold text-admin-text-primary">
-              Deposit Funds
-            </h2>
-            <p className="mt-1 text-sm text-admin-text-muted">
-              Instant M-Pesa Top-up
-            </p>
+    <section className="mx-auto max-w-5xl space-y-5 px-4 py-5 md:px-5">
+      {/* Compact header with M-Pesa logo */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-white">Deposit Funds</h1>
+          <p className="text-xs text-gray-400">Instant M-Pesa Top-up</p>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-[#1a2a3a] px-3 py-1.5">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
+            alt="M-Pesa"
+            className="h-5 w-auto object-contain"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+          />
+          <span className="text-[11px] font-medium text-gray-300">
+            Safaricom
+          </span>
+        </div>
+      </div>
+
+      {/* Two equal-height cards */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        {/* Deposit Form Card */}
+        <div className="flex flex-col rounded-xl border border-[#23384f] bg-[#111d2e] shadow-md">
+          <div className="border-b border-[#23384f] px-4 py-3">
+            <h2 className="text-sm font-semibold text-white">Quick Deposit</h2>
+            <p className="text-[11px] text-gray-400">STK Push to your phone</p>
           </div>
-          <div className="flex h-11 w-20 items-center justify-center rounded-xl border border-[#2f4a62] bg-[#4CAF50]/10 px-2">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
-              alt="M-Pesa"
-              className="h-full w-full object-contain drop-shadow-sm"
-              loading="lazy"
-              referrerPolicy="no-referrer"
-            />
-          </div>
+
+          <form className="flex flex-1 flex-col p-4" onSubmit={handleSubmit}>
+            <div className="flex-1 space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-gray-300">
+                  Amount (KES)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
+                    KES
+                  </span>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    min={1}
+                    max={250000}
+                    className="h-11 w-full rounded-lg border border-[#2a3a4a] bg-[#0a121f] pl-12 pr-3 text-base font-medium text-white outline-none transition focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]/50"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {quickAmounts.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setAmount(String(value))}
+                      className="rounded-md border border-[#2a3a4a] bg-[#0a121f] px-3 py-1 text-xs font-medium text-gray-300 transition hover:border-[#f5c518] hover:text-white"
+                    >
+                      {formatMoney(value)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={!isFormValid || isSubmitting}
+              className="mt-4 h-11 w-full rounded-lg bg-[#f5c518] text-sm font-bold text-black transition-all hover:bg-[#e0b010] hover:shadow-md disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                  Initiating...
+                </>
+              ) : (
+                <>
+                  Pay with M-Pesa <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+
+            <div className="mt-3 flex items-center justify-center gap-2 text-[10px] text-gray-500">
+              <CheckCircle2 className="h-3 w-3 text-green-500" />
+              <span>Secure • No extra fees</span>
+            </div>
+          </form>
         </div>
 
-        <form className="grid gap-5" onSubmit={handleSubmit}>
-          <div className="rounded-2xl border border-[#23384f] bg-[#101b2b] p-3 sm:p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <Smartphone size={15} className="text-[#8a9bb0]" />
-              <label
-                htmlFor="phone"
-                className="text-sm font-semibold text-admin-text-primary"
-              >
-                M-Pesa Phone
-              </label>
+        {/* Till Number Card */}
+        <div className="flex flex-col rounded-xl border border-[#23384f] bg-[#111d2e] shadow-md">
+          <div className="border-b border-[#23384f] px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Smartphone className="h-4 w-4 text-[#f5c518]" />
+              <h3 className="text-sm font-semibold text-white">
+                Lipa Na M-PESA
+              </h3>
             </div>
-            <input
-              id="phone"
-              className="h-11 w-full rounded-xl border border-[#294157] bg-[#0f1a2a] px-3 text-sm text-admin-text-primary outline-none transition placeholder:text-[#8a9bb0] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="2547XXXXXXXX"
-              autoComplete="tel"
-            />
-
-            {phone && !phoneInputValid && (
-              <p className="mt-2 text-xs text-red-400">
-                Use format: 2547XXXXXXXX or 07XXXXXXXX.
-              </p>
-            )}
+            <p className="text-[11px] text-gray-400">Buy Goods Till Number</p>
           </div>
 
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="amount"
-                className="text-sm font-semibold text-admin-text-primary"
-              >
-                Amount
-              </label>
-            </div>
-
-            <div className="flex w-full items-center overflow-hidden rounded-xl border border-[#294157] bg-[#0f1a2a] transition focus-within:border-[#f5c518] focus-within:shadow-[0_0_0_2px_rgba(245,197,24,0.2)]">
-              <span className="flex h-11 items-center border-r border-[#294157] px-3 text-[11px] font-bold text-[#8a9bb0]">
-                KES
-              </span>
-              <input
-                id="amount"
-                className="h-11 w-full border-0 bg-transparent px-3 text-sm text-admin-text-primary outline-none placeholder:text-[#8a9bb0]"
-                value={amount}
-                type="number"
-                min={1}
-                max={250000}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {quickAmounts.map((option) => (
+          <div className="flex flex-1 flex-col p-4">
+            <div className="flex-1 space-y-4">
+              {/* Till Number - Compact */}
+              <div className="rounded-lg bg-[#0a121f] p-3 text-center">
+                <p className="text-[10px] uppercase tracking-wider text-gray-500">
+                  Till Number
+                </p>
+                <p className="text-2xl font-black text-white tracking-tight">
+                  9006951
+                </p>
                 <button
-                  key={option}
-                  type="button"
-                  className="rounded-lg border border-[#294157] bg-[#0f1a2a] py-1.5 text-xs font-medium text-[#8a9bb0] transition hover:border-[#f5c518]/70 hover:text-white"
-                  onClick={() => setAmount(String(option))}
+                  onClick={() => handleCopy("9006951", "Till number")}
+                  className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[#1a2a3a] px-2.5 py-1 text-[10px] text-gray-300 transition hover:bg-[#2a3a4a]"
                 >
-                  {formatMoney(option)}
+                  {copiedField === "Till number" ? (
+                    <>
+                      <CheckIcon className="h-3 w-3 text-green-500" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      Copy
+                    </>
+                  )}
                 </button>
-              ))}
+              </div>
+
+              {/* Steps - Compact */}
+              <div>
+                <p className="mb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                  How to pay
+                </p>
+                <div className="space-y-1.5">
+                  {[
+                    "Go to M-Pesa → Lipa Na M-Pesa",
+                    "Select Buy Goods & Services",
+                    "Enter Till 9006951",
+                    "Enter amount & PIN",
+                    "Confirm payment",
+                  ].map((step, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 text-[11px] text-gray-300"
+                    >
+                      <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#f5c518]/20 text-[9px] font-bold text-[#f5c518]">
+                        {idx + 1}
+                      </div>
+                      <span>{step}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-[9px] text-gray-500 text-center">
+                  Dial *234# for charges
+                </p>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <Button
-            type="submit"
-            disabled={!isFormValid || isSubmitting}
-            className="mt-2 h-11 w-full rounded-xl bg-admin-accent text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {isSubmitting ? "Initiating STK Push..." : "Deposit Now"}
-          </Button>
-        </form>
-      </article>
-
-      {/* Strict Unclosable Feedback Dialog */}
+      {/* Status Dialog */}
       <Dialog
         open={shouldShowDialog}
         onOpenChange={(open) => {

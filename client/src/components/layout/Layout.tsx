@@ -41,7 +41,7 @@ export default function Layout() {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         {/* Added bottom padding so the mobile nav doesn't cover content */}
         <main
-          className={`bc-layout-main pb-[80px] md:pb-0  ${isLiveRoute ? "overflow-hidden" : ""}`}
+          className={`bc-layout-main pb-20 md:pb-0  ${isLiveRoute ? "overflow-hidden" : ""}`}
         >
           <div className="bc-page-wrap">
             <Outlet />
