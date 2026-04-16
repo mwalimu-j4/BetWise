@@ -366,22 +366,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           )}
         </div>
       </div>
-
-      <div className="bc-leagues">
-        {leagues.map((league, index) => (
-          <div key={league} className="bc-league-wrap">
-            <button
-              type="button"
-              className={`bc-league ${index === 0 ? "is-active" : ""}`}
-            >
-              {league}
-            </button>
-            {index < leagues.length - 1 ? (
-              <span className="bc-league-sep" aria-hidden="true" />
-            ) : null}
-          </div>
-        ))}
-      </div>
     </header>
   );
 }
