@@ -18,7 +18,7 @@ function TransactionPreviewComponent({
   onRefresh,
 }: TransactionPreviewProps) {
   return (
-    <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+    <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-white">My Transactions</h3>
         <div className="flex items-center gap-3">
@@ -49,7 +49,7 @@ function TransactionPreviewComponent({
           ))}
         </div>
       ) : transactions.length === 0 ? (
-        <p className="mt-3 rounded-lg border border-dashed border-[#31455f] p-3 text-xs text-[#9fb0c7]">
+        <p className="mt-3 rounded-lg border border-dashed border-[#31455f] p-3 text-xs text-[#8a9bb0]">
           No transactions yet.
         </p>
       ) : (
@@ -61,13 +61,13 @@ function TransactionPreviewComponent({
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.08em] text-[#94a3b8]">
+                  <p className="text-xs uppercase tracking-[0.08em] text-[#8a9bb0]">
                     {entry.type.replace("-", " ")}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-white">
                     {formatMoney(entry.amount)}
                   </p>
-                  <p className="mt-1 text-[11px] text-[#91a4bc]">
+                  <p className="mt-1 text-[11px] text-[#8a9bb0]">
                     {new Date(entry.createdAt).toLocaleString()}
                   </p>
                 </div>

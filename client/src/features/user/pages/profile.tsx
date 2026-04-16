@@ -72,7 +72,7 @@ export default function UserProfilePage() {
 
   return (
     <ProtectedRoute requireRole="USER" redirectTo="/profile">
-      <section className="mx-auto w-full max-w-[1120px] space-y-4 px-3 py-3 font-admin sm:px-4 sm:py-4 lg:px-6">
+      <section className="mx-auto w-full max-w-[1120px] bg-[#0f172a] space-y-4 px-3 py-3 font-admin sm:px-4 sm:py-4 lg:px-6">
         <ProfileHeader
           avatarLetter={profile?.avatarLetter ?? "U"}
           phoneMasked={profile?.phoneMasked ?? "07******"}

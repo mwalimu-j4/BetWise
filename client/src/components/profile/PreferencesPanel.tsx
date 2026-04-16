@@ -63,14 +63,14 @@ export default function PreferencesPanel({
   };
 
   return (
-    <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+    <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
       <h3 className="text-sm font-semibold text-white">Preferences</h3>
 
       <div className="mt-3 space-y-3">
         <div className="flex items-center justify-between rounded-lg border border-[#31455f] bg-[#0f172a] p-3">
           <div>
             <p className="text-sm font-medium text-white">Display Theme</p>
-            <p className="text-xs text-[#91a4bc]">
+            <p className="text-xs text-[#8a9bb0]">
               Dark mode optimized for betting screens
             </p>
           </div>
@@ -84,7 +84,7 @@ export default function PreferencesPanel({
         <div className="flex items-center justify-between rounded-lg border border-[#31455f] bg-[#0f172a] p-3">
           <div>
             <p className="text-sm font-medium text-white">Data Saver</p>
-            <p className="text-xs text-[#91a4bc]">
+            <p className="text-xs text-[#8a9bb0]">
               Reduce image and ticker refresh frequency
             </p>
           </div>
