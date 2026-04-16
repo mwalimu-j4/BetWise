@@ -13,6 +13,8 @@ import {
   Loader2,
   Lock,
   Mail,
+  Eye,
+  EyeOff,
   Percent,
   QrCode,
   Sparkles,
@@ -89,6 +91,15 @@ type GenericMessageResponse = {
 type ChangePasswordResponse = {
   message: string;
   mustChangePassword: boolean;
+};
+
+type ChangePasswordErrorResponse = {
+  message?: string;
+  errors?: {
+    currentPassword?: string[];
+    newPassword?: string[];
+    [key: string]: string[] | undefined;
+  };
 };
 
 const inputClassName =
@@ -756,6 +767,12 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordChangeError, setPasswordChangeError] = useState<string | null>(
+    null,
+  );
 
   const openAuthenticatorInstallLink = () => {
     const userAgent = navigator.userAgent.toLowerCase();
@@ -1037,13 +1054,55 @@ export default function Settings() {
   };
 
   const handleForcePasswordChange = async () => {
+    setPasswordChangeError(null);
+
     if (!currentPassword.trim() || !newPassword.trim()) {
-      toast.error("Current password and new password are required.");
+      const message = "Current password and new password are required.";
+      setPasswordChangeError(message);
+      toast.error(message);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("New password and confirm password must match.");
+      const message = "New password and confirm password must match.";
+      setPasswordChangeError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (newPassword.length < 10) {
+      const message = "New password must be at least 10 characters long.";
+      setPasswordChangeError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      const message = "New password must include at least one uppercase letter.";
+      setPasswordChangeError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+      const message = "New password must include at least one lowercase letter.";
+      setPasswordChangeError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (!/\d/.test(newPassword)) {
+      const message = "New password must include at least one number.";
+      setPasswordChangeError(message);
+      toast.error(message);
+      return;
+    }
+
+    if (!/[^A-Za-z0-9]/.test(newPassword)) {
+      const message =
+        "New password must include at least one special character.";
+      setPasswordChangeError(message);
+      toast.error(message);
       return;
     }
 
@@ -1063,19 +1122,33 @@ export default function Settings() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      setPasswordChangeError(null);
 
       await refreshSession();
       await queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
       await navigate({ to: "/admin" });
     } catch (mutationError: unknown) {
-      const message =
+      const responseData =
         typeof mutationError === "object" &&
         mutationError !== null &&
         "response" in mutationError &&
         typeof (mutationError as { response?: unknown }).response === "object"
-          ? ((mutationError as { response?: { data?: { message?: string } } })
-              .response?.data?.message ?? "Failed to change password.")
-          : "Failed to change password.";
+          ? (mutationError as { response?: { data?: ChangePasswordErrorResponse } })
+              .response?.data
+          : undefined;
+
+      const messageFromFieldErrors = responseData?.errors
+        ? Object.values(responseData.errors)
+            .flatMap((entries) => entries ?? [])
+            .find((entry) => typeof entry === "string" && entry.trim().length > 0)
+        : undefined;
+
+      const message =
+        messageFromFieldErrors ??
+        responseData?.message ??
+        "Failed to change password.";
+
+      setPasswordChangeError(message);
       toast.error(message);
     } finally {
       setIsChangingPassword(false);
@@ -1090,7 +1163,7 @@ export default function Settings() {
           subtitle="Complete your first-time password update to unlock admin tools"
         />
 
-        <AdminCard className="border-amber-500/30 bg-amber-500/5 p-6">
+        <AdminCard className="border-amber-500/30 bg-amber-500/5 p-4 sm:p-6">
           <div className="flex items-start gap-3">
             <AlertTriangle size={18} className="mt-0.5 text-amber-300" />
             <div>
@@ -1104,46 +1177,95 @@ export default function Settings() {
             </div>
           </div>
 
+          {passwordChangeError ? (
+            <div className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+              {passwordChangeError}
+            </div>
+          ) : null}
+
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             <label className="space-y-1.5 md:col-span-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
                 Current password
               </p>
-              <input
-                type="password"
-                className={inputClassName}
-                value={currentPassword}
-                onChange={(event) => setCurrentPassword(event.target.value)}
-                autoComplete="current-password"
-              />
+              <div className="relative">
+                <input
+                  type={showCurrentPassword ? "text" : "password"}
+                  className={`${inputClassName} pr-11`}
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword((value) => !value)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-muted transition hover:text-admin-text-primary"
+                  aria-label={
+                    showCurrentPassword
+                      ? "Hide current password"
+                      : "Show current password"
+                  }
+                >
+                  {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </label>
 
             <label className="space-y-1.5">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
                 New password
               </p>
-              <input
-                type="password"
-                className={inputClassName}
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                autoComplete="new-password"
-              />
+              <div className="relative">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  className={`${inputClassName} pr-11`}
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((value) => !value)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-muted transition hover:text-admin-text-primary"
+                  aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                >
+                  {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </label>
 
             <label className="space-y-1.5">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
                 Confirm new password
               </p>
-              <input
-                type="password"
-                className={inputClassName}
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                autoComplete="new-password"
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  className={`${inputClassName} pr-11`}
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((value) => !value)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-admin-text-muted transition hover:text-admin-text-primary"
+                  aria-label={
+                    showConfirmPassword
+                      ? "Hide confirm password"
+                      : "Show confirm password"
+                  }
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </label>
           </div>
+
+          <p className="mt-3 text-xs text-admin-text-muted">
+            Password must be at least 10 characters and include uppercase,
+            lowercase, number, and special character.
+          </p>
 
           <div className="mt-5 flex justify-end">
             <Button
@@ -1154,6 +1276,7 @@ export default function Settings() {
                 !newPassword.trim() ||
                 !confirmPassword.trim()
               }
+              className="w-full sm:w-auto"
             >
               {isChangingPassword ? (
                 <>

@@ -152,11 +152,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(me.data.user);
       return data.accessToken;
     } catch {
-      // Don't clear auth state on refresh failure - the user may still have a valid access token.
-      // The access token will be invalidated when it expires and a 401 is received from the API.
-      return null;
+      // A valid access token may still exist in memory even when refresh fails.
+      // This happens after forced password change where refresh tokens are revoked.
+      try {
+        const me = await api.get<MeResponse>("/auth/me");
+        setUser(me.data.user);
+        return accessTokenState;
+      } catch {
+        return null;
+      }
     }
-  }, [updateSession]);
+  }, [accessTokenState, updateSession]);
 
   const logout = useCallback(async () => {
     try {
