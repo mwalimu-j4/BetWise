@@ -57,17 +57,17 @@ function StatCard({
   subtext?: string;
 }) {
   return (
-    <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 p-4 md:p-6">
+    <Card className="bg-[#0f172a] border border-[#31455f] p-4 md:p-6 rounded-2xl">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-xs md:text-sm font-medium text-slate-400 mb-1">
+          <p className="text-xs md:text-sm font-medium text-[#8a9bb0] mb-1">
             {label}
           </p>
           <p className="text-xl md:text-2xl font-bold text-white">{value}</p>
-          {subtext && <p className="text-xs text-slate-500 mt-1">{subtext}</p>}
+          {subtext && <p className="text-xs text-[#90a2bb] mt-1">{subtext}</p>}
         </div>
-        <div className="rounded-lg bg-slate-800 p-2 md:p-3">
-          <Icon className="h-5 w-5 md:h-6 md:w-6 text-blue-400" />
+        <div className="rounded-lg bg-[#f5c518] p-2 md:p-3">
+          <Icon className="h-5 w-5 md:h-6 md:w-6 text-[#0b1120]" />
         </div>
       </div>
       {trend && (
@@ -142,23 +142,23 @@ function PersonalReportTab() {
         />
       </div>
 
-      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 p-4 md:p-6">
+      <Card className="bg-[#0f172a] border border-[#31455f] p-4 md:p-6 rounded-2xl">
         <h3 className="text-lg font-semibold text-white mb-4">
           Betting Results Breakdown
         </h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={betResultsData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis dataKey="name" tick={{ fill: "#999", fontSize: 12 }} />
-            <YAxis tick={{ fill: "#999", fontSize: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#31455f" />
+            <XAxis dataKey="name" tick={{ fill: "#8a9bb0", fontSize: 12 }} />
+            <YAxis tick={{ fill: "#8a9bb0", fontSize: 12 }} />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#1e1e1e",
-                border: "1px solid #444",
+                backgroundColor: "#0f172a",
+                border: "1px solid #31455f",
                 borderRadius: "8px",
               }}
             />
-            <Bar dataKey="count" fill="#3b82f6" name="Count" />
+            <Bar dataKey="count" fill="#f5c518" name="Count" />
             <Bar dataKey="staked" fill="#ef4444" name="Staked (KES 000s)" />
           </BarChart>
         </ResponsiveContainer>
@@ -198,13 +198,13 @@ function RecentBetsTab() {
           {bets.map((bet) => (
             <Card
               key={bet.id}
-              className="bg-slate-800 border-slate-700 p-4 mb-3 md:mb-0 md:table-row hover:bg-slate-700/50 transition"
+              className="bg-[#0f172a] border border-[#31455f] p-4 mb-3 md:mb-0 md:table-row hover:border-[#f5c518]/30 transition rounded-2xl"
             >
               <div className="md:table-cell px-4 py-3 text-sm">
                 <p className="font-medium text-white">
                   {bet.event.homeTeam} vs {bet.event.awayTeam}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-[#90a2bb] mt-1">
                   {new Date(bet.event.commenceTime).toLocaleDateString()}
                 </p>
               </div>
@@ -215,7 +215,7 @@ function RecentBetsTab() {
                       ? "bg-green-500/20 text-green-400"
                       : bet.status === "LOST"
                         ? "bg-red-500/20 text-red-400"
-                        : "bg-yellow-500/20 text-yellow-400"
+                        : "bg-[#f5c518]/20 text-[#f5c518]"
                   }`}
                 >
                   {bet.status}
@@ -225,7 +225,7 @@ function RecentBetsTab() {
                 <p className="font-semibold text-white">
                   {bet.side} @ {bet.displayOdds.toFixed(2)}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#90a2bb]">
                   Stake: KES {bet.stake.toFixed(0)}
                 </p>
               </div>
@@ -237,7 +237,7 @@ function RecentBetsTab() {
                 >
                   {bet.profit > 0 ? "+" : ""}KES {bet.profit.toFixed(0)}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#90a2bb]">
                   Potential: KES {bet.potentialPayout.toFixed(0)}
                 </p>
               </div>
@@ -364,23 +364,23 @@ function FinancialReportTab() {
         ))}
       </div>
 
-      <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 p-4 md:p-6">
+      <Card className="bg-[#0f172a] border border-[#31455f] p-4 md:p-6 rounded-2xl">
         <h3 className="text-lg font-semibold text-white mb-4">
           Financial Flow (KES 000s)
         </h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={transactionData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis dataKey="type" tick={{ fill: "#999", fontSize: 12 }} />
-            <YAxis tick={{ fill: "#999", fontSize: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#31455f" />
+            <XAxis dataKey="type" tick={{ fill: "#8a9bb0", fontSize: 12 }} />
+            <YAxis tick={{ fill: "#8a9bb0", fontSize: 12 }} />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#1e1e1e",
-                border: "1px solid #444",
+                backgroundColor: "#0f172a",
+                border: "1px solid #31455f",
                 borderRadius: "8px",
               }}
             />
-            <Bar dataKey="amount" fill="#3b82f6" name="Amount (KES 000s)" />
+            <Bar dataKey="amount" fill="#f5c518" name="Amount (KES 000s)" />
             <Bar dataKey="count" fill="#10b981" name="Count" />
           </BarChart>
         </ResponsiveContainer>
@@ -393,23 +393,23 @@ export default function ReportsPage() {
   const [period, setPeriod] = useState<ReportPeriod>("30d");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#0b1120] to-[#0f172a] p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-3xl md:text-4xl font-bold text-white">
             Your Reports
           </h1>
-          <p className="text-slate-400">
+          <p className="text-[#90a2bb]">
             Track your betting performance, winnings, and financial activity
           </p>
         </div>
 
         {/* Period Selector */}
-        <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-slate-700 p-4">
+        <Card className="bg-[#0f172a] border border-[#31455f] p-4 rounded-2xl">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-slate-300">
+              <p className="text-sm font-medium text-[#8a9bb0]">
                 Report Period
               </p>
             </div>
@@ -417,10 +417,10 @@ export default function ReportsPage() {
               value={period}
               onValueChange={(v) => setPeriod(v as ReportPeriod)}
             >
-              <SelectTrigger className="w-full sm:w-48 bg-slate-800 border-slate-700 text-white">
+              <SelectTrigger className="w-full sm:w-48 bg-[#0c1018] border-[#31455f] text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent className="bg-[#0f172a] border-[#31455f]">
                 {PERIOD_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
@@ -433,10 +433,25 @@ export default function ReportsPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="personal" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 bg-slate-800 border border-slate-700">
-            <TabsTrigger value="personal">Performance</TabsTrigger>
-            <TabsTrigger value="bets">Recent Bets</TabsTrigger>
-            <TabsTrigger value="financial">Financial</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 bg-[#0c1018] border border-[#31455f]">
+            <TabsTrigger
+              value="personal"
+              className="data-[state=active]:bg-[#f5c518] data-[state=active]:text-[#0b1120]"
+            >
+              Performance
+            </TabsTrigger>
+            <TabsTrigger
+              value="bets"
+              className="data-[state=active]:bg-[#f5c518] data-[state=active]:text-[#0b1120]"
+            >
+              Recent Bets
+            </TabsTrigger>
+            <TabsTrigger
+              value="financial"
+              className="data-[state=active]:bg-[#f5c518] data-[state=active]:text-[#0b1120]"
+            >
+              Financial
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal">
