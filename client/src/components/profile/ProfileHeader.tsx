@@ -1,4 +1,4 @@
-import { ArrowLeft, Settings2, SidebarOpen, SidebarClose } from "lucide-react";
+import { ArrowLeft, SidebarOpen, SidebarClose } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 type ProfileHeaderProps = {

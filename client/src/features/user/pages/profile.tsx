@@ -136,7 +136,29 @@ export default function UserProfilePage() {
                     }}
                   />
 
-          
+                  <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
+                    <h3 className="text-sm font-semibold text-white">
+                      Other Info & Preferences
+                    </h3>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="rounded-lg border border-[#31455f] bg-[#0f172a] p-3 text-[#9fb0c7]">
+                        <p className="text-[11px] uppercase tracking-widest">
+                          Wallet
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-white">
+                          Secure
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-[#31455f] bg-[#0f172a] p-3 text-[#9fb0c7]">
+                        <p className="text-[11px] uppercase tracking-widest">
+                          Session
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-white">
+                          {profileRefreshing ? "Syncing" : "Active"}
+                        </p>
+                      </div>
+                    </div>
+                  </section>
                 </div>
               )}
             </div>
