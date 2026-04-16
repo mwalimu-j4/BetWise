@@ -1,33 +1,93 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/api/axiosConfig";
-import { X, Mail } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  CircleAlert,
+  Loader2,
+  Mail,
+  ShieldAlert,
+} from "lucide-react";
+
+type FeedbackTone = "info" | "success" | "error";
+
+type FeedbackState = {
+  tone: FeedbackTone;
+  message: string;
+};
 
 export default function ForgotPasswordModal() {
   const { authModal, closeAuthModal, openAuthModal } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [feedback, setFeedback] = useState<FeedbackState | null>({
+    tone: "info",
+    message:
+      "Enter the email linked to your account. We'll guide you through the reset.",
+  });
 
   if (authModal !== "forgot-password") return null;
 
   const isValid = email.length > 4;
 
+  function setBackToLogin() {
+    closeAuthModal();
+    openAuthModal("login");
+  }
+
+  function handleEmailChange(value: string) {
+    const nextValue = value.trim();
+    setEmail(nextValue);
+
+    if (loading) return;
+
+    if (!nextValue) {
+      setFeedback({
+        tone: "info",
+        message:
+          "Enter the email linked to your account. We'll guide you through the reset.",
+      });
+      return;
+    }
+
+    if (nextValue.length > 4) {
+      setFeedback({
+        tone: "success",
+        message: "Email looks good. You can request a reset link now.",
+      });
+      return;
+    }
+
+    setFeedback({
+      tone: "error",
+      message: "Enter a valid email address to continue.",
+    });
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!isValid) return;
     setLoading(true);
-    setMessage("");
+    setFeedback({
+      tone: "info",
+      message: "Sending reset instructions...",
+    });
     try {
       const { data } = await api.post<{ message: string }>(
         "/auth/forgot-password",
         { email },
       );
-      setMessage(data.message);
+      setFeedback({
+        tone: "success",
+        message: data.message,
+      });
     } catch {
-      setMessage(
-        "If that email matches our records, a reset link has been sent",
-      );
+      setFeedback({
+        tone: "error",
+        message:
+          "We couldn't send the reset email right now. Check your connection and try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -37,7 +97,7 @@ export default function ForgotPasswordModal() {
     <>
       {/* Overlay */}
       <div
-        onClick={closeAuthModal}
+        onClick={setBackToLogin}
         className="fixed top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 animate-in fade-in cursor-pointer"
         role="presentation"
         style={{
@@ -69,19 +129,44 @@ export default function ForgotPasswordModal() {
                   Forgot password
                 </h1>
                 <p className="text-xs text-[#a8c4e0] mt-0.5">
-                  We'll send a secure reset link if your details match.
+                  We'll send a secure reset link if your email matches.
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={closeAuthModal}
-              className="text-slate-400 hover:text-white transition-colors shrink-0 ml-2"
-              aria-label="Close modal"
-            >
-              <X size={24} />
-            </button>
           </div>
+
+          {feedback ? (
+            <div
+              className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
+                feedback.tone === "success"
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                  : feedback.tone === "error"
+                    ? "border-red-500/30 bg-red-500/10 text-red-100"
+                    : "border-[#3d6ba3]/35 bg-[#1a3a6b]/35 text-[#d7e5f7]"
+              }`}
+            >
+              <div className="flex items-start gap-2">
+                {feedback.tone === "success" ? (
+                  <CheckCircle2
+                    size={16}
+                    className="mt-0.5 shrink-0 text-emerald-300"
+                  />
+                ) : feedback.tone === "error" ? (
+                  <CircleAlert
+                    size={16}
+                    className="mt-0.5 shrink-0 text-red-300"
+                  />
+                ) : (
+                  <ShieldAlert
+                    size={16}
+                    className="mt-0.5 shrink-0 text-sky-300"
+                  />
+                )}
+                <p className="leading-5">{feedback.message}</p>
+              </div>
+            </div>
+          ) : null}
+
           <form className="grid gap-3.5" onSubmit={handleSubmit}>
             <div className="grid gap-1.5">
               <label
@@ -100,34 +185,42 @@ export default function ForgotPasswordModal() {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value.trim())}
-                  className="h-11 w-full rounded-xl border border-admin-border bg-[var(--color-bg-elevated)] pl-11 pr-3 text-sm text-admin-text-primary outline-none"
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-admin-border bg-(--color-bg-elevated) pl-11 pr-3 text-sm text-admin-text-primary outline-none"
                 />
               </div>
+              {!isValid && email.length > 0 ? (
+                <p className="text-xs text-amber-400 font-medium">
+                  Enter a valid email address to continue.
+                </p>
+              ) : null}
             </div>
             <button
               type="submit"
               disabled={!isValid || loading}
-              className="h-10 rounded-lg bg-admin-accent text-sm font-semibold text-[var(--color-text-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-10 rounded-lg bg-admin-accent text-sm font-semibold text-(--color-text-dark) disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Sending..." : "Send reset link"}
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin" />
+                  Sending...
+                </span>
+              ) : (
+                "Send reset link"
+              )}
             </button>
           </form>
-          {message ? (
-            <p className="mt-3 text-sm text-admin-text-muted">{message}</p>
-          ) : null}
-          <div className="border-t border-[#3d6ba3]/30 pt-5 mt-6 text-center">
-            <p className="text-sm text-[#a8c4e0]">
-              Remembered your password?{" "}
-              <button
-                onClick={() => {
-                  closeAuthModal();
-                  openAuthModal("login");
-                }}
-                className="font-semibold text-[#f5c518] hover:text-[#e6b800] transition-colors hover:underline"
-              >
-                Sign in
-              </button>
+          <div className="border-t border-[#3d6ba3]/30 pt-5 mt-6 flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
+            <button
+              type="button"
+              onClick={setBackToLogin}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#3d6ba3]/40 px-4 py-2 text-sm font-semibold text-[#a8c4e0] transition-colors hover:border-[#f5c518]/50 hover:text-white"
+            >
+              <ArrowLeft size={15} />
+              Back to login
+            </button>
+            <p className="text-xs text-[#90a2bb] sm:text-sm">
+              We only send a reset link if the email exists in our system.
             </p>
           </div>
         </div>

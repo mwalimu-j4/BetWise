@@ -119,7 +119,6 @@ const verifyAdminMfaSchema = z.object({
 
 const forgotPasswordSchema = z.object({
   email: z.string().trim().email("Provide a valid email address."),
-  phone: z.string().trim(),
 });
 
 const resetPasswordSchema = z.object({
@@ -1048,22 +1047,19 @@ export async function logout(req: Request, res: Response) {
 export async function forgotPassword(req: Request, res: Response) {
   const parsed = forgotPasswordSchema.safeParse(req.body);
   const genericMessage = {
-    message: "If those details match our records, a reset link has been sent",
+    message: "If that email matches our records, a reset link has been sent",
   };
 
   if (!parsed.success) {
     return res.status(200).json(genericMessage);
   }
 
-  const normalizedPhone = normalizeKenyanPhone(parsed.data.phone);
-  if (!normalizedPhone) {
-    return res.status(200).json(genericMessage);
-  }
-
   const user = await prisma.user.findFirst({
     where: {
-      email: parsed.data.email,
-      phone: normalizedPhone,
+      email: {
+        equals: parsed.data.email,
+        mode: "insensitive",
+      },
     },
     select: {
       id: true,
