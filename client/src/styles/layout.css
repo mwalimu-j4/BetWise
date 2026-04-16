@@ -25,7 +25,8 @@
   flex: 1;
   box-sizing: border-box;
   width: 100%;
-  max-width: 1280px;
+  /* Responsive max-width accounting for sidebar on large screens */
+  max-width: calc(100vw - var(--sidebar-width));
   margin: 0 auto;
   padding: 0;
   min-width: 0;
@@ -130,6 +131,33 @@
 
   .betslip-sidebar {
     max-height: calc(100vh - var(--navbar-height, 118px) - 20px);
+  }
+
+  /* Optimize content spacing on large screens with sidebar */
+  .betting-home-main {
+    max-width: 100%;
+    padding: 12px 12px;
+  }
+}
+
+/* Extra-large screens: ensure content doesn't overflow */
+@media (min-width: 1280px) {
+  .betting-home-main {
+    padding: 16px 16px;
+  }
+
+  .bc-page-wrap {
+    padding: 0 8px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .betting-home-main {
+    padding: 20px 20px;
+  }
+
+  .bc-page-wrap {
+    padding: 0 12px;
   }
 }
 
