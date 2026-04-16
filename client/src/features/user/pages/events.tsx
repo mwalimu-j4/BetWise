@@ -49,7 +49,7 @@ function CustomEventCard({
   }
 
   return (
-    <Card className="overflow-hidden border-slate-600/30 bg-gradient-to-br from-slate-800/40 to-slate-900/40 p-4 hover:border-slate-500/50 transition-all group">
+    <Card className="overflow-hidden border-[#31455f] bg-[#0f172a] p-4 hover:border-[#f5c518]/30 transition-all group rounded-2xl">
       {/* Header with status */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
@@ -64,32 +64,32 @@ function CustomEventCard({
               </span>
             )}
             {isUpcoming && !isLive && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#f5c518]/20 text-[#f5c518] text-xs font-medium">
                 <Calendar size={12} />
                 UPCOMING
               </span>
             )}
             {isFinished && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-600/30 text-slate-400 text-xs font-medium">
+              <span className="px-2 py-0.5 rounded-full bg-[#31455f] text-[#90a2bb] text-xs font-medium">
                 Finished
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#90a2bb]">
             {event.league || "Custom Match"}
           </p>
         </div>
         <div className="flex gap-1">
           <button
             onClick={() => onEdit(event)}
-            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-700/50 text-slate-400 hover:text-amber-400"
+            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#31455f]/50 text-[#90a2bb] hover:text-[#f5c518]"
             title="Edit"
           >
             <Edit2 size={14} />
           </button>
           <button
             onClick={() => onDelete(event.eventId)}
-            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-900/20 text-slate-400 hover:text-red-400"
+            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-900/20 text-[#90a2bb] hover:text-red-400"
             title="Delete"
           >
             <Trash2 size={14} />
@@ -100,7 +100,7 @@ function CustomEventCard({
       {/* Meta info */}
       <div className="space-y-2 mb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-xs text-slate-400">
+          <div className="flex items-center gap-1 text-xs text-[#90a2bb]">
             <Clock size={12} />
             <span>
               {commenceTime.toLocaleDateString()}{" "}
@@ -115,8 +115,8 @@ function CustomEventCard({
               isLive
                 ? "bg-red-500/20 text-red-300"
                 : isUpcoming
-                  ? "bg-blue-500/20 text-blue-300"
-                  : "bg-slate-600/30 text-slate-400"
+                  ? "bg-[#f5c518]/20 text-[#f5c518]"
+                  : "bg-[#31455f] text-[#90a2bb]"
             }`}
           >
             {timeLabel}
@@ -126,15 +126,15 @@ function CustomEventCard({
 
       {/* Odds display */}
       {primaryOdds && (
-        <div className="rounded-lg bg-slate-700/30 px-3 py-2 mb-3">
-          <div className="text-[11px] text-slate-400 font-medium mb-1">
+        <div className="rounded-lg bg-[#0c1018] border border-[#31455f] px-3 py-2 mb-3">
+          <div className="text-[11px] text-[#8a9bb0] font-medium mb-1">
             {oddsLabel} ODDS
           </div>
           <div className="flex items-center justify-between">
-            <div className="text-sm font-bold text-amber-300">
+            <div className="text-sm font-bold text-[#f5c518]">
               {primaryOdds}
             </div>
-            <div className="text-[11px] text-slate-500">
+            <div className="text-[11px] text-[#8a9bb0]">
               {event.h2hOdds && `${event.homeTeam} / ${event.awayTeam}`}
               {event.spreadsOdds && `Spread: ${event.spreadsOdds.spread}`}
               {event.totalsOdds && `Total: ${event.totalsOdds.total}`}
@@ -147,7 +147,7 @@ function CustomEventCard({
       {isFinished &&
         event.homeScore !== undefined &&
         event.awayScore !== undefined && (
-          <div className="rounded-lg bg-slate-700/20 px-3 py-2 text-center border border-slate-600/30">
+          <div className="rounded-lg bg-[#0c1018] px-3 py-2 text-center border border-[#31455f]">
             <div className="text-sm font-bold text-white">
               {event.homeScore} - {event.awayScore}
             </div>
@@ -187,14 +187,14 @@ function EventsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-4 py-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#0b1120] to-[#0f172a] px-4 py-6">
       <div className="mx-auto max-w-3xl space-y-6">
         {/* Header */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white">My Matches</h1>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-[#90a2bb]">
                 Create custom matches and set your own odds
               </p>
             </div>
@@ -202,7 +202,7 @@ function EventsContent() {
               onClick={() => {
                 setShowCreateForm(true);
               }}
-              className="bg-gradient-to-r from-amber-500 to-orange-500 text-black hover:from-amber-600 hover:to-orange-600 font-semibold gap-2"
+              className="bg-gradient-to-r from-[#f5c518] to-[#d4a500] text-[#0b1120] hover:from-[#ffdb4a] hover:to-[#e0b500] font-semibold gap-2"
             >
               <Plus size={18} />
               New Match
@@ -212,7 +212,7 @@ function EventsContent() {
 
         {/* Error state */}
         {error && (
-          <div className="rounded-lg border border-red-600/30 bg-red-900/20 p-4">
+          <div className="rounded-lg border border-red-600/30 bg-red-900/20 p-4 rounded-2xl">
             <p className="text-sm text-red-300">{error}</p>
           </div>
         )}
@@ -231,22 +231,22 @@ function EventsContent() {
 
         {/* Empty state */}
         {!loading && events.length === 0 && (
-          <Card className="border-slate-600/30 bg-gradient-to-b from-slate-800/40 to-slate-900/40 p-8 text-center">
+          <Card className="border-[#31455f] bg-[#0f172a] p-8 text-center rounded-2xl">
             <div className="flex flex-col items-center justify-center gap-3">
-              <div className="rounded-full bg-amber-500/10 p-3">
-                <Calendar className="text-amber-400" size={24} />
+              <div className="rounded-full bg-[#f5c518]/10 p-3">
+                <Calendar className="text-[#f5c518]" size={24} />
               </div>
               <h3 className="text-lg font-semibold text-white">
                 No matches yet
               </h3>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-[#90a2bb]">
                 Create your first custom match to get started
               </p>
               <Button
                 onClick={() => {
                   setShowCreateForm(true);
                 }}
-                className="mt-2 bg-gradient-to-r from-amber-500 to-orange-500 text-black hover:from-amber-600 hover:to-orange-600 font-semibold"
+                className="mt-2 bg-gradient-to-r from-[#f5c518] to-[#d4a500] text-[#0b1120] hover:from-[#ffdb4a] hover:to-[#e0b500] font-semibold"
               >
                 Create First Match
               </Button>
@@ -258,10 +258,10 @@ function EventsContent() {
         {upcomingEvents.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Zap size={16} className="text-amber-400" />
+              <Zap size={16} className="text-[#f5c518]" />
               <h2 className="text-lg font-semibold text-white">
                 Active Matches
-                <span className="ml-2 text-sm font-normal text-slate-400">
+                <span className="ml-2 text-sm font-normal text-[#90a2bb]">
                   ({upcomingEvents.length})
                 </span>
               </h2>
@@ -283,10 +283,10 @@ function EventsContent() {
         {finishedEvents.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Users size={16} className="text-slate-400" />
+              <Users size={16} className="text-[#90a2bb]" />
               <h2 className="text-lg font-semibold text-white">
                 Completed Matches
-                <span className="ml-2 text-sm font-normal text-slate-400">
+                <span className="ml-2 text-sm font-normal text-[#90a2bb]">
                   ({finishedEvents.length})
                 </span>
               </h2>

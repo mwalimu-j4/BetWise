@@ -91,7 +91,7 @@ export default function UserProfilePage() {
 
             <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
               <div className="space-y-4">
-                <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+                <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
                   <h3 className="text-sm font-semibold text-white">
                     Quick Actions
                   </h3>
@@ -109,7 +109,7 @@ export default function UserProfilePage() {
                   </div>
                 </section>
 
-                <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+                <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
                   <h3 className="text-sm font-semibold text-white">Deposit</h3>
                   <p className="mt-1 text-xs text-[#95a6be]">
                     Reuse the existing secure M-PESA deposit flow.
@@ -130,7 +130,7 @@ export default function UserProfilePage() {
                   }}
                 />
 
-                <section className="rounded-2xl border border-[#2b3a4e] bg-[#1a2332] p-4">
+                <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
                   <h3 className="text-sm font-semibold text-white">
                     Other Info & Preferences
                   </h3>

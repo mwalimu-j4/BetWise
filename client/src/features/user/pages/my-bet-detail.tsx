@@ -35,7 +35,7 @@ export default function MyBetDetailPage() {
       onClick={handleClose}
     >
       <div
-        className="absolute bottom-0 left-0 right-0 h-[90vh] rounded-t-2xl border-t border-[#2b3a4f] bg-[#0d1117] md:bottom-6 md:left-auto md:right-6 md:top-6 md:h-auto md:w-[540px] md:rounded-2xl md:border"
+        className="absolute bottom-0 left-0 right-0 h-[90vh] rounded-t-2xl border-t border-[#31455f] bg-[#0f172a] md:bottom-6 md:left-auto md:right-6 md:top-6 md:h-auto md:w-[540px] md:rounded-2xl md:border"
         onClick={(event) => event.stopPropagation()}
       >
         {detail.isLoading || !detail.data ? (
