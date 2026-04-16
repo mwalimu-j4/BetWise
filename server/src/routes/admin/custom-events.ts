@@ -90,6 +90,18 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function normalizeRouteParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value;
+  }
+
+  return null;
+}
+
 async function createAuditLog(
   eventId: string,
   adminId: string,
@@ -232,8 +244,13 @@ adminCustomEventsRouter.get(
   ...adminOnly,
   async (req, res, next) => {
     try {
+      const eventId = normalizeRouteParam(req.params.id);
+      if (!eventId) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
       const event = await prisma.customEvent.findUnique({
-        where: { id: req.params.id },
+        where: { id: eventId },
         include: {
           markets: {
             include: {
@@ -377,13 +394,18 @@ adminCustomEventsRouter.patch(
   ...adminOnly,
   async (req, res, next) => {
     try {
+      const eventId = normalizeRouteParam(req.params.id);
+      if (!eventId) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
       const adminId = req.user?.id;
       if (!adminId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       const event = await prisma.customEvent.findUnique({
-        where: { id: req.params.id },
+        where: { id: eventId },
         include: { _count: { select: { bets: true } } },
       });
 
@@ -440,7 +462,7 @@ adminCustomEventsRouter.patch(
         updateData.bannerUrl = parsed.data.bannerUrl;
 
       const updated = await prisma.customEvent.update({
-        where: { id: req.params.id },
+        where: { id: eventId },
         data: updateData,
         include: {
           markets: { include: { selections: true } },
@@ -469,6 +491,11 @@ adminCustomEventsRouter.patch(
   ...adminOnly,
   async (req, res, next) => {
     try {
+      const eventId = normalizeRouteParam(req.params.id);
+      if (!eventId) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
       const adminId = req.user?.id;
       if (!adminId) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -487,7 +514,7 @@ adminCustomEventsRouter.patch(
         include: { market: { include: { event: true } } },
       });
 
-      if (!selection || selection.market.event.id !== req.params.id) {
+      if (!selection || selection.market.event.id !== eventId) {
         return res
           .status(404)
           .json({ error: "Selection not found for this event" });
@@ -501,7 +528,7 @@ adminCustomEventsRouter.patch(
       });
 
       await createAuditLog(
-        req.params.id,
+        eventId,
         adminId,
         "ODDS_CHANGE",
         `${selection.name}: ${previousOdds}`,
@@ -509,7 +536,7 @@ adminCustomEventsRouter.patch(
       );
 
       emitCustomEventOddsUpdated({
-        eventId: req.params.id,
+        eventId,
         selectionId: parsed.data.selectionId,
         newOdds: parsed.data.odds,
       });
@@ -528,13 +555,18 @@ adminCustomEventsRouter.delete(
   ...adminOnly,
   async (req, res, next) => {
     try {
+      const eventId = normalizeRouteParam(req.params.id);
+      if (!eventId) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
       const adminId = req.user?.id;
       if (!adminId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       const event = await prisma.customEvent.findUnique({
-        where: { id: req.params.id },
+        where: { id: eventId },
         include: { _count: { select: { bets: true } } },
       });
 
@@ -554,10 +586,10 @@ adminCustomEventsRouter.delete(
         });
       }
 
-      await prisma.customEvent.delete({ where: { id: req.params.id } });
+      await prisma.customEvent.delete({ where: { id: eventId } });
 
       await createAuditLog(
-        req.params.id,
+        eventId,
         adminId,
         "DELETE",
         event.title,
@@ -580,13 +612,18 @@ adminCustomEventsRouter.post(
   ...adminOnly,
   async (req, res, next) => {
     try {
+      const eventId = normalizeRouteParam(req.params.id);
+      if (!eventId) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
       const adminId = req.user?.id;
       if (!adminId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       const event = await prisma.customEvent.findUnique({
-        where: { id: req.params.id },
+        where: { id: eventId },
         include: {
           markets: { include: { selections: true } },
         },
@@ -633,7 +670,7 @@ adminCustomEventsRouter.post(
       }
 
       const updated = await prisma.customEvent.update({
-        where: { id: req.params.id },
+        where: { id: eventId },
         data: {
           status: "PUBLISHED",
           publishedAt: new Date(),
@@ -661,13 +698,18 @@ adminCustomEventsRouter.post(
   ...adminOnly,
   async (req, res, next) => {
     try {
+      const eventId = normalizeRouteParam(req.params.id);
+      if (!eventId) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
       const adminId = req.user?.id;
       if (!adminId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       const event = await prisma.customEvent.findUnique({
-        where: { id: req.params.id },
+        where: { id: eventId },
         include: { _count: { select: { bets: true } } },
       });
 
@@ -689,7 +731,7 @@ adminCustomEventsRouter.post(
       }
 
       const updated = await prisma.customEvent.update({
-        where: { id: req.params.id },
+        where: { id: eventId },
         data: {
           status: "DRAFT",
           publishedAt: null,
@@ -721,13 +763,18 @@ adminCustomEventsRouter.post(
   ...adminOnly,
   async (req, res, next) => {
     try {
+      const eventId = normalizeRouteParam(req.params.id);
+      if (!eventId) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
       const adminId = req.user?.id;
       if (!adminId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       const event = await prisma.customEvent.findUnique({
-        where: { id: req.params.id },
+        where: { id: eventId },
       });
 
       if (!event) {
@@ -752,19 +799,19 @@ adminCustomEventsRouter.post(
         // If suspending, also suspend all open markets
         if (nextStatus === "SUSPENDED") {
           await tx.customMarket.updateMany({
-            where: { eventId: req.params.id, status: "OPEN" },
+            where: { eventId, status: "OPEN" },
             data: { status: "SUSPENDED" },
           });
         } else {
           // Resuming: reopen suspended markets
           await tx.customMarket.updateMany({
-            where: { eventId: req.params.id, status: "SUSPENDED" },
+            where: { eventId, status: "SUSPENDED" },
             data: { status: "OPEN" },
           });
         }
 
         return tx.customEvent.update({
-          where: { id: req.params.id },
+          where: { id: eventId },
           data: { status: nextStatus as any },
           include: {
             markets: { include: { selections: true } },
@@ -781,7 +828,7 @@ adminCustomEventsRouter.post(
       );
 
       if (nextStatus === "SUSPENDED") {
-        emitCustomEventSuspended({ eventId: req.params.id });
+        emitCustomEventSuspended({ eventId });
       } else {
         emitCustomEventPublished(updated);
       }
@@ -800,6 +847,11 @@ adminCustomEventsRouter.post(
   ...adminOnly,
   async (req, res, next) => {
     try {
+      const eventId = normalizeRouteParam(req.params.id);
+      if (!eventId) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
       const adminId = req.user?.id;
       if (!adminId) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -823,7 +875,7 @@ adminCustomEventsRouter.post(
         },
       });
 
-      if (!market || market.event.id !== req.params.id) {
+      if (!market || market.event.id !== eventId) {
         return res
           .status(404)
           .json({ error: "Market not found for this event" });
@@ -912,14 +964,14 @@ adminCustomEventsRouter.post(
           // 8. Check if all markets are settled → finish event
           const unsettledMarkets = await tx.customMarket.count({
             where: {
-              eventId: req.params.id,
+              eventId,
               status: { not: "SETTLED" },
             },
           });
 
           if (unsettledMarkets === 0) {
             await tx.customEvent.update({
-              where: { id: req.params.id },
+              where: { id: eventId },
               data: { status: "FINISHED" },
             });
           }
@@ -936,7 +988,7 @@ adminCustomEventsRouter.post(
       );
 
       await createAuditLog(
-        req.params.id,
+        eventId,
         adminId,
         "SETTLE_MARKET",
         `Market: ${market.name}`,
@@ -960,6 +1012,11 @@ adminCustomEventsRouter.post(
   ...adminOnly,
   async (req, res, next) => {
     try {
+      const eventId = normalizeRouteParam(req.params.id);
+      if (!eventId) {
+        return res.status(400).json({ error: "Invalid event id" });
+      }
+
       const adminId = req.user?.id;
       if (!adminId) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -974,7 +1031,7 @@ adminCustomEventsRouter.post(
       }
 
       const event = await prisma.customEvent.findUnique({
-        where: { id: req.params.id },
+        where: { id: eventId },
       });
 
       if (!event) {
@@ -983,7 +1040,7 @@ adminCustomEventsRouter.post(
 
       const market = await prisma.customMarket.create({
         data: {
-          eventId: req.params.id,
+          eventId,
           name: parsed.data.name,
           selections: {
             create: parsed.data.selections.map((s) => ({
@@ -997,7 +1054,7 @@ adminCustomEventsRouter.post(
       });
 
       await createAuditLog(
-        req.params.id,
+        eventId,
         adminId,
         "ADD_MARKET",
         null,
