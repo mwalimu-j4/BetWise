@@ -1506,111 +1506,16 @@
   transform: translateX(4px);
 }
 
-.bc-live-sports-toggle {
-  width: 100%;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  margin: 0;
-  text-decoration: none;
-  color: var(--nav-text);
-  font-size: 13px;
-  font-weight: 600;
-  border: 0;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--nav-accent) 15%, transparent),
-    color-mix(in srgb, var(--nav-accent2) 10%, transparent)
-  );
-  text-align: left;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid color-mix(in srgb, var(--nav-accent) 20%, transparent);
-}
-
-.bc-live-sports-toggle:hover {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--nav-accent) 25%, transparent),
-    color-mix(in srgb, var(--nav-accent2) 20%, transparent)
-  );
-  border-color: var(--nav-accent);
-  color: var(--nav-accent);
-}
-
-.bc-live-sports-chevron {
-  margin-left: auto;
-  transition: transform 0.25s ease;
-  color: var(--nav-accent);
-}
-
-.bc-live-sports-chevron.is-open {
-  transform: rotate(180deg);
-}
-
-.bc-live-sports-list {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-}
-
-.bc-live-sports-list.is-open {
-  max-height: 800px;
-}
-
-.bc-live-sport-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 16px 9px 32px;
-  text-decoration: none;
-  color: var(--nav-muted);
-  font-size: 12px;
-  font-weight: 500;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  margin: 1px 0;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  width: 100%;
-  cursor: pointer;
-}
-
-.bc-live-sport-item:hover {
-  color: var(--nav-text);
-  background: var(--color-bg-hover);
-  padding-left: 36px;
-}
-
-.bc-live-sport-name {
-  flex: 1;
-}
-
-.bc-live-sport-count {
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, var(--nav-red), #ff8a8a);
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-  min-width: 24px;
-  text-align: center;
-}
-
 .bc-side-backdrop {
   position: fixed;
   inset: 0;
-  background: var(--color-bg-deepest);
-  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px);
   border: 0;
   z-index: 899;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s cubic-bezier(0.3, 0, 0.5, 1);
 }
 
 @media (max-width: 768px) {
