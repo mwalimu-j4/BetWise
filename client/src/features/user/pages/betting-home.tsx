@@ -120,9 +120,9 @@ export default function BettingHome() {
   };
 
   return (
-    <div className="betting-home-wrapper min-h-screen overflow-x-hidden bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
+    <div className="betting-home-wrapper min-h-screen   bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
       <div
-        className={`betting-home-main mx-auto w-full max-w-7xl px-2 py-3 sm:px-4 sm:py-4 md:px-6 lg:px-8 xl:px-12 ${
+        className={`betting-home-main mx-auto max-md:-mt-16 w-full max-w-7xl px-2 py-3 sm:px-4 sm:py-4 md:px-6 lg:px-8 xl:px-12 ${
           hasSelections ? "has-betslip" : ""
         }`}
       >
