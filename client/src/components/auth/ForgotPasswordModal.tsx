@@ -98,7 +98,7 @@ export default function ForgotPasswordModal() {
       if (isNotFound) {
         setFeedback({
           tone: "error",
-          message: "❌ Email does not exist in our system.",
+          message: "Email does not exist in our system.",
         });
         setLoading(false);
         return;
