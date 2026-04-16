@@ -277,24 +277,19 @@ export default function PaymentsDepositPage() {
   const currentStepIndex = depositConfirmed ? 2 : response ? 1 : 0;
 
   return (
-    <section className="mx-auto max-w-5xl space-y-5 px-4 py-5 md:px-5">
-      {/* Compact header with M-Pesa logo */}
+    <section className="mx-auto max-w-5xl space-y-5 px-4 py-4 md:px-5">
+      {/* Compact header with Payments Center and M-Pesa logo aligned */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-white">Deposit Funds</h1>
-          <p className="text-xs text-gray-400">Instant M-Pesa Top-up</p>
-        </div>
-        <div className="flex items-center gap-2 rounded-lg bg-[#1a2a3a] px-3 py-1.5">
+  
+        <div className="flex items-center gap-2">
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
             alt="M-Pesa"
-            className="h-5 w-auto object-contain"
+            className="h-6 w-auto object-contain"
             loading="lazy"
             referrerPolicy="no-referrer"
           />
-          <span className="text-[11px] font-medium text-gray-300">
-            Safaricom
-          </span>
+          <span className="text-xs text-gray-400">Safaricom</span>
         </div>
       </div>
 
