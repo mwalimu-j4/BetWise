@@ -14,7 +14,7 @@ import {
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
-import type { BetSelection } from "../hooks/useBetSlip";
+import { betSlipToggleEventName, type BetSelection } from "../hooks/useBetSlip";
 import useBetSlip from "../hooks/useBetSlip";
 import {
   type LiveMarket,
@@ -833,6 +833,28 @@ export default function LivePage() {
       ),
     [betSlip.selections],
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const onToggleRequest = () => {
+      if (window.innerWidth < 1024) {
+        setMobileSlipOpen((current) => !current);
+      }
+    };
+
+    window.addEventListener(betSlipToggleEventName, onToggleRequest);
+    return () =>
+      window.removeEventListener(betSlipToggleEventName, onToggleRequest);
+  }, []);
+
+  useEffect(() => {
+    if (betSlip.selections.length === 0) {
+      setMobileSlipOpen(false);
+    }
+  }, [betSlip.selections.length]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

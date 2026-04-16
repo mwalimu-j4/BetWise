@@ -111,7 +111,7 @@ function BetSlipPanel({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#2a3f55] bg-[#0d1820] text-white shadow-2xl">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[#2a3f55] bg-[#0d1820] text-white shadow-2xl">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between border-b border-[#2a3f55] bg-[#111f2f] px-4 py-3">
         <div className="flex items-center gap-2">
@@ -134,22 +134,22 @@ function BetSlipPanel({
       </div>
 
       {/* Selection list */}
-      <div className="app-scrollbar flex-1 space-y-2 overflow-y-auto p-3">
+      <div className="app-scrollbar min-h-0 flex-1 space-y-1.5 overflow-y-auto p-2.5 sm:space-y-2 sm:p-3">
         {selections.map((selection) => (
           <div
             key={`${selection.eventId}-${selection.side}`}
-            className="flex items-center gap-3 rounded-lg border border-[#2a3f55] bg-[#1a2634] p-3 shadow-sm transition-colors hover:border-[#3a526b]"
+            className="flex items-center gap-2.5 rounded-lg border border-[#2a3f55] bg-[#1a2634] p-2.5 shadow-sm transition-colors hover:border-[#3a526b] sm:gap-3 sm:p-3"
           >
             <div className="min-w-0 flex-1">
-              <p className="mb-0.5 truncate text-[11px] font-semibold text-white sm:text-xs">
+              <p className="mb-0.5 truncate text-[10px] font-semibold text-white sm:text-xs">
                 {selection.eventName}
               </p>
-              <p className="truncate text-[9px] text-[#8fa3b1] sm:text-[10px]">
+              <p className="truncate text-[8px] text-[#8fa3b1] sm:text-[10px]">
                 {selection.marketType.toUpperCase()} • {selection.side}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <p className="text-sm font-bold text-[#f5a623]">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <p className="text-[11px] font-bold text-[#f5a623] sm:text-sm">
                 {selection.odds.toFixed(2)}
               </p>
               <button
@@ -280,7 +280,7 @@ function BetSlipPanel({
               type="button"
               onClick={() => void placeBet()}
               disabled={placing}
-            className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[#f5a623] text-xs font-bold text-black disabled:opacity-70"
+              className="flex h-10 items-center justify-center gap-1.5 rounded-lg bg-[#f5a623] text-xs font-bold text-black disabled:opacity-70"
             >
               {placing ? <Loader2 size={14} className="animate-spin" /> : null}
               {placing
@@ -336,7 +336,14 @@ export default function BetSlip(props: UseBetSlipReturn) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const onToggleRequest = () => setIsOpen((current) => !current);
+    const onToggleRequest = () => {
+      if (window.innerWidth < 768) {
+        setMobileSheetOpen((current) => !current);
+        return;
+      }
+
+      setIsOpen((current) => !current);
+    };
     window.addEventListener(betSlipToggleEventName, onToggleRequest);
     return () =>
       window.removeEventListener(betSlipToggleEventName, onToggleRequest);
@@ -366,7 +373,7 @@ export default function BetSlip(props: UseBetSlipReturn) {
         <button
           type="button"
           onClick={() => setMobileSheetOpen(true)}
-          className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-between border-t border-[#2a3f55] bg-[#0d1820] px-5 text-left text-white shadow-[0_-4px_12px_rgba(0,0,0,0.5)] md:hidden"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+74px)] left-2 right-2 z-[55] flex h-14 items-center justify-between rounded-xl border border-[#2a3f55] bg-[#0d1820]/95 px-4 text-left text-white shadow-[0_-4px_12px_rgba(0,0,0,0.5)] md:hidden"
         >
           <div>
             <p className="text-xs font-medium text-[#8fa3b1]">Betslip</p>
@@ -385,18 +392,18 @@ export default function BetSlip(props: UseBetSlipReturn) {
         className={`md:hidden ${mobileSheetOpen ? "pointer-events-auto" : "pointer-events-none"}`}
       >
         <div
-          className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+          className={`fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
             mobileSheetOpen ? "opacity-100" : "opacity-0"
           }`}
           onClick={() => setMobileSheetOpen(false)}
           aria-hidden="true"
         />
         <div
-          className={`fixed bottom-0 left-0 right-0 z-50 flex h-[85vh] flex-col overflow-hidden rounded-t-2xl bg-[#0d1820] transition-transform duration-300 ease-out ${
+          className={`fixed bottom-0 left-0 right-0 z-[80] flex h-[85vh] min-h-0 flex-col overflow-hidden rounded-t-2xl bg-[#0d1820] transition-transform duration-300 ease-out ${
             mobileSheetOpen ? "translate-y-0" : "translate-y-full"
           }`}
         >
-          <div className="flex-1 p-2">
+          <div className="min-h-0 flex-1 overflow-y-auto p-2">
             <BetSlipPanel
               {...props}
               compactActions

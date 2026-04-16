@@ -1,15 +1,22 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, PlayCircle, Receipt, List, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { api } from "@/api/axiosConfig";
 import {
   betSlipCountEventName,
   betSlipCountStorageKey,
   betSlipToggleEventName,
 } from "@/features/user/hooks/useBetSlip";
 
+type LiveEventsResponse = {
+  total?: number;
+  events?: Array<{ eventId: string }>;
+};
+
 export default function MobileBottomNav() {
   const location = useLocation();
   const [selectionCount, setSelectionCount] = useState(0);
+  const [liveCount, setLiveCount] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -51,6 +58,40 @@ export default function MobileBottomNav() {
     };
   }, []);
 
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchLiveCount = async () => {
+      try {
+        const { data } = await api.get<LiveEventsResponse>("/user/events/live");
+        if (!isActive) {
+          return;
+        }
+
+        const nextCount =
+          typeof data.total === "number"
+            ? data.total
+            : Array.isArray(data.events)
+              ? data.events.length
+              : 0;
+
+        setLiveCount(Math.max(0, nextCount));
+      } catch {
+        // Keep current badge value when request fails.
+      }
+    };
+
+    void fetchLiveCount();
+    const intervalId = window.setInterval(() => {
+      void fetchLiveCount();
+    }, 30_000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   const isHomeActive =
     location.pathname === "/" || location.pathname === "/user";
   const isLiveActive = location.pathname.startsWith("/user/live");
@@ -72,11 +113,16 @@ export default function MobileBottomNav() {
 
         <Link
           to="/user/live"
-          className={`flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
+          className={`relative flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
             isLiveActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
         >
           <PlayCircle size={20} />
+          {liveCount > 0 ? (
+            <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-[#ef4444] px-1.5 py-0.5 text-center text-[10px] font-bold leading-none text-white">
+              {liveCount > 99 ? "99+" : liveCount}
+            </span>
+          ) : null}
           <span>Live</span>
         </Link>
 
