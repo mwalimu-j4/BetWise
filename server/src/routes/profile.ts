@@ -15,6 +15,7 @@ import {
   getTransactionOwnerId,
   startAdminTwoFactorSetup,
   updateProfilePreferences,
+  updatePhone,
 } from "../controllers/profile.controller";
 
 const profileRouter = Router();
@@ -34,6 +35,7 @@ profileRouter.post(
   profileUpdateRateLimiter,
   updateProfilePreferences,
 );
+profileRouter.patch("/profile/phone", profileUpdateRateLimiter, updatePhone);
 profileRouter.post(
   "/profile/delete-account",
   profileUpdateRateLimiter,

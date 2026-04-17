@@ -20,6 +20,7 @@ export type ProfileData = {
   bonus: number;
   preferences: ProfilePreferences;
   live: boolean;
+  createdAt: string;
 };
 
 type ProfileResponse = {

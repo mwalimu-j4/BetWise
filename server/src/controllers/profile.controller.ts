@@ -34,6 +34,14 @@ const deleteAccountSchema = z.object({
     .regex(/^[^<>]+$/, "Password contains unsupported characters"),
 });
 
+const updatePhoneSchema = z.object({
+  newPhone: z.string().trim(),
+  password: z.string(),
+});
+
+const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
+const PASSWORD_SALT_ROUNDS = 12;
+
 const adminTwoFactorEnableSchema = z.object({
   setupToken: z.string().trim().min(1),
   otpCode: z
@@ -167,6 +175,7 @@ export async function getProfile(req: Request, res: Response) {
         accountStatus: true,
         role: true,
         adminTotpEnabled: true,
+        createdAt: true,
       },
     }),
     prisma.wallet.findUnique({
@@ -203,6 +212,7 @@ export async function getProfile(req: Request, res: Response) {
       bonus: bonusAggregate._sum.amount ?? 0,
       preferences,
       live: true,
+      createdAt: user.createdAt.toISOString(),
       adminTwoFactorEnabled:
         user.role === "ADMIN" ? user.adminTotpEnabled : undefined,
     },
@@ -674,5 +684,76 @@ export async function deleteOwnAccount(req: Request, res: Response) {
 
   return res.status(200).json({
     message: "Account deleted successfully",
+  });
+}
+
+export async function updatePhone(req: Request, res: Response) {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const parsedBody = updatePhoneSchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    return res.status(400).json({ message: "Invalid phone or password" });
+  }
+
+  const { newPhone, password } = parsedBody.data;
+
+  if (!KENYAN_PHONE_REGEX.test(newPhone)) {
+    return res.status(400).json({
+      message:
+        "Invalid Kenyan phone number format (e.g., 0712345678 or +254712345678)",
+    });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {
+      id: true,
+      passwordHash: true,
+      phone: true,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "Account not found" });
+  }
+
+  const validPassword = await bcrypt.compare(password, user.passwordHash);
+  if (!validPassword) {
+    return res.status(401).json({ message: "Invalid password" });
+  }
+
+  if (user.phone === newPhone) {
+    return res
+      .status(400)
+      .json({ message: "New phone number is the same as current" });
+  }
+
+  const existingPhone = await prisma.user.findUnique({
+    where: { phone: newPhone },
+    select: { id: true },
+  });
+
+  if (existingPhone && existingPhone.id !== req.user.id) {
+    return res.status(400).json({ message: "Phone number already in use" });
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: req.user.id },
+    data: {
+      phone: newPhone,
+    },
+    select: {
+      id: true,
+      email: true,
+      phone: true,
+      isVerified: true,
+    },
+  });
+
+  return res.status(200).json({
+    message: "Phone number updated successfully",
+    user: updated,
   });
 }
