@@ -98,13 +98,7 @@ const navigationLinks: Item[] = [
   { label: "Pre-match", to: "/user/payments", icon: "P" },
   { label: "Live", to: "/user/live", icon: "L", liveBadge: "LIVE" },
   { label: "Custom Events", to: "/user/custom-events", icon: "⚡" },
-  {
-    label: "Sports",
-    to: "/user/coming-soon?feature=sports",
-    icon: "S",
-    warn: true,
-  },
-  { label: "Profile", to: "/user/profile", icon: "U" },
+
   {
     label: "Live Betting",
     to: "/user/live",
@@ -284,7 +278,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside className={`bc-sidebar ${isOpen ? "is-open" : ""}`}>
         <div className="bc-side-scroll">
           {/* LIVE SPORTS SECTION */}
-          <div className="bc-side-section max-md:mt-12">
+          <div className="bc-side-section max-md:mt-12 -mb-6">
             <button
               type="button"
               className="bc-live-sports-toggle"
