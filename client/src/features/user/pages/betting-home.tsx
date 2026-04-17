@@ -162,16 +162,16 @@ export default function BettingHome() {
   };
 
   return (
-    <div className="betting-home-wrapper min-h-screen   bg-[#0b1120] font-[Inter,Roboto,Segoe_UI,sans-serif] text-white">
+    <div className="betting-home-wrapper min-h-screen bg-[radial-gradient(circle_at_top,_#163154_0%,_#0b1120_42%,_#08101d_100%)] font-[IBM_Plex_Sans,Segoe_UI,sans-serif] text-white">
       <div
-        className={`betting-home-main mx-auto max-md:-mt-16 w-full max-w-7xl px-2 py-3 sm:px-4 sm:py-4 md:px-6 lg:px-3 xl:px-4 2xl:px-6 ${
+        className={`betting-home-main mx-auto w-full max-w-7xl px-3 pb-24 pt-4 sm:px-4 sm:py-4 md:px-6 md:pb-6 lg:px-3 xl:px-4 2xl:px-6 ${
           hasSelections ? "has-betslip" : ""
         }`}
       >
         {/* ═══════════════════════════════════════════════════
             HERO CAROUSEL — compact, professional banner
           ═══════════════════════════════════════════════════ */}
-        <section className="hero-section relative overflow-hidden rounded-xl border border-[#1e3350]/60 shadow-[0_4px_20px_rgba(0,0,0,0.35)] sm:rounded-2xl">
+        <section className="hero-section mobile-home-hero relative overflow-hidden rounded-xl border border-[#1e3350]/60 shadow-[0_4px_20px_rgba(0,0,0,0.35)] sm:rounded-2xl">
           <div className="relative h-[70px] w-full sm:h-[80px] md:h-[95px] lg:h-[110px]">
             {heroImages.map((image, index) => (
               <article
@@ -236,14 +236,14 @@ export default function BettingHome() {
         {/* ═══════════════════════════════════════════════════
             LIVE TICKER
           ═══════════════════════════════════════════════════ */}
-        <div className="mt-3 sm:mt-4">
+        <div className="mobile-home-panel mt-3 overflow-hidden rounded-2xl border border-[#1d3048]/70 bg-[#0f1a2d]/82 p-1.5 shadow-[0_14px_32px_rgba(3,8,20,0.28)] sm:mt-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
           <LiveTicker />
         </div>
 
         {/* ═══════════════════════════════════════════════════
             SPORT / LEAGUE TABS — pill style with scroll arrows
           ═══════════════════════════════════════════════════ */}
-        <section className="relative mt-3 sm:mt-4">
+        <section className="mobile-home-tabs relative mt-3 sm:mt-4">
           {/* Left scroll arrow */}
           <button
             type="button"
@@ -312,7 +312,7 @@ export default function BettingHome() {
           >
             {/* LIVE NOW section */}
             {liveEvents.length > 0 ? (
-              <section className="mb-3 rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:mb-4 sm:rounded-2xl">
+              <section className="mobile-home-panel mb-3 rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:mb-4 sm:rounded-2xl">
                 <div className="flex items-center justify-between border-b border-[#1e3350]/40 px-3 py-2 sm:px-4 sm:py-2.5">
                   <div className="flex items-center gap-2">
                     <span className="relative flex h-2 w-2">
@@ -355,7 +355,7 @@ export default function BettingHome() {
 
             {/* CUSTOM EVENTS section */}
             {(liveCustomEvents.length > 0 || upcomingCustomEvents.length > 0) && (
-              <section className="mb-3 overflow-hidden rounded-xl border border-amber-400/10 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:mb-4 sm:rounded-2xl">
+              <section className="mobile-home-panel mb-3 overflow-hidden rounded-xl border border-amber-400/10 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:mb-4 sm:rounded-2xl">
                 <div className="flex items-center justify-between border-b border-[#1e3350]/40 px-3 py-2 sm:px-4 sm:py-2.5">
                   <div className="flex items-center gap-2">
                     <span className="text-amber-400">⚡</span>
@@ -388,7 +388,7 @@ export default function BettingHome() {
             )}
 
             {/* UPCOMING MATCHES section */}
-            <section className="matches-section min-w-0 rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:rounded-2xl">
+            <section className="matches-section mobile-home-panel min-w-0 rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:rounded-2xl">
               {/* Match Centre header */}
               <div className="border-b border-[#1e3350]/40 px-3 py-3 sm:px-4 sm:py-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">

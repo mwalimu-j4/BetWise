@@ -99,8 +99,8 @@ export default function MobileBottomNav() {
   const isProfileActive = location.pathname.startsWith("/user/profile");
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#23384f] bg-[#0b1120]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+8px)] pt-2 backdrop-blur md:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-5 items-end gap-1">
+    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2 md:hidden">
+      <div className="mobile-bottom-nav__inner mx-auto grid max-w-md grid-cols-5 items-end gap-1">
         <Link
           to="/user"
           className={`flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
