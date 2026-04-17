@@ -20,6 +20,33 @@ app.get("/health", (req: Request, res: Response) => {
 app.get("/", (req: Request, res: Response) => {
   const uptime = process.uptime();
 
+  res.json({
+    status: "ok",
+    service: "BetixPro MPESA SERVER",
+
+    timestamp: new Date().toISOString(),
+    uptime_seconds: uptime,
+
+    environment: process.env.NODE_ENV || "development",
+
+    server: {
+      platform: process.platform,
+      node_version: process.version,
+    },
+    config: {
+      port: PORT,
+    },
+    developer: {
+      name: "Dickens Omondi",
+      github: "https://github.com/dikie001",
+      linkedin: "www.linkedin.com/in/dickens-omondi-3a286b261",
+    },
+  });
+});
+
+app.get("/ui", (req: Request, res: Response) => {
+  const uptime = process.uptime();
+
   const data = {
     status: "OK",
     service: "BetixPro MPESA SERVER",
@@ -184,6 +211,8 @@ app.get("/", (req: Request, res: Response) => {
   </html>
   `);
 });
+
+
 // M-Pesa callback routes
 app.use("/api/mpesa", callbackRouter);
 
