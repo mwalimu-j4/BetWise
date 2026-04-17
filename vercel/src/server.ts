@@ -34,5 +34,7 @@ app.use((err: unknown, req: Request, res: Response) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ M-Pesa Callback Server running on http://localhost:${PORT}`);
-  console.log(`📍 Callback endpoint: http://localhost:${PORT}/api/mpesa/callback`);
+  console.log(
+    `📍 Callback endpoint: http://localhost:${PORT}/api/mpesa/callback`,
+  );
 });

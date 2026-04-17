@@ -1,30 +1,37 @@
 # M-Pesa Callback Handler – Independent Express Server
 
 ## Status ✅
+
 **Standalone Server** - Run locally or deploy anywhere
 
 ## Setup
 
 ### Installation
+
 ```bash
 cd vercel
 pnpm install
 ```
 
 ### Development
+
 ```bash
 pnpm dev
 ```
+
 Server starts on `http://localhost:3000`
 
 ### Production Build
+
 ```bash
 pnpm build
 pnpm start
 ```
 
 ## Environment Variables
+
 Copy `.env` and configure:
+
 ```
 NODE_ENV=development
 PORT=3000
@@ -39,11 +46,13 @@ MPESA_ENV=sandbox
 ## Endpoints
 
 ### Health Check
+
 ```
 GET /health
 ```
 
 ### M-Pesa Callback (STK Push)
+
 ```
 POST /api/mpesa/callback
 Content-Type: application/json
@@ -66,6 +75,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "ResultCode": 0,
@@ -74,6 +84,7 @@ Content-Type: application/json
 ```
 
 ## Features
+
 - ✅ Standalone Express server
 - ✅ Safe JSON parsing (no crashes on malformed input)
 - ✅ Full callback payload logging
@@ -83,6 +94,7 @@ Content-Type: application/json
 - ✅ Environment-based config
 
 ## Testing Locally
+
 ```bash
 curl -X POST http://localhost:3000/api/mpesa/callback \
   -H "Content-Type: application/json" \
@@ -106,17 +118,20 @@ curl -X POST http://localhost:3000/api/mpesa/callback \
 ## Deployment
 
 ### Deploy to Vercel (Production Serverless)
+
 ```bash
 vercel --prod
 ```
 
 ### Deploy Anywhere (Docker, Railway, Render, etc.)
+
 ```bash
 pnpm build
 pnpm start
 ```
 
 ## File Structure
+
 ```
 vercel/
 ├── src/
