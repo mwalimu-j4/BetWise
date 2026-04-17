@@ -1,0 +1,11 @@
+{
+  "name": "betwise-mpesa-callback",
+  "version": "1.0.0",
+  "description": "M-Pesa callback handler for BetWise betting platform",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^20",
+    "@vercel/node": "^3.0.0",
+    "typescript": "^5.0.0"
+  }
+}

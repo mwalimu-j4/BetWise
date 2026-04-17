@@ -5,18 +5,6 @@ type MpesaMetadataItem = {
   Value?: unknown;
 };
 
-type MpesaCallbackBody = {
-  Body?: {
-    stkCallback?: {
-      ResultCode?: number | string;
-      ResultDesc?: string;
-      CallbackMetadata?: {
-        Item?: MpesaMetadataItem[];
-      };
-    };
-  };
-};
-
 function safeJsonParse(rawBody: unknown): Record<string, unknown> {
   if (typeof rawBody === "object" && rawBody !== null) {
     return rawBody as Record<string, unknown>;
@@ -40,7 +28,7 @@ function safeJsonParse(rawBody: unknown): Record<string, unknown> {
 
 function getCallbackSection(
   payload: Record<string, unknown>,
-): MpesaCallbackBody["Body"]["stkCallback"] | undefined {
+): Record<string, unknown> | undefined {
   const body = payload.Body;
   if (typeof body !== "object" || body === null) {
     return undefined;
@@ -51,7 +39,7 @@ function getCallbackSection(
     return undefined;
   }
 
-  return stkCallback as MpesaCallbackBody["Body"]["stkCallback"];
+  return stkCallback as Record<string, unknown>;
 }
 
 function toNumber(value: unknown): number | undefined {
@@ -91,7 +79,10 @@ export default function handler(req: VercelRequest, res: VercelResponse): void {
   const callback = getCallbackSection(payload);
   const resultCode = toNumber(callback?.ResultCode);
   const resultDesc = callback?.ResultDesc ?? "No result description provided";
-  const metadataItems = callback?.CallbackMetadata?.Item;
+  const callbackMetadata = callback?.CallbackMetadata as
+    | { Item?: MpesaMetadataItem[] }
+    | undefined;
+  const metadataItems = callbackMetadata?.Item;
 
   const amount = extractMetadataValue(metadataItems, "Amount");
   const phoneNumber = extractMetadataValue(metadataItems, "PhoneNumber");
