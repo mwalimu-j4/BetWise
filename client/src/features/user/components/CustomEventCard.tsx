@@ -77,7 +77,7 @@ export function CustomEventCard({
   return (
     <div
       className={cn(
-        "custom-event-card relative overflow-hidden rounded-2xl border transition-all duration-300",
+        "custom-event-card mobile-event-card relative overflow-hidden rounded-2xl border transition-all duration-300",
         "bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624]",
         isLive
           ? "border-emerald-500/25 shadow-[0_0_24px_rgba(16,185,129,0.06)]"
@@ -95,10 +95,10 @@ export function CustomEventCard({
       />
 
       {/* Header row */}
-      <div className="flex items-center justify-between gap-2 px-3 pt-2.5 sm:px-4 sm:pt-3">
+      <div className="flex items-center justify-between gap-1.5 px-2.5 pt-2.5 sm:px-4 sm:pt-3">
         <div className="flex min-w-0 items-center gap-1.5">
           {isLive && (
-            <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-1.5 py-[2px] text-[9px] font-bold uppercase tracking-wider text-emerald-400 sm:px-2 sm:text-[10px]">
+            <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-1.5 py-[2px] text-[8px] font-bold uppercase tracking-[0.18em] text-emerald-400 sm:px-2 sm:text-[10px]">
               <span className="relative flex size-1.5">
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
@@ -106,15 +106,15 @@ export function CustomEventCard({
               Live
             </span>
           )}
-          <span className="truncate rounded-md bg-amber-400/8 px-1.5 py-[2px] text-[9px] font-semibold text-amber-400 sm:text-[10px]">
+          <span className="truncate rounded-full bg-amber-400/8 px-1.5 py-[2px] text-[8px] font-semibold uppercase tracking-[0.16em] text-amber-400 sm:text-[10px]">
             {event.category}
           </span>
-          <span className="hidden truncate text-[9px] text-[#546e8f] sm:inline sm:text-[10px]">
+          <span className="hidden truncate text-[9px] text-[#6c86a8] sm:inline sm:text-[10px]">
             {event.league}
           </span>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1 rounded-md border border-[#1e3350]/50 bg-[#0b1525]/80 px-1.5 py-[3px] text-[8px] font-bold tabular-nums text-[#7a94b8] sm:text-[9px]">
+        <div className="flex shrink-0 items-center gap-1 rounded-full border border-[#223752]/70 bg-[#0b1525]/88 px-1.5 py-[3px] text-[8px] font-bold tabular-nums text-[#89a3c7] sm:text-[9px]">
           {isLive ? (
             <>
               <Timer size={9} className="text-emerald-400" />
@@ -130,22 +130,22 @@ export function CustomEventCard({
       </div>
 
       {/* Teams matchup */}
-      <div className="px-3 py-2 sm:px-4 sm:py-2.5">
-        <div className="flex items-center gap-2">
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="truncate text-[12px] font-bold leading-tight text-white sm:text-[13px]">
+      <div className="px-2.5 py-2 sm:px-4 sm:py-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="truncate text-[12px] font-extrabold leading-[1.15] text-white sm:text-[13px]">
               {event.teamHome}
             </span>
-            <span className="truncate text-[12px] font-bold leading-tight text-white sm:text-[13px]">
+            <span className="truncate text-[12px] font-extrabold leading-[1.15] text-white sm:text-[13px]">
               {event.teamAway}
             </span>
           </div>
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-amber-400/[0.07] text-[8px] font-black tracking-wider text-[#4a6a8f] sm:h-7 sm:w-7 sm:text-[9px]">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#223752]/80 bg-[#122133] text-[8px] font-black tracking-[0.18em] text-[#5f789b] sm:h-7 sm:w-7 sm:text-[9px]">
             VS
           </span>
         </div>
         {!isLive && (
-          <p className="mt-1 text-[9px] text-[#546e8f] sm:text-[10px]">
+          <p className="mt-1 text-[8px] font-medium text-[#6b86a8] sm:text-[10px]">
             {formatTime(event.startTime)}
           </p>
         )}
@@ -169,9 +169,9 @@ export function CustomEventCard({
       {event.markets.map((market) => (
         <div
           key={market.id}
-          className="border-t border-[#1e3350]/30 px-3 py-2 sm:px-4 sm:py-2.5"
+          className="border-t border-[#1e3350]/30 px-2.5 py-2 sm:px-4 sm:py-2.5"
         >
-          <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#546e8f] sm:text-[10px]">
+          <p className="mb-1.5 text-[8px] font-bold uppercase tracking-[0.16em] text-[#6c86a8] sm:text-[10px]">
             {market.name}
           </p>
           <div
@@ -206,7 +206,7 @@ export function CustomEventCard({
                     })
                   }
                   className={cn(
-                    "group relative flex flex-col items-center gap-0.5 rounded-xl border px-1.5 py-2 transition-all duration-200",
+                    "group mobile-event-odds relative flex flex-col items-center gap-0.5 rounded-xl border px-1.5 py-2 transition-all duration-200",
                     "disabled:cursor-not-allowed disabled:opacity-40",
                     isSelected
                       ? "border-amber-400/40 bg-gradient-to-b from-amber-400/15 to-amber-400/5 shadow-[0_0_14px_rgba(245,166,35,0.08),inset_0_1px_0_rgba(245,166,35,0.15)]"
@@ -215,8 +215,8 @@ export function CustomEventCard({
                 >
                   <span
                     className={cn(
-                      "truncate max-w-full text-[9px] font-bold uppercase tracking-[0.08em] sm:text-[10px]",
-                      isSelected ? "text-amber-300" : "text-[#637fa0]",
+                      "truncate max-w-full text-[9px] font-bold uppercase tracking-[0.12em] sm:text-[10px]",
+                      isSelected ? "text-amber-300" : "text-[#6f88ac]",
                     )}
                   >
                     {sel.label}

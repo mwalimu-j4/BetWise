@@ -340,7 +340,7 @@ export default function BettingHome() {
                   ) : null}
                 </div>
 
-                <div className="space-y-2 p-2 sm:space-y-3 sm:p-3 md:p-4">
+                <div className="space-y-2 p-1.5 sm:space-y-3 sm:p-3 md:p-4">
                   {featuredLiveEvents.map((event) => (
                     <EventCard
                       key={event.eventId}
@@ -374,7 +374,7 @@ export default function BettingHome() {
                   </a>
                 </div>
 
-                <div className="grid gap-2 p-2 sm:grid-cols-2 sm:gap-3 sm:p-3">
+                <div className="grid gap-1.5 p-1.5 sm:grid-cols-2 sm:gap-3 sm:p-3">
                   {[...liveCustomEvents, ...upcomingCustomEvents].slice(0, 4).map((event) => (
                     <CustomEventCard
                       key={event.id}
@@ -421,7 +421,7 @@ export default function BettingHome() {
               </div>
 
               {/* Match content */}
-              <div className="p-2 sm:p-3 md:p-4">
+              <div className="p-1.5 sm:p-3 md:p-4">
                 {loading ? (
                   <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {Array.from({ length: hasSelections ? 4 : 6 }).map(

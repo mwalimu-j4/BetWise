@@ -103,7 +103,7 @@ export default function MobileBottomNav() {
       <div className="mobile-bottom-nav__inner mx-auto grid max-w-md grid-cols-5 items-end gap-1">
         <Link
           to="/user"
-          className={`flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
+          className={`mobile-bottom-nav__link flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
             isHomeActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
         >
@@ -113,7 +113,7 @@ export default function MobileBottomNav() {
 
         <Link
           to="/user/live"
-          className={`relative flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
+          className={`mobile-bottom-nav__link relative flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
             isLiveActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
         >
@@ -134,7 +134,7 @@ export default function MobileBottomNav() {
                 window.dispatchEvent(new Event(betSlipToggleEventName));
               }
             }}
-            className="relative -mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#f5c518] text-[#0b1120] shadow-[0_10px_30px_rgba(245,197,24,0.35)] ring-4 ring-[#0b1120] transition-transform active:scale-95"
+            className="mobile-bottom-nav__betslip relative -mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#f5c518] text-[#0b1120] shadow-[0_10px_30px_rgba(245,197,24,0.35)] ring-4 ring-[#0b1120] transition-transform active:scale-95"
             aria-label="Open bet slip"
           >
             <Receipt size={22} strokeWidth={2.5} />
@@ -153,7 +153,7 @@ export default function MobileBottomNav() {
             filter: "all",
             page: "1",
           }}
-          className={`flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
+          className={`mobile-bottom-nav__link flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
             isMyBetsActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
         >
@@ -163,7 +163,7 @@ export default function MobileBottomNav() {
 
         <Link
           to="/user/profile"
-          className={`flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
+          className={`mobile-bottom-nav__link flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
             isProfileActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
         >

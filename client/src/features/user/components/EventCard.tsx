@@ -87,7 +87,7 @@ function OddsPreviewButton({
           commenceTime: event.commenceTime,
         });
       }}
-      className={`odds-btn group/odds relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-xl border px-1 py-2 text-center transition-all duration-200 sm:px-2 sm:py-2.5 ${
+      className={`odds-btn mobile-event-odds group/odds relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-xl border px-1 py-2 text-center transition-all duration-200 sm:px-2 sm:py-2.5 ${
         disabled
           ? "cursor-not-allowed border-[#1a2a40]/50 bg-[#0d1829] text-[#3d5478]"
           : isSelected
@@ -101,7 +101,7 @@ function OddsPreviewButton({
             ? "text-[#3d5478]"
             : isSelected
               ? "text-[#ffd500]/80"
-              : "text-[#637fa0]"
+              : "text-[#6f88ac]"
         }`}
       >
         {entry.label}
@@ -184,20 +184,20 @@ export default function EventCard({
   );
 
   return (
-    <article className="event-card group relative overflow-hidden rounded-2xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770] w-full max-w-full">
+    <article className="event-card mobile-event-card group relative w-full max-w-full overflow-hidden rounded-2xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770]">
       {/* Subtle top accent line */}
       <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#ffd500]/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
       <div className="relative flex h-full flex-col justify-between gap-0 p-0">
         {/* Top section: League + time + markets badge */}
-        <div className="flex items-center justify-between gap-1 px-3 pt-2.5 sm:px-3.5 sm:pt-3">
-          <p className="min-w-0 truncate text-[9px] font-semibold uppercase tracking-[0.12em] text-[#546e8f] sm:text-[10px]">
+        <div className="flex items-center justify-between gap-1.5 px-2.5 pt-2.5 sm:px-3.5 sm:pt-3">
+          <p className="min-w-0 truncate text-[8px] font-semibold uppercase tracking-[0.16em] text-[#6c86a8] sm:text-[10px]">
             {event.leagueName ?? "Featured Match"}
           </p>
 
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex shrink-0 items-center gap-1">
             {/* Countdown chip */}
-            <span className="inline-flex items-center gap-0.5 rounded-md border border-[#1e3350]/50 bg-[#0b1525]/80 px-1.5 py-[3px] text-[8px] font-bold tabular-nums text-[#7a94b8] sm:text-[9px]">
+            <span className="inline-flex items-center gap-0.5 rounded-full border border-[#223752]/70 bg-[#0b1525]/88 px-1.5 py-[3px] text-[8px] font-bold tabular-nums text-[#89a3c7] sm:text-[9px]">
               <Clock size={8} className="text-[#546e8f]" />
               {getRelativeTime(event.commenceTime)}
             </span>
@@ -206,7 +206,7 @@ export default function EventCard({
             <button
               type="button"
               onClick={() => setShowMarkets(true)}
-              className="inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1.5 py-[3px] text-[7px] font-bold uppercase tracking-wider text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[8px]"
+              className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1.5 py-[3px] text-[7px] font-bold uppercase tracking-[0.18em] text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[8px]"
             >
               <TrendingUp size={8} className="sm:h-[9px] sm:w-[9px]" />+
               {marketCount}
@@ -218,33 +218,33 @@ export default function EventCard({
         <button
           type="button"
           onClick={() => setShowMarkets(true)}
-          className="w-full text-left px-3 py-2 sm:px-3.5 sm:py-2.5"
+          className="w-full px-2.5 py-2 text-left sm:px-3.5 sm:py-2.5"
         >
-          <div className="flex items-center gap-2">
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="truncate text-[12px] font-bold leading-tight text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
+          <div className="flex items-center gap-2.5">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="truncate text-[12px] font-extrabold leading-[1.15] text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
                 {event.homeTeam}
               </span>
-              <span className="truncate text-[12px] font-bold leading-tight text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
+              <span className="truncate text-[12px] font-extrabold leading-[1.15] text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
                 {event.awayTeam}
               </span>
             </div>
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#ffd500]/[0.07] text-[8px] font-black tracking-wider text-[#4a6a8f] sm:h-7 sm:w-7 sm:text-[9px]">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#223752]/80 bg-[#122133] text-[8px] font-black tracking-[0.18em] text-[#5f789b] sm:h-7 sm:w-7 sm:text-[9px]">
               VS
             </span>
           </div>
 
           {/* Date row */}
-          <div className="mt-1.5 flex items-center gap-1">
-            <Calendar size={9} className="shrink-0 text-[#4a6a8f]" />
-            <span className="truncate text-[8px] text-[#546e8f] sm:text-[9px]">
+          <div className="mt-1.5 flex items-center gap-1 text-[#6b86a8]">
+            <Calendar size={9} className="shrink-0" />
+            <span className="truncate text-[8px] font-medium sm:text-[9px]">
               {formatCardDateTime(event.commenceTime)}
             </span>
           </div>
         </button>
 
         {/* Odds row — 3 columns */}
-        <div className="border-t border-[#1e3350]/30 px-2.5 pb-2.5 pt-2 sm:px-3 sm:pb-3 sm:pt-2.5">
+        <div className="border-t border-[#1e3350]/30 px-2 pb-2 pt-1.5 sm:px-3 sm:pb-3 sm:pt-2.5">
           <div className="flex gap-1.5 sm:gap-2">
             {oddsPreview.map((entry) => (
               <OddsPreviewButton
