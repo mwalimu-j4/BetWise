@@ -6,7 +6,7 @@
   "main": "dist/server.js",
   "type": "commonjs",
   "scripts": {
-    "dic": "nodemon --exec tsx src/server.ts",
+    "dev": "nodemon --exec tsx src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "lint": "tsc --noEmit"

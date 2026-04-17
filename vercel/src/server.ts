@@ -17,6 +17,9 @@ app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok", service: "mpesa-callback" });
 });
 
+app.get("/", (req:Request, res:Response)=>{
+    res.json({status:"okie dokie", service:"BetixPro MPESA SERVER"})
+})
 // M-Pesa callback routes
 app.use("/api/mpesa", callbackRouter);
 
