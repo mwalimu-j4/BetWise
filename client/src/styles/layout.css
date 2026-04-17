@@ -1605,15 +1605,24 @@
 }
 
 .bc-side-logout {
-  color: var(--nav-red);
+  color: var(--nav-muted);
   background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
   transition: all 0.2s cubic-bezier(0.3, 0, 0.5, 1);
 }
 
 .bc-side-logout:hover {
-  background: color-mix(in srgb, var(--nav-red) 15%, transparent);
-  color: var(--nav-red);
-  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+  transform: none;
+  color: var(--nav-text);
+}
+
+.bc-side-logout .bc-side-icon {
+  opacity: 0.75;
+  color: inherit;
 }
 
 .bc-side-backdrop {
