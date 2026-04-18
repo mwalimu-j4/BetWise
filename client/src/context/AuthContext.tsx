@@ -274,6 +274,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void (async () => {
       try {
         await refreshSession();
+      } catch (_error) {
+        // Silently fail - don't log out on initial load if refresh fails
+        // This prevents logout when returning from third-party redirects like Paystack
       } finally {
         setIsLoading(false);
       }
