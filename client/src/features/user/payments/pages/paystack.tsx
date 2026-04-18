@@ -58,11 +58,9 @@ export default function PaystackDepositPage() {
     }
 
     try {
-      const currentUrl = `${window.location.origin}${window.location.pathname}`;
       const response = await initializeMutation.mutateAsync({
         email: email.trim(),
         amount: amountValue,
-        callbackUrl: currentUrl,
         metadata: {
           userId: user?.id,
           source: "paystack-deposit-card",
