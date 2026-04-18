@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { getOrCreateWallet } from "../lib/wallet";
@@ -26,7 +27,8 @@ const paystackDepositSchema = z.object({
     .positive("Amount must be greater than 0")
     .min(100, "Minimum amount is 100 KES")
     .max(500000, "Maximum amount is 500,000 KES"),
-  metadata: z.record(z.unknown()).optional(),
+  callbackUrl: z.string().url().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ============================================================================
@@ -56,25 +58,29 @@ export async function initializePaystackPayment(
   res: Response,
 ): Promise<void> {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
     const body = paystackDepositSchema.parse(req.body);
 
-    // Validate user exists and has wallet
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const authenticatedUser = req.user?.id
+      ? await prisma.user.findUnique({
+          where: { id: req.user.id },
+        })
+      : null;
+
+    const user = authenticatedUser ?? (await prisma.user.findUnique({
+      where: { email: body.email },
+    }));
 
     if (!user) {
       res.status(404).json({ error: "User not found" });
       return;
     }
 
-    const wallet = await getOrCreateWallet(userId);
+    if (authenticatedUser && authenticatedUser.email !== body.email) {
+      res.status(403).json({ error: "Email does not match your account" });
+      return;
+    }
+
+    const wallet = await getOrCreateWallet(user.id);
 
     // Convert KES to smallest unit (cents)
     const amountInSmallestUnit = convertToSmallestUnit(body.amount);
@@ -85,7 +91,7 @@ export async function initializePaystackPayment(
     // Create pending transaction record
     const transaction = await prisma.walletTransaction.create({
       data: {
-        userId,
+        userId: user.id,
         walletId: wallet.id,
         reference,
         type: "DEPOSIT",
@@ -106,8 +112,10 @@ export async function initializePaystackPayment(
       email: body.email,
       amount: amountInSmallestUnit,
       reference,
+      callbackUrl:
+        body.callbackUrl ?? process.env.PAYSTACK_CALLBACK_URL?.trim() ?? undefined,
       metadata: {
-        userId,
+        userId: user.id,
         transactionId: transaction.id,
         ...body.metadata,
       },
@@ -130,13 +138,16 @@ export async function initializePaystackPayment(
       reference,
       authorization_url: paystackResponse.data.authorization_url,
       access_code: paystackResponse.data.access_code,
-      message: "Authorization URL generated. Redirect user to Paystack checkout.",
+      message:
+        "Authorization URL generated. Redirect user to Paystack checkout.",
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({
         error: "Validation failed",
-        details: error.errors.map((e) => `${e.path.join(".")}: ${e.message}`),
+        details: error.issues.map((issue) => {
+          return `${issue.path.join(".")}: ${issue.message}`;
+        }),
       });
       return;
     }
@@ -179,12 +190,6 @@ export async function verifyPaystackPayment(
   res: Response,
 ): Promise<void> {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
     const { reference } = paystackVerifySchema.parse(req.params);
 
     // Get transaction from DB
@@ -198,12 +203,6 @@ export async function verifyPaystackPayment(
         error: "Transaction not found",
         status: "unknown",
       });
-      return;
-    }
-
-    // Verify ownership
-    if (transaction.userId !== userId) {
-      res.status(403).json({ error: "Unauthorized" });
       return;
     }
 
@@ -236,29 +235,58 @@ export async function verifyPaystackPayment(
       verificationResult.data.status === "success";
 
     if (isSuccessful && transaction.wallet && transaction.user) {
-      // Credit wallet - UPDATE TRANSACTION AND WALLET ATOMICALLY
-      const updatedWallet = await prisma.wallet.update({
-        where: { id: transaction.wallet.id },
-        data: {
-          balance: {
-            increment: transaction.amount, // Amount stored in KES
+      const processedAt = new Date();
+      const wallet = transaction.wallet;
+      const verificationPayload = JSON.parse(
+        JSON.stringify(verificationResult.data),
+      ) as Prisma.InputJsonValue;
+      const updatedWallet = await prisma.$transaction(async (tx) => {
+        const transition = await tx.walletTransaction.updateMany({
+          where: {
+            id: transaction.id,
+            status: {
+              in: ["PENDING", "PROCESSING"],
+            },
           },
-        },
+          data: {
+            status: "COMPLETED",
+            processedAt,
+            providerCallback: {
+              provider: "paystack",
+              verifiedAt: processedAt.toISOString(),
+              verificationData: verificationPayload,
+            },
+          },
+        });
+
+        if (transition.count === 0) {
+          return null;
+        }
+
+        return tx.wallet.update({
+          where: { id: wallet.id },
+          data: {
+            balance: {
+              increment: transaction.amount,
+            },
+          },
+        });
       });
 
-      // Mark transaction as completed
-      await prisma.walletTransaction.update({
-        where: { id: transaction.id },
-        data: {
-          status: "COMPLETED",
-          processedAt: new Date(),
-          providerCallback: {
-            provider: "paystack",
-            verifiedAt: new Date().toISOString(),
-            verificationData: verificationResult.data,
+      if (!updatedWallet) {
+        res.json({
+          status: "success",
+          message: "Payment already processed",
+          reference,
+          data: {
+            reference,
+            amount: transaction.amount,
+            status: "success",
+            processedAt: transaction.processedAt,
           },
-        },
-      });
+        });
+        return;
+      }
 
       // Emit wallet update event
       emitWalletUpdate(userId, {
@@ -270,12 +298,13 @@ export async function verifyPaystackPayment(
       });
 
       // Create notification
-      await createDepositNotifications(
-        transaction.user,
-        transaction.id,
-        transaction.amount,
-        updatedWallet.balance,
-      );
+      await createDepositNotifications({
+        userId: transaction.userId,
+        transactionId: transaction.id,
+        amount: transaction.amount,
+        balance: updatedWallet.balance,
+        status: "COMPLETED",
+      });
 
       res.json({
         status: "success",
@@ -346,12 +375,6 @@ export async function checkPaystackPaymentStatus(
   res: Response,
 ): Promise<void> {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
     const { reference } = paystackVerifySchema.parse(req.params);
 
     const transaction = await prisma.walletTransaction.findUnique({

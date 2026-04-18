@@ -8,6 +8,7 @@ declare global {
         role: UserRole;
         mustChangePassword: boolean;
       };
+      rawBody?: string;
     }
   }
 }

@@ -1,8 +1,7 @@
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { callbackRouter } from "./routes/callback";
-import validateEnv from "./utils/env_validator";
+import { callbackRouter } from "./routes/callback";import paystackRouter from "./routes/paystack";import validateEnv from "./utils/env_validator";
 
 dotenv.config();
 
@@ -219,6 +218,7 @@ app.get("/ui", (req: Request, res: Response) => {
 
 // M-Pesa callback routes
 app.use("/api/mpesa", callbackRouter);
+app.use("/api/paystack", paystackRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

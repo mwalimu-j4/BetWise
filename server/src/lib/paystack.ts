@@ -20,6 +20,7 @@ export interface PaystackInitializeRequest {
   email: string;
   amount: number; // in smallest unit (kobo for NGN, cents for USD, etc.)
   reference?: string;
+  callbackUrl?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -89,7 +90,7 @@ export interface PaystackWebhookEvent {
 export const paystackInitializeSchema = z.object({
   email: z.string().email(),
   amount: z.number().int().positive("Amount must be greater than 0"),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const paystackVerifySchema = z.object({
@@ -118,6 +119,7 @@ export async function initializePaystackTransaction(
     email: request.email,
     amount: request.amount, // Must be in smallest unit
     reference,
+    callback_url: request.callbackUrl,
     metadata: request.metadata || {},
   };
 
@@ -242,7 +244,7 @@ export function parseWebhookEvent(
     throw new Error("Invalid webhook event structure");
   }
 
-  return data as PaystackWebhookEvent;
+  return data as unknown as PaystackWebhookEvent;
 }
 
 // ============================================================================
