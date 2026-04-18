@@ -97,14 +97,6 @@ function getErrorMessage(error: unknown) {
   return "We couldn't place your bet right now.";
 }
 
-function getReturnUrl() {
-  if (typeof window === "undefined") {
-    return "/user";
-  }
-
-  return `${window.location.pathname}${window.location.search}`;
-}
-
 function persistPendingSlip(payload: StoredSlip) {
   if (typeof window === "undefined") {
     return;
@@ -138,7 +130,7 @@ function clearPendingSlip() {
 }
 
 export function useBetSlip() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, openAuthModal } = useAuth();
   const queryClient = useQueryClient();
   const [selections, setSelections] = useState<BetSelection[]>([]);
   const [stake, setStakeState] = useState(50);
@@ -206,10 +198,8 @@ export function useBetSlip() {
 
   const redirectToLogin = useCallback(() => {
     persistPendingSlip({ selections, stake });
-    window.location.assign(
-      `/login?redirect=${encodeURIComponent(getReturnUrl())}`,
-    );
-  }, [selections, stake]);
+    openAuthModal("login");
+  }, [openAuthModal, selections, stake]);
 
   const placeBet = useCallback(async () => {
     if (selections.length === 0) {
