@@ -30,7 +30,7 @@ export default function PaystackDepositPage() {
 
   const amountValue = useMemo(() => Number(amount) || 0, [amount]);
 
-  // Handle redirect from Paystack checkout
+  // Handle redirect from Paystack checkout - CRITICAL for enterprise session handling
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const routeReference = params.get("reference");
@@ -47,6 +47,11 @@ export default function PaystackDepositPage() {
         // Clear the URL params immediately to prevent state issues
         const cleanUrl = window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
+
+        // Log for debugging - payment redirect recovery
+        console.debug(
+          `[Paystack] Payment redirect detected: reference=${routeReference}, status=${status}`,
+        );
       }
     }
   }, []);
@@ -75,14 +80,35 @@ export default function PaystackDepositPage() {
     );
 
     try {
-      const response = await initializeMutation.mutateAsync({
-        email: user.email,
-        amount: amountValue,
-        metadata: {
-          userId: user?.id,
-          source: "paystack-deposit-card",
-        },
-      });
+      // Enterprise-grade retry logic with exponential backoff
+      let response;
+      let lastError: any;
+      const maxAttempts = 3;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          response = await initializeMutation.mutateAsync({
+            email: user.email,
+            amount: amountValue,
+            metadata: {
+              userId: user?.id,
+              source: "paystack-deposit-card",
+            },
+          });
+          break; // Success - exit retry loop
+        } catch (error) {
+          lastError = error;
+          if (attempt < maxAttempts) {
+            // Wait with exponential backoff: 500ms, 1000ms
+            const delayMs = 500 * Math.pow(2, attempt - 1);
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+          }
+        }
+      }
+
+      if (!response) {
+        throw lastError || new Error("Failed to initialize payment after retries");
+      }
 
       localStorage.setItem(pendingStorageKey, response.reference);
 
@@ -92,9 +118,15 @@ export default function PaystackDepositPage() {
         description: `Amount: KES ${formatMoney(amountValue)} • Reference: ${response.reference}`,
       });
 
+      // Preserve session before redirect - CRITICAL
+      // The AuthContext will handle session persistence
+      console.debug(
+        `[Paystack] Initializing payment redirect with reference: ${response.reference}`,
+      );
+
       // Redirect to Paystack checkout
       setTimeout(() => {
-        window.location.assign(response.authorization_url);
+        window.location.assign(response!.authorization_url);
       }, 500);
     } catch (error: any) {
       toast.dismiss(loadingToast);
@@ -104,6 +136,7 @@ export default function PaystackDepositPage() {
         error?.message ??
         "Unable to start payment";
       toast.error(message);
+      console.error("[Paystack] Payment initialization failed:", error);
     }
   }
 

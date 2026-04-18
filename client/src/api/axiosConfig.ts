@@ -19,6 +19,22 @@ let refreshHandler: RefreshHandler | null = null;
 let unauthorizedHandler: UnauthorizedHandler | null = null;
 let refreshPromise: Promise<string | null> | null = null;
 
+// Restore token from localStorage on app load
+function restoreTokenFromStorage(): void {
+  try {
+    const storedToken = localStorage.getItem("betwise-auth-token");
+    if (storedToken) {
+      accessToken = storedToken;
+      console.debug("[AxiosConfig] Restored token from localStorage");
+    }
+  } catch {
+    // Silently fail if localStorage is not available
+  }
+}
+
+// Call restore on module load
+restoreTokenFromStorage();
+
 function shouldSkipRefresh(url: string | undefined) {
   if (!url) return false;
   return (

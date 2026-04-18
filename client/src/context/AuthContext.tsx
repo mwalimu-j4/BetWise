@@ -29,6 +29,64 @@ type AuthResponse = {
   user: AuthUser;
 };
 
+// Storage keys for persistent auth state
+const AUTH_TOKEN_KEY = "betwise-auth-token";
+const AUTH_USER_KEY = "betwise-auth-user";
+const AUTH_RECOVERY_FLAG = "betwise-auth-recovery";
+
+// Utility functions for localStorage management
+function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function getStoredUser(): AuthUser | null {
+  try {
+    const stored = localStorage.getItem(AUTH_USER_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistAuthState(token: string, user: AuthUser): void {
+  try {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  } catch {
+    console.warn("[Auth] Failed to persist auth state to localStorage");
+  }
+}
+
+function clearStoredAuth(): void {
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem(AUTH_RECOVERY_FLAG);
+  } catch {
+    console.warn("[Auth] Failed to clear auth state from localStorage");
+  }
+}
+
+function setRecoveryFlag(): void {
+  try {
+    localStorage.setItem(AUTH_RECOVERY_FLAG, Date.now().toString());
+  } catch {
+    // Silently fail - not critical
+  }
+}
+
+function clearRecoveryFlag(): void {
+  try {
+    localStorage.removeItem(AUTH_RECOVERY_FLAG);
+  } catch {
+    // Silently fail
+  }
+}
+
 type AdminMfaRequiredResponse = {
   mfaRequired: true;
   mfaMode: "totp_setup" | "totp_verify";
@@ -116,6 +174,7 @@ function clearAuthState(
   setUser(null);
   setToken(null);
   setAccessToken(null);
+  clearStoredAuth();
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -123,6 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessTokenState, setAccessTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authModal, setAuthModal] = useState<AuthModal>("none");
+  const [isRecovering, setIsRecovering] = useState(false);
 
   const openAuthModal = useCallback((modal: AuthModal) => {
     setAuthModal(modal);
@@ -136,23 +196,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
     setAccessTokenState(data.accessToken);
     setAccessToken(data.accessToken);
+    persistAuthState(data.accessToken, data.user);
+    clearRecoveryFlag();
   }, []);
 
   const refreshSession = useCallback(async () => {
-    // Track if we have any valid auth state
     let hasValidAuth = false;
 
-    // First, try to get current user info to verify session
     try {
       const me = await api.get<MeResponse>("/auth/me");
       setUser(me.data.user);
       hasValidAuth = true;
+      
+      // Keep existing token if /auth/me succeeds
+      if (accessTokenState) {
+        persistAuthState(accessTokenState, me.data.user);
+      }
       return accessTokenState;
     } catch (meError) {
       // /auth/me failed, try refreshing token
     }
 
-    // Try refreshing the access token
     try {
       const { data } = await api.post<AuthResponse>("/auth/refresh");
       updateSession(data);
@@ -163,6 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // If we couldn't verify auth but have an access token, keep it
+    // This is critical for payment redirects where token might still be valid
     if (accessTokenState && !hasValidAuth) {
       return accessTokenState;
     }
@@ -274,24 +339,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, [refreshSession]);
 
+  // CRITICAL: Initialize auth state from localStorage IMMEDIATELY
+  // This prevents logout during payment redirects
   useEffect(() => {
+    // Restore persisted auth state first (synchronous, fast)
+    const storedToken = getStoredToken();
+    const storedUser = getStoredUser();
+
+    if (storedToken && storedUser) {
+      setAccessTokenState(storedToken);
+      setAccessToken(storedToken);
+      setUser(storedUser);
+      console.debug("[Auth] Restored session from localStorage");
+    }
+
+    // Then verify/refresh the session (async)
     void (async () => {
       try {
-        // Check if this is a redirect from external payment provider
         const params = new URLSearchParams(window.location.search);
-        const hasRedirectParams =
+        const isPaymentRedirect =
           params.has("reference") || params.has("status");
 
-        // Always refresh session, especially after redirects
+        // If returning from payment provider, immediately set recovery flag
+        if (isPaymentRedirect) {
+          setRecoveryFlag();
+          setIsRecovering(true);
+          console.debug("[Auth] Payment redirect detected, initiating recovery");
+        }
+
+        // Try to refresh session to ensure token is still valid
         const result = await refreshSession();
 
-        // If refresh failed but we're returning from payment, try one more time
-        if (!result && hasRedirectParams) {
+        // If recovery failed, try one more time to be safe
+        if (isPaymentRedirect && !result) {
+          console.debug("[Auth] First recovery attempt failed, retrying...");
+          await new Promise((resolve) => setTimeout(resolve, 500));
           await refreshSession();
         }
-      } catch (_error) {
-        // Silently fail - don't log out on initial load if refresh fails
-        // This prevents logout when returning from third-party redirects like Paystack
+
+        clearRecoveryFlag();
+        setIsRecovering(false);
+      } catch (error) {
+        // IMPORTANT: Do NOT log out on init if refresh fails
+        // This is critical for payment redirects where API might be slow
+        // but token is still valid
+        console.warn("[Auth] Session refresh on init failed, keeping existing auth");
+        clearRecoveryFlag();
+        setIsRecovering(false);
       } finally {
         setIsLoading(false);
       }
