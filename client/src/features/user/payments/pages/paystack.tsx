@@ -27,7 +27,6 @@ function normalizeAmount(value: string) {
 export default function PaystackDepositPage() {
   const { user } = useAuth();
   const initializeMutation = usePaystackInitialize();
-  const [email, setEmail] = useState(user?.email ?? "");
   const [amount, setAmount] = useState("100");
   const [paymentStatus, setPaymentStatus] = useState<
     "success" | "failed" | null
@@ -36,12 +35,6 @@ export default function PaystackDepositPage() {
   const [showPaymentResult, setShowPaymentResult] = useState(false);
 
   const amountValue = useMemo(() => Number(amount) || 0, [amount]);
-
-  useEffect(() => {
-    if (user?.email && !email) {
-      setEmail(user.email);
-    }
-  }, [email, user?.email]);
 
   // Handle redirect from Paystack checkout
   useEffect(() => {
@@ -85,8 +78,8 @@ export default function PaystackDepositPage() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!email.trim()) {
-      toast.error("Enter a valid email address.");
+    if (!user?.email) {
+      toast.error("User email not found.");
       return;
     }
 
@@ -102,7 +95,7 @@ export default function PaystackDepositPage() {
 
     try {
       const response = await initializeMutation.mutateAsync({
-        email: email.trim(),
+        email: user.email,
         amount: amountValue,
         metadata: {
           userId: user?.id,
@@ -192,42 +185,24 @@ export default function PaystackDepositPage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           {quickAmounts.map((value) => (
             <button
               key={value}
               type="button"
               onClick={() => setAmount(String(value))}
-              className={`rounded-xl border px-3 py-2.5 text-left transition ${
+              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
                 amountValue === value
-                  ? "border-[#f5c518] bg-[#f5c518]/10 text-white"
+                  ? "border-[#f5c518] bg-[#f5c518]/20 text-[#f5c518]"
                   : "border-[#294157] bg-[#0f1a2a] text-[#8a9bb0] hover:border-[#f5c518]/50 hover:text-white"
               }`}
             >
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em]">
-                Quick amount
-              </p>
-              <p className="mt-1 text-sm font-bold sm:text-base">
-                {formatMoney(value)}
-              </p>
+              {formatMoney(value)}
             </button>
           ))}
         </div>
 
         <form onSubmit={onSubmit} className="mt-4 grid gap-3">
-          <label className="grid gap-2">
-            <span className="text-xs font-medium text-[#90a2bb] sm:text-sm">
-              Email
-            </span>
-            <Input
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              type="email"
-              placeholder="you@example.com"
-              className="h-11 rounded-xl border-[#294157] bg-[#0f1a2a] text-white placeholder:text-[#62738a] focus:border-[#f5c518]"
-            />
-          </label>
-
           <label className="grid gap-2">
             <span className="text-xs font-medium text-[#90a2bb] sm:text-sm">
               Amount (KES)
