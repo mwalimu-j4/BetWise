@@ -216,10 +216,14 @@ export default function PaymentsHistoryPage() {
                   <TableCell colSpan={6} className="py-8">
                     <div className="mx-auto max-w-xl rounded-2xl border border-[#23384f] bg-[linear-gradient(165deg,#0d2147,#091a36)] p-5 text-center">
                       <p className="text-xl font-semibold text-white">
-                        No matches available right now
+                        {transactions.length === 0
+                          ? "No transactions yet"
+                          : "No matches found"}
                       </p>
                       <p className="mt-1 text-sm text-blue-200/85">
-                        Check back soon or refresh
+                        {transactions.length === 0
+                          ? "Start by making your first deposit or bet"
+                          : "Try adjusting your filters"}
                       </p>
                       <Button
                         type="button"

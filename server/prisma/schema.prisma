@@ -419,7 +419,7 @@ model AdminSettings {
   mpesaConsumerKey                String   @default("replace-with-consumer-key") @map("mpesa_consumer_key")
   mpesaConsumerSecret             String   @default("replace-with-consumer-secret") @map("mpesa_consumer_secret")
   mpesaPasskey                    String   @default("replace-with-passkey") @map("mpesa_passkey")
-  mpesaCallbackUrl                String   @default("https://example.com/api/mpesa/callback") @map("mpesa_callback_url")
+  mpesaCallbackUrl                String   @default("") @map("mpesa_callback_url")
   mpesaTransactionFeePercent      Float    @default(5) @map("mpesa_transaction_fee_percent")
   mpesaAutoWithdrawEnabled        Boolean  @default(false) @map("mpesa_auto_withdraw_enabled")
   mpesaWithdrawalApprovalThreshold Int     @default(50000) @map("mpesa_withdrawal_approval_threshold")

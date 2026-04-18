@@ -1304,17 +1304,36 @@ export async function checkDepositStatus(
       CheckoutRequestID: transaction.checkoutRequestId,
     };
 
-    const queryResponse = await fetch(
-      `${config.baseUrl}/mpesa/stkpushquery/v1/query`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${tokenData.access_token}`,
-          "Content-Type": "application/json",
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    let queryResponse: Response;
+    try {
+      queryResponse = await fetch(
+        `${config.baseUrl}/mpesa/stkpushquery/v1/query`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(queryPayload),
+          signal: controller.signal,
         },
-        body: JSON.stringify(queryPayload),
-      },
-    );
+      );
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError instanceof Error && fetchError.name === "AbortError") {
+        console.error("[M-Pesa Query] Request timeout for transaction:", transaction.id);
+        return res.status(200).json({
+          transactionId: transaction.id,
+          status: "PENDING",
+          message: "M-Pesa service temporarily unavailable. Will retry.",
+        });
+      }
+      throw fetchError;
+    }
+    clearTimeout(timeoutId);
 
     const queryData = (await queryResponse.json()) as MpesaStkQueryResponse;
 

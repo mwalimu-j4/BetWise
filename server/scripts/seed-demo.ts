@@ -356,7 +356,7 @@ async function seedAdminSettings() {
       mpesaConsumerKey: "demo-consumer-key",
       mpesaConsumerSecret: "demo-consumer-secret",
       mpesaPasskey: "demo-passkey",
-      mpesaCallbackUrl: "https://demo.betwise.local/api/mpesa/callback",
+      mpesaCallbackUrl: process.env.MPESA_CALLBACK_URL?.trim() || "",
       sportsApiKey: "demo-sports-api-key",
       updatedBy: "demo-seed",
     },

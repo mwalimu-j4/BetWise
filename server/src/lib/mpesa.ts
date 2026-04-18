@@ -216,7 +216,8 @@ export function getMpesaB2CConfig():
 
   const initiatorName = process.env.MPESA_INITIATOR_NAME?.trim();
   const securityCredential = process.env.MPESA_SECURITY_CREDENTIAL?.trim();
-  const commandId = process.env.MPESA_B2C_COMMAND_ID?.trim() || "BusinessPayment";
+  const commandId =
+    process.env.MPESA_B2C_COMMAND_ID?.trim() || "BusinessPayment";
   const resultUrl =
     process.env.MPESA_B2C_RESULT_URL?.trim() ||
     deriveSiblingCallbackUrl(
@@ -273,24 +274,69 @@ export async function getMpesaAccessToken(config: {
   consumerSecret: string;
 }): Promise<MpesaAuthTokenResponse> {
   const authHeader = Buffer.from(
-    `${config.consumerKey}:${config.consumerSecret}`,
+    `${config.consumerKey.trim()}:${config.consumerSecret.trim()}`,
   ).toString("base64");
 
-  const tokenResponse = await fetch(
-    `${config.baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Basic ${authHeader}`,
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    console.log("[M-Pesa Auth] Requesting token from:", config.baseUrl);
+
+    const tokenResponse = await fetch(
+      `${config.baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Basic ${authHeader}`,
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
       },
-    },
-  );
+    );
 
-  if (!tokenResponse.ok) {
-    throw new Error("Could not authenticate with M-Pesa API.");
+    if (!tokenResponse.ok) {
+      const errorBody = await tokenResponse.text().catch(() => "(no body)");
+      console.error("[M-Pesa Auth] Authentication failed:", {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        body: errorBody,
+      });
+      throw new Error(
+        `M-Pesa API authentication failed: ${tokenResponse.status} ${tokenResponse.statusText}. Response: ${errorBody}`,
+      );
+    }
+
+    const data = await tokenResponse.json();
+
+    if (!data.access_token) {
+      console.error(
+        "[M-Pesa Auth] Invalid response - missing access_token:",
+        data,
+      );
+      throw new Error(
+        "M-Pesa API returned invalid token response: missing access_token field.",
+      );
+    }
+
+    console.log("[M-Pesa Auth] Token acquired successfully.");
+    return data as MpesaAuthTokenResponse;
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        console.error(
+          "[M-Pesa Auth] Request timeout (10s) connecting to M-Pesa API",
+        );
+        throw new Error(
+          "M-Pesa API connection timeout. Please check network connectivity and firewall rules.",
+        );
+      }
+      throw error;
+    }
+    throw new Error("M-Pesa API authentication failed: Unknown error");
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return (await tokenResponse.json()) as MpesaAuthTokenResponse;
 }
 
 export function getValue(

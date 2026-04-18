@@ -42,11 +42,13 @@ export function errorHandler(
     });
   }
 
+  // Preserve M-Pesa authentication errors for debugging
+  const errorMessage = err instanceof Error ? err.message : "Internal server error";
+  const isMpesaError = errorMessage.includes("M-Pesa") || errorMessage.includes("M-pesa");
+
   const message =
-    process.env.NODE_ENV === "production"
+    process.env.NODE_ENV === "production" && !isMpesaError
       ? "Internal server error"
-      : err instanceof Error
-        ? err.message
-        : "Internal server error";
+      : errorMessage;
   res.status(500).json({ message });
 }
