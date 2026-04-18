@@ -580,7 +580,7 @@ function BetSlipContent({
   betSlip: ReturnType<typeof useBetSlip>;
   isDesktop: boolean;
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, openAuthModal } = useAuth();
   const [tab, setTab] = useState<"normal" | "shikisha" | "virtuals">("normal");
   const [loadCode, setLoadCode] = useState("");
   const [loadingCode, setLoadingCode] = useState(false);
@@ -755,7 +755,7 @@ function BetSlipContent({
             type="button"
             onClick={() => {
               if (!isAuthenticated) {
-                window.location.assign("/login?redirect=/user/live");
+                openAuthModal("login");
                 return;
               }
 
@@ -1015,9 +1015,9 @@ export default function LivePage() {
   ]);
 
   return (
-    <div className="h-[calc(100vh-118px)] min-h-0 overflow-hidden bg-gradient-to-br from-[#0b1120] to-[#0f172a] text-white">
-      <div className="mx-auto h-full min-h-0 max-w-[1440px] px-2 py-2 sm:px-3 sm:py-3 lg:px-5 lg:py-4">
-        <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="live-betting-wrapper min-h-screen bg-gradient-to-br from-[#0b1120] to-[#0f172a] text-white">
+      <div className="live-betting-main mx-auto w-full max-w-[1440px] px-2 pb-24 pt-2 sm:px-3 sm:py-3 md:pb-6 lg:px-5 lg:py-4">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           <section className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-[#31455f] bg-[#0f172a]">
             <div className="z-20 border-b border-[#31455f] bg-[#0f172a] px-[10px] py-2">
               <div className="flex flex-wrap items-center gap-2">
@@ -1306,8 +1306,8 @@ export default function LivePage() {
             </div>
           </section>
 
-          <aside className="hidden min-h-0 overflow-hidden lg:block">
-            <div className="sticky top-0 h-full min-h-0">
+          <aside className="betslip-sidebar hidden shrink-0 lg:block lg:w-[360px]">
+            <div className="betslip-sticky-wrap lg:sticky lg:overflow-y-auto lg:app-scrollbar">
               <BetSlipContent betSlip={betSlip} isDesktop />
               <div className="flex items-center gap-1.5 border-x border-b border-[#31455f] bg-[#0f172a] px-3 py-2 text-[11px] text-[#8a9bb0]">
                 <span
