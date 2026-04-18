@@ -32,22 +32,32 @@ export function PaymentLoadingModal({
         </div>
 
         {/* Message */}
-        <h2 className="text-xl font-bold text-white mb-2">
-          {message}
-        </h2>
+        <h2 className="text-xl font-bold text-white mb-2">{message}</h2>
 
         {/* Amount Display */}
         {amount && (
           <p className="text-sm text-[#8a9bb0] mb-4">
-            Amount: <span className="text-[#f5c518] font-semibold">KES {amount.toLocaleString()}</span>
+            Amount:{" "}
+            <span className="text-[#f5c518] font-semibold">
+              KES {amount.toLocaleString()}
+            </span>
           </p>
         )}
 
         {/* Loading dots animation */}
         <div className="flex justify-center gap-2 mt-6">
-          <div className="w-2 h-2 rounded-full bg-[#3b82f6] animate-bounce" style={{ animationDelay: "0s" }} />
-          <div className="w-2 h-2 rounded-full bg-[#7c3aed] animate-bounce" style={{ animationDelay: "0.1s" }} />
-          <div className="w-2 h-2 rounded-full bg-[#3b82f6] animate-bounce" style={{ animationDelay: "0.2s" }} />
+          <div
+            className="w-2 h-2 rounded-full bg-[#3b82f6] animate-bounce"
+            style={{ animationDelay: "0s" }}
+          />
+          <div
+            className="w-2 h-2 rounded-full bg-[#7c3aed] animate-bounce"
+            style={{ animationDelay: "0.1s" }}
+          />
+          <div
+            className="w-2 h-2 rounded-full bg-[#3b82f6] animate-bounce"
+            style={{ animationDelay: "0.2s" }}
+          />
         </div>
 
         {/* Subtle helper text */}
