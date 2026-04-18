@@ -230,6 +230,7 @@ export function verifyPaystackWebhookSignature(
     .digest("hex");
   const normalizedSignature = signature.trim().toLowerCase();
 
+  // Ensure signature is valid hex before Buffer conversion/comparison.
   if (!/^[a-f0-9]+$/.test(normalizedSignature) || normalizedSignature.length % 2 !== 0) {
     return false;
   }
