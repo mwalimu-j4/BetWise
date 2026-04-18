@@ -10,7 +10,7 @@ export async function createDepositNotifications(args: {
   transactionId: string;
   amount: number;
   balance: number;
-  mpesaCode?: string | null;
+  paystackReference?: string | null;
   status: "COMPLETED" | "FAILED";
   failureReason?: string;
 }) {
@@ -25,9 +25,9 @@ export async function createDepositNotifications(args: {
     }),
   ]);
 
-  const normalizedMpesaCode = args.mpesaCode ?? null;
-  const codeSuffix = normalizedMpesaCode
-    ? ` M-Pesa code: ${normalizedMpesaCode}.`
+  const normalizedPaystackReference = args.paystackReference ?? null;
+  const referenceSuffix = normalizedPaystackReference
+    ? ` Reference: ${normalizedPaystackReference}.`
     : "";
   const userIdentifier =
     userProfile?.phone ?? userProfile?.email ?? args.userId;
@@ -35,14 +35,14 @@ export async function createDepositNotifications(args: {
 
   const userTitle = isSuccess ? "Deposit Successful" : "Deposit Failed";
   const userMessage = isSuccess
-    ? `You deposited KES ${args.amount.toLocaleString()}. Your new balance is KES ${args.balance.toLocaleString()}.${codeSuffix}`
+    ? `You deposited KES ${args.amount.toLocaleString()}. Your new balance is KES ${args.balance.toLocaleString()}.${referenceSuffix}`
     : `Your deposit request for KES ${args.amount.toLocaleString()} failed.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
 
   const adminTitle = isSuccess
     ? "New Customer Deposit"
     : "Customer Deposit Failed";
   const adminMessage = isSuccess
-    ? `${userIdentifier} deposited KES ${args.amount.toLocaleString()}. Updated wallet balance: KES ${args.balance.toLocaleString()}.${codeSuffix}`
+    ? `${userIdentifier} deposited KES ${args.amount.toLocaleString()}. Updated wallet balance: KES ${args.balance.toLocaleString()}.${referenceSuffix}`
     : `${userIdentifier} had a failed deposit request of KES ${args.amount.toLocaleString()}.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
 
   const notificationType: "DEPOSIT_SUCCESS" | "DEPOSIT_FAILED" = isSuccess
@@ -60,7 +60,7 @@ export async function createDepositNotifications(args: {
       transactionId: args.transactionId,
       amount: args.amount,
       balance: args.balance,
-      mpesaCode: normalizedMpesaCode,
+      paystackReference: normalizedPaystackReference,
     },
     ...adminUsers.map((admin) => ({
       userId: admin.id,
@@ -71,7 +71,7 @@ export async function createDepositNotifications(args: {
       transactionId: args.transactionId,
       amount: args.amount,
       balance: args.balance,
-      mpesaCode: normalizedMpesaCode,
+      paystackReference: normalizedPaystackReference,
     })),
   ];
 
@@ -92,7 +92,7 @@ export async function createDepositNotifications(args: {
     transactionId: args.transactionId,
     amount: args.amount,
     balance: args.balance,
-    mpesaCode: normalizedMpesaCode,
+    paystackReference: normalizedPaystackReference,
     createdAt: createdAtIso,
   });
 
@@ -105,7 +105,7 @@ export async function createDepositNotifications(args: {
       transactionId: args.transactionId,
       amount: args.amount,
       balance: args.balance,
-      mpesaCode: normalizedMpesaCode,
+      paystackReference: normalizedPaystackReference,
       createdAt: createdAtIso,
     });
   }
@@ -246,7 +246,7 @@ function toClientNotification(notification: {
   transactionId: string | null;
   amount: number | null;
   balance: number | null;
-  mpesaCode: string | null;
+  paystackReference: string | null;
   isRead: boolean;
   createdAt: Date;
 }) {
@@ -259,7 +259,7 @@ function toClientNotification(notification: {
     transactionId: notification.transactionId,
     amount: notification.amount,
     balance: notification.balance,
-    mpesaCode: notification.mpesaCode,
+    paystackReference: notification.paystackReference,
     isRead: notification.isRead,
     createdAt: notification.createdAt.toISOString(),
   };

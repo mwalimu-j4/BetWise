@@ -35,7 +35,7 @@ export type NotificationRealtimeEvent = {
   transactionId?: string | null;
   amount?: number | null;
   balance?: number | null;
-  mpesaCode?: string | null;
+  paystackReference?: string | null;
   createdAt: string;
 };
 

@@ -22,7 +22,7 @@ export type AppNotification = {
   transactionId?: string | null;
   amount?: number | null;
   balance?: number | null;
-  mpesaCode?: string | null;
+  paystackReference?: string | null;
   isRead: boolean;
   createdAt: string;
 };
@@ -81,7 +81,7 @@ export function useAppNotifications(take = 20) {
             transactionId: payload.transactionId,
             amount: payload.amount,
             balance: payload.balance,
-            mpesaCode: payload.mpesaCode,
+            paystackReference: payload.paystackReference,
             isRead: false,
             createdAt: payload.createdAt,
           };

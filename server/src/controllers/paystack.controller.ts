@@ -263,6 +263,7 @@ async function finalizePaystackDeposit(
     transactionId: transaction.id,
     amount: transaction.amount,
     balance: updatedWallet.balance,
+    paystackReference: verificationResult.data.reference,
     status: "COMPLETED",
   });
 
