@@ -73,7 +73,8 @@ paystackRouter.post("/webhook", (req: Request, res: Response): void => {
     return;
   }
 
-  const rawBody = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+  const rawBody =
+    typeof req.body === "string" ? req.body : JSON.stringify(req.body);
   if (!verifyPaystackSignature(rawBody, signature)) {
     console.error("Paystack webhook: invalid signature");
     res.status(401).json({ error: "Invalid signature" });

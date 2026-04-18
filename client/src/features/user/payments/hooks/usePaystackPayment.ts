@@ -30,7 +30,12 @@ export type PaystackVerificationResponse = {
 export type PaystackStatusResponse = {
   reference: string;
   status: "pending" | "processing" | "success" | "failed" | "reversed";
-  transactionStatus: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REVERSED";
+  transactionStatus:
+    | "PENDING"
+    | "PROCESSING"
+    | "COMPLETED"
+    | "FAILED"
+    | "REVERSED";
   amount: number;
   createdAt: string;
   processedAt?: string | null;

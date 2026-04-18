@@ -31,7 +31,12 @@ export async function handlePaystackWebhook(
     return;
   }
 
-  const { reference, amount: amountInSmallestUnit, customer, paid_at } = event.data;
+  const {
+    reference,
+    amount: amountInSmallestUnit,
+    customer,
+    paid_at,
+  } = event.data;
 
   if (!reference) {
     console.error("Paystack webhook: missing reference");
@@ -46,7 +51,9 @@ export async function handlePaystackWebhook(
     });
 
     if (!transaction) {
-      console.warn(`Paystack webhook: transaction not found for reference ${reference}`);
+      console.warn(
+        `Paystack webhook: transaction not found for reference ${reference}`,
+      );
       // This can happen if transaction record wasn't created yet
       // Log but don't fail - Paystack will retry
       return;
@@ -83,7 +90,10 @@ export async function handlePaystackWebhook(
 
     const amountInKes = Math.round(amountInSmallestUnit / 100);
 
-    if (Math.abs(amountInKes - transaction.amount) > transaction.amount * 0.01) {
+    if (
+      Math.abs(amountInKes - transaction.amount) >
+      transaction.amount * 0.01
+    ) {
       console.error(
         `Paystack webhook: amount mismatch for reference ${reference}. Expected ${transaction.amount}, got ${amountInKes}`,
       );
@@ -103,7 +113,9 @@ export async function handlePaystackWebhook(
     }
 
     const processedAt = new Date();
-    const webhookPayload = JSON.parse(JSON.stringify(event.data)) as Prisma.InputJsonValue;
+    const webhookPayload = JSON.parse(
+      JSON.stringify(event.data),
+    ) as Prisma.InputJsonValue;
     const updatedWallet = await prisma.$transaction(async (tx) => {
       const transition = await tx.walletTransaction.updateMany({
         where: {
@@ -163,15 +175,13 @@ export async function handlePaystackWebhook(
     });
 
     // Create notifications
-    await createDepositNotifications(
-      {
-        userId: transaction.userId,
-        transactionId: transaction.id,
-        amount: transaction.amount,
-        balance: updatedWallet.balance,
-        status: "COMPLETED",
-      },
-    );
+    await createDepositNotifications({
+      userId: transaction.userId,
+      transactionId: transaction.id,
+      amount: transaction.amount,
+      balance: updatedWallet.balance,
+      status: "COMPLETED",
+    });
   } catch (error) {
     console.error(`Paystack webhook error for reference ${reference}:`, error);
     // Re-throw so caller logs it, but don't crash

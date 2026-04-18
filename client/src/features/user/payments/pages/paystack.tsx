@@ -1,18 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { ArrowRight, Copy, LoaderCircle, RefreshCw, ShieldCheck, Smartphone, Wallet } from "lucide-react";
+import { Copy, LoaderCircle, Smartphone, Wallet } from "lucide-react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "../data";
-import { useWalletSummary, walletSummaryQueryKey } from "../wallet";
-import {
-  usePaystackInitialize,
-  usePaystackStatus,
-  usePaystackVerification,
-} from "../hooks/usePaystackPayment";
+import { usePaystackInitialize } from "../hooks/usePaystackPayment";
 
 const quickAmounts = [500, 1000, 2500, 5000];
 const pendingStorageKey = "betwise-paystack-pending-reference";
@@ -23,34 +17,13 @@ function normalizeAmount(value: string) {
   return value.replace(/[^\d]/g, "");
 }
 
-function getStatusTone(status?: string | null) {
-  switch (status) {
-    case "success":
-    case "COMPLETED":
-      return "border-emerald-400/30 bg-emerald-500/10 text-emerald-300";
-    case "failed":
-    case "FAILED":
-      return "border-rose-400/30 bg-rose-500/10 text-rose-300";
-    case "processing":
-    case "PROCESSING":
-      return "border-amber-400/30 bg-amber-500/10 text-amber-300";
-    default:
-      return "border-sky-400/30 bg-sky-500/10 text-sky-300";
-  }
-}
-
 export default function PaystackDepositPage() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const { data: walletData } = useWalletSummary();
   const initializeMutation = usePaystackInitialize();
   const [email, setEmail] = useState(user?.email ?? "");
   const [amount, setAmount] = useState("100");
-  const [reference, setReference] = useState<string | null>(null);
 
   const amountValue = useMemo(() => Number(amount) || 0, [amount]);
-  const verificationQuery = usePaystackVerification(reference);
-  const statusQuery = usePaystackStatus(reference);
 
   useEffect(() => {
     if (user?.email && !email) {
@@ -61,24 +34,10 @@ export default function PaystackDepositPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const routeReference = params.get("reference");
-    const pendingReference = localStorage.getItem(pendingStorageKey);
     if (routeReference) {
-      setReference(routeReference);
       localStorage.setItem(pendingStorageKey, routeReference);
-      return;
-    }
-
-    if (pendingReference) {
-      setReference(pendingReference);
     }
   }, []);
-
-  useEffect(() => {
-    if (verificationQuery.data?.status === "success") {
-      localStorage.removeItem(pendingStorageKey);
-      void queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
-    }
-  }, [queryClient, verificationQuery.data?.status]);
 
   async function copyText(text: string) {
     await navigator.clipboard.writeText(text);
@@ -111,7 +70,6 @@ export default function PaystackDepositPage() {
       });
 
       localStorage.setItem(pendingStorageKey, response.reference);
-      setReference(response.reference);
       window.location.assign(response.authorization_url);
     } catch (error: any) {
       const message =
@@ -123,8 +81,6 @@ export default function PaystackDepositPage() {
     }
   }
 
-  const statusText = verificationQuery.data?.status ?? statusQuery.data?.status ?? "pending";
-
   return (
     <section className="mx-auto grid max-w-280 gap-4 lg:grid-cols-2 lg:items-stretch">
       <article className="flex h-full min-h-98 flex-col rounded-2xl border border-[#243a53] bg-[#111d2e] p-4 sm:p-5">
@@ -132,9 +88,13 @@ export default function PaystackDepositPage() {
           <div>
             <div className="flex items-center gap-2 text-[#f5c518]">
               <Wallet size={18} />
-              <h2 className="text-lg font-semibold text-white sm:text-xl">Paystack</h2>
+              <h2 className="text-lg font-semibold text-white sm:text-xl">
+                Paystack
+              </h2>
             </div>
-            <p className="mt-1 text-xs text-[#8a9bb0] sm:text-sm">Secure card and bank checkout</p>
+            <p className="mt-1 text-xs text-[#8a9bb0] sm:text-sm">
+              Secure card and bank checkout
+            </p>
           </div>
         </div>
 
@@ -150,15 +110,21 @@ export default function PaystackDepositPage() {
                   : "border-[#294157] bg-[#0f1a2a] text-[#8a9bb0] hover:border-[#f5c518]/50 hover:text-white"
               }`}
             >
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em]">Quick amount</p>
-              <p className="mt-1 text-sm font-bold sm:text-base">{formatMoney(value)}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em]">
+                Quick amount
+              </p>
+              <p className="mt-1 text-sm font-bold sm:text-base">
+                {formatMoney(value)}
+              </p>
             </button>
           ))}
         </div>
 
         <form onSubmit={onSubmit} className="mt-4 grid gap-3">
           <label className="grid gap-2">
-            <span className="text-xs font-medium text-[#90a2bb] sm:text-sm">Email</span>
+            <span className="text-xs font-medium text-[#90a2bb] sm:text-sm">
+              Email
+            </span>
             <Input
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -169,10 +135,14 @@ export default function PaystackDepositPage() {
           </label>
 
           <label className="grid gap-2">
-            <span className="text-xs font-medium text-[#90a2bb] sm:text-sm">Amount (KES)</span>
+            <span className="text-xs font-medium text-[#90a2bb] sm:text-sm">
+              Amount (KES)
+            </span>
             <Input
               value={amount}
-              onChange={(event) => setAmount(normalizeAmount(event.target.value))}
+              onChange={(event) =>
+                setAmount(normalizeAmount(event.target.value))
+              }
               inputMode="numeric"
               type="text"
               placeholder="100"
@@ -193,7 +163,9 @@ export default function PaystackDepositPage() {
 
           <div className="rounded-xl border border-[#243a53] bg-[#0f1a2a] px-4 py-3 text-xs text-[#8a9bb0]">
             Funds are only marked paid after server verification.
-            <span className="ml-2 font-semibold text-white">{formatMoney(amountValue || 0)}</span>
+            <span className="ml-2 font-semibold text-white">
+              {formatMoney(amountValue || 0)}
+            </span>
           </div>
         </form>
       </article>
@@ -203,9 +175,13 @@ export default function PaystackDepositPage() {
           <div>
             <div className="flex items-center gap-2 text-[#f5c518]">
               <Smartphone size={18} />
-              <h2 className="text-lg font-semibold text-white sm:text-xl">Till Number</h2>
+              <h2 className="text-lg font-semibold text-white sm:text-xl">
+                Till Number
+              </h2>
             </div>
-            <p className="mt-1 text-xs text-[#8a9bb0] sm:text-sm">Pay via M-Pesa goods and services</p>
+            <p className="mt-1 text-xs text-[#8a9bb0] sm:text-sm">
+              Pay via M-Pesa goods and services
+            </p>
           </div>
         </div>
 
@@ -231,11 +207,15 @@ export default function PaystackDepositPage() {
           <ol className="mt-3 space-y-2 text-sm leading-6">
             <li>1. Go to M-Pesa then Lipa Na M-Pesa.</li>
             <li>2. Select Buy Goods and Services.</li>
-            <li>3. Enter Till {tillNumber} ({tillName}).</li>
+            <li>
+              3. Enter Till {tillNumber} ({tillName}).
+            </li>
             <li>4. Enter amount and PIN.</li>
             <li>5. Confirm payment.</li>
           </ol>
-          <p className="mt-4 text-center text-[11px] text-[#62738a]">Dial *234# for charges</p>
+          <p className="mt-4 text-center text-[11px] text-[#62738a]">
+            Dial *234# for charges
+          </p>
         </div>
       </article>
     </section>

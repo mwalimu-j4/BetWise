@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { verifyPaystackWebhookSignature, parseWebhookEvent } from "../lib/paystack";
+import { authenticate } from "../middleware/authenticate";
+import {
+  verifyPaystackWebhookSignature,
+  parseWebhookEvent,
+} from "../lib/paystack";
 import {
   initializePaystackPayment,
   verifyPaystackPayment,
@@ -86,7 +90,10 @@ paystackRouter.post("/webhook", (req, res) => {
       .catch((error) => {
         console.error("Paystack webhook handler error:", error);
         // Return 200 to prevent Paystack retry, but log error
-        res.status(200).json({ received: true, error: error instanceof Error ? error.message : "Unknown error" });
+        res.status(200).json({
+          received: true,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       });
   } catch (error) {
     console.error("Paystack webhook error:", error);

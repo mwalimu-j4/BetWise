@@ -1,7 +1,9 @@
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { callbackRouter } from "./routes/callback";import paystackRouter from "./routes/paystack";import validateEnv from "./utils/env_validator";
+import { callbackRouter } from "./routes/callback";
+import paystackRouter from "./routes/paystack";
+import validateEnv from "./utils/env_validator";
 
 dotenv.config();
 
@@ -13,7 +15,7 @@ app.use(express.json());
 app.use(cors());
 
 // Validate environment variables
-validateEnv()
+validateEnv();
 
 // Health check
 app.get("/health", (req: Request, res: Response) => {
@@ -214,7 +216,6 @@ app.get("/ui", (req: Request, res: Response) => {
   </html>
   `);
 });
-
 
 // M-Pesa callback routes
 app.use("/api/mpesa", callbackRouter);

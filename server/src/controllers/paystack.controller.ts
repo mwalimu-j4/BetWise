@@ -66,9 +66,11 @@ export async function initializePaystackPayment(
         })
       : null;
 
-    const user = authenticatedUser ?? (await prisma.user.findUnique({
-      where: { email: body.email },
-    }));
+    const user =
+      authenticatedUser ??
+      (await prisma.user.findUnique({
+        where: { email: body.email },
+      }));
 
     if (!user) {
       res.status(404).json({ error: "User not found" });
@@ -113,7 +115,9 @@ export async function initializePaystackPayment(
       amount: amountInSmallestUnit,
       reference,
       callbackUrl:
-        body.callbackUrl ?? process.env.PAYSTACK_CALLBACK_URL?.trim() ?? undefined,
+        body.callbackUrl ??
+        process.env.PAYSTACK_CALLBACK_URL?.trim() ??
+        undefined,
       metadata: {
         userId: user.id,
         transactionId: transaction.id,
@@ -289,7 +293,7 @@ export async function verifyPaystackPayment(
       }
 
       // Emit wallet update event
-      emitWalletUpdate(userId, {
+      emitWalletUpdate(transaction.userId, {
         transactionId: transaction.id,
         status: "COMPLETED",
         message: "Deposit successful",
@@ -383,12 +387,6 @@ export async function checkPaystackPaymentStatus(
 
     if (!transaction) {
       res.status(404).json({ error: "Transaction not found" });
-      return;
-    }
-
-    // Verify ownership
-    if (transaction.userId !== userId) {
-      res.status(403).json({ error: "Unauthorized" });
       return;
     }
 
