@@ -107,7 +107,9 @@ export default function PaystackDepositPage() {
       }
 
       if (!response) {
-        throw lastError || new Error("Failed to initialize payment after retries");
+        throw (
+          lastError || new Error("Failed to initialize payment after retries")
+        );
       }
 
       localStorage.setItem(pendingStorageKey, response.reference);

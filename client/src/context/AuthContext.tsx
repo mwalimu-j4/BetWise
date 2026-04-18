@@ -207,7 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const me = await api.get<MeResponse>("/auth/me");
       setUser(me.data.user);
       hasValidAuth = true;
-      
+
       // Keep existing token if /auth/me succeeds
       if (accessTokenState) {
         persistAuthState(accessTokenState, me.data.user);
@@ -364,7 +364,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (isPaymentRedirect) {
           setRecoveryFlag();
           setIsRecovering(true);
-          console.debug("[Auth] Payment redirect detected, initiating recovery");
+          console.debug(
+            "[Auth] Payment redirect detected, initiating recovery",
+          );
         }
 
         // Try to refresh session to ensure token is still valid
@@ -383,7 +385,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // IMPORTANT: Do NOT log out on init if refresh fails
         // This is critical for payment redirects where API might be slow
         // but token is still valid
-        console.warn("[Auth] Session refresh on init failed, keeping existing auth");
+        console.warn(
+          "[Auth] Session refresh on init failed, keeping existing auth",
+        );
         clearRecoveryFlag();
         setIsRecovering(false);
       } finally {
