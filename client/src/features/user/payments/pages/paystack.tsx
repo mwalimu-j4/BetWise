@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import {
-  Copy,
-  LoaderCircle,
-  Smartphone,
-  Wallet,
-} from "lucide-react";
+import { Copy, LoaderCircle, Smartphone, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,7 +187,6 @@ export default function PaystackDepositPage() {
             ) : null}
             Proceed to Payment
           </Button>
-
         </form>
       </article>
 

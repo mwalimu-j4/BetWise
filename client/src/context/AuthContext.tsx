@@ -279,11 +279,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         // Check if this is a redirect from external payment provider
         const params = new URLSearchParams(window.location.search);
-        const hasRedirectParams = params.has("reference") || params.has("status");
-        
+        const hasRedirectParams =
+          params.has("reference") || params.has("status");
+
         // Always refresh session, especially after redirects
         const result = await refreshSession();
-        
+
         // If refresh failed but we're returning from payment, try one more time
         if (!result && hasRedirectParams) {
           await refreshSession();
