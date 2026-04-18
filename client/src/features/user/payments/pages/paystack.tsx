@@ -254,35 +254,33 @@ export default function PaystackDepositPage() {
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-[#243a53] bg-[#0f1a2a] p-5 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#90a2bb]">
+        <div className="mt-4 rounded-xl border border-[#294157] bg-[#0f1a2a] p-3 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#90a2bb]">
             Till Number
           </p>
-          <p className="mt-1 text-3xl font-bold text-white">{tillNumber}</p>
-          <p className="mt-2 text-sm text-[#8a9bb0]">{tillName}</p>
+          <p className="mt-2 text-2xl font-bold text-white">{tillNumber}</p>
+          <p className="mt-1 text-xs text-[#8a9bb0]">{tillName}</p>
 
           <button
             type="button"
             onClick={() => void copyText(tillNumber)}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[#294157] bg-[#111d2e] px-4 py-2 text-sm font-semibold text-white hover:border-[#f5c518]/50 hover:bg-[#f5c518]/10"
+            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#294157] bg-[#111d2e] px-3 py-1.5 text-xs font-semibold text-white hover:border-[#f5c518]/50 hover:bg-[#f5c518]/10"
           >
-            <Copy size={14} />
+            <Copy size={12} />
             Copy Till
           </button>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-[#243a53] bg-[#0f1a2a] p-4 text-sm text-[#8a9bb0]">
-          <p className="font-semibold text-white">How to pay</p>
-          <ol className="mt-3 space-y-2 text-sm leading-6">
+        <div className="mt-3 rounded-xl border border-[#294157] bg-[#0f1a2a] p-3 text-xs text-[#8a9bb0]">
+          <p className="font-semibold text-white text-[11px]">How to pay</p>
+          <ol className="mt-2 space-y-1.5 text-[11px] leading-relaxed">
             <li>1. Go to M-Pesa then Lipa Na M-Pesa.</li>
             <li>2. Select Buy Goods and Services.</li>
-            <li>
-              3. Enter Till {tillNumber} ({tillName}).
-            </li>
+            <li>3. Enter Till {tillNumber}.</li>
             <li>4. Enter amount and PIN.</li>
             <li>5. Confirm payment.</li>
           </ol>
-          <p className="mt-4 text-center text-[11px] text-[#62738a]">
+          <p className="mt-2.5 text-center text-[10px] text-[#62738a]">
             Dial *234# for charges
           </p>
         </div>

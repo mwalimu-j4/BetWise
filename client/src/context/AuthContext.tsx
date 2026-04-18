@@ -143,22 +143,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data } = await api.post<AuthResponse>("/auth/refresh");
       updateSession(data);
 
-      const me = await api.get<MeResponse>("/auth/me");
-      if (me.data.user.id !== data.user.id) {
-        clearAuthState(setUser, setAccessTokenState);
-        return null;
+      // Verify the session is valid
+      try {
+        const me = await api.get<MeResponse>("/auth/me");
+        if (me.data.user.id !== data.user.id) {
+          clearAuthState(setUser, setAccessTokenState);
+          return null;
+        }
+        setUser(me.data.user);
+      } catch {
+        // User retrieval failed, but token refresh succeeded
+        // Keep the session valid
       }
 
-      setUser(me.data.user);
       return data.accessToken;
     } catch {
-      // A valid access token may still exist in memory even when refresh fails.
-      // This happens after forced password change where refresh tokens are revoked.
+      // Refresh token might be invalid or expired
+      // Try to verify current session with GET /auth/me
       try {
         const me = await api.get<MeResponse>("/auth/me");
         setUser(me.data.user);
         return accessTokenState;
       } catch {
+        // Session is genuinely invalid
+        clearAuthState(setUser, setAccessTokenState);
         return null;
       }
     }
