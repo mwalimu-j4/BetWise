@@ -31,6 +31,247 @@ const paystackDepositSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
+type FinalizePaystackDepositResult =
+  | {
+      status: "success";
+      message: string;
+      reference: string;
+      transactionId: string;
+      amount: number;
+      processedAt: Date;
+    }
+  | {
+      status: "pending" | "failed";
+      message: string;
+      reference: string;
+      transactionId: string;
+      amount: number;
+      processedAt?: Date | null;
+    };
+
+function logPaystackContext(label: string, details: Record<string, unknown>) {
+  console.log(`[Paystack] ${label}`, details);
+}
+
+function toSafeJson(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
+
+async function finalizePaystackDeposit(
+  reference: string,
+): Promise<FinalizePaystackDepositResult> {
+  logPaystackContext("finalize:start", { reference });
+
+  const transaction = await prisma.walletTransaction.findUnique({
+    where: { reference },
+    include: { wallet: true, user: true },
+  });
+
+  if (!transaction) {
+    logPaystackContext("finalize:missing-transaction", { reference });
+    throw new Error("Transaction not found");
+  }
+
+  if (transaction.status === "COMPLETED") {
+    logPaystackContext("finalize:already-completed", {
+      reference,
+      transactionId: transaction.id,
+      amount: transaction.amount,
+    });
+
+    return {
+      status: "success",
+      message: "Payment already processed",
+      reference,
+      transactionId: transaction.id,
+      amount: transaction.amount,
+      processedAt: transaction.processedAt,
+    };
+  }
+
+  if (transaction.status === "FAILED" || transaction.status === "REVERSED") {
+    logPaystackContext("finalize:already-terminal", {
+      reference,
+      transactionId: transaction.id,
+      status: transaction.status,
+    });
+
+    return {
+      status: "failed",
+      message: "Payment is already finalized as failed",
+      reference,
+      transactionId: transaction.id,
+      amount: transaction.amount,
+      processedAt: transaction.processedAt,
+    };
+  }
+
+  if (!transaction.wallet || !transaction.user) {
+    logPaystackContext("finalize:missing-relations", {
+      reference,
+      transactionId: transaction.id,
+      hasWallet: Boolean(transaction.wallet),
+      hasUser: Boolean(transaction.user),
+    });
+    throw new Error("Invalid transaction state");
+  }
+
+  const verificationResult = await verifyPaystackTransaction(reference);
+  logPaystackContext("finalize:verified", {
+    reference,
+    transactionId: transaction.id,
+    paystackStatus: verificationResult.data.status,
+    paystackAmount: verificationResult.data.amount,
+  });
+
+  const isSuccessful =
+    verificationResult.status && verificationResult.data.status === "success";
+
+  if (!isSuccessful) {
+    await prisma.walletTransaction.update({
+      where: { id: transaction.id },
+      data: {
+        status: "FAILED",
+        processedAt: new Date(),
+        providerCallback: {
+          provider: "paystack",
+          verifiedAt: new Date().toISOString(),
+          failureReason: `Paystack returned ${verificationResult.data.status}`,
+          verificationData: toSafeJson(verificationResult.data),
+        },
+      },
+    });
+
+    return {
+      status: "failed",
+      message: "Payment not yet confirmed or failed on Paystack",
+      reference,
+      transactionId: transaction.id,
+      amount: transaction.amount,
+    };
+  }
+
+  const paidAmountInKes = convertFromSmallestUnit(verificationResult.data.amount);
+  if (paidAmountInKes !== transaction.amount) {
+    logPaystackContext("finalize:amount-mismatch", {
+      reference,
+      transactionId: transaction.id,
+      expected: transaction.amount,
+      paidAmountInKes,
+      providerAmount: verificationResult.data.amount,
+    });
+
+    await prisma.walletTransaction.update({
+      where: { id: transaction.id },
+      data: {
+        status: "FAILED",
+        processedAt: new Date(),
+        providerCallback: {
+          provider: "paystack",
+          verifiedAt: new Date().toISOString(),
+          failureReason: "Amount mismatch",
+          verificationData: toSafeJson(verificationResult.data),
+        },
+      },
+    });
+
+    return {
+      status: "failed",
+      message: "Payment amount mismatch",
+      reference,
+      transactionId: transaction.id,
+      amount: transaction.amount,
+    };
+  }
+
+  const processedAt = new Date();
+  const wallet = transaction.wallet;
+  const verificationPayload = toSafeJson(verificationResult.data);
+
+  const updatedWallet = await prisma.$transaction(async (tx) => {
+    const transition = await tx.walletTransaction.updateMany({
+      where: {
+        id: transaction.id,
+        status: {
+          in: ["PENDING", "PROCESSING"],
+        },
+      },
+      data: {
+        status: "COMPLETED",
+        processedAt,
+        providerReceiptNumber: verificationResult.data.customer.customer_code,
+        providerCallback: {
+          provider: "paystack",
+          verifiedAt: processedAt.toISOString(),
+          verificationData: verificationPayload,
+          paystackReference: verificationResult.data.reference,
+        },
+      },
+    });
+
+    if (transition.count === 0) {
+      return null;
+    }
+
+    return tx.wallet.update({
+      where: { id: wallet.id },
+      data: {
+        balance: {
+          increment: transaction.amount,
+        },
+      },
+    });
+  });
+
+  if (!updatedWallet) {
+    logPaystackContext("finalize:duplicate-delivery", {
+      reference,
+      transactionId: transaction.id,
+    });
+
+    return {
+      status: "success",
+      message: "Payment already processed",
+      reference,
+      transactionId: transaction.id,
+      amount: transaction.amount,
+      processedAt: transaction.processedAt,
+    };
+  }
+
+  logPaystackContext("finalize:wallet-credited", {
+    reference,
+    transactionId: transaction.id,
+    amount: transaction.amount,
+    balance: updatedWallet.balance,
+  });
+
+  emitWalletUpdate(transaction.userId, {
+    transactionId: transaction.id,
+    status: "COMPLETED",
+    message: "Deposit successful",
+    balance: updatedWallet.balance,
+    amount: transaction.amount,
+  });
+
+  await createDepositNotifications({
+    userId: transaction.userId,
+    transactionId: transaction.id,
+    amount: transaction.amount,
+    balance: updatedWallet.balance,
+    status: "COMPLETED",
+  });
+
+  return {
+    status: "success",
+    message: "Payment verified and wallet credited",
+    reference,
+    transactionId: transaction.id,
+    amount: transaction.amount,
+    processedAt,
+  };
+}
+
 // ============================================================================
 // DEPOSIT INITIALIZATION
 // ============================================================================
@@ -58,6 +299,12 @@ export async function initializePaystackPayment(
   res: Response,
 ): Promise<void> {
   try {
+    logPaystackContext("initialize:request", {
+      email: body.email,
+      amountKes: body.amount,
+      callbackUrl: body.callbackUrl ?? process.env.PAYSTACK_CALLBACK_URL?.trim(),
+    });
+
     const body = paystackDepositSchema.parse(req.body);
 
     const authenticatedUser = req.user?.id
@@ -115,9 +362,7 @@ export async function initializePaystackPayment(
       amount: amountInSmallestUnit,
       reference,
       callbackUrl:
-        body.callbackUrl ??
-        process.env.PAYSTACK_CALLBACK_URL?.trim() ??
-        undefined,
+        process.env.PAYSTACK_CALLBACK_URL?.trim() || body.callbackUrl,
       metadata: {
         userId: user.id,
         transactionId: transaction.id,
@@ -195,158 +440,18 @@ export async function verifyPaystackPayment(
 ): Promise<void> {
   try {
     const { reference } = paystackVerifySchema.parse(req.params);
-
-    // Get transaction from DB
-    const transaction = await prisma.walletTransaction.findUnique({
-      where: { reference },
-      include: { wallet: true, user: true },
+    const result = await finalizePaystackDeposit(reference);
+    res.json({
+      status: result.status,
+      message: result.message,
+      reference: result.reference,
+      data: {
+        reference: result.reference,
+        amount: result.amount,
+        status: result.status,
+        processedAt: result.processedAt ?? null,
+      },
     });
-
-    if (!transaction) {
-      res.status(404).json({
-        error: "Transaction not found",
-        status: "unknown",
-      });
-      return;
-    }
-
-    // If already processed, return current status
-    if (transaction.status === "COMPLETED" || transaction.status === "FAILED") {
-      res.json({
-        status: transaction.status === "COMPLETED" ? "success" : "failed",
-        message:
-          transaction.status === "COMPLETED"
-            ? "Payment successful"
-            : "Payment failed",
-        reference,
-        data: {
-          reference,
-          amount: transaction.amount,
-          status: transaction.status,
-          processedAt: transaction.processedAt,
-        },
-      });
-      return;
-    }
-
-    // Call Paystack API to verify
-    const verificationResult = await verifyPaystackTransaction(reference);
-
-    // Parse verification result
-    const isSuccessful =
-      verificationResult.status &&
-      verificationResult.data &&
-      verificationResult.data.status === "success";
-
-    if (isSuccessful && transaction.wallet && transaction.user) {
-      const processedAt = new Date();
-      const wallet = transaction.wallet;
-      const verificationPayload = JSON.parse(
-        JSON.stringify(verificationResult.data),
-      ) as Prisma.InputJsonValue;
-      const updatedWallet = await prisma.$transaction(async (tx) => {
-        const transition = await tx.walletTransaction.updateMany({
-          where: {
-            id: transaction.id,
-            status: {
-              in: ["PENDING", "PROCESSING"],
-            },
-          },
-          data: {
-            status: "COMPLETED",
-            processedAt,
-            providerCallback: {
-              provider: "paystack",
-              verifiedAt: processedAt.toISOString(),
-              verificationData: verificationPayload,
-            },
-          },
-        });
-
-        if (transition.count === 0) {
-          return null;
-        }
-
-        return tx.wallet.update({
-          where: { id: wallet.id },
-          data: {
-            balance: {
-              increment: transaction.amount,
-            },
-          },
-        });
-      });
-
-      if (!updatedWallet) {
-        res.json({
-          status: "success",
-          message: "Payment already processed",
-          reference,
-          data: {
-            reference,
-            amount: transaction.amount,
-            status: "success",
-            processedAt: transaction.processedAt,
-          },
-        });
-        return;
-      }
-
-      // Emit wallet update event
-      emitWalletUpdate(transaction.userId, {
-        transactionId: transaction.id,
-        status: "COMPLETED",
-        message: "Deposit successful",
-        balance: updatedWallet.balance,
-        amount: transaction.amount,
-      });
-
-      // Create notification
-      await createDepositNotifications({
-        userId: transaction.userId,
-        transactionId: transaction.id,
-        amount: transaction.amount,
-        balance: updatedWallet.balance,
-        status: "COMPLETED",
-      });
-
-      res.json({
-        status: "success",
-        message: "Payment verified and wallet credited",
-        reference,
-        data: {
-          reference,
-          amount: transaction.amount,
-          status: "success",
-          processedAt: new Date(),
-        },
-      });
-    } else {
-      // Mark as failed
-      await prisma.walletTransaction.update({
-        where: { id: transaction.id },
-        data: {
-          status: "FAILED",
-          processedAt: new Date(),
-          providerCallback: {
-            provider: "paystack",
-            verifiedAt: new Date().toISOString(),
-            failureReason: "Payment not successful on Paystack",
-          },
-        },
-      });
-
-      res.json({
-        status: "pending",
-        message: "Payment not yet confirmed. Please check again.",
-        reference,
-        data: {
-          reference,
-          amount: transaction.amount,
-          status: "pending",
-        },
-      });
-    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: "Invalid reference" });
@@ -361,6 +466,54 @@ export async function verifyPaystackPayment(
           : "Failed to verify Paystack payment",
       status: "error",
     });
+  }
+}
+
+export async function handlePaystackBrowserCallback(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const query = req.query as Record<string, string | string[] | undefined>;
+  const reference =
+    (typeof query.reference === "string" && query.reference) ||
+    (typeof query.trxref === "string" && query.trxref) ||
+    (typeof query.trxref === "string" ? query.trxref : undefined);
+
+  logPaystackContext("callback:request", {
+    query,
+    rawBody: req.rawBody,
+    reference,
+  });
+
+  if (!reference) {
+    res.status(400).json({ error: "Missing Paystack reference" });
+    return;
+  }
+
+  try {
+    const result = await finalizePaystackDeposit(reference);
+    const redirectUrl = new URL(
+      process.env.PAYSTACK_SUCCESS_REDIRECT_URL?.trim() ||
+        process.env.FRONTEND_URL?.trim() ||
+        "http://localhost:5173",
+    );
+    redirectUrl.pathname = "/user/payments/deposit";
+    redirectUrl.searchParams.set("reference", reference);
+    redirectUrl.searchParams.set("status", result.status);
+
+    logPaystackContext("callback:redirect", {
+      reference,
+      status: result.status,
+      target: redirectUrl.toString(),
+    });
+
+    res.redirect(302, redirectUrl.toString());
+  } catch (error) {
+    console.error("Paystack callback error:", error);
+    res.redirect(
+      302,
+      `${process.env.FRONTEND_URL?.trim() || "http://localhost:5173"}/user/payments/deposit?reference=${encodeURIComponent(reference)}&status=failed`,
+    );
   }
 }
 
