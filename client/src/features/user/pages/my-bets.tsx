@@ -29,11 +29,11 @@ function normalizeTab(value: unknown): MyBetTab {
 
 function normalizeFilter(value: unknown): MyBetFilter {
   if (
+    value === "active" ||
+    value === "won" ||
+    value === "lost" ||
     value === "open" ||
-    value === "all" ||
-    value === "today" ||
-    value === "week" ||
-    value === "month"
+    value === "all"
   ) {
     return value;
   }
