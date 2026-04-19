@@ -30,7 +30,7 @@ if (result.status === 0) {
 
 // If migration is not marked failed (or not present), continue deploy.
 if (
-  /P3011|P3012|could not be found|No migration found|not in a failed state/i.test(
+  /P3011|P3012|could not be found|No migration found|not in a failed state|without migrations table|_prisma_migrations/i.test(
     output,
   )
 ) {

@@ -3,7 +3,14 @@ import { prisma } from "../lib/prisma";
 import { verifyAccessToken } from "../utils/tokenUtils";
 
 function logAuthFailure(req: Request, reason: string) {
-  console.warn("[Auth] Unauthorized request", {
+  const originalPath = req.originalUrl.split("?")[0].toLowerCase();
+  const isExpectedSessionProbe =
+    originalPath.endsWith("/auth/me") &&
+    reason.includes("Missing or invalid Authorization bearer token");
+
+  const log = isExpectedSessionProbe ? console.info : console.warn;
+
+  log("[Auth] Unauthorized request", {
     reason,
     method: req.method,
     path: req.originalUrl,
@@ -70,14 +77,8 @@ export async function authenticate(
     };
 
     return next();
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    logAuthFailure(req, `Access token verification failed: ${errorMsg}`);
-    console.error("[Auth] Token verification error details:", {
-      error: errorMsg,
-      tokenLength: token?.length || 0,
-      tokenPrefix: token?.substring(0, 20),
-    });
+  } catch {
+    logAuthFailure(req, "Access token verification failed");
     return res.status(401).json({ message: "Unauthorized" });
   }
 }
