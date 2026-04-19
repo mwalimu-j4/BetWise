@@ -445,16 +445,29 @@ export async function createPaystackTransferRecipient(
     throw new Error("PAYSTACK_SECRET_KEY not configured");
   }
 
-  // Normalize phone number to remove + prefix if present (Paystack expects different formats for different regions)
+  // Normalize phone number to remove + prefix if present
+  // Paystack expects phone number in format like "254789278383" for Kenya
   const normalizedPhone = phoneNumber.replace(/^\+/, "");
 
+  // For Kenya M-Pesa transfers, we need:
+  // - type: "mobile_money"
+  // - bank_code: "MPESA" (for individual users)
+  // - account_number: the phone number
+  // - currency: "KES"
   const payload = {
     type: "mobile_money",
-    phone_number: normalizedPhone,
-    account_number: normalizedPhone, // Required by Paystack for mobile money transfers
-    name: name || `Mobile Money - ${phoneNumber}`,
-    business_name: name || `Mobile Money - ${phoneNumber}`, // Additional required field for some regions
+    bank_code: "MPESA", // CRITICAL: Required for Kenya mobile money
+    account_number: normalizedPhone, // Phone number
+    currency: "KES", // Kenya Shilling
+    name: name || `M-Pesa - ${normalizedPhone}`,
   };
+
+  console.log("[Paystack] Creating transfer recipient:", {
+    bank_code: payload.bank_code,
+    account_number: payload.account_number,
+    currency: payload.currency,
+    type: payload.type,
+  });
 
   try {
     const response = await fetch("https://api.paystack.co/transferrecipient", {
