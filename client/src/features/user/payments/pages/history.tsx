@@ -5,7 +5,6 @@ import {
   formatMoney,
   titleCase,
   type TransactionStatus,
-  type TransactionType,
 } from "../data";
 import { useWalletSummary } from "../wallet";
 
