@@ -19,7 +19,6 @@ type BetsListProps = {
 export function BetsList({
   items,
   isLoading,
-  isFetching,
   total,
   page,
   pageSize,
@@ -27,7 +26,7 @@ export function BetsList({
   onOpenBet,
   onPageChange,
 }: BetsListProps) {
-  const showSkeleton = isLoading || isFetching;
+  const showSkeleton = isLoading;
 
   return (
     <div className="space-y-6 py-4">

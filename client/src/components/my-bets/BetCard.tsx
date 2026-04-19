@@ -74,52 +74,64 @@ export function BetCard({ bet, onClick }: BetCardProps) {
         }`}
       />
 
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-
-          <span
-            className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${badgeClassByStatus[bet.status]} ${
-              flashStatus ? "animate-[statusPulse_0.9s_ease-out]" : ""
-            }`}
-          >
-            {bet.status}
-          </span>
-        </div>
-
-        <div className="text-right">
-          <p className="text-lg font-bold text-[#f8fafc]">
-            {formatMoney(bet.possible_payout)}
-          </p>
-          <p className="mt-1 text-[10px] font-medium text-[#6b86a8]">
-            {formatDate(bet.placed_at)}
-          </p>
-          {bet.status === "lost" ? (
-            <p className="mt-1 text-xs font-semibold text-[#ef4444]">Lost</p>
-          ) : null}
-        </div>
-      </div>
-
-          {bet.match_name && (
-            <p className="mt-1 text-xs font-semibold text-[#c6d6ea] truncate max-w-[200px] sm:max-w-[280px]">
-              {bet.match_name}
+      <div className="flex flex-col gap-3.5">
+        {/* TOP ROW: MATCH NAME & PAYOUT */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] sm:text-base font-bold text-white transition-colors group-hover:text-amber-400 truncate leading-tight">
+              {bet.match_name || "Multiple Events"}
             </p>
-          )}
+            <div className="mt-2.5 flex items-center gap-2">
+              <span
+                className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeClassByStatus[bet.status]} ${
+                  flashStatus ? "animate-[statusPulse_0.9s_ease-out]" : ""
+                }`}
+              >
+                {bet.status}
+              </span>
+              {bet.status === "lost" && (
+                <span className="text-[10px] font-bold text-[#ef4444] uppercase tracking-wider">
+                  Settled
+                </span>
+              )}
+            </div>
+          </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#8ea0b6]">
-            <span className="inline-flex items-center gap-1 font-medium bg-[#1e3350]/30 px-2 py-1 rounded-md">
-              <CalendarClock size={12} className="text-[#6b86a8]" />
-              {bet.selections_count} selection{bet.selections_count > 1 ? "s" : ""}
+          <div className="text-right shrink-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#6b86a8] mb-1.5 opacity-80">
+              {bet.status === "won" ? "Total Payout" : "Possible Payout"}
+            </p>
+            <p className="text-lg font-black text-white leading-none">
+              {formatMoney(bet.possible_payout)}
+            </p>
+          </div>
+        </div>
+
+
+        {/* BOTTOM ROW: DATE & LIVE & SELECTIONS */}
+        <div className="mt-1 flex items-center justify-between border-t border-[#1e3350]/30 pt-3">
+          <div className="flex items-center gap-3 text-[10px] font-medium text-[#c6d6ea]">
+            <span className="flex items-center gap-1.5 opacity-80">
+              <CalendarClock size={11} className="text-[#6b86a8]" />
+              {formatDate(bet.placed_at)}
             </span>
-        {bet.is_live ? (
-          <span className="inline-flex items-center gap-1 text-[#22c55e]">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-[#22c55e]" />
-            Live
-          </span>
-        ) : null}
+            <span className="h-3 w-[1px] bg-[#1e3350]/50" />
+            <span className="font-semibold text-[#8ea0b6]">
+              {bet.selections_count} {bet.selections_count === 1 ? "Selection" : "Selections"}
+            </span>
+          </div>
+
+          {bet.is_live && (
+            <span className="inline-flex items-center gap-1.5 text-[#22c55e] text-[10px] font-bold uppercase tracking-widest">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22c55e]" />
+              Live
+            </span>
+          )}
+        </div>
       </div>
 
       {bet.is_cancellable ? (
-        <div className="mt-2">
+        <div className="mt-3 border-t border-[#1e3350]/20 pt-3">
           <CancellationTimer cancellableUntil={bet.cancellable_until} />
         </div>
       ) : null}
