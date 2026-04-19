@@ -215,22 +215,22 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
         amount: Math.round(bet.stake),
       });
 
+      // Send void notification to user
+      void createBetSettlementNotification({
+        userId: bet.userId,
+        betCode: bet.betCode,
+        eventName: `${bet.event.homeTeam} vs ${bet.event.awayTeam}`,
+        stake: bet.stake,
+        potentialPayout: bet.stake,
+        status: "VOID",
+      });
+
       return res.status(200).json({
         settled: true,
         status: "VOID",
         payout: Math.round(bet.stake),
       });
     }
-
-    // Send void notification to user
-    void createBetSettlementNotification({
-      userId: bet.userId,
-      betCode: bet.betCode,
-      eventName: `${bet.event.homeTeam} vs ${bet.event.awayTeam}`,
-      stake: bet.stake,
-      potentialPayout: bet.stake,
-      status: "VOID",
-    });
 
     const won = bet.side === winner;
 
