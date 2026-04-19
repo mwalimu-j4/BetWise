@@ -23,6 +23,7 @@ import {
   Loader,
   MoreHorizontal,
   TriangleAlert,
+  Trophy,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -164,6 +165,29 @@ export default function Dashboard() {
     refetchInterval: 10_000,
   });
 
+  const { data: finishedEventsData } = useQuery({
+    queryKey: ["admin-finished-events-needing-settlement"],
+    queryFn: async () => {
+      const response = await api.get<{
+        events: Array<{
+          id: string;
+          title: string;
+          teamHome: string;
+          teamAway: string;
+          unsettledMarkets: number;
+          totalBets: number;
+        }>;
+      }>("/admin/custom-events", {
+        params: { status: "FINISHED", page: 1, limit: 10 },
+      });
+      // Filter events that have unsettled markets
+      return response.data.events ?? [];
+    },
+    refetchInterval: 15_000,
+  });
+
+  const finishedEventsCount = finishedEventsData?.length ?? 0;
+
   const metrics = data?.metrics ?? [];
   const chartData = data?.charts.depositWithdrawalTrend ?? [];
   const recentTransactions = data?.recentTransactions ?? [];
@@ -237,6 +261,29 @@ export default function Dashboard() {
                 className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-amber-100 transition hover:bg-amber-300/20 whitespace-nowrap"
               >
                 Review Requests
+              </Link>
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {finishedEventsCount > 0 ? (
+          <Alert className="border-emerald-400/30 bg-emerald-400/10">
+            <Trophy className="h-4 w-4 text-emerald-300" />
+            <AlertTitle className="text-emerald-200">
+              🏁 Events Finished — Settlement Required
+            </AlertTitle>
+            <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-emerald-100/90">
+              <span>
+                {finishedEventsCount} custom event
+                {finishedEventsCount === 1 ? " has" : "s have"} ended and{" "}
+                {finishedEventsCount === 1 ? "needs" : "need"} market
+                settlement. Enter results to process payouts.
+              </span>
+              <Link
+                to="/admin/events"
+                className="rounded-lg border border-emerald-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-300/20 whitespace-nowrap"
+              >
+                Settle Events
               </Link>
             </AlertDescription>
           </Alert>
