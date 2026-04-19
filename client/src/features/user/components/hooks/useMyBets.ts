@@ -10,7 +10,8 @@ export type MyBetTab =
   | "shilisha"
   | "jackpot"
   | "virtual"
-  | "sababisha";
+  | "sababisha"
+  | "custom";
 export type MyBetFilter = "open" | "all" | "today" | "week" | "month";
 
 export type MyBetListItem = {

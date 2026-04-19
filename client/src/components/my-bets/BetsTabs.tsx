@@ -6,6 +6,7 @@ const tabs: Array<{ label: string; value: MyBetTab }> = [
   { label: "Jackpot", value: "jackpot" },
   { label: "Virtual", value: "virtual" },
   { label: "Sababisha", value: "sababisha" },
+  { label: "Custom", value: "custom" },
 ];
 
 type BetsTabsProps = {

@@ -21,6 +21,7 @@ const tabSchema = z.enum([
   "jackpot",
   "virtual",
   "sababisha",
+  "custom",
 ]);
 const filterSchema = z.enum(["open", "all", "today", "week", "month"]);
 
@@ -41,6 +42,7 @@ const tabToBetType: Record<z.infer<typeof tabSchema>, string> = {
   jackpot: "JACKPOT",
   virtual: "VIRTUAL",
   sababisha: "SABABISHA",
+  custom: "CUSTOM",
 };
 
 function toClientStatus(args: {
