@@ -130,8 +130,22 @@ export function verifyAccessToken(token: string) {
     options.audience = ACCESS_TOKEN_AUDIENCE;
   }
 
-  const decoded = jwt.verify(token, getAccessTokenSecret(), options);
+  try {
+    const decoded = jwt.verify(token, getAccessTokenSecret(), options);
+    return processDecodedToken(decoded);
+  } catch (error) {
+    const err = error instanceof Error ? error.message : String(error);
+    console.error("[TokenUtils] Verify failed:", {
+      err,
+      issuer: ACCESS_TOKEN_ISSUER,
+      hasAudience: Boolean(ACCESS_TOKEN_AUDIENCE),
+      secretLength: getAccessTokenSecret().length,
+    });
+    throw error;
+  }
+}
 
+function processDecodedToken(decoded: unknown) {
   if (
     !decoded ||
     typeof decoded !== "object" ||
