@@ -174,14 +174,18 @@ export default function Dashboard() {
           title: string;
           teamHome: string;
           teamAway: string;
-          unsettledMarkets: number;
-          totalBets: number;
+          markets: Array<{
+            id: string;
+            status: string;
+          }>;
         }>;
       }>("/admin/custom-events", {
-        params: { status: "FINISHED", page: 1, limit: 10 },
+        params: { status: "FINISHED", page: 1, limit: 50 },
       });
-      // Filter events that have unsettled markets
-      return response.data.events ?? [];
+      // Only count events that still have at least one unsettled market
+      return (response.data.events ?? []).filter((event) =>
+        event.markets?.some((m) => m.status !== "SETTLED"),
+      );
     },
     refetchInterval: 15_000,
   });
@@ -279,12 +283,12 @@ export default function Dashboard() {
                 {finishedEventsCount === 1 ? "needs" : "need"} market
                 settlement. Enter results to process payouts.
               </span>
-              <Link
-                to="/admin/events"
+              <a
+                href="/admin/events?tab=custom"
                 className="rounded-lg border border-emerald-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-300/20 whitespace-nowrap"
               >
                 Settle Events
-              </Link>
+              </a>
             </AlertDescription>
           </Alert>
         ) : null}

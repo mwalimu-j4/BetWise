@@ -1669,7 +1669,9 @@ function FeedEvents() {
 type EventsTab = "feed" | "custom";
 
 export default function Events() {
-  const [activeTab, setActiveTab] = useTabState<EventsTab>("feed");
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialTab = urlParams.get("tab") === "custom" ? "custom" : "feed";
+  const [activeTab, setActiveTab] = useTabState<EventsTab>(initialTab);
 
   return (
     <div className="space-y-3">
