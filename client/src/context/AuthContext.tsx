@@ -230,14 +230,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Refresh failed
     }
 
-    // If we couldn't verify auth but have an access token, keep it
-    // This is critical for payment redirects where token might still be valid
-    if (currentToken && !hasValidAuth) {
-      return currentToken;
-    }
-
-    // Only clear auth state if we're certain there's no valid session
-    if (!hasValidAuth && !currentToken) {
+    // Both /auth/me and /auth/refresh failed — session is dead
+    // Clear auth state so the user gets the login modal
+    if (!hasValidAuth) {
       clearAuthState(setUser, setAccessTokenState);
       accessTokenRef.current = null;
       return null;

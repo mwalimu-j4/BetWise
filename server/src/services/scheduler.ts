@@ -6,10 +6,24 @@ import {
   emitCustomEventLive,
   emitCustomEventFinished,
 } from "../lib/socket";
+import { createEventEndedAdminNotification } from "../controllers/notifications.controller";
 
 export async function updateEventStatuses() {
   const now = new Date();
   const finishedCutoff = new Date(now.getTime() - 150 * 60 * 1000);
+
+  // Find events that are about to transition to FINISHED (before bulk update)
+  const eventsToFinish = await prisma.sportEvent.findMany({
+    where: {
+      status: "LIVE",
+      commenceTime: { lte: finishedCutoff },
+    },
+    select: {
+      eventId: true,
+      homeTeam: true,
+      awayTeam: true,
+    },
+  });
 
   const [liveUpdated, finishedUpdated] = await Promise.all([
     prisma.sportEvent.updateMany({
@@ -27,6 +41,39 @@ export async function updateEventStatuses() {
       data: { status: "FINISHED" },
     }),
   ]);
+
+  // Notify admins about newly finished events with pending bets
+  for (const event of eventsToFinish) {
+    void (async () => {
+      try {
+        const [pendingCount, totalCount, stakeAgg] = await Promise.all([
+          prisma.bet.count({
+            where: { eventId: event.eventId, status: "PENDING" },
+          }),
+          prisma.bet.count({
+            where: { eventId: event.eventId },
+          }),
+          prisma.bet.aggregate({
+            where: { eventId: event.eventId },
+            _sum: { stake: true },
+          }),
+        ]);
+
+        if (totalCount > 0) {
+          await createEventEndedAdminNotification({
+            eventName: `${event.homeTeam} vs ${event.awayTeam}`,
+            eventType: "sport",
+            pendingBetsCount: pendingCount,
+            totalBetsCount: totalCount,
+            totalStaked: stakeAgg._sum.stake ?? 0,
+            eventId: event.eventId,
+          });
+        }
+      } catch (err) {
+        console.error(`[Scheduler] Failed to send event-ended notification for ${event.eventId}:`, err);
+      }
+    })();
+  }
 
   console.log(
     `[Scheduler] Status update complete - LIVE:${liveUpdated.count} FINISHED:${finishedUpdated.count}`,
@@ -107,6 +154,39 @@ export async function updateCustomEventStatuses() {
 
       for (const event of liveToFinish) {
         emitCustomEventFinished({ eventId: event.id });
+      }
+
+      // Notify admins about custom events finishing with unsettled markets
+      for (const event of liveToFinish) {
+        void (async () => {
+          try {
+            const [pendingBets, totalBets, stakeAgg] = await Promise.all([
+              prisma.customBet.count({
+                where: { eventId: event.id, status: "PENDING" },
+              }),
+              prisma.customBet.count({
+                where: { eventId: event.id },
+              }),
+              prisma.customBet.aggregate({
+                where: { eventId: event.id },
+                _sum: { stake: true },
+              }),
+            ]);
+
+            if (totalBets > 0) {
+              await createEventEndedAdminNotification({
+                eventName: event.title,
+                eventType: "custom",
+                pendingBetsCount: pendingBets,
+                totalBetsCount: totalBets,
+                totalStaked: stakeAgg._sum.stake ?? 0,
+                eventId: event.id,
+              });
+            }
+          } catch (err) {
+            console.error(`[CustomEventsScheduler] Failed to send event-ended notification for ${event.id}:`, err);
+          }
+        })();
       }
 
       console.log(
