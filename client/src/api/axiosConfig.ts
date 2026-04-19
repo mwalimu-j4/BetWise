@@ -1,5 +1,7 @@
 import axios from "axios";
 
+const PRODUCTION_API_BASE_URL = "https://api.betixpro.com/api";
+
 type RefreshHandler = () => Promise<string | null>;
 type UnauthorizedHandler = () => void;
 
@@ -11,16 +13,19 @@ type RetryableRequestConfig = {
 
 function resolveApiBaseUrl() {
   const rawBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-  if (!rawBaseUrl) {
-    return "/api";
-  }
+  const configuredBaseUrl = rawBaseUrl || PRODUCTION_API_BASE_URL;
 
   if (typeof window === "undefined") {
-    return rawBaseUrl;
+    return configuredBaseUrl;
   }
 
   const appHost = window.location.hostname;
   const isLocalAppHost = appHost === "localhost" || appHost === "127.0.0.1";
+
+  if (!rawBaseUrl) {
+    return isLocalAppHost ? "/api" : PRODUCTION_API_BASE_URL;
+  }
+
   if (!isLocalAppHost) {
     return rawBaseUrl;
   }

@@ -2,6 +2,15 @@ import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { verifyAccessToken } from "../utils/tokenUtils";
 
+function logAuthFailure(req: Request, reason: string) {
+  console.warn("[Auth] Unauthorized request", {
+    reason,
+    method: req.method,
+    path: req.originalUrl,
+    origin: req.headers.origin,
+  });
+}
+
 export async function authenticate(
   req: Request,
   res: Response,
@@ -10,6 +19,7 @@ export async function authenticate(
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
+    logAuthFailure(req, "Missing or invalid Authorization bearer token");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -28,10 +38,15 @@ export async function authenticate(
     });
 
     if (!user) {
+      logAuthFailure(req, "Token valid but user no longer exists");
       return res.status(401).json({ message: "Unauthorized" });
     }
 
     if (user.accountStatus === "SUSPENDED") {
+      console.warn("[Auth] Suspended account blocked", {
+        userId: user.id,
+        path: req.originalUrl,
+      });
       return res.status(403).json({ message: "Account suspended" });
     }
 
@@ -56,6 +71,7 @@ export async function authenticate(
 
     return next();
   } catch {
+    logAuthFailure(req, "Access token verification failed");
     return res.status(401).json({ message: "Unauthorized" });
   }
 }
