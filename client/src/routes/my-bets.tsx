@@ -5,11 +5,6 @@ function MyBetsAliasRoute() {
   return (
     <Navigate
       to="/user/bets"
-      search={{
-        tab: "normal",
-        filter: "all",
-        page: "1",
-      }}
     />
   );
 }

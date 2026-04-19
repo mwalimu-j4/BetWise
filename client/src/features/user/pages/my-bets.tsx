@@ -110,13 +110,19 @@ function MyBetsPageContent() {
     filter?: MyBetFilter;
     page?: number;
   }) => {
+    const nextTab = next.tab ?? tab;
+    const nextFilter = next.filter ?? filter;
+    const nextPage = next.page ?? page;
+
+    const newSearch: any = {};
+    // Only add to URL if they are not defaults
+    if (nextTab !== "all") newSearch.tab = nextTab;
+    if (nextFilter !== "all") newSearch.filter = nextFilter;
+    if (nextPage !== 1) newSearch.page = nextPage;
+
     void navigate({
       to: "/user/bets",
-      search: {
-        tab: next.tab ?? tab,
-        filter: next.filter ?? filter,
-        page: String(next.page ?? page),
-      },
+      search: newSearch,
       replace: true,
     });
   };
@@ -148,14 +154,15 @@ function MyBetsPageContent() {
             pageSize={bets.pageSize}
             totalPages={bets.totalPages}
             onOpenBet={(betId) => {
+              const newSearch: any = {};
+              if (tab !== "all") newSearch.tab = tab;
+              if (filter !== "all") newSearch.filter = filter;
+              if (page !== 1) newSearch.page = page;
+
               void navigate({
                 to: "/user/bets/$betId",
                 params: { betId },
-                search: {
-                  tab,
-                  filter,
-                  page: String(page),
-                },
+                search: newSearch,
               });
             }}
             onPageChange={(nextPage) => updateSearch({ page: nextPage })}
