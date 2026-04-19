@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const paymentPages = [
   {
     to: "/user/payments/deposit",
-    title: "Paystack",
+    title: "Deposit",
     icon: ArrowDownToLine,
   },
   {
