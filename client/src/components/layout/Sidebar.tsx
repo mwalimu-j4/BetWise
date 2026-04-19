@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/axios";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
@@ -14,23 +15,22 @@ import {
   HelpCircle,
   Hexagon,
   History,
+  House,
   LogOut,
   MessageCircle,
   Shield,
   Star,
   Swords,
   Target,
-  Triangle,
   TrendingUp,
   Triangle,
   Trophy,
   User,
   Wallet,
-  Zap,
+  Zap
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { api } from "@/lib/axios";
 
 type SidebarProps = {
   isOpen: boolean;
