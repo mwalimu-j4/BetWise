@@ -45,7 +45,7 @@ export default function WithdrawalForm({ onSuccess }: WithdrawalFormProps) {
     <section className="rounded-2xl border border-[#31455f] bg-[#0f172a] p-4">
       <h3 className="text-sm font-semibold text-white">Withdrawal</h3>
       <p className="mt-1 text-xs text-[#8a9bb0]">
-        Daily M-PESA withdrawal limits. Min KES {minAmount}. Max KES{" "}
+        Daily Paystack withdrawal limits. Min KES {minAmount}. Max KES{" "}
         {maxAmount.toLocaleString()}. All transactions subject to {taxPercent}%
         tax.
       </p>

@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -182,6 +183,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessTokenState, setAccessTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authModal, setAuthModal] = useState<AuthModal>("none");
+  const accessTokenRef = useRef<string | null>(null);
+  const hasInitializedRef = useRef(false);
 
   const openAuthModal = useCallback((modal: AuthModal) => {
     setAuthModal(modal);
@@ -194,6 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateSession = useCallback((data: AuthResponse) => {
     setUser(data.user);
     setAccessTokenState(data.accessToken);
+    accessTokenRef.current = data.accessToken;
     setAccessToken(data.accessToken);
     persistAuthState(data.accessToken, data.user);
     clearRecoveryFlag();
@@ -201,6 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = useCallback(async () => {
     let hasValidAuth = false;
+    const currentToken = accessTokenRef.current;
 
     try {
       const me = await api.get<MeResponse>("/auth/me");
@@ -208,10 +213,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       hasValidAuth = true;
 
       // Keep existing token if /auth/me succeeds
-      if (accessTokenState) {
-        persistAuthState(accessTokenState, me.data.user);
+      if (currentToken) {
+        persistAuthState(currentToken, me.data.user);
       }
-      return accessTokenState;
+      return currentToken;
     } catch (meError) {
       // /auth/me failed, try refreshing token
     }
@@ -227,18 +232,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // If we couldn't verify auth but have an access token, keep it
     // This is critical for payment redirects where token might still be valid
-    if (accessTokenState && !hasValidAuth) {
-      return accessTokenState;
+    if (currentToken && !hasValidAuth) {
+      return currentToken;
     }
 
     // Only clear auth state if we're certain there's no valid session
-    if (!hasValidAuth && !accessTokenState) {
+    if (!hasValidAuth && !currentToken) {
       clearAuthState(setUser, setAccessTokenState);
+      accessTokenRef.current = null;
       return null;
     }
 
-    return accessTokenState;
-  }, [accessTokenState, updateSession]);
+    return currentToken;
+  }, [updateSession]);
 
   const logout = useCallback(async () => {
     try {
@@ -247,6 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // No-op: clear local auth state even if backend call fails.
     } finally {
       clearAuthState(setUser, setAccessTokenState);
+      accessTokenRef.current = null;
       setAuthModal("none");
     }
   }, []);
@@ -333,6 +340,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onRefresh: refreshSession,
       onUnauthorized: () => {
         clearAuthState(setUser, setAccessTokenState);
+        accessTokenRef.current = null;
         setAuthModal("login");
       },
     });
@@ -341,15 +349,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // CRITICAL: Initialize auth state from sessionStorage IMMEDIATELY
   // This prevents logout during payment redirects
   useEffect(() => {
+    if (hasInitializedRef.current) {
+      return;
+    }
+
+    hasInitializedRef.current = true;
+
     // Restore persisted auth state first (synchronous, fast)
     const storedToken = getStoredToken();
     const storedUser = getStoredUser();
 
     if (storedToken && storedUser) {
       setAccessTokenState(storedToken);
+      accessTokenRef.current = storedToken;
       setAccessToken(storedToken);
       setUser(storedUser);
-      console.debug("[Auth] Restored session from sessionStorage");
+      console.log("[Auth] Restored session from sessionStorage", {
+        hasToken: Boolean(storedToken),
+        userEmail: storedUser.email,
+      });
+    } else {
+      console.log("[Auth] No stored session found");
     }
 
     // Then verify/refresh the session (async)
@@ -384,6 +404,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // but token is still valid
         console.warn(
           "[Auth] Session refresh on init failed, keeping existing auth",
+          error,
         );
         clearRecoveryFlag();
       } finally {

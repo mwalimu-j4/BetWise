@@ -248,8 +248,7 @@ function toClientNotification(notification: {
   transactionId: string | null;
   amount: number | null;
   balance: number | null;
-  paystackReference?: string | null;
-  mpesaCode?: string | null;
+  mpesaCode: string | null;
   isRead: boolean;
   createdAt: Date;
 }) {
@@ -265,8 +264,7 @@ function toClientNotification(notification: {
     transactionId: notification.transactionId,
     amount: notification.amount,
     balance: notification.balance,
-    paystackReference,
-    mpesaCode: paystackReference,
+    paystackReference: notification.mpesaCode,
     isRead: notification.isRead,
     createdAt: notification.createdAt.toISOString(),
   };

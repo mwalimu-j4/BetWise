@@ -83,8 +83,32 @@ api.interceptors.request.use((config) => {
   const mutableConfig = config as RetryableRequestConfig;
   mutableConfig.headers = mutableConfig.headers ?? {};
 
-  if (accessToken) {
-    mutableConfig.headers.Authorization = `Bearer ${accessToken}`;
+  // CRITICAL: If token is not in memory, try to restore from sessionStorage
+  // This handles the case where the page was refreshed or came from a redirect
+  let tokenToUse = accessToken;
+  if (!tokenToUse) {
+    try {
+      const storedToken = sessionStorage.getItem("betwise-auth-token");
+      if (storedToken) {
+        tokenToUse = storedToken;
+        console.log("[Axios] Restored token from sessionStorage", {
+          hasToken: Boolean(storedToken),
+          url: config.url,
+        });
+      }
+    } catch {
+      // sessionStorage might not be available in some contexts
+    }
+  }
+
+  if (tokenToUse) {
+    mutableConfig.headers.Authorization = `Bearer ${tokenToUse}`;
+    console.log("[Axios] Added Authorization header", {
+      url: config.url,
+      hasToken: Boolean(tokenToUse),
+    });
+  } else {
+    console.log("[Axios] No token available", { url: config.url });
   }
 
   return config;

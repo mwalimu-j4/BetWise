@@ -197,7 +197,7 @@ export default function PaymentsHistoryPage() {
                 </TableHead>
                 <TableHead className="text-admin-text-muted">Type</TableHead>
                 <TableHead className="text-admin-text-muted">
-                  M-Pesa Code
+                  Provider Ref
                 </TableHead>
                 <TableHead className="text-admin-text-muted text-right">
                   Amount

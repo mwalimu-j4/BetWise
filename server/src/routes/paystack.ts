@@ -84,15 +84,32 @@ paystackRouter.post("/webhook", (req, res) => {
 
     const rawBody = req.rawBody;
     if (!rawBody) {
-      console.error("Paystack webhook: missing raw body for signature verification");
+      console.error(
+        "Paystack webhook: missing raw body for signature verification",
+      );
       res.status(400).json({ error: "Missing raw body" });
+      return;
+    }
+
+    // Check if webhook secret is configured
+    if (
+      !process.env.PAYSTACK_WEBHOOK_SECRET ||
+      process.env.PAYSTACK_WEBHOOK_SECRET.includes("xxx")
+    ) {
+      console.warn(
+        "⚠️  PAYSTACK_WEBHOOK_SECRET not configured. Webhook processing is DISABLED. Configure PAYSTACK_WEBHOOK_SECRET in your environment to enable webhooks.",
+      );
+      res.status(403).json({
+        error: "Webhook secret not configured",
+        hint: "Set PAYSTACK_WEBHOOK_SECRET environment variable",
+      });
       return;
     }
 
     const isValid = verifyPaystackWebhookSignature(rawBody, signature);
 
     if (!isValid) {
-      console.error("Paystack webhook: invalid signature");
+      console.error("Paystack webhook: invalid signature. Webhook rejected.");
       res.status(401).json({ error: "Invalid signature" });
       return;
     }
@@ -101,6 +118,9 @@ paystackRouter.post("/webhook", (req, res) => {
     const event = parseWebhookEvent(req.body as Record<string, unknown>);
     handlePaystackWebhook(event)
       .then(() => {
+        console.log(
+          `✅ Paystack webhook processed successfully for reference ${event.data.reference}`,
+        );
         res.status(200).json({ received: true });
       })
       .catch((error) => {

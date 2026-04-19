@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { Copy, LoaderCircle, Smartphone, Wallet } from "lucide-react";
+import { CreditCard, LoaderCircle, ShieldCheck, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,13 @@ import { PaymentFeedbackModal } from "@/components/PaymentFeedbackModal";
 import { PaymentLoadingModal } from "@/components/PaymentLoadingModal";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "../data";
-import { usePaystackInitialize } from "../hooks/usePaystackPayment";
+import {
+  usePaystackInitialize,
+  usePaystackVerification,
+} from "../hooks/usePaystackPayment";
 
 const quickAmounts = [500, 1000, 2500, 5000];
 const pendingStorageKey = "betwise-paystack-pending-reference";
-const tillNumber = "9006951";
-const tillName = "MDC Fixers";
 
 function normalizeAmount(value: string) {
   return value.replace(/[^\d]/g, "");
@@ -22,6 +23,9 @@ function normalizeAmount(value: string) {
 export default function PaystackDepositPage() {
   const { user } = useAuth();
   const initializeMutation = usePaystackInitialize();
+  const [verificationReference, setVerificationReference] = useState<
+    string | null
+  >(null);
   const [amount, setAmount] = useState("100");
   const [paymentStatus, setPaymentStatus] = useState<
     "success" | "failed" | null
@@ -29,43 +33,149 @@ export default function PaystackDepositPage() {
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
   const [showPaymentResult, setShowPaymentResult] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [shouldVerify, setShouldVerify] = useState(false);
+  const verificationQuery = usePaystackVerification(
+    shouldVerify ? verificationReference : null,
+  );
 
   const amountValue = useMemo(() => Number(amount) || 0, [amount]);
 
-  // Handle redirect from Paystack checkout - CRITICAL for enterprise session handling
+  // Handle callback from Paystack with status parameter
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const routeReference = params.get("reference");
-    const status = params.get("status") as "success" | "failed" | null;
+    const handlePaystackCallback = () => {
+      const params = new URLSearchParams(window.location.search);
+      const routeStatus = params.get("status"); // "success", "failed", or "pending"
 
-    if (routeReference) {
-      localStorage.setItem(pendingStorageKey, routeReference);
-      setPaymentReference(routeReference);
+      console.log("🔍 Paystack callback handler - status:", routeStatus);
 
-      if (status) {
-        setPaymentStatus(status);
-        setShowPaymentResult(true);
-
-        // Clear the URL params immediately to prevent state issues
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-
-        // Log for debugging - payment redirect recovery
-        console.debug(
-          `[Paystack] Payment redirect detected: reference=${routeReference}, status=${status}`,
-        );
+      if (!routeStatus) {
+        // Fresh page load without callback
+        localStorage.removeItem(pendingStorageKey);
+        return;
       }
-    }
+
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      if (routeStatus === "success") {
+        console.log("✅ Payment successful from server callback");
+        setPaymentStatus("success");
+        setShowPaymentResult(true);
+        setIsProcessing(false);
+        localStorage.removeItem(pendingStorageKey);
+        toast.success("Payment successful! Your wallet has been credited.");
+      } else if (routeStatus === "failed") {
+        console.log("❌ Payment failed from server callback");
+        setPaymentStatus("failed");
+        setShowPaymentResult(true);
+        setIsProcessing(false);
+        localStorage.removeItem(pendingStorageKey);
+        toast.error("Payment failed. Please try again.");
+      } else if (routeStatus === "pending") {
+        console.log("⏳ Payment pending - starting verification polling");
+        setIsProcessing(true);
+        const storedReference = localStorage.getItem(pendingStorageKey);
+        if (storedReference) {
+          setVerificationReference(storedReference);
+          setPaymentReference(storedReference);
+          setShouldVerify(true);
+        } else {
+          console.warn("⚠️ No stored reference for pending payment");
+          setIsProcessing(false);
+        }
+      }
+    };
+
+    handlePaystackCallback();
   }, []);
 
-  async function copyText(text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Copied");
-    } catch {
-      toast.error("Copy failed. Please copy manually.");
+  // Handle verification polling results
+  useEffect(() => {
+    if (!shouldVerify || !verificationReference) {
+      return;
     }
-  }
+
+    const status = verificationQuery.data?.status;
+
+    if (!status) {
+      return;
+    }
+
+    console.log("📊 Verification result - status:", status);
+
+    if (status === "success") {
+      console.log("✅ Payment confirmed via verification");
+      localStorage.removeItem(pendingStorageKey);
+      setPaymentStatus("success");
+      setShowPaymentResult(true);
+      setIsProcessing(false);
+      setShouldVerify(false);
+      toast.success("Payment confirmed! Your wallet has been credited.");
+      return;
+    }
+
+    if (status === "failed" || status === "reversed") {
+      console.log("❌ Payment verification failed");
+      localStorage.removeItem(pendingStorageKey);
+      setPaymentStatus("failed");
+      setShowPaymentResult(true);
+      setIsProcessing(false);
+      setShouldVerify(false);
+      toast.error("Payment could not be confirmed.");
+      return;
+    }
+
+    if (status === "pending") {
+      console.log("⏳ Still waiting for payment confirmation...");
+      setIsProcessing(true);
+      return;
+    }
+  }, [verificationQuery.data?.status, shouldVerify, verificationReference]);
+
+  // Handle verification polling errors
+  useEffect(() => {
+    if (
+      shouldVerify &&
+      verificationReference &&
+      verificationQuery.isError &&
+      verificationQuery.failureCount >= 10
+    ) {
+      console.log("❌ Verification polling exhausted after 10+ retries");
+      localStorage.removeItem(pendingStorageKey);
+      setPaymentStatus("failed");
+      setShowPaymentResult(true);
+      setIsProcessing(false);
+      setShouldVerify(false);
+      toast.error(
+        "Payment verification timed out. Please check your transaction status.",
+      );
+    }
+  }, [
+    verificationQuery.isError,
+    verificationQuery.failureCount,
+    shouldVerify,
+    verificationReference,
+  ]);
+
+  const onClose = () => {
+    console.log("🔴 Closing payment modal");
+    setShowPaymentResult(false);
+    setPaymentReference(null);
+    setPaymentStatus(null);
+    setShouldVerify(false);
+  };
+
+  const onRetry = () => {
+    if (paymentReference) {
+      console.log("🔄 Retrying payment verification");
+      setShowPaymentResult(false);
+      setPaymentStatus(null);
+      setVerificationReference(paymentReference);
+      setShouldVerify(true);
+      setIsProcessing(true);
+      toast.loading("Checking payment status...");
+    }
+  };
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,60 +190,35 @@ export default function PaystackDepositPage() {
       return;
     }
 
-    // Show loading modal - this replaces the toast
     setIsProcessing(true);
 
     try {
-      // Enterprise-grade retry logic with exponential backoff
-      let response;
-      let lastError: any;
-      const maxAttempts = 3;
-
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-          response = await initializeMutation.mutateAsync({
-            email: user.email,
-            amount: amountValue,
-            metadata: {
-              userId: user?.id,
-              source: "paystack-deposit-card",
-            },
-          });
-          break; // Success - exit retry loop
-        } catch (error) {
-          lastError = error;
-          if (attempt < maxAttempts) {
-            // Wait with exponential backoff: 500ms, 1000ms
-            const delayMs = 500 * Math.pow(2, attempt - 1);
-            await new Promise((resolve) => setTimeout(resolve, delayMs));
-          }
-        }
-      }
-
-      if (!response) {
-        throw (
-          lastError || new Error("Failed to initialize payment after retries")
-        );
-      }
-
-      localStorage.setItem(pendingStorageKey, response.reference);
-
-      // Update modal message before redirect
-      toast.loading(`Redirecting to Paystack checkout...`, {
-        description: `Amount: KES ${formatMoney(amountValue)} • Reference: ${response.reference}`,
+      console.log("💳 Initializing Paystack payment - Amount:", amountValue);
+      const response = await initializeMutation.mutateAsync({
+        email: user.email,
+        amount: amountValue,
+        metadata: {
+          userId: user.id,
+          source: "paystack-deposit-page",
+        },
       });
 
-      // Preserve session before redirect - CRITICAL
-      // The AuthContext will handle session persistence
-      console.debug(
-        `[Paystack] Initializing payment redirect with reference: ${response.reference}`,
-      );
+      localStorage.setItem(pendingStorageKey, response.reference);
+      setVerificationReference(response.reference);
+      setPaymentReference(response.reference);
 
-      // Redirect to Paystack checkout
+      console.log("🎟️ Paystack reference stored:", response.reference);
+
+      toast.loading("Redirecting to Paystack checkout...", {
+        description: `Amount: KES ${formatMoney(amountValue)}`,
+      });
+
       setTimeout(() => {
-        window.location.assign(response!.authorization_url);
-      }, 800);
+        console.log("→ Redirecting to Paystack checkout");
+        window.location.assign(response.authorization_url);
+      }, 500);
     } catch (error: any) {
+      console.error("❌ Payment initialization failed:", error);
       setIsProcessing(false);
       const message =
         error?.response?.data?.error ??
@@ -141,144 +226,138 @@ export default function PaystackDepositPage() {
         error?.message ??
         "Unable to start payment";
       toast.error(message);
-      console.error("[Paystack] Payment initialization failed:", error);
     }
   }
 
   return (
-    <section className="mx-auto grid max-w-280 gap-4 lg:grid-cols-2 lg:items-stretch">
-      {/* Payment Loading Modal - Highest Z-Index */}
+    <section className="mx-auto max-w-3xl px-4 py-4">
       <PaymentLoadingModal
         isOpen={isProcessing}
         amount={amountValue}
-        message="Processing your payment"
+        message={
+          verificationReference
+            ? "Confirming your Paystack payment"
+            : "Preparing your Paystack checkout"
+        }
       />
 
-      {/* Payment Feedback Modal */}
       <PaymentFeedbackModal
         isOpen={showPaymentResult && paymentStatus === "success"}
         status="success"
-        title="Success!"
-        message="Your wallet has been credited successfully. Check your updated balance and recent transactions."
-        reference={paymentReference || undefined}
-        onClose={() => setShowPaymentResult(false)}
+        title="Payment Successful"
+        message="Your wallet has been credited successfully."
+        onClose={onClose}
       />
 
       <PaymentFeedbackModal
         isOpen={showPaymentResult && paymentStatus === "failed"}
         status="failed"
         title="Payment Failed"
-        message="Your payment could not be processed. Please try again."
-        reference={paymentReference || undefined}
-        onClose={() => setShowPaymentResult(false)}
+        message="Your payment could not be confirmed. Please try again."
+        onClose={onClose}
+        onRetry={onRetry}
       />
 
-      <article className="flex h-full min-h-98 flex-col rounded-2xl border border-[#243a53] bg-[#111d2e] p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-4 border-b border-[#243a53] pb-3">
-          <div>
-            <div className="flex items-center gap-2 text-[#f5c518]">
-              <Wallet size={18} />
-              <h2 className="text-lg font-semibold text-white sm:text-xl">
-                Paystack
-              </h2>
-            </div>
-            <p className="mt-1 text-xs text-[#8a9bb0] sm:text-sm">
-              Secure card and bank checkout
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {quickAmounts.map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setAmount(String(value))}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
-                amountValue === value
-                  ? "border-[#f5c518] bg-[#f5c518]/20 text-[#f5c518]"
-                  : "border-[#294157] bg-[#0f1a2a] text-[#8a9bb0] hover:border-[#f5c518]/50 hover:text-white"
-              }`}
-            >
-              {formatMoney(value)}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={onSubmit} className="mt-4 grid gap-3">
-          <label className="grid gap-2">
-            <span className="text-xs font-medium text-[#90a2bb] sm:text-sm">
-              Amount (KES)
+      <article className="overflow-hidden rounded-3xl border border-[#243a53] bg-[radial-gradient(circle_at_top,_rgba(245,197,24,0.14),_transparent_35%),linear-gradient(180deg,#111d2e_0%,#0b1421_100%)] shadow-2xl">
+        <div className="border-b border-[#243a53] px-6 py-5">
+          <div className="flex items-center gap-3 text-[#f5c518]">
+            <CreditCard size={18} />
+            <span className="text-xs font-semibold uppercase tracking-[0.18em]">
+              Paystack Only
             </span>
-            <Input
-              value={amount}
-              onChange={(event) =>
-                setAmount(normalizeAmount(event.target.value))
-              }
-              inputMode="numeric"
-              type="text"
-              placeholder="100"
-              className="h-11 rounded-xl border-[#294157] bg-[#0f1a2a] text-white placeholder:text-[#62738a] focus:border-[#f5c518]"
-            />
-          </label>
-
-          <Button
-            type="submit"
-            disabled={initializeMutation.isPending || isProcessing}
-            className="mt-1 h-11 rounded-xl bg-[#f5c518] px-5 text-sm font-semibold text-black hover:bg-[#e0b90f] disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isProcessing ? (
-              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-            ) : null}
-            {isProcessing ? "Processing..." : "Proceed to Payment"}
-          </Button>
-        </form>
-      </article>
-
-      <article className="flex h-full min-h-98 flex-col rounded-2xl border border-[#243a53] bg-[#111d2e] p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-4 border-b border-[#243a53] pb-3">
-          <div>
-            <div className="flex items-center gap-2 text-[#f5c518]">
-              <Smartphone size={18} />
-              <h2 className="text-lg font-semibold text-white sm:text-xl">
-                Till Number
-              </h2>
-            </div>
-            <p className="mt-1 text-xs text-[#8a9bb0] sm:text-sm">
-              Pay via M-Pesa goods and services
-            </p>
           </div>
+          <h1 className="mt-3 text-2xl font-bold text-white">Fund Wallet</h1>
+          <p className="mt-2 max-w-xl text-sm text-[#8a9bb0]">
+            Deposit securely with Paystack. Card, bank, and supported Paystack
+            checkout methods are handled in one flow.
+          </p>
         </div>
 
-        <div className="mt-4 rounded-xl border border-[#294157] bg-[#0f1a2a] p-3 text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#90a2bb]">
-            Till Number
-          </p>
-          <p className="mt-2 text-2xl font-bold text-white">{tillNumber}</p>
-          <p className="mt-1 text-xs text-[#8a9bb0]">{tillName}</p>
+        <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.4fr_0.9fr]">
+          <div>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {quickAmounts.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setAmount(String(value))}
+                  className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
+                    amountValue === value
+                      ? "border-[#f5c518] bg-[#f5c518]/15 text-[#f5c518]"
+                      : "border-[#294157] bg-[#0f1a2a] text-[#8a9bb0] hover:border-[#f5c518]/50 hover:text-white"
+                  }`}
+                >
+                  {formatMoney(value)}
+                </button>
+              ))}
+            </div>
 
-          <button
-            type="button"
-            onClick={() => void copyText(tillNumber)}
-            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#294157] bg-[#111d2e] px-3 py-1.5 text-xs font-semibold text-white hover:border-[#f5c518]/50 hover:bg-[#f5c518]/10"
-          >
-            <Copy size={12} />
-            Copy Till
-          </button>
-        </div>
+            <form onSubmit={onSubmit} className="grid gap-4">
+              <label className="grid gap-2">
+                <span className="text-xs font-medium text-[#90a2bb] sm:text-sm">
+                  Amount (KES)
+                </span>
+                <Input
+                  value={amount}
+                  onChange={(event) =>
+                    setAmount(normalizeAmount(event.target.value))
+                  }
+                  inputMode="numeric"
+                  type="text"
+                  placeholder="100"
+                  className="h-12 rounded-2xl border-[#294157] bg-[#0f1a2a] text-white placeholder:text-[#62738a] focus:border-[#f5c518]"
+                />
+              </label>
 
-        <div className="mt-3 rounded-xl border border-[#294157] bg-[#0f1a2a] p-3 text-xs text-[#8a9bb0]">
-          <p className="font-semibold text-white text-[11px]">How to pay</p>
-          <ol className="mt-2 space-y-1.5 text-[11px] leading-relaxed">
-            <li>1. Go to M-Pesa then Lipa Na M-Pesa.</li>
-            <li>2. Select Buy Goods and Services.</li>
-            <li>3. Enter Till {tillNumber}.</li>
-            <li>4. Enter amount and PIN.</li>
-            <li>5. Confirm payment.</li>
-          </ol>
-          <p className="mt-2.5 text-center text-[10px] text-[#62738a]">
-            Dial *234# for charges
-          </p>
+              <Button
+                type="submit"
+                disabled={initializeMutation.isPending || isProcessing}
+                className="h-12 rounded-2xl bg-[#f5c518] text-sm font-semibold text-black hover:bg-[#e0b90f] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isProcessing ? (
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Wallet className="mr-2 h-4 w-4" />
+                )}
+                {isProcessing ? "Processing..." : "Proceed to Paystack"}
+              </Button>
+            </form>
+          </div>
+
+          <aside className="rounded-2xl border border-[#243a53] bg-[#0f1a2a]/80 p-5">
+            <div className="flex items-center gap-2 text-[#f5c518]">
+              <ShieldCheck size={16} />
+              <span className="text-xs font-semibold uppercase tracking-[0.14em]">
+                Checkout Flow
+              </span>
+            </div>
+
+            <div className="mt-4 space-y-4 text-sm text-[#8a9bb0]">
+              <div>
+                <p className="font-semibold text-white">1. Start payment</p>
+                <p className="mt-1">
+                  Enter your amount and continue to the hosted Paystack
+                  checkout.
+                </p>
+              </div>
+              <div>
+                <p className="font-semibold text-white">2. Complete checkout</p>
+                <p className="mt-1">
+                  Paystack handles card, bank, and supported payment options
+                  directly.
+                </p>
+              </div>
+              <div>
+                <p className="font-semibold text-white">
+                  3. Return and confirm
+                </p>
+                <p className="mt-1">
+                  When you are redirected back, BetWise verifies the transaction
+                  and credits your wallet automatically.
+                </p>
+              </div>
+            </div>
+          </aside>
         </div>
       </article>
     </section>
