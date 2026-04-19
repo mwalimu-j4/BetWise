@@ -475,8 +475,12 @@ export default function BetSlip(props: UseBetSlipReturn) {
           className={`fixed bottom-0 left-0 right-0 z-[80] flex h-[85vh] min-h-0 flex-col overflow-hidden rounded-t-2xl bg-[#0d1820] transition-transform duration-300 ease-out ${
             mobileSheetOpen ? "translate-y-0" : "translate-y-full"
           }`}
+          style={{
+            bottom: "calc(env(safe-area-inset-bottom) + 78px)",
+            height: "calc(85vh - 78px)",
+          }}
         >
-          <div className="min-h-0 flex-1 overflow-y-auto p-2">
+          <div className="min-h-0 flex-1 overflow-y-auto p-2 pb-3">
             <BetSlipPanel
               {...props}
               compactActions
