@@ -445,26 +445,35 @@ export async function createPaystackTransferRecipient(
     throw new Error("PAYSTACK_SECRET_KEY not configured");
   }
 
-  // Normalize phone number to remove + prefix if present
-  // Paystack expects phone number in format like "254789278383" for Kenya
-  const normalizedPhone = phoneNumber.replace(/^\+/, "");
+  // Convert phone to local Kenyan format (0XXXXXXXXX)
+  // Paystack Kenya M-Pesa API expects local format, not international format
+  let formattedPhone = phoneNumber.replace(/\D/g, ""); // Remove all non-digits
+
+  if (formattedPhone.startsWith("254")) {
+    // Convert from international (254789278383) to local (0789278383)
+    formattedPhone = `0${formattedPhone.slice(3)}`;
+  } else if (!formattedPhone.startsWith("0")) {
+    // If it doesn't start with 0 or 254, assume it's already missing country code
+    formattedPhone = `0${formattedPhone}`;
+  }
 
   // For Kenya M-Pesa transfers, we need:
   // - type: "mobile_money"
   // - bank_code: "MPESA" (for individual users)
-  // - account_number: the phone number
+  // - account_number: the phone number in LOCAL format (0789278383)
   // - currency: "KES"
   const payload = {
     type: "mobile_money",
     bank_code: "MPESA", // CRITICAL: Required for Kenya mobile money
-    account_number: normalizedPhone, // Phone number
+    account_number: formattedPhone, // Phone number in local format (0XXXXXXXXX)
     currency: "KES", // Kenya Shilling
-    name: name || `M-Pesa - ${normalizedPhone}`,
+    name: name || `M-Pesa - ${formattedPhone}`,
   };
 
   console.log("[Paystack] Creating transfer recipient:", {
+    originalPhone: phoneNumber,
+    formattedPhone: payload.account_number,
     bank_code: payload.bank_code,
-    account_number: payload.account_number,
     currency: payload.currency,
     type: payload.type,
   });
