@@ -3,14 +3,25 @@ import { Link, useLocation } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
+  Circle,
+  CircleDot,
+  CircleSlash,
   ChevronDown,
+  Crosshair,
   FileText,
+  Flag,
   Flame,
   HelpCircle,
+  Hexagon,
+  House,
   History,
   Home,
   LogOut,
   MessageCircle,
+  Shield,
+  Swords,
+  Star,
+  Target,
   TrendingUp,
   Trophy,
   User,
@@ -29,6 +40,8 @@ type Item = {
   to: string;
   icon: React.ReactNode;
   liveBadge?: string;
+  badgeCount?: number;
+  badgeGold?: boolean;
   warn?: boolean;
   notificationBadge?: boolean;
 };
@@ -126,6 +139,11 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
         {item.icon}
       </span>
       <span className="bc-side-label">{item.label}</span>
+      {item.badgeCount && item.badgeCount > 0 ? (
+        <span className={`bc-badge ${item.badgeGold ? "gold" : ""}`.trim()}>
+          {item.badgeCount}
+        </span>
+      ) : null}
       {item.liveBadge ? (
         <span className="bc-side-live-badge">{item.liveBadge}</span>
       ) : null}
@@ -159,7 +177,140 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       
           {/* MAIN NAVIGATION */}
           <div className="bc-side-section">
-            {navigationLinks.map((item) => (
+            <p className="bc-side-heading">
+              <span className="bc-heading-dot" aria-hidden="true" />
+              Home & Quick Access
+            </p>
+            {[
+              { label: "Homepage", to: "/user", icon: <House size={18} /> },
+              {
+                label: "Live Betting",
+                to: "/user/live",
+                icon: <Flame size={18} />,
+                liveBadge: "LIVE",
+              },
+              {
+                label: "Featured Events",
+                to: "/user/featured-events",
+                icon: <Star size={18} />,
+                liveBadge: "NEW",
+              },
+              {
+                label: "Custom Events",
+                to: "/user/custom-events",
+                icon: <Zap size={18} />,
+              },
+              {
+                label: "My Bets",
+                to: "/my-bets",
+                icon: <TrendingUp size={18} />,
+              },
+              {
+                label: "Highlights",
+                to: "/user/highlights",
+                icon: <Flame size={18} />,
+              },
+            ].map((item) => (
+              <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
+            ))}
+          </div>
+
+          <div className="bc-side-section">
+            <p className="bc-side-heading">
+              <span className="bc-heading-dot" aria-hidden="true" />
+              Popular Sports
+            </p>
+            {[
+              {
+                label: "Football",
+                to: "/user/sport/football",
+                icon: <Trophy size={18} />,
+                badgeCount: eventCounts?.football ?? 0,
+                badgeGold: true,
+              },
+              {
+                label: "Basketball",
+                to: "/user/sport/basketball",
+                icon: <CircleDot size={18} />,
+                badgeCount: eventCounts?.basketball ?? 0,
+              },
+              {
+                label: "Tennis",
+                to: "/user/sport/tennis",
+                icon: <Circle size={18} />,
+                badgeCount: eventCounts?.tennis ?? 0,
+              },
+              {
+                label: "American Football",
+                to: "/user/sport/american-football",
+                icon: <Shield size={18} />,
+                badgeCount: eventCounts?.americanFootball ?? 0,
+              },
+              {
+                label: "Cricket",
+                to: "/user/sport/cricket",
+                icon: <Triangle size={18} />,
+                badgeCount: eventCounts?.cricket ?? 0,
+              },
+              {
+                label: "Ice Hockey",
+                to: "/user/sport/ice-hockey",
+                icon: <CircleSlash size={18} />,
+                badgeCount: eventCounts?.iceHockey ?? 0,
+              },
+              {
+                label: "Rugby Union",
+                to: "/user/sport/rugby-union",
+                icon: <Hexagon size={18} />,
+                badgeCount: eventCounts?.rugbyUnion ?? 0,
+              },
+            ].map((item) => (
+              <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
+            ))}
+          </div>
+
+          <div className="bc-side-section">
+            <p className="bc-side-heading">
+              <span className="bc-heading-dot" aria-hidden="true" />
+              More Sports
+            </p>
+            {[
+              {
+                label: "Boxing / MMA",
+                to: "/user/sport/boxing-mma",
+                icon: <Swords size={18} />,
+              },
+              {
+                label: "Baseball",
+                to: "/user/sport/baseball",
+                icon: <CircleDot size={18} />,
+              },
+              {
+                label: "Volleyball",
+                to: "/user/sport/volleyball",
+                icon: <Circle size={18} />,
+              },
+              {
+                label: "Table Tennis",
+                to: "/user/sport/table-tennis",
+                icon: <Crosshair size={18} />,
+              },
+              {
+                label: "Golf",
+                to: "/user/sport/golf",
+                icon: <Flag size={18} />,
+              },
+              {
+                label: "Snooker",
+                to: "/user/sport/snooker",
+                icon: <CircleSlash size={18} />,
+              },
+              {
+                label: "Darts",
+                to: "/user/sport/darts",
+                icon: <Target size={18} />,
+              },
+            ].map((item) => (
               <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
             ))}
           </div>
