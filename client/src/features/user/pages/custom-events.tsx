@@ -33,6 +33,7 @@ export default function CustomEventsPage() {
           return Number.isFinite(startMs) && startMs > nowMs;
         }
 
+        // Show LIVE and FINISHED events
         return true;
       }),
     [events, nowMs],

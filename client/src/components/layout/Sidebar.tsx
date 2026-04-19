@@ -5,13 +5,25 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   ChevronDown,
+  Circle,
+  CircleDot,
+  CircleSlash,
+  Crosshair,
   FileText,
   Flame,
   HelpCircle,
+  Hexagon,
   History,
+  House,
   LogOut,
   MessageCircle,
+  Shield,
+  Star,
+  Swords,
+  Target,
   TrendingUp,
+  Triangle,
+  Trophy,
   User,
   Wallet,
   Zap
@@ -92,20 +104,6 @@ function sportIcon(name: string): React.ReactNode {
       return "🎯";
   }
 }
-
-const navigationLinks: Item[] = [
-  { label: "Homepage", to: "/user", icon: "H" },
-  { label: "Pre-match", to: "/user/payments", icon: "P" },
-  { label: "Live", to: "/user/live", icon: "L", liveBadge: "LIVE" },
-  { label: "Custom Events", to: "/user/custom-events", icon: "⚡" },
-
-  {
-    label: "Live Betting",
-    to: "/user/live",
-    icon: <Flame size={18} />,
-    liveBadge: "LIVE",
-  },
-];
 
 const myAccount: Item[] = [
   {
@@ -277,53 +275,99 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <>
       <aside className={`bc-sidebar ${isOpen ? "is-open" : ""}`}>
         <div className="bc-side-scroll">
-          {/* LIVE SPORTS SECTION */}
-          <div className="bc-side-section max-md:mt-12 -mb-6">
-            <button
-              type="button"
-              className="bc-live-sports-toggle"
-              onClick={() => setLiveSportsOpen((prev) => !prev)}
-            >
-              <Zap size={16} />
-              <span>Live Sports</span>
-              <ChevronDown
-                size={14}
-                className={`bc-live-sports-chevron ${liveSportsOpen ? "is-open" : ""}`}
-              />
-            </button>
-            <div
-              className={`bc-live-sports-list ${liveSportsOpen ? "is-open" : ""}`}
-            >
-              {liveSportsOrder.map((name) => {
-                const count = liveCounts[name] ?? 0;
-                const sportKey = name.toLowerCase().replace(/\s+/g, "_");
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    onClick={() => {
-                      navigate({
-                        to: "/user/live",
-                        search: { sport: sportKey },
-                      });
-                      closeIfMobile();
-                    }}
-                    disabled={count === 0}
-                    className={`bc-live-sport-item ${count === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <span className="bc-side-icon" aria-hidden="true">
-                      {sportIcon(name)}
-                    </span>
-                    <span className="bc-live-sport-name">{name}</span>
-                    {count > 0 ? (
-                      <span className="bc-live-sport-count">
-                        {count > 99 ? "99+" : count}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
+      
+          {/* MAIN NAVIGATION */}
+          <div className="bc-side-section">
+            <p className="bc-side-heading">
+              <span className="bc-heading-dot" aria-hidden="true" />
+              Home & Quick Access
+            </p>
+            {[
+              { label: "Homepage", to: "/user", icon: <House size={18} /> },
+              {
+                label: "Live Betting",
+                to: "/user/live",
+                icon: <Flame size={18} />,
+                liveBadge: "LIVE",
+              },
+              {
+                label: "Featured Events",
+                to: "/user/featured-events",
+                icon: <Star size={18} />,
+                liveBadge: "NEW",
+              },
+              {
+                label: "Custom Events",
+                to: "/user/custom-events",
+                icon: <Zap size={18} />,
+              },
+              {
+                label: "My Bets",
+                to: "/my-bets",
+                icon: <TrendingUp size={18} />,
+              },
+              {
+                label: "Highlights",
+                to: "/user/highlights",
+                icon: <Flame size={18} />,
+              },
+            ].map((item) => (
+              <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
+            ))}
+          </div>
+
+          <div className="bc-side-section">
+            <p className="bc-side-heading">
+              <span className="bc-heading-dot" aria-hidden="true" />
+              Popular Sports
+            </p>
+            {[
+              {
+                label: "Football",
+                to: "/user/sport/football",
+                icon: <Trophy size={18} />,
+                badgeCount: 0,
+                badgeGold: true,
+              },
+              {
+                label: "Basketball",
+                to: "/user/sport/basketball",
+                icon: <CircleDot size={18} />,
+                badgeCount: 0,
+              },
+              {
+                label: "Tennis",
+                to: "/user/sport/tennis",
+                icon: <Circle size={18} />,
+                badgeCount: 0,
+              },
+              {
+                label: "American Football",
+                to: "/user/sport/american-football",
+                icon: <Shield size={18} />,
+                badgeCount: 0,
+              },
+              {
+                label: "Cricket",
+                to: "/user/sport/cricket",
+                icon: <Triangle size={18} />,
+                badgeCount: 0,
+              },
+              {
+                label: "Ice Hockey",
+                to: "/user/sport/ice-hockey",
+                icon: <CircleSlash size={18} />,
+                badgeCount: 0,
+              },
+              {
+                label: "Rugby Union",
+                to: "/user/sport/rugby-union",
+                icon: <Hexagon size={18} />,
+                badgeCount: 0,
+              },
+            ].map((item) => (
+              <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
+            ))}
           </div>
 
           {/* MAIN NAVIGATION */}
