@@ -2,6 +2,23 @@ import { EventStatus, Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { prisma } from "../lib/prisma";
 
+function isPrismaKnownRequestError(error: unknown): error is { code: string } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code?: unknown }).code === "string"
+  );
+}
+
+function isMissingSportCategoriesTableError(error: unknown) {
+  return (
+    (isPrismaKnownRequestError(error) && error.code === "P2021") ||
+    (error instanceof Error &&
+      error.message.toLowerCase().includes("sport_categories"))
+  );
+}
+
 type SourceDefinition =
   | {
       provider: "odds";
@@ -597,19 +614,26 @@ async function fetchSportEventsFromProviders(definition: CategoryDefinition, now
 }
 
 async function ensureSportCategoriesSeeded() {
-  await prisma.sportCategory.createMany({
-    data: SPORT_CATEGORY_DEFINITIONS.map((definition) => ({
-      id: randomUUID(),
-      sportKey: definition.sportKey,
-      displayName: definition.displayName,
-      icon: definition.icon,
-      isActive: false,
-      showInNav: true,
-      sortOrder: definition.sortOrder,
-      eventCount: 0,
-    })),
-    skipDuplicates: true,
-  });
+  try {
+    await prisma.sportCategory.createMany({
+      data: SPORT_CATEGORY_DEFINITIONS.map((definition) => ({
+        id: randomUUID(),
+        sportKey: definition.sportKey,
+        displayName: definition.displayName,
+        icon: definition.icon,
+        isActive: false,
+        showInNav: true,
+        sortOrder: definition.sortOrder,
+        eventCount: 0,
+      })),
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    if (isMissingSportCategoriesTableError(error)) {
+      return;
+    }
+    throw error;
+  }
 }
 
 async function upsertSportEventsTx(
@@ -872,9 +896,30 @@ async function updateCategoryCountsTx(
 export async function listSportCategories() {
   await ensureSportCategoriesSeeded();
 
-  const categories = await prisma.sportCategory.findMany({
-    orderBy: [{ sortOrder: "asc" }],
-  });
+  let categories;
+  try {
+    categories = await prisma.sportCategory.findMany({
+      orderBy: [{ sortOrder: "asc" }],
+    });
+  } catch (error) {
+    if (isMissingSportCategoriesTableError(error)) {
+      return SPORT_CATEGORY_DEFINITIONS.map((definition) => ({
+        id: definition.sportKey,
+        sportKey: definition.sportKey,
+        displayName: definition.displayName,
+        icon: definition.icon,
+        isActive: false,
+        showInNav: true,
+        sortOrder: definition.sortOrder,
+        eventCount: 0,
+        liveEventCount: 0,
+        upcomingEventCount: 0,
+        configuredCount: 0,
+        lastSyncedAt: null,
+      } satisfies SportCategoryListItem));
+    }
+    throw error;
+  }
   const now = new Date();
 
   const grouped = await prisma.sportEvent.groupBy({
