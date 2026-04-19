@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { LoaderCircle, ShieldCheck, Wallet } from "lucide-react";
+import { Copy, LoaderCircle, Smartphone, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,146 +8,64 @@ import { PaymentFeedbackModal } from "@/components/PaymentFeedbackModal";
 import { PaymentLoadingModal } from "@/components/PaymentLoadingModal";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "../data";
-import {
-  usePaystackInitialize,
-  usePaystackVerification,
-} from "../hooks/usePaystackPayment";
+import { usePaystackInitialize } from "../hooks/usePaystackPayment";
 
 const quickAmounts = [500, 1000, 2500, 5000];
-const pendingStorageKey = "betwise-mpesa-pending-reference";
+const pendingStorageKey = "betwise-paystack-pending-reference";
+const tillNumber = "9006951";
+const tillName = "MDC Fixers";
 
 function normalizeAmount(value: string) {
   return value.replace(/[^\d]/g, "");
 }
 
-export default function MpesaDepositPage() {
+export default function PaystackDepositPage() {
   const { user } = useAuth();
   const initializeMutation = usePaystackInitialize();
-  const [verificationReference, setVerificationReference] = useState<
-    string | null
-  >(null);
-  const [amount, setAmount] = useState("500");
+  const [amount, setAmount] = useState("100");
   const [paymentStatus, setPaymentStatus] = useState<
     "success" | "failed" | null
   >(null);
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
   const [showPaymentResult, setShowPaymentResult] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [shouldVerify, setShouldVerify] = useState(false);
-  const verificationQuery = usePaystackVerification(
-    shouldVerify ? verificationReference : null,
-  );
 
   const amountValue = useMemo(() => Number(amount) || 0, [amount]);
 
+  // Handle redirect from Paystack checkout - CRITICAL for enterprise session handling
   useEffect(() => {
-    const handleCallback = () => {
-      const params = new URLSearchParams(window.location.search);
-      const routeStatus = params.get("status");
+    const params = new URLSearchParams(window.location.search);
+    const routeReference = params.get("reference");
+    const status = params.get("status") as "success" | "failed" | null;
 
-      if (!routeStatus) {
-        localStorage.removeItem(pendingStorageKey);
-        return;
-      }
+    if (routeReference) {
+      localStorage.setItem(pendingStorageKey, routeReference);
+      setPaymentReference(routeReference);
 
-      window.history.replaceState({}, document.title, window.location.pathname);
-
-      if (routeStatus === "success") {
-        setPaymentStatus("success");
+      if (status) {
+        setPaymentStatus(status);
         setShowPaymentResult(true);
-        setIsProcessing(false);
-        localStorage.removeItem(pendingStorageKey);
-        toast.success("Payment successful! Your wallet has been credited.");
-      } else if (routeStatus === "failed") {
-        setPaymentStatus("failed");
-        setShowPaymentResult(true);
-        setIsProcessing(false);
-        localStorage.removeItem(pendingStorageKey);
-        toast.error("Payment failed. Please try again.");
-      } else if (routeStatus === "pending") {
-        setIsProcessing(true);
-        const storedReference = localStorage.getItem(pendingStorageKey);
-        if (storedReference) {
-          setVerificationReference(storedReference);
-          setPaymentReference(storedReference);
-          setShouldVerify(true);
-        } else {
-          setIsProcessing(false);
-        }
-      }
-    };
 
-    handleCallback();
+        // Clear the URL params immediately to prevent state issues
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+
+        // Log for debugging - payment redirect recovery
+        console.debug(
+          `[Paystack] Payment redirect detected: reference=${routeReference}, status=${status}`,
+        );
+      }
+    }
   }, []);
 
-  useEffect(() => {
-    if (!shouldVerify || !verificationReference) return;
-    const status = verificationQuery.data?.status;
-    if (!status) return;
-
-    if (status === "success") {
-      localStorage.removeItem(pendingStorageKey);
-      setPaymentStatus("success");
-      setShowPaymentResult(true);
-      setIsProcessing(false);
-      setShouldVerify(false);
-      toast.success("Payment confirmed! Your wallet has been credited.");
-      return;
+  async function copyText(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Copied");
+    } catch {
+      toast.error("Copy failed. Please copy manually.");
     }
-    if (status === "failed" || status === "reversed") {
-      localStorage.removeItem(pendingStorageKey);
-      setPaymentStatus("failed");
-      setShowPaymentResult(true);
-      setIsProcessing(false);
-      setShouldVerify(false);
-      toast.error("Payment could not be confirmed.");
-      return;
-    }
-    if (status === "pending") {
-      setIsProcessing(true);
-    }
-  }, [verificationQuery.data?.status, shouldVerify, verificationReference]);
-
-  useEffect(() => {
-    if (
-      shouldVerify &&
-      verificationReference &&
-      verificationQuery.isError &&
-      verificationQuery.failureCount >= 10
-    ) {
-      localStorage.removeItem(pendingStorageKey);
-      setPaymentStatus("failed");
-      setShowPaymentResult(true);
-      setIsProcessing(false);
-      setShouldVerify(false);
-      toast.error(
-        "Payment verification timed out. Please check your transaction status.",
-      );
-    }
-  }, [
-    verificationQuery.isError,
-    verificationQuery.failureCount,
-    shouldVerify,
-    verificationReference,
-  ]);
-
-  const onClose = () => {
-    setShowPaymentResult(false);
-    setPaymentReference(null);
-    setPaymentStatus(null);
-    setShouldVerify(false);
-  };
-
-  const onRetry = () => {
-    if (paymentReference) {
-      setShowPaymentResult(false);
-      setPaymentStatus(null);
-      setVerificationReference(paymentReference);
-      setShouldVerify(true);
-      setIsProcessing(true);
-      toast.loading("Checking payment status...");
-    }
-  };
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -156,31 +74,65 @@ export default function MpesaDepositPage() {
       toast.error("User email not found.");
       return;
     }
-    if (amountValue < 500) {
-      toast.error("Minimum deposit is KES 500.");
+
+    if (amountValue < 100) {
+      toast.error("Minimum deposit is KES 100.");
       return;
     }
 
+    // Show loading modal - this replaces the toast
     setIsProcessing(true);
 
     try {
-      const response = await initializeMutation.mutateAsync({
-        email: user.email,
-        amount: amountValue,
-        metadata: { userId: user.id, source: "mpesa-deposit-page" },
-      });
+      // Enterprise-grade retry logic with exponential backoff
+      let response;
+      let lastError: any;
+      const maxAttempts = 3;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          response = await initializeMutation.mutateAsync({
+            email: user.email,
+            amount: amountValue,
+            metadata: {
+              userId: user?.id,
+              source: "paystack-deposit-card",
+            },
+          });
+          break; // Success - exit retry loop
+        } catch (error) {
+          lastError = error;
+          if (attempt < maxAttempts) {
+            // Wait with exponential backoff: 500ms, 1000ms
+            const delayMs = 500 * Math.pow(2, attempt - 1);
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+          }
+        }
+      }
+
+      if (!response) {
+        throw (
+          lastError || new Error("Failed to initialize payment after retries")
+        );
+      }
 
       localStorage.setItem(pendingStorageKey, response.reference);
-      setVerificationReference(response.reference);
-      setPaymentReference(response.reference);
 
-      toast.loading("Redirecting to secure checkout...", {
-        description: `Amount: KES ${formatMoney(amountValue)}`,
+      // Update modal message before redirect
+      toast.loading(`Redirecting to Paystack checkout...`, {
+        description: `Amount: KES ${formatMoney(amountValue)} • Reference: ${response.reference}`,
       });
 
+      // Preserve session before redirect - CRITICAL
+      // The AuthContext will handle session persistence
+      console.debug(
+        `[Paystack] Initializing payment redirect with reference: ${response.reference}`,
+      );
+
+      // Redirect to Paystack checkout
       setTimeout(() => {
-        window.location.assign(response.authorization_url);
-      }, 500);
+        window.location.assign(response!.authorization_url);
+      }, 800);
     } catch (error: any) {
       setIsProcessing(false);
       const message =
@@ -189,109 +141,144 @@ export default function MpesaDepositPage() {
         error?.message ??
         "Unable to start payment";
       toast.error(message);
+      console.error("[Paystack] Payment initialization failed:", error);
     }
   }
 
   return (
-    <section className="mx-auto max-w-md px-4 py-8">
+    <section className="mx-auto grid max-w-280 gap-4 lg:grid-cols-2 lg:items-stretch">
+      {/* Payment Loading Modal - Highest Z-Index */}
       <PaymentLoadingModal
         isOpen={isProcessing}
         amount={amountValue}
-        message={
-          verificationReference
-            ? "Confirming your M-Pesa payment"
-            : "Preparing M-Pesa checkout"
-        }
+        message="Processing your payment"
       />
+
+      {/* Payment Feedback Modal */}
       <PaymentFeedbackModal
         isOpen={showPaymentResult && paymentStatus === "success"}
         status="success"
-        title="Payment Successful"
-        message="Your wallet has been credited successfully."
-        onClose={onClose}
+        title="Success!"
+        message="Your wallet has been credited successfully. Check your updated balance and recent transactions."
+        reference={paymentReference || undefined}
+        onClose={() => setShowPaymentResult(false)}
       />
+
       <PaymentFeedbackModal
         isOpen={showPaymentResult && paymentStatus === "failed"}
         status="failed"
         title="Payment Failed"
-        message="Your payment could not be confirmed. Please try again."
-        onClose={onClose}
-        onRetry={onRetry}
+        message="Your payment could not be processed. Please try again."
+        reference={paymentReference || undefined}
+        onClose={() => setShowPaymentResult(false)}
       />
 
-      <article className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
-        {/* ── Header ── */}
-        <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
-          <div className="flex items-center justify-between">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
-              alt="M-Pesa"
-              className="h-8 w-auto object-contain"
-            />
-            <span className="flex items-center gap-1.5 rounded-full border border-[#00A859]/20 bg-[#00A859]/10 px-3 py-1 text-[11px] font-semibold text-[#00A859]">
-              <ShieldCheck className="h-3 w-3" />
-              Secured by Paystack
-            </span>
+      <article className="flex h-full min-h-98 flex-col rounded-2xl border border-[#243a53] bg-[#111d2e] p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-4 border-b border-[#243a53] pb-3">
+          <div>
+            <div className="flex items-center gap-2 text-[#f5c518]">
+              <Wallet size={18} />
+              <h2 className="text-lg font-semibold text-white sm:text-xl">
+                Paystack
+              </h2>
+            </div>
+            <p className="mt-1 text-xs text-[#8a9bb0] sm:text-sm">
+              Secure card and bank checkout
+            </p>
           </div>
         </div>
 
-        {/* ── Body ── */}
-        <div className="space-y-5 px-7 py-6">
-          {/* Quick amounts */}
-          <div>
-            <p className="mb-2.5 text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
-              Quick Select
-            </p>
-            <div className="grid grid-cols-4 gap-2">
-              {quickAmounts.map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setAmount(String(value))}
-                  className={`rounded-xl border py-2.5 text-xs font-semibold transition-all duration-150 ${
-                    amountValue === value
-                      ? "border-[#00A859] bg-[#00A859]/10 text-[#00A859]"
-                      : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#00A859]/30 hover:text-white"
-                  }`}
-                >
-                  {formatMoney(value)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={onSubmit} className="space-y-4">
-            <label className="block space-y-2">
-              <span className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
-                Amount (KES)
-              </span>
-              <Input
-                value={amount}
-                onChange={(event) =>
-                  setAmount(normalizeAmount(event.target.value))
-                }
-                inputMode="numeric"
-                type="text"
-                placeholder="Enter amount"
-                className="h-14 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-lg text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#00A859] focus:ring-1 focus:ring-[#00A859]"
-              />
-              <p className="text-xs text-[#3d5a73]">Minimum deposit: KES 500</p>
-            </label>
-
-            <Button
-              type="submit"
-              disabled={initializeMutation.isPending || isProcessing}
-              className="h-14 w-full rounded-2xl bg-[#00A859] text-base font-bold text-white transition-colors hover:bg-[#009950] disabled:cursor-not-allowed disabled:opacity-60"
+        <div className="mt-4 flex flex-wrap gap-2">
+          {quickAmounts.map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setAmount(String(value))}
+              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+                amountValue === value
+                  ? "border-[#f5c518] bg-[#f5c518]/20 text-[#f5c518]"
+                  : "border-[#294157] bg-[#0f1a2a] text-[#8a9bb0] hover:border-[#f5c518]/50 hover:text-white"
+              }`}
             >
-              {isProcessing ? (
-                <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Wallet className="mr-2 h-5 w-5" />
-              )}
-              {isProcessing ? "Processing..." : "Pay with M-Pesa"}
-            </Button>
-          </form>
+              {formatMoney(value)}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={onSubmit} className="mt-4 grid gap-3">
+          <label className="grid gap-2">
+            <span className="text-xs font-medium text-[#90a2bb] sm:text-sm">
+              Amount (KES)
+            </span>
+            <Input
+              value={amount}
+              onChange={(event) =>
+                setAmount(normalizeAmount(event.target.value))
+              }
+              inputMode="numeric"
+              type="text"
+              placeholder="100"
+              className="h-11 rounded-xl border-[#294157] bg-[#0f1a2a] text-white placeholder:text-[#62738a] focus:border-[#f5c518]"
+            />
+          </label>
+
+          <Button
+            type="submit"
+            disabled={initializeMutation.isPending || isProcessing}
+            className="mt-1 h-11 rounded-xl bg-[#f5c518] px-5 text-sm font-semibold text-black hover:bg-[#e0b90f] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isProcessing ? (
+              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            {isProcessing ? "Processing..." : "Proceed to Payment"}
+          </Button>
+        </form>
+      </article>
+
+      <article className="flex h-full min-h-98 flex-col rounded-2xl border border-[#243a53] bg-[#111d2e] p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-4 border-b border-[#243a53] pb-3">
+          <div>
+            <div className="flex items-center gap-2 text-[#f5c518]">
+              <Smartphone size={18} />
+              <h2 className="text-lg font-semibold text-white sm:text-xl">
+                Till Number
+              </h2>
+            </div>
+            <p className="mt-1 text-xs text-[#8a9bb0] sm:text-sm">
+              Pay via M-Pesa goods and services
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-[#294157] bg-[#0f1a2a] p-3 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#90a2bb]">
+            Till Number
+          </p>
+          <p className="mt-2 text-2xl font-bold text-white">{tillNumber}</p>
+          <p className="mt-1 text-xs text-[#8a9bb0]">{tillName}</p>
+
+          <button
+            type="button"
+            onClick={() => void copyText(tillNumber)}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#294157] bg-[#111d2e] px-3 py-1.5 text-xs font-semibold text-white hover:border-[#f5c518]/50 hover:bg-[#f5c518]/10"
+          >
+            <Copy size={12} />
+            Copy Till
+          </button>
+        </div>
+
+        <div className="mt-3 rounded-xl border border-[#294157] bg-[#0f1a2a] p-3 text-xs text-[#8a9bb0]">
+          <p className="font-semibold text-white text-[11px]">How to pay</p>
+          <ol className="mt-2 space-y-1.5 text-[11px] leading-relaxed">
+            <li>1. Go to M-Pesa then Lipa Na M-Pesa.</li>
+            <li>2. Select Buy Goods and Services.</li>
+            <li>3. Enter Till {tillNumber}.</li>
+            <li>4. Enter amount and PIN.</li>
+            <li>5. Confirm payment.</li>
+          </ol>
+          <p className="mt-2.5 text-center text-[10px] text-[#62738a]">
+            Dial *234# for charges
+          </p>
         </div>
       </article>
     </section>

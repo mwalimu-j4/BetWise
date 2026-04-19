@@ -496,16 +496,16 @@ export default function SportCategoriesManager() {
       </Card>
 
       {loading ? (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={`sport-category-skeleton-${index}`}
-              className="h-48 animate-pulse rounded-2xl border border-admin-border bg-admin-card"
+              className="h-36 animate-pulse rounded-xl border border-admin-border bg-admin-card"
             />
           ))}
         </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
           {categories.map((category) => {
             const expanded = expandedSportKey === category.sportKey;
             const syncing = syncingBySport[category.sportKey] ?? false;
@@ -518,8 +518,8 @@ export default function SportCategoriesManager() {
                   expanded && "border-admin-accent/45",
                 )}
               >
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
+                <CardContent className="space-y-2.5 p-3">
+                  <div className="flex items-start justify-between gap-2">
                     <label
                       className="inline-flex items-center gap-2 text-xs text-admin-text-muted"
                       onClick={(event) => event.stopPropagation()}
@@ -560,36 +560,38 @@ export default function SportCategoriesManager() {
                     onClick={() => void handleExpandSport(category.sportKey)}
                     className="w-full text-left"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="flex size-11 items-center justify-center rounded-2xl bg-admin-accent/15 text-sm font-bold text-admin-accent">
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex size-9 items-center justify-center rounded-xl bg-admin-accent/15 text-xs font-bold text-admin-accent">
                         {getSportMonogram(category.displayName)}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className="text-base font-semibold text-admin-text-primary">
+                            <p className="text-sm font-semibold leading-tight text-admin-text-primary sm:text-[15px]">
                               {category.displayName}
                             </p>
                             <p className="text-xs text-admin-text-muted">
                               {category.eventCount.toLocaleString()} events
                             </p>
                           </div>
-                          <StatusBadge
-                            status={category.isActive ? "active" : "suspended"}
-                          />
+                          <div className="scale-90 origin-top-right">
+                            <StatusBadge
+                              status={category.isActive ? "active" : "suspended"}
+                            />
+                          </div>
                         </div>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <Badge className="bg-admin-live/15 text-admin-live">
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <Badge className="px-2 py-0.5 text-[10px] bg-admin-live/15 text-admin-live">
                             {category.liveEventCount.toLocaleString()} LIVE
                           </Badge>
-                          <Badge className="bg-admin-blue/15 text-admin-blue">
+                          <Badge className="px-2 py-0.5 text-[10px] bg-admin-blue/15 text-admin-blue">
                             {category.upcomingEventCount.toLocaleString()} Upcoming
                           </Badge>
-                          <Badge className="bg-admin-accent/15 text-admin-accent">
+                          <Badge className="px-2 py-0.5 text-[10px] bg-admin-accent/15 text-admin-accent">
                             {category.configuredCount.toLocaleString()} Configured
                           </Badge>
                         </div>
-                        <div className="mt-3 flex items-center justify-between text-xs text-admin-text-muted">
+                        <div className="mt-2 flex items-center justify-between text-[11px] text-admin-text-muted">
                           <span>Synced: {formatSyncedAt(category.lastSyncedAt)}</span>
                           <ChevronDown
                             className={cn(

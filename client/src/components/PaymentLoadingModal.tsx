@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { LoaderCircle } from "lucide-react";
 
 interface PaymentLoadingModalProps {
@@ -13,28 +11,16 @@ export function PaymentLoadingModal({
   amount,
   message = "Processing your payment",
 }: PaymentLoadingModalProps) {
-  const [mounted, setMounted] = useState(false);
+  if (!isOpen) return null;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      {/* Backdrop - ensures nothing else is interactive */}
+      <div className="absolute inset-0 z-40" />
 
-  useEffect(() => {
-    if (isOpen) {
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
-  if (!isOpen || !mounted) return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-sm rounded-3xl bg-gradient-to-b from-[#1a2f3f] to-[#111d2e] border border-[#243a53] p-8 text-center shadow-2xl">
+      {/* Modal */}
+      <div className="relative z-50 w-full max-w-sm rounded-3xl bg-gradient-to-b from-[#1a2f3f] to-[#111d2e] border border-[#243a53] p-8 text-center shadow-2xl">
+        {/* Loading Animation */}
         <div className="flex justify-center mb-6">
           <div className="w-24 h-24 rounded-full flex items-center justify-center bg-gradient-to-br from-[#3b82f6]/20 to-[#7c3aed]/20">
             <LoaderCircle
@@ -45,17 +31,20 @@ export function PaymentLoadingModal({
           </div>
         </div>
 
+        {/* Message */}
         <h2 className="text-xl font-bold text-white mb-2">{message}</h2>
 
-        {amount ? (
+        {/* Amount Display */}
+        {amount && (
           <p className="text-sm text-[#8a9bb0] mb-4">
             Amount:{" "}
             <span className="text-[#f5c518] font-semibold">
               KES {amount.toLocaleString()}
             </span>
           </p>
-        ) : null}
+        )}
 
+        {/* Loading dots animation */}
         <div className="flex justify-center gap-2 mt-6">
           <div
             className="w-2 h-2 rounded-full bg-[#3b82f6] animate-bounce"
@@ -71,11 +60,11 @@ export function PaymentLoadingModal({
           />
         </div>
 
+        {/* Subtle helper text */}
         <p className="text-xs text-[#62738a] mt-6">
           Do not refresh or leave this page
         </p>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }
