@@ -219,7 +219,9 @@ export async function verifyPaystackTransaction(
         }
 
         const errorMessage = data.message || response.statusText;
-        throw new Error(`Paystack API error ${response.status}: ${errorMessage}`);
+        throw new Error(
+          `Paystack API error ${response.status}: ${errorMessage}`,
+        );
       }
 
       if (!data.status) {
@@ -249,7 +251,10 @@ export async function verifyPaystackTransaction(
       );
 
       // Retry on network errors or failed attempts that might recover
-      if (attempt < maxRetries && (isNetworkError || lastError.message.includes("not found"))) {
+      if (
+        attempt < maxRetries &&
+        (isNetworkError || lastError.message.includes("not found"))
+      ) {
         const delayMs = Math.min(500 * Math.pow(2, attempt), 3000);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         continue;
@@ -260,7 +265,9 @@ export async function verifyPaystackTransaction(
     }
   }
 
-  throw lastError || new Error("Paystack verification failed after max retries");
+  throw (
+    lastError || new Error("Paystack verification failed after max retries")
+  );
 }
 
 // ============================================================================
@@ -291,7 +298,10 @@ export function verifyPaystackWebhookSignature(
   const normalizedSignature = signature.trim().toLowerCase();
 
   // Ensure signature is valid hex before Buffer conversion/comparison.
-  if (!/^[a-f0-9]+$/.test(normalizedSignature) || normalizedSignature.length % 2 !== 0) {
+  if (
+    !/^[a-f0-9]+$/.test(normalizedSignature) ||
+    normalizedSignature.length % 2 !== 0
+  ) {
     return false;
   }
 

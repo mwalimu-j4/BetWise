@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { CheckCircle, AlertCircle, X } from "lucide-react";
+import { CheckCircle, AlertCircle, X, RotateCcw } from "lucide-react";
 
 interface PaymentFeedbackModalProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface PaymentFeedbackModalProps {
   message: string;
   reference?: string;
   onClose: () => void;
+  onRetry?: () => void;
 }
 
 export function PaymentFeedbackModal({
@@ -18,6 +19,7 @@ export function PaymentFeedbackModal({
   message,
   reference,
   onClose,
+  onRetry,
 }: PaymentFeedbackModalProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -86,12 +88,23 @@ export function PaymentFeedbackModal({
           </div>
         ) : null}
 
-        <button
-          onClick={onClose}
-          className={`w-full py-3 rounded-xl font-semibold text-white transition ${buttonBgColor}`}
-        >
-          Okay
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className={`flex-1 py-3 rounded-xl font-semibold text-white transition ${buttonBgColor}`}
+          >
+            {isSuccess ? "Done" : "Close"}
+          </button>
+          {!isSuccess && onRetry && (
+            <button
+              onClick={onRetry}
+              className="flex-1 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] hover:from-[#6d28d9] hover:to-[#2563eb] transition flex items-center justify-center gap-2"
+            >
+              <RotateCcw size={16} />
+              Retry Payment
+            </button>
+          )}
+        </div>
       </div>
     </div>,
     document.body,

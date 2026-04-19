@@ -84,7 +84,9 @@ paystackRouter.post("/webhook", (req, res) => {
 
     const rawBody = req.rawBody;
     if (!rawBody) {
-      console.error("Paystack webhook: missing raw body for signature verification");
+      console.error(
+        "Paystack webhook: missing raw body for signature verification",
+      );
       res.status(400).json({ error: "Missing raw body" });
       return;
     }

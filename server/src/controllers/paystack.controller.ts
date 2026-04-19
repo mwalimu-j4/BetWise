@@ -90,20 +90,175 @@ async function finalizePaystackDeposit(
   }
 
   if (transaction.status === "FAILED" || transaction.status === "REVERSED") {
-    logPaystackContext("finalize:already-terminal", {
+    // Allow retry for failed payments - re-verify with Paystack
+    // This handles cases where payment failed due to transient errors
+    logPaystackContext("finalize:retrying-failed-payment", {
       reference,
       transactionId: transaction.id,
       status: transaction.status,
+      message: "Attempting to re-verify failed payment with Paystack",
     });
 
-    return {
-      status: "failed",
-      message: "Payment is already finalized as failed",
-      reference,
-      transactionId: transaction.id,
-      amount: transaction.amount,
-      processedAt: transaction.processedAt,
-    };
+    try {
+      // Attempt to verify with Paystack again
+      const retryVerificationResult =
+        await verifyPaystackTransaction(reference);
+
+      if (retryVerificationResult.data.status === "success") {
+        // Payment actually succeeded on Paystack! Update our record
+        logPaystackContext("finalize:retry-succeeded", {
+          reference,
+          transactionId: transaction.id,
+          message: "Payment verified successful on Paystack after retry",
+        });
+
+        // Continue with normal success flow by falling through
+        // Set verificationResult for the rest of the function
+        const verificationResult = retryVerificationResult;
+
+        const paidAmountInKes = convertFromSmallestUnit(
+          verificationResult.data.amount,
+        );
+        const amountTolerance = transaction.amount * 0.01;
+
+        if (Math.abs(paidAmountInKes - transaction.amount) > amountTolerance) {
+          logPaystackContext("finalize:amount-mismatch-on-retry", {
+            reference,
+            transactionId: transaction.id,
+            expected: transaction.amount,
+            paidAmountInKes,
+            tolerance: amountTolerance,
+          });
+
+          const processedAt = new Date();
+          await prisma.walletTransaction.update({
+            where: { id: transaction.id },
+            data: {
+              status: "FAILED",
+              processedAt,
+              providerCallback: {
+                provider: "paystack",
+                verifiedAt: processedAt.toISOString(),
+                failureReason: "Amount mismatch",
+                paystackReference: verificationResult.data.reference,
+                verificationData: toSafeJson(verificationResult.data),
+              },
+            },
+          });
+
+          return {
+            status: "failed",
+            message: "Payment amount mismatch",
+            reference,
+            transactionId: transaction.id,
+            amount: transaction.amount,
+            processedAt,
+          };
+        }
+
+        // Update transaction to completed
+        const processedAt = new Date();
+        const wallet = transaction.wallet!;
+        const updatedWallet = await prisma.wallet.update({
+          where: { id: wallet.id },
+          data: { balance: { increment: transaction.amount } },
+        });
+
+        await prisma.walletTransaction.update({
+          where: { id: transaction.id },
+          data: {
+            status: "COMPLETED",
+            processedAt,
+            providerCallback: {
+              provider: "paystack",
+              verifiedAt: processedAt.toISOString(),
+              paystackReference: verificationResult.data.reference,
+              verificationData: toSafeJson(verificationResult.data),
+            },
+          },
+        });
+
+        emitWalletUpdate(transaction.userId, {
+          transactionId: transaction.id,
+          status: "COMPLETED",
+          message: "Deposit successful (recovered from previous failure)",
+          balance: updatedWallet.balance,
+          amount: transaction.amount,
+        });
+
+        await createDepositNotifications({
+          userId: transaction.userId,
+          transactionId: transaction.id,
+          amount: transaction.amount,
+          balance: updatedWallet.balance,
+          paystackReference: verificationResult.data.reference,
+          status: "COMPLETED",
+        });
+
+        return {
+          status: "success",
+          message: "Payment verified successfully (retry succeeded)",
+          reference,
+          transactionId: transaction.id,
+          amount: transaction.amount,
+          processedAt,
+        };
+      } else {
+        // Paystack confirms it's still failed
+        logPaystackContext("finalize:retry-still-failed", {
+          reference,
+          transactionId: transaction.id,
+          paystackStatus: retryVerificationResult.data.status,
+          message: "Payment confirmed as failed on Paystack",
+        });
+
+        return {
+          status: "failed",
+          message: "Payment is confirmed as failed. Please try a new payment.",
+          reference,
+          transactionId: transaction.id,
+          amount: transaction.amount,
+          processedAt: transaction.processedAt,
+        };
+      }
+    } catch (error) {
+      // If verification fails with network error, return pending to allow more retries
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown verification error";
+      const isNetworkError =
+        errorMessage.includes("timeout") ||
+        errorMessage.includes("ECONNREFUSED") ||
+        errorMessage.includes("ENOTFOUND") ||
+        errorMessage.includes("ETIMEDOUT") ||
+        errorMessage.includes("end of file");
+
+      logPaystackContext("finalize:retry-verification-error", {
+        reference,
+        transactionId: transaction.id,
+        error: errorMessage,
+        isNetworkError,
+      });
+
+      if (isNetworkError) {
+        return {
+          status: "pending",
+          message: "Re-verification in progress. Please try again in a moment.",
+          reference,
+          transactionId: transaction.id,
+          amount: transaction.amount,
+        };
+      }
+
+      // For non-network errors, return failed
+      return {
+        status: "failed",
+        message: `Payment failed: ${errorMessage}`,
+        reference,
+        transactionId: transaction.id,
+        amount: transaction.amount,
+        processedAt: transaction.processedAt,
+      };
+    }
   }
 
   if (!transaction.wallet || !transaction.user) {

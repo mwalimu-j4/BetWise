@@ -33,28 +33,35 @@ export default function PaystackDepositPage() {
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
   const [showPaymentResult, setShowPaymentResult] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const verificationQuery = usePaystackVerification(verificationReference);
+  const [shouldVerify, setShouldVerify] = useState(false);
+  const verificationQuery = usePaystackVerification(
+    shouldVerify ? verificationReference : null,
+  );
 
   const amountValue = useMemo(() => Number(amount) || 0, [amount]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const routeReference = params.get("reference");
-    const storedReference = localStorage.getItem(pendingStorageKey);
-    const activeReference = routeReference ?? storedReference;
 
+    // Only use stored reference if we're coming back from Paystack redirect (URL has reference param)
     if (routeReference) {
       localStorage.setItem(pendingStorageKey, routeReference);
       window.history.replaceState({}, document.title, window.location.pathname);
+      setVerificationReference(routeReference);
+      setPaymentReference(routeReference);
+      setShouldVerify(true);
+      setIsProcessing(true);
+    } else {
+      // On fresh page load without URL reference, clear any stale stored reference
+      localStorage.removeItem(pendingStorageKey);
+      setVerificationReference(null);
+      setPaymentReference(null);
+      setShouldVerify(false);
+      setIsProcessing(false);
+      setPaymentStatus(null);
+      setShowPaymentResult(false);
     }
-
-    if (!activeReference) {
-      return;
-    }
-
-    setVerificationReference(activeReference);
-    setPaymentReference(activeReference);
-    setIsProcessing(true);
   }, []);
 
   useEffect(() => {
@@ -192,6 +199,15 @@ export default function PaystackDepositPage() {
           setShowPaymentResult(false);
           setPaymentReference(null);
           setPaymentStatus(null);
+        }}
+        onRetry={() => {
+          // Retry by re-verifying with the same reference
+          if (paymentReference) {
+            setShowPaymentResult(false);
+            setPaymentStatus(null);
+            setVerificationReference(paymentReference);
+            setIsProcessing(true);
+          }
         }}
       />
 
