@@ -227,10 +227,13 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
           placedAt: true,
           isPromoted: true,
           cancelledAt: true,
+          selectionsSnapshot: true,
           event: {
             select: {
               commenceTime: true,
               status: true,
+              homeTeam: true,
+              awayTeam: true,
             },
           },
         },
@@ -252,6 +255,8 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
                 select: {
                   startTime: true,
                   status: true,
+                  teamHome: true,
+                  teamAway: true,
                 },
               },
             },
@@ -300,6 +305,9 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
 
         const cancellableUntil = getCancellableUntil(bet.placedAt);
 
+        const isMultiple = Array.isArray(bet.selectionsSnapshot) && bet.selectionsSnapshot.length > 1;
+        const matchName = isMultiple ? "Multiple Events" : `${bet.event.homeTeam} vs ${bet.event.awayTeam}`;
+
         return {
           id: bet.id,
           bet_code: bet.betCode,
@@ -307,7 +315,8 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
           amount: bet.stake,
           possible_payout: computedPayout,
           total_odds: bet.displayOdds,
-          selections_count: 1,
+          selections_count: Array.isArray(bet.selectionsSnapshot) ? Math.max(1, bet.selectionsSnapshot.length) : 1,
+          match_name: matchName,
           placed_at: bet.placedAt.toISOString(),
           cancellable_until: cancellableUntil.toISOString(),
           is_cancellable: isCancellable({
@@ -339,6 +348,7 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
         possible_payout: bet.potentialWin,
         total_odds: bet.odds,
         selections_count: 1,
+        match_name: `${bet.event.teamHome} vs ${bet.event.teamAway}`,
         placed_at: bet.placedAt.toISOString(),
         cancellable_until: cancellableUntil.toISOString(),
         is_cancellable: isCancellable({
@@ -359,10 +369,18 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
       };
     });
 
-    const allItems = [...normalItems, ...customItems].sort(
-      (a, b) =>
-        new Date(b.placed_at).getTime() - new Date(a.placed_at).getTime()
-    );
+    const allItems = [...normalItems, ...customItems].sort((a, b) => {
+      // Priority 1: Live and Open
+      if (a.is_live && !b.is_live) return -1;
+      if (!a.is_live && b.is_live) return 1;
+
+      // Priority 2: Open vs others
+      if (a.status === "open" && b.status !== "open") return -1;
+      if (a.status !== "open" && b.status === "open") return 1;
+
+      // Default: placed desc
+      return new Date(b.placed_at).getTime() - new Date(a.placed_at).getTime();
+    });
 
     const paginatedItems = allItems.slice(
       (page - 1) * pageSize,
@@ -460,11 +478,11 @@ myBetsRouter.get(
         });
       }
 
-      if (!bet && !customBet) {
+      const activeBet = bet || customBet;
+
+      if (!activeBet) {
         return res.status(404).json({ message: "Bet not found." });
       }
-
-      const activeBet = bet || customBet;
 
       if (activeBet.userId !== userId) {
         return res.status(403).json({ message: "Forbidden" });
@@ -561,17 +579,17 @@ myBetsRouter.get(
           odds:
             typeof typedSelection.odds === "number"
               ? typedSelection.odds
-              : bet.displayOdds,
+              : bet!.displayOdds,
           ft_result:
-            bet.event.homeScore !== null && bet.event.awayScore !== null
-              ? `${bet.event.homeScore}:${bet.event.awayScore}`
+            bet!.event.homeScore !== null && bet!.event.awayScore !== null
+              ? `${bet!.event.homeScore}:${bet!.event.awayScore}`
               : null,
-          status: mapSelectionStatus(bet.status, bet.event.status),
+          status: mapSelectionStatus(bet!.status, bet!.event.status),
           live_score:
-            bet.event.status === "LIVE" &&
-            bet.event.homeScore !== null &&
-            bet.event.awayScore !== null
-              ? `${bet.event.homeScore}:${bet.event.awayScore}`
+            bet!.event.status === "LIVE" &&
+            bet!.event.homeScore !== null &&
+            bet!.event.awayScore !== null
+              ? `${bet!.event.homeScore}:${bet!.event.awayScore}`
               : null,
         };
       });
@@ -585,19 +603,19 @@ myBetsRouter.get(
       const tied = selections.length - won - lost;
 
       return res.status(200).json({
-        id: bet.id,
-        bet_code: bet.betCode,
+        id: bet!.id,
+        bet_code: bet!.betCode,
         status: toClientStatus({
-          status: bet.status,
-          isPromoted: bet.isPromoted,
-          cancelledAt: bet.cancelledAt,
+          status: bet!.status,
+          isPromoted: bet!.isPromoted,
+          cancelledAt: bet!.cancelledAt,
         }),
-        amount: bet.stake,
+        amount: bet!.stake,
         possible_payout: computedPayout,
-        total_odds: bet.displayOdds,
-        placed_at: bet.placedAt.toISOString(),
-        promoted_text: bet.isPromoted
-          ? `Promoted Bet placed at ${bet.placedAt.toLocaleTimeString()}`
+        total_odds: bet!.displayOdds,
+        placed_at: bet!.placedAt.toISOString(),
+        promoted_text: bet!.isPromoted
+          ? `Promoted Bet placed at ${bet!.placedAt.toLocaleTimeString()}`
           : null,
         wlt: {
           won,

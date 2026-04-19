@@ -101,11 +101,17 @@ export function BetCard({ bet, onClick }: BetCardProps) {
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#8ea0b6]">
-        <span className="inline-flex items-center gap-1">
-          <CalendarClock size={14} />
-          {bet.selections_count} selection{bet.selections_count > 1 ? "s" : ""}
-        </span>
+          {bet.match_name && (
+            <p className="mt-1 text-xs font-semibold text-[#c6d6ea] truncate max-w-[200px] sm:max-w-[280px]">
+              {bet.match_name}
+            </p>
+          )}
+
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#8ea0b6]">
+            <span className="inline-flex items-center gap-1 font-medium bg-[#1e3350]/30 px-2 py-1 rounded-md">
+              <CalendarClock size={12} className="text-[#6b86a8]" />
+              {bet.selections_count} selection{bet.selections_count > 1 ? "s" : ""}
+            </span>
         {bet.is_live ? (
           <span className="inline-flex items-center gap-1 text-[#22c55e]">
             <span className="h-2 w-2 animate-pulse rounded-full bg-[#22c55e]" />
