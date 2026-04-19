@@ -11,7 +11,8 @@ export type MyBetTab =
   | "jackpot"
   | "virtual"
   | "sababisha"
-  | "custom";
+  | "custom"
+  | "all";
 export type MyBetFilter = "open" | "all" | "today" | "week" | "month";
 
 export type MyBetListItem = {
@@ -221,7 +222,7 @@ export function useMyBetsCount() {
     queryFn: async () => {
       const { data } = await api.get<MyBetsResponse>("/my-bets", {
         params: {
-          tab: "normal",
+          tab: "all",
           filter: "all",
           page: 1,
           hideLost: false,

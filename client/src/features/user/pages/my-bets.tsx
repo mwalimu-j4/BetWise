@@ -4,7 +4,6 @@ import { ArrowLeft } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { BetsFilterBar } from "@/components/my-bets/BetsFilterBar";
 import { BetsList } from "@/components/my-bets/BetsList";
-import { BetsTabs } from "@/components/my-bets/BetsTabs";
 import {
   type MyBetFilter,
   type MyBetTab,
@@ -13,19 +12,8 @@ import {
 
 const hideLostStorageKey = "my-bets-hide-lost";
 
-function normalizeTab(value: unknown): MyBetTab {
-  if (
-    value === "normal" ||
-    value === "shilisha" ||
-    value === "jackpot" ||
-    value === "virtual" ||
-    value === "sababisha" ||
-    value === "custom"
-  ) {
-    return value;
-  }
-
-  return "normal";
+function normalizeTab(_value: unknown): MyBetTab {
+  return "all";
 }
 
 function normalizeFilter(value: unknown): MyBetFilter {
@@ -136,12 +124,6 @@ function MyBetsPageContent() {
         </div>
 
         <section className="mx-auto w-full overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#111827] to-[#0f172a] shadow-xl">
-          <BetsTabs
-            activeTab={tab}
-            onTabChange={(nextTab) => {
-              updateSearch({ tab: nextTab, page: 1 });
-            }}
-          />
 
           <BetsFilterBar
             filter={filter}
