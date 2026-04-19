@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import type { Express } from "express";
 import { Server } from "socket.io";
 import { verifyAccessToken } from "../utils/tokenUtils";
+import { isAllowedOrigin, resolveAllowedOriginsFromEnv } from "../config/cors";
 
 type WalletEventStatus =
   | "PENDING"
@@ -54,23 +55,12 @@ const LIVE_NAMESPACE = "/ws/live";
 let ioInstance: Server | null = null;
 let liveNamespaceInstance: ReturnType<Server["of"]> | null = null;
 
-function getFrontendOrigin() {
-  return process.env.FRONTEND_URL ?? "http://localhost:5173";
-}
-
-function getAllowedOrigins() {
-  return getFrontendOrigin()
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-}
-
 function isOriginAllowed(originHeader: unknown) {
   if (typeof originHeader !== "string" || !originHeader.trim()) {
     return false;
   }
 
-  return getAllowedOrigins().some((origin) => origin === originHeader);
+  return isAllowedOrigin(originHeader);
 }
 
 function isSocketCorsOriginAllowed(origin: string | undefined) {
@@ -92,6 +82,10 @@ export function createHttpServerWithSockets(app: Express) {
           return;
         }
 
+        console.warn("[Socket.IO] Rejected CORS origin", {
+          origin,
+          allowedOrigins: resolveAllowedOriginsFromEnv(),
+        });
         callback(new Error("Not allowed by Socket.IO CORS"));
       },
       credentials: true,
@@ -135,7 +129,11 @@ export function createHttpServerWithSockets(app: Express) {
   const liveNamespace = io.of(LIVE_NAMESPACE);
   liveNamespace.use((socket, next) => {
     const origin = socket.handshake.headers.origin;
-    if (!isOriginAllowed(origin)) {
+    if (origin && !isOriginAllowed(origin)) {
+      console.warn("[Socket.IO] Live namespace forbidden origin", {
+        origin,
+        namespace: LIVE_NAMESPACE,
+      });
       next(new Error("Forbidden origin"));
       return;
     }
@@ -315,4 +313,3 @@ export function emitCustomEventOddsUpdated(payload: unknown) {
 
   liveNamespaceInstance.emit("custom_event:odds_updated", payload);
 }
-

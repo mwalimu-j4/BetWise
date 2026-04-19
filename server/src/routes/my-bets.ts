@@ -10,6 +10,7 @@ import {
   myBetDetailRateLimiter,
   myBetsListRateLimiter,
 } from "../middleware/rateLimiter";
+import { isRequestOriginAllowed } from "../config/cors";
 import { computePossiblePayout, getClientIp } from "../utils/betUtils";
 
 const myBetsRouter = Router();
@@ -139,20 +140,7 @@ function hasCsrfProtection(
   reqOrigin: string | undefined,
   reqReferer: string | undefined,
 ) {
-  const frontendUrl = process.env.FRONTEND_URL;
-  if (!frontendUrl) {
-    return true;
-  }
-
-  try {
-    const frontendOrigin = new URL(frontendUrl).origin;
-    const origin = reqOrigin ? new URL(reqOrigin).origin : null;
-    const refererOrigin = reqReferer ? new URL(reqReferer).origin : null;
-
-    return origin === frontendOrigin || refererOrigin === frontendOrigin;
-  } catch {
-    return false;
-  }
+  return isRequestOriginAllowed(reqOrigin, reqReferer);
 }
 
 function mapSelectionStatus(status: BetStatus, eventStatus: string) {

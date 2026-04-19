@@ -87,7 +87,7 @@ function OddsPreviewButton({
           commenceTime: event.commenceTime,
         });
       }}
-      className={`odds-btn mobile-event-odds group/odds relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-xl border px-1 py-1.5 text-center transition-all duration-200 sm:px-2 sm:py-2.5 ${
+      className={`odds-btn mobile-event-odds ${isSelected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""} group/odds relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-xl border px-1 py-1.5 text-center transition-all duration-200 sm:px-2 sm:py-2.5 ${
         disabled
           ? "cursor-not-allowed border-[#1a2a40]/50 bg-[#0d1829] text-[#3d5478]"
           : isSelected
@@ -190,14 +190,14 @@ export default function EventCard({
 
       <div className="relative flex h-full flex-col justify-between gap-0 p-0">
         {/* Top section: League + time + markets badge */}
-        <div className="flex items-center justify-between gap-1.5 px-2 pt-2 sm:px-3.5 sm:pt-3">
-          <p className="min-w-0 truncate text-[7px] font-semibold uppercase tracking-[0.18em] text-[#6c86a8] sm:text-[10px]">
+        <div className="event-card-header flex items-center justify-between gap-1.5 px-2 pt-2 sm:px-3.5 sm:pt-3">
+          <p className="event-card-league min-w-0 truncate text-[7px] font-semibold uppercase tracking-[0.18em] text-[#6c86a8] sm:text-[10px]">
             {event.leagueName ?? "Featured Match"}
           </p>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="event-card-meta flex shrink-0 items-center gap-1">
             {/* Countdown chip */}
-            <span className="inline-flex items-center gap-0.5 rounded-full border border-[#223752]/70 bg-[#0b1525]/88 px-1.5 py-[2px] text-[7px] font-bold tabular-nums text-[#89a3c7] sm:text-[9px]">
+            <span className="event-card-countdown inline-flex items-center gap-0.5 rounded-full border border-[#223752]/70 bg-[#0b1525]/88 px-1.5 py-[2px] text-[7px] font-bold tabular-nums text-[#89a3c7] sm:text-[9px]">
               <Clock size={8} className="text-[#546e8f]" />
               {getRelativeTime(event.commenceTime)}
             </span>
@@ -206,7 +206,7 @@ export default function EventCard({
             <button
               type="button"
               onClick={() => setShowMarkets(true)}
-              className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1.5 py-[2px] text-[7px] font-bold uppercase tracking-[0.18em] text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[8px]"
+              className="event-card-markets inline-flex shrink-0 items-center gap-0.5 rounded-full border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1.5 py-[2px] text-[7px] font-bold uppercase tracking-[0.18em] text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[8px]"
             >
               <TrendingUp size={8} className="sm:h-[9px] sm:w-[9px]" />+
               {marketCount}
@@ -218,24 +218,24 @@ export default function EventCard({
         <button
           type="button"
           onClick={() => setShowMarkets(true)}
-          className="w-full px-2 py-1.5 text-left sm:px-3.5 sm:py-2.5"
+          className="event-card-matchup w-full px-2 py-1.5 text-left sm:px-3.5 sm:py-2.5"
         >
           <div className="flex items-center gap-2">
             <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="truncate text-[11px] font-extrabold leading-[1.1] text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
+              <span className="event-card-team truncate text-[11px] font-extrabold leading-[1.1] text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
                 {event.homeTeam}
               </span>
-              <span className="truncate text-[11px] font-extrabold leading-[1.1] text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
+              <span className="event-card-team truncate text-[11px] font-extrabold leading-[1.1] text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
                 {event.awayTeam}
               </span>
             </div>
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#223752]/80 bg-[#122133] text-[7px] font-black tracking-[0.18em] text-[#5f789b] sm:h-7 sm:w-7 sm:text-[9px]">
+            <span className="event-card-vs flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#223752]/80 bg-[#122133] text-[7px] font-black tracking-[0.18em] text-[#5f789b] sm:h-7 sm:w-7 sm:text-[9px]">
               VS
             </span>
           </div>
 
           {/* Date row */}
-          <div className="mt-1 flex items-center gap-1 text-[#6b86a8]">
+          <div className="event-card-date mt-1 flex items-center gap-1 text-[#6b86a8]">
             <Calendar size={8} className="shrink-0" />
             <span className="truncate text-[7px] font-medium sm:text-[9px]">
               {formatCardDateTime(event.commenceTime)}
@@ -244,7 +244,7 @@ export default function EventCard({
         </button>
 
         {/* Odds row — 3 columns */}
-        <div className="border-t border-[#1e3350]/30 px-1.5 pb-1.5 pt-1.5 sm:px-3 sm:pb-3 sm:pt-2.5">
+        <div className="event-card-odds-wrap border-t border-[#1e3350]/30 px-1.5 pb-1.5 pt-1.5 sm:px-3 sm:pb-3 sm:pt-2.5">
           <div className="flex gap-1.5 sm:gap-2">
             {oddsPreview.map((entry) => (
               <OddsPreviewButton

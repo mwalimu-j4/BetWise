@@ -188,6 +188,15 @@ export function useBetSlip() {
     setNewBalance(null);
   }, []);
 
+  const removeExpiredSelections = useCallback(() => {
+    setSelections((current) =>
+      current.filter((selection) => !isSelectionExpired(selection)),
+    );
+    setSuccess(false);
+    setError(null);
+    setNewBalance(null);
+  }, []);
+
   const clearSlip = useCallback(() => {
     setSelections([]);
     setStakeState(50);
@@ -486,6 +495,7 @@ export function useBetSlip() {
     selections,
     addSelection,
     removeSelection,
+    removeExpiredSelections,
     clearSlip,
     stake,
     setStake,
