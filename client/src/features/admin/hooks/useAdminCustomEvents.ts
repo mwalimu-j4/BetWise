@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import axios from "axios";
 import { api } from "@/api/axiosConfig";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -151,7 +152,7 @@ export function useAdminCustomEvents() {
     } finally {
       setStatsLoading(false);
     }
-  }, []);
+  }, [ensureAdminSession, getAuthConfig]);
 
   const loadEvents = useCallback(
     async (params?: {
@@ -176,9 +177,13 @@ export function useAdminCustomEvents() {
         setTotal(res.data.total);
         setPage(res.data.page);
         setTotalPages(res.data.totalPages);
-      } catch (err: any) {
-        const msg =
-          err?.response?.data?.error || "Failed to load custom events";
+      } catch (err) {
+        let msg = "Failed to load custom events";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
       } finally {
         setLoading(false);
@@ -199,8 +204,13 @@ export function useAdminCustomEvents() {
           getAuthConfig(),
         );
         return res.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to load event";
+      } catch (err) {
+        let msg = "Failed to load event";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         return null;
       }
@@ -223,9 +233,13 @@ export function useAdminCustomEvents() {
         toast.success("Custom event created!");
         await loadStats();
         return res.data;
-      } catch (err: any) {
-        const msg =
-          err?.response?.data?.error || "Failed to create custom event";
+      } catch (err) {
+        let msg = "Failed to create custom event";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         throw err;
       }
@@ -234,7 +248,7 @@ export function useAdminCustomEvents() {
   );
 
   const updateEvent = useCallback(
-    async (id: string, data: Record<string, any>) => {
+    async (id: string, data: Record<string, unknown>) => {
       if (!ensureAdminSession()) {
         throw new Error("Unauthorized");
       }
@@ -248,8 +262,13 @@ export function useAdminCustomEvents() {
         setEvents((prev) => prev.map((e) => (e.id === id ? res.data : e)));
         toast.success("Event updated!");
         return res.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to update event";
+      } catch (err) {
+        let msg = "Failed to update event";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         throw err;
       }
@@ -273,8 +292,13 @@ export function useAdminCustomEvents() {
           getAuthConfig(),
         );
         toast.success("Odds updated!");
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to update odds";
+      } catch (err) {
+        let msg = "Failed to update odds";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         throw err;
       }
@@ -293,8 +317,13 @@ export function useAdminCustomEvents() {
         setEvents((prev) => prev.filter((e) => e.id !== id));
         toast.success("Event deleted!");
         await loadStats();
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to delete event";
+      } catch (err) {
+        let msg = "Failed to delete event";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         throw err;
       }
@@ -318,8 +347,13 @@ export function useAdminCustomEvents() {
         toast.success("Event published! It is now visible to users.");
         await loadStats();
         return res.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to publish event";
+      } catch (err) {
+        let msg = "Failed to publish event";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         throw err;
       }
@@ -343,8 +377,13 @@ export function useAdminCustomEvents() {
         toast.success("Event unpublished");
         await loadStats();
         return res.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to unpublish event";
+      } catch (err) {
+        let msg = "Failed to unpublish event";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         throw err;
       }
@@ -370,8 +409,13 @@ export function useAdminCustomEvents() {
         );
         await loadStats();
         return res.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to suspend event";
+      } catch (err) {
+        let msg = "Failed to suspend event";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         throw err;
       }
@@ -394,11 +438,16 @@ export function useAdminCustomEvents() {
           },
           getAuthConfig(),
         );
-        toast.success("Market settled successfully!");
+        toast.success("Results confirmed! Payouts are being processed.");
         await loadStats();
         return res.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to settle market";
+      } catch (err) {
+        let msg = "Failed to settle market";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         throw err;
       }
@@ -426,8 +475,13 @@ export function useAdminCustomEvents() {
         );
         toast.success("Market added!");
         return res.data;
-      } catch (err: any) {
-        const msg = err?.response?.data?.error || "Failed to add market";
+      } catch (err) {
+        let msg = "Failed to add market";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
         toast.error(msg);
         throw err;
       }

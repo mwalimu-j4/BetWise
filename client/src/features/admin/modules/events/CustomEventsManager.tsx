@@ -16,6 +16,7 @@ import {
   Zap,
   Check,
   X,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1348,21 +1349,28 @@ export default function CustomEventsManager() {
 
                       {/* Status */}
                       <td className="px-3 py-2.5 text-center">
-                        <StatusBadge status={toBadgeStatus(event.status)} />
+                        <div className="flex flex-col items-center gap-1">
+                          <StatusBadge status={toBadgeStatus(event.status)} />
+                          {event.status === "FINISHED" && (
+                            <span
+                              className={cn(
+                                "text-[9px] font-bold uppercase tracking-wider",
+                                event.markets && event.markets.length > 0 && event.markets.every((m) => m.status === "SETTLED")
+                                  ? "text-emerald-400"
+                                  : "text-amber-400"
+                              )}
+                            >
+                              {event.markets && event.markets.length > 0 && event.markets.every((m) => m.status === "SETTLED")
+                                ? "Settled"
+                                : "Unsettled"}
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Actions */}
                       <td className="px-3 py-2.5 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <button
-                            type="button"
-                            onClick={() => void handleViewDetail(event)}
-                            className="rounded-lg p-1.5 text-admin-text-muted transition hover:bg-admin-surface hover:text-admin-text-primary"
-                            title="View details"
-                          >
-                            <Eye size={14} />
-                          </button>
-
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <button
@@ -1376,6 +1384,24 @@ export default function CustomEventsManager() {
                               align="end"
                               className="min-w-[160px] border-admin-border bg-admin-card text-admin-text-primary"
                             >
+                              <DropdownMenuItem
+                                onClick={() => void handleViewDetail(event)}
+                                className="gap-2 text-sm"
+                              >
+                                <Eye size={14} />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  void navigator.clipboard.writeText(event.id);
+                                  toast.success("Event ID copied!");
+                                }}
+                                className="gap-2 text-sm"
+                              >
+                                <Copy size={14} />
+                                Copy Event ID
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-admin-border/50" />
                               {event.status === "DRAFT" && (
                                 <DropdownMenuItem
                                   onClick={() =>
