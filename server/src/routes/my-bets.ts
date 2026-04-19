@@ -71,27 +71,7 @@ function toClientStatus(args: {
   return "open" as const;
 }
 
-function getDateFilterWindow(filter: z.infer<typeof filterSchema>) {
-  const now = new Date();
-  const start = new Date(now);
 
-  if (filter === "today") {
-    start.setHours(0, 0, 0, 0);
-    return start;
-  }
-
-  if (filter === "week") {
-    start.setDate(start.getDate() - 7);
-    return start;
-  }
-
-  if (filter === "month") {
-    start.setDate(start.getDate() - 30);
-    return start;
-  }
-
-  return null;
-}
 
 function getCancellableUntil(placedAt: Date) {
   const cancellableUntil = new Date(placedAt);
