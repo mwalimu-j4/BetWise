@@ -1,8 +1,8 @@
-import { useMemo, useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { CircleAlert, Info, X } from "lucide-react";
-import { MatchSelectionCard } from "./MatchSelectionCard";
 import type { BetDetail } from "@/features/user/components/hooks/useBetDetail";
+import { CircleAlert, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { MatchSelectionCard } from "./MatchSelectionCard";
 
 function formatMoney(value: number) {
   return `KES ${value.toLocaleString(undefined, {
@@ -113,7 +113,6 @@ export function BetDetailModal({
                     : bet.status === "lost"
                       ? "Lost"
                       : "Possible Payout"}{" "}
-                  <Info size={12} className="text-[#4a6382]" />
                 </p>
                 <p className="mt-1 text-sm sm:text-base font-extrabold text-[#f8fafc]">
                   {formatMoney(bet.possible_payout)}
