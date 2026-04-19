@@ -1,18 +1,11 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate";
 import { requireAdmin } from "../middleware/requireAdmin";
-import {
-  depositRateLimiter,
-  withdrawalRateLimiter,
-} from "../middleware/rateLimiter";
-import { verifyMpesaCallback } from "../middleware/verifyMpesaCallback";
+import { withdrawalRateLimiter } from "../middleware/rateLimiter";
 import {
   approveWithdrawal,
-  checkDepositStatus,
   createWithdrawalRequest,
   getWalletSummary,
-  handleMpesaCallback,
-  initiateStk,
   listAdminWithdrawals,
   listWithdrawals,
   rejectWithdrawal,
@@ -20,29 +13,8 @@ import {
 
 const paymentRouter = Router();
 
-// M-Pesa callback endpoints
-paymentRouter.post("/mpesa/callback", verifyMpesaCallback, handleMpesaCallback);
-paymentRouter.post(
-  "/payments/mpesa/callback",
-  verifyMpesaCallback,
-  handleMpesaCallback,
-);
-
 // Wallet endpoints
 paymentRouter.get("/payments/wallet/summary", authenticate, getWalletSummary);
-
-// Deposit endpoints
-paymentRouter.post(
-  "/payments/mpesa/stk-push",
-  authenticate,
-  depositRateLimiter,
-  initiateStk,
-);
-paymentRouter.get(
-  "/payments/mpesa/status/:transactionId",
-  authenticate,
-  checkDepositStatus,
-);
 
 // Withdrawal endpoints
 paymentRouter.post(

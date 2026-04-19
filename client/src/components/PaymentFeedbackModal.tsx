@@ -1,12 +1,14 @@
-import { CheckCircle, AlertCircle, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { CheckCircle, AlertCircle, X, RotateCcw } from "lucide-react";
 
 interface PaymentFeedbackModalProps {
   isOpen: boolean;
   status: "success" | "failed";
   title: string;
   message: string;
-  reference?: string;
   onClose: () => void;
+  onRetry?: () => void;
 }
 
 export function PaymentFeedbackModal({
@@ -14,10 +16,28 @@ export function PaymentFeedbackModal({
   status,
   title,
   message,
-  reference,
   onClose,
+  onRetry,
 }: PaymentFeedbackModalProps) {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !mounted) return null;
 
   const isSuccess = status === "success";
   const bgGradient = isSuccess
@@ -28,20 +48,19 @@ export function PaymentFeedbackModal({
     ? "bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] hover:from-[#6d28d9] hover:to-[#2563eb]"
     : "bg-red-600 hover:bg-red-700";
 
-  return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div
-        className={`relative w-full max-w-sm rounded-3xl bg-gradient-to-b ${bgGradient} border border-[#243a53] p-8 text-center shadow-2xl`}
+        className={`relative w-full max-w-sm max-h-[90vh] overflow-y-auto rounded-3xl bg-gradient-to-b ${bgGradient} border border-[#243a53] p-8 text-center shadow-2xl`}
       >
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-[#243a53] rounded-lg transition"
+          aria-label="Close modal"
         >
           <X size={20} className="text-[#8a9bb0]" />
         </button>
 
-        {/* Icon */}
         <div className="flex justify-center mb-6">
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center"
@@ -55,28 +74,28 @@ export function PaymentFeedbackModal({
           </div>
         </div>
 
-        {/* Title */}
         <h2 className="text-2xl font-bold text-white mb-3">{title}</h2>
-
-        {/* Message */}
         <p className="text-[#8a9bb0] text-sm leading-relaxed mb-6">{message}</p>
 
-        {/* Reference */}
-        {reference && (
-          <div className="mb-6 p-3 rounded-lg bg-[#0f1a2a] border border-[#243a53]">
-            <p className="text-xs text-[#62738a] mb-1">Reference</p>
-            <p className="text-sm font-mono text-[#f5c518]">{reference}</p>
-          </div>
-        )}
-
-        {/* Ok button */}
-        <button
-          onClick={onClose}
-          className={`w-full py-3 rounded-xl font-semibold text-white transition ${buttonBgColor}`}
-        >
-          Okay
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className={`flex-1 py-3 rounded-xl font-semibold text-white transition ${buttonBgColor}`}
+          >
+            {isSuccess ? "Done" : "Close"}
+          </button>
+          {!isSuccess && onRetry && (
+            <button
+              onClick={onRetry}
+              className="flex-1 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] hover:from-[#6d28d9] hover:to-[#2563eb] transition flex items-center justify-center gap-2"
+            >
+              <RotateCcw size={16} />
+              Retry Payment
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
