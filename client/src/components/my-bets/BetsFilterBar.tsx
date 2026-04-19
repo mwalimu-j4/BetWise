@@ -24,9 +24,15 @@ export function BetsFilterBar({
   lastUpdated,
 }: BetsFilterBarProps) {
   return (
-    <div className="sticky top-[52px] z-10 space-y-3 rounded-2xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e]/95 via-[#0f1a2d]/95 to-[#0d1624]/95 p-4 shadow-xl backdrop-blur">
-      <p className="text-xs text-[#8ea0b6]">Last updated at {lastUpdated}</p>
-      <div className="flex items-center justify-between gap-3">
+    <div className="sticky top-[52px] z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e]/95 via-[#0f1a2d]/95 to-[#0d1624]/95 p-4 shadow-xl backdrop-blur">
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-white">My Bets</h1>
+        <p className="mt-1 text-xs text-[#8ea0b6]">
+          Betting history • Updated {lastUpdated}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-4">
         <label className="inline-flex items-center gap-2">
           <span className="text-xs text-[#8ea0b6]">Filter</span>
           <select

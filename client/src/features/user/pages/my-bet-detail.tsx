@@ -35,12 +35,12 @@ export default function MyBetDetailPage() {
       onClick={handleClose}
     >
       <div
-        className="absolute bottom-0 left-0 right-0 h-[90vh] rounded-t-2xl border-t border-[#31455f] bg-[#0f172a] md:bottom-6 md:left-auto md:right-6 md:top-6 md:h-auto md:w-[540px] md:rounded-2xl md:border"
+        className="absolute bottom-0 left-0 right-0 flex max-h-[90vh] flex-col overflow-hidden rounded-t-3xl border-t border-[#1e3350] bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] shadow-[0_-8px_30px_rgba(0,0,0,0.4)] md:bottom-auto md:left-1/2 md:right-auto md:top-1/2 md:h-auto md:max-h-[85vh] md:w-[540px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl md:border"
         onClick={(event) => event.stopPropagation()}
       >
         {detail.isLoading || !detail.data ? (
-          <div className="p-4">
-            <BetCardSkeleton count={4} />
+          <div className="p-6">
+            <BetCardSkeleton count={3} />
           </div>
         ) : (
           <BetDetailModal

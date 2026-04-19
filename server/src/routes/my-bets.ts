@@ -433,16 +433,78 @@ myBetsRouter.get(
         },
       });
 
+      let customBet = null;
       if (!bet) {
+        customBet = await prisma.customBet.findUnique({
+          where: { id: parsedBetId.data },
+          select: {
+            id: true,
+            userId: true,
+            eventId: true,
+            status: true,
+            selection: { select: { name: true, label: true } },
+            stake: true,
+            odds: true,
+            potentialWin: true,
+            placedAt: true,
+            event: {
+              select: {
+                teamHome: true,
+                teamAway: true,
+                status: true,
+                startTime: true,
+                category: true,
+              },
+            },
+          },
+        });
+      }
+
+      if (!bet && !customBet) {
         return res.status(404).json({ message: "Bet not found." });
       }
 
-      if (bet.userId !== userId) {
+      const activeBet = bet || customBet;
+
+      if (activeBet.userId !== userId) {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      const computedPayout = computePossiblePayout(bet.stake, bet.displayOdds);
-      if (Math.abs(computedPayout - bet.potentialPayout) > 0.01) {
+      if (customBet) {
+        let statusStr: "won" | "lost" | "cancelled" | "open" = "open";
+        if (customBet.status === "WON") statusStr = "won";
+        else if (customBet.status === "LOST") statusStr = "lost";
+        else if (customBet.status === "VOID" || customBet.status === "CANCELLED") statusStr = "cancelled";
+        
+        return res.status(200).json({
+          id: customBet.id,
+          bet_code: `CB-${customBet.id.substring(0, 8).toUpperCase()}`,
+          status: statusStr,
+          amount: customBet.stake,
+          possible_payout: customBet.potentialWin,
+          total_odds: customBet.odds,
+          placed_at: customBet.placedAt.toISOString(),
+          promoted_text: null,
+          wlt: { won: 0, lost: 0, tie: 0 },
+          selections: [
+            {
+              event_id: customBet.eventId,
+              home_team: customBet.event.teamHome,
+              away_team: customBet.event.teamAway,
+              market_type: customBet.event.category,
+              pick: customBet.selection.name || customBet.selection.label,
+              odds: customBet.odds,
+              ft_result: null,
+              status: statusStr,
+              live_score: null,
+            }
+          ]
+        });
+      }
+
+      // At this point we are dealing with a standard bet
+      const computedPayout = computePossiblePayout(bet!.stake, bet!.displayOdds);
+      if (Math.abs(computedPayout - bet!.potentialPayout) > 0.01) {
         await createAuditLog({
           userId,
           betId: bet.id,
@@ -455,17 +517,17 @@ myBetsRouter.get(
         });
       }
 
-      const rawSelections = Array.isArray(bet.selectionsSnapshot)
-        ? bet.selectionsSnapshot
+      const rawSelections = Array.isArray(bet!.selectionsSnapshot)
+        ? bet!.selectionsSnapshot
         : [];
 
       const fallbackSelection = {
-        eventId: bet.eventId,
-        homeTeam: bet.event.homeTeam,
-        awayTeam: bet.event.awayTeam,
-        marketType: bet.marketType,
-        side: bet.side,
-        odds: bet.displayOdds,
+        eventId: bet!.eventId,
+        homeTeam: bet!.event.homeTeam,
+        awayTeam: bet!.event.awayTeam,
+        marketType: bet!.marketType,
+        side: bet!.side,
+        odds: bet!.displayOdds,
       };
 
       const selections = (
@@ -479,23 +541,23 @@ myBetsRouter.get(
           event_id:
             typeof typedSelection.eventId === "string"
               ? typedSelection.eventId
-              : bet.id,
+              : bet!.id,
           home_team:
             typeof typedSelection.homeTeam === "string"
               ? typedSelection.homeTeam
-              : bet.event.homeTeam,
+              : bet!.event.homeTeam,
           away_team:
             typeof typedSelection.awayTeam === "string"
               ? typedSelection.awayTeam
-              : bet.event.awayTeam,
+              : bet!.event.awayTeam,
           market_type:
             typeof typedSelection.marketType === "string"
               ? typedSelection.marketType
-              : bet.marketType,
+              : bet!.marketType,
           pick:
             typeof typedSelection.side === "string"
               ? typedSelection.side
-              : bet.side,
+              : bet!.side,
           odds:
             typeof typedSelection.odds === "number"
               ? typedSelection.odds

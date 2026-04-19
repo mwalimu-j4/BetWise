@@ -104,25 +104,6 @@ function MyBetsPageContent() {
   return (
     <div className="min-h-screen bg-linear-to-br from-[#0a0f1a] via-[#0f172a] to-[#0a0f1a]">
       <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 md:py-8 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">My Bets</h1>
-            <p className="mt-1 text-sm text-gray-400">
-              View your betting history
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              void navigate({ to: "/profile" });
-            }}
-            className="flex w-fit items-center gap-2 rounded-lg border border-[#f5c518]/30 bg-[#f5c518]/10 px-4 py-2 text-sm font-medium text-[#f5c518] transition hover:bg-[#f5c518]/20"
-          >
-            <ArrowLeft size={16} />
-            Back to Profile
-          </button>
-        </div>
-
         <main className="mx-auto w-full space-y-6">
 
           <BetsFilterBar
