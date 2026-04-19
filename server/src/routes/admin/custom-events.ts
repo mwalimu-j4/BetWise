@@ -217,6 +217,13 @@ adminCustomEventsRouter.get(
                 markets: true,
               },
             },
+            markets: {
+              select: {
+                id: true,
+                name: true,
+                status: true,
+              },
+            },
           },
           orderBy: [{ startTime: "asc" }],
           skip: (page - 1) * limit,
