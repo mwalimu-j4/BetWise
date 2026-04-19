@@ -4,14 +4,27 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
+  Circle,
+  CircleDot,
+  CircleSlash,
   ChevronDown,
+  Crosshair,
   FileText,
+  Flag,
   Flame,
   HelpCircle,
+  Hexagon,
+  House,
   History,
   LogOut,
   MessageCircle,
+  Shield,
+  Swords,
+  Star,
+  Target,
   TrendingUp,
+  Trophy,
+  Triangle,
   User,
   Wallet,
   Zap
@@ -29,6 +42,8 @@ type Item = {
   to: string;
   icon: React.ReactNode;
   liveBadge?: string;
+  badgeCount?: number;
+  badgeGold?: boolean;
   warn?: boolean;
   notificationBadge?: boolean;
 };
@@ -43,6 +58,16 @@ type Group = {
 type LiveSidebarMatch = {
   id: string;
   sport: string;
+};
+
+type EventCounts = {
+  football: number;
+  basketball: number;
+  tennis: number;
+  americanFootball: number;
+  cricket: number;
+  iceHockey: number;
+  rugbyUnion: number;
 };
 
 const liveSportsOrder = [
@@ -93,19 +118,19 @@ function sportIcon(name: string): React.ReactNode {
   }
 }
 
-const navigationLinks: Item[] = [
-  { label: "Homepage", to: "/user", icon: "H" },
-  { label: "Pre-match", to: "/user/payments", icon: "P" },
-  { label: "Live", to: "/user/live", icon: "L", liveBadge: "LIVE" },
-  { label: "Custom Events", to: "/user/custom-events", icon: "⚡" },
-
-  {
-    label: "Live Betting",
-    to: "/user/live",
-    icon: <Flame size={18} />,
-    liveBadge: "LIVE",
-  },
-];
+function toEventCountKey(raw: string): keyof EventCounts | null {
+  const value = raw.toLowerCase();
+  if (value.includes("soccer") || value.includes("football")) {
+    if (value.includes("american")) return "americanFootball";
+    return "football";
+  }
+  if (value.includes("basket")) return "basketball";
+  if (value.includes("tennis") && !value.includes("table")) return "tennis";
+  if (value.includes("cricket")) return "cricket";
+  if (value.includes("hockey")) return "iceHockey";
+  if (value.includes("rugby")) return "rugbyUnion";
+  return null;
+}
 
 const myAccount: Item[] = [
   {
@@ -176,6 +201,11 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
         {item.icon}
       </span>
       <span className="bc-side-label">{item.label}</span>
+      {item.badgeCount && item.badgeCount > 0 ? (
+        <span className={`bc-badge ${item.badgeGold ? "gold" : ""}`.trim()}>
+          {item.badgeCount}
+        </span>
+      ) : null}
       {item.liveBadge ? (
         <span className="bc-side-live-badge">{item.liveBadge}</span>
       ) : null}
@@ -191,6 +221,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     basketball: true,
   });
   const [liveSportsOpen, setLiveSportsOpen] = useState(!isAuthenticated);
+  const [eventCounts, setEventCounts] = useState<EventCounts | null>(null);
   const [liveCounts, setLiveCounts] = useState<Record<string, number>>(() => ({
     Soccer: 0,
     Basketball: 0,
@@ -248,13 +279,27 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           Handball: 0,
           "Table Tennis": 0,
         };
+        const nextEventCounts: EventCounts = {
+          football: 0,
+          basketball: 0,
+          tennis: 0,
+          americanFootball: 0,
+          cricket: 0,
+          iceHockey: 0,
+          rugbyUnion: 0,
+        };
 
         for (const match of data.matches ?? []) {
           const sportName = toSidebarSportName(match.sport ?? "soccer");
           nextCounts[sportName] = (nextCounts[sportName] ?? 0) + 1;
+          const sportKey = toEventCountKey(match.sport ?? "soccer");
+          if (sportKey) {
+            nextEventCounts[sportKey] = (nextEventCounts[sportKey] ?? 0) + 1;
+          }
         }
 
         setLiveCounts(nextCounts);
+        setEventCounts(nextEventCounts);
       } catch {
         if (!mounted) {
           return;
@@ -328,7 +373,140 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           {/* MAIN NAVIGATION */}
           <div className="bc-side-section">
-            {navigationLinks.map((item) => (
+            <p className="bc-side-heading">
+              <span className="bc-heading-dot" aria-hidden="true" />
+              Home & Quick Access
+            </p>
+            {[
+              { label: "Homepage", to: "/user", icon: <House size={18} /> },
+              {
+                label: "Live Betting",
+                to: "/user/live",
+                icon: <Flame size={18} />,
+                liveBadge: "LIVE",
+              },
+              {
+                label: "Featured Events",
+                to: "/user/featured-events",
+                icon: <Star size={18} />,
+                liveBadge: "NEW",
+              },
+              {
+                label: "Custom Events",
+                to: "/user/custom-events",
+                icon: <Zap size={18} />,
+              },
+              {
+                label: "My Bets",
+                to: "/my-bets",
+                icon: <TrendingUp size={18} />,
+              },
+              {
+                label: "Highlights",
+                to: "/user/highlights",
+                icon: <Flame size={18} />,
+              },
+            ].map((item) => (
+              <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
+            ))}
+          </div>
+
+          <div className="bc-side-section">
+            <p className="bc-side-heading">
+              <span className="bc-heading-dot" aria-hidden="true" />
+              Popular Sports
+            </p>
+            {[
+              {
+                label: "Football",
+                to: "/user/sport/football",
+                icon: <Trophy size={18} />,
+                badgeCount: eventCounts?.football ?? 0,
+                badgeGold: true,
+              },
+              {
+                label: "Basketball",
+                to: "/user/sport/basketball",
+                icon: <CircleDot size={18} />,
+                badgeCount: eventCounts?.basketball ?? 0,
+              },
+              {
+                label: "Tennis",
+                to: "/user/sport/tennis",
+                icon: <Circle size={18} />,
+                badgeCount: eventCounts?.tennis ?? 0,
+              },
+              {
+                label: "American Football",
+                to: "/user/sport/american-football",
+                icon: <Shield size={18} />,
+                badgeCount: eventCounts?.americanFootball ?? 0,
+              },
+              {
+                label: "Cricket",
+                to: "/user/sport/cricket",
+                icon: <Triangle size={18} />,
+                badgeCount: eventCounts?.cricket ?? 0,
+              },
+              {
+                label: "Ice Hockey",
+                to: "/user/sport/ice-hockey",
+                icon: <CircleSlash size={18} />,
+                badgeCount: eventCounts?.iceHockey ?? 0,
+              },
+              {
+                label: "Rugby Union",
+                to: "/user/sport/rugby-union",
+                icon: <Hexagon size={18} />,
+                badgeCount: eventCounts?.rugbyUnion ?? 0,
+              },
+            ].map((item) => (
+              <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
+            ))}
+          </div>
+
+          <div className="bc-side-section">
+            <p className="bc-side-heading">
+              <span className="bc-heading-dot" aria-hidden="true" />
+              More Sports
+            </p>
+            {[
+              {
+                label: "Boxing / MMA",
+                to: "/user/sport/boxing-mma",
+                icon: <Swords size={18} />,
+              },
+              {
+                label: "Baseball",
+                to: "/user/sport/baseball",
+                icon: <CircleDot size={18} />,
+              },
+              {
+                label: "Volleyball",
+                to: "/user/sport/volleyball",
+                icon: <Circle size={18} />,
+              },
+              {
+                label: "Table Tennis",
+                to: "/user/sport/table-tennis",
+                icon: <Crosshair size={18} />,
+              },
+              {
+                label: "Golf",
+                to: "/user/sport/golf",
+                icon: <Flag size={18} />,
+              },
+              {
+                label: "Snooker",
+                to: "/user/sport/snooker",
+                icon: <CircleSlash size={18} />,
+              },
+              {
+                label: "Darts",
+                to: "/user/sport/darts",
+                icon: <Target size={18} />,
+              },
+            ].map((item) => (
               <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
             ))}
           </div>
