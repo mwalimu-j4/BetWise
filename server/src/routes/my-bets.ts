@@ -24,7 +24,7 @@ const tabSchema = z.enum([
   "custom",
   "all",
 ]);
-const filterSchema = z.enum(["open", "all", "today", "week", "month"]);
+const filterSchema = z.enum(["all", "active", "won", "lost", "open"]);
 
 const listQuerySchema = z.object({
   tab: tabSchema.default("all"),
@@ -188,26 +188,34 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
     const page = parsedQuery.data.page;
     const pageSize = 20;
 
-    const dateWindow = getDateFilterWindow(parsedQuery.data.filter);
-
     const where: Prisma.BetWhereInput = {
       userId,
       ...(parsedQuery.data.tab !== "all"
         ? { betType: tabToBetType[parsedQuery.data.tab] }
         : {}),
-      ...(parsedQuery.data.filter === "open"
+      ...(parsedQuery.data.filter === "active" || parsedQuery.data.filter === "open"
         ? { status: { in: ["PENDING"] } }
         : {}),
-      ...(dateWindow ? { placedAt: { gte: dateWindow } } : {}),
+      ...(parsedQuery.data.filter === "won"
+        ? { status: { in: ["WON"] } }
+        : {}),
+      ...(parsedQuery.data.filter === "lost"
+        ? { status: { in: ["LOST"] } }
+        : {}),
       ...(hideLost ? { status: { not: "LOST" } } : {}),
     };
 
     const customWhere: Prisma.CustomBetWhereInput = {
       userId,
-      ...(parsedQuery.data.filter === "open"
+      ...(parsedQuery.data.filter === "active" || parsedQuery.data.filter === "open"
         ? { status: { in: ["PENDING"] } }
         : {}),
-      ...(dateWindow ? { placedAt: { gte: dateWindow } } : {}),
+      ...(parsedQuery.data.filter === "won"
+        ? { status: { in: ["WON"] } }
+        : {}),
+      ...(parsedQuery.data.filter === "lost"
+        ? { status: { in: ["LOST"] } }
+        : {}),
       ...(hideLost ? { status: { not: "LOST" } } : {}),
     };
 

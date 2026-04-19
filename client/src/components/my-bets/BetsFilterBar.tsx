@@ -9,11 +9,10 @@ type BetsFilterBarProps = {
 };
 
 const filterOptions: Array<{ label: string; value: MyBetFilter }> = [
-  { label: "Open", value: "open" },
-  { label: "All", value: "all" },
-  { label: "Today", value: "today" },
-  { label: "Week", value: "week" },
-  { label: "Month", value: "month" },
+  { label: "All Bets", value: "all" },
+  { label: "Active", value: "active" },
+  { label: "Won", value: "won" },
+  { label: "Lost", value: "lost" },
 ];
 
 export function BetsFilterBar({

@@ -13,7 +13,7 @@ export type MyBetTab =
   | "sababisha"
   | "custom"
   | "all";
-export type MyBetFilter = "open" | "all" | "today" | "week" | "month";
+export type MyBetFilter = "all" | "active" | "won" | "lost" | "open";
 
 export type MyBetListItem = {
   id: string;
@@ -73,35 +73,21 @@ function applyClientFilters(
   filter: MyBetFilter,
   hideLost: boolean,
 ) {
-  const now = new Date();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-  const weekStart = new Date(now);
-  weekStart.setDate(weekStart.getDate() - 7);
-  const monthStart = new Date(now);
-  monthStart.setDate(monthStart.getDate() - 30);
-
   return items.filter((item) => {
     if (hideLost && item.status === "lost") {
       return false;
     }
 
-    if (filter === "open") {
+    if (filter === "active" || filter === "open") {
       return item.status === "open";
     }
 
-    const placedAt = new Date(item.placed_at);
-
-    if (filter === "today") {
-      return placedAt >= todayStart;
+    if (filter === "won") {
+      return item.status === "won";
     }
 
-    if (filter === "week") {
-      return placedAt >= weekStart;
-    }
-
-    if (filter === "month") {
-      return placedAt >= monthStart;
+    if (filter === "lost") {
+      return item.status === "lost";
     }
 
     return true;

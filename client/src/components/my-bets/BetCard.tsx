@@ -99,7 +99,7 @@ export function BetCard({ bet, onClick }: BetCardProps) {
 
           <div className="text-right shrink-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#6b86a8] mb-1.5 opacity-80">
-              {bet.status === "won" ? "Total Payout" : "Possible Payout"}
+              {bet.status === "won" ? "Total Payout" : bet.status === "lost" ? "Lost" : "Possible Payout"}
             </p>
             <p className="text-lg font-black text-white leading-none">
               {formatMoney(bet.possible_payout)}
