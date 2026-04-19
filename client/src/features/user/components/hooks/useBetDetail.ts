@@ -22,6 +22,7 @@ export type BetDetail = {
   amount: number;
   possible_payout: number;
   total_odds: number;
+  match_name?: string;
   placed_at: string;
   promoted_text: string | null;
   wlt: {

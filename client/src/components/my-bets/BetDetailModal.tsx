@@ -58,6 +58,11 @@ export function BetDetailModal({
           <ArrowLeft size={16} />
           Back
         </button>
+        {bet.match_name && (
+          <h2 className="hidden sm:block text-sm font-bold text-white px-2 truncate max-w-[200px]">
+            {bet.match_name}
+          </h2>
+        )}
         <span
           className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider shadow-sm ${statusClass}`}
         >

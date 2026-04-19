@@ -501,6 +501,7 @@ myBetsRouter.get(
           amount: customBet.stake,
           possible_payout: customBet.potentialWin,
           total_odds: customBet.odds,
+          match_name: `${customBet.event.teamHome} vs ${customBet.event.teamAway}`,
           placed_at: customBet.placedAt.toISOString(),
           promoted_text: null,
           wlt: { won: 0, lost: 0, tie: 0 },
@@ -525,10 +526,10 @@ myBetsRouter.get(
       if (Math.abs(computedPayout - bet!.potentialPayout) > 0.01) {
         await createAuditLog({
           userId,
-          betId: bet.id,
+          betId: bet!.id,
           action: "INTEGRITY_ERROR",
           attemptedData: {
-            storedPayout: bet.potentialPayout,
+            storedPayout: bet!.potentialPayout,
             computedPayout,
           },
           ipAddress: getClientIp(req.ip),
@@ -602,6 +603,9 @@ myBetsRouter.get(
       ).length;
       const tied = selections.length - won - lost;
 
+      const isMultiple = Array.isArray(bet!.selectionsSnapshot) && bet!.selectionsSnapshot.length > 1;
+      const matchName = isMultiple ? "Multiple Events" : `${bet!.event.homeTeam} vs ${bet!.event.awayTeam}`;
+
       return res.status(200).json({
         id: bet!.id,
         bet_code: bet!.betCode,
@@ -613,6 +617,7 @@ myBetsRouter.get(
         amount: bet!.stake,
         possible_payout: computedPayout,
         total_odds: bet!.displayOdds,
+        match_name: matchName,
         placed_at: bet!.placedAt.toISOString(),
         promoted_text: bet!.isPromoted
           ? `Promoted Bet placed at ${bet!.placedAt.toLocaleTimeString()}`

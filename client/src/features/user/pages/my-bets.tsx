@@ -1,6 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
-import { Outlet, useNavigate, useSearch } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { BetsFilterBar } from "@/components/my-bets/BetsFilterBar";
 import { BetsList } from "@/components/my-bets/BetsList";
@@ -9,6 +6,8 @@ import {
   type MyBetTab,
   useMyBets,
 } from "@/features/user/components/hooks/useMyBets";
+import { Outlet, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 
 const hideLostStorageKey = "my-bets-hide-lost";
 
@@ -59,12 +58,18 @@ function MyBetsPageContent() {
   const filter = normalizeFilter(search.filter);
   const page = normalizePage(search.page);
 
-  const bets = useMyBets({
-    tab,
-    filter,
-    page,
-    hideLost,
-  });
+  // Memoize search params to prevent infinite loop in useMyBets socket effect
+  const args = useMemo(
+    () => ({
+      tab,
+      filter,
+      page,
+      hideLost,
+    }),
+    [tab, filter, page, hideLost],
+  );
+
+  const bets = useMyBets(args);
 
   useEffect(() => {
     if (typeof window === "undefined") {
