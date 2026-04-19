@@ -76,6 +76,7 @@ export default function PaymentsHistoryPage() {
           onClick={() => void refetch()}
           className="flex h-11 items-center gap-1.5 rounded-2xl border border-[#1a2f45] bg-[#0d1829] px-4 text-xs font-medium text-[#4a6a85] transition hover:border-[#f5c518]/30 hover:text-white"
         >
+          {/* refresh */}
           <RefreshCw
             className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`}
           />
