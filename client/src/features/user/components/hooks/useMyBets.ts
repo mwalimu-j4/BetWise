@@ -152,11 +152,22 @@ export function useMyBets(args: UseMyBetsArgs) {
     };
   }, []);
 
+  const argsKey = useMemo(
+    () => JSON.stringify(args),
+    [args.tab, args.filter, args.page, args.hideLost],
+  );
+
   useEffect(() => {
     if (!isAuthenticated || !accessToken || !user?.id) {
       socketRef.current?.disconnect();
       socketRef.current = null;
       return;
+    }
+
+    // Connect or reuse socket
+    if (socketRef.current?.connected) {
+      // If args changed but we are already connected, we might need to re-subscribe
+      // but the current implementation just refreshes the whole query which is fine.
     }
 
     socketRef.current?.disconnect();
@@ -192,7 +203,7 @@ export function useMyBets(args: UseMyBetsArgs) {
         socketRef.current = null;
       }
     };
-  }, [accessToken, args, isAuthenticated, queryClient, user?.id]);
+  }, [accessToken, argsKey, isAuthenticated, queryClient, user?.id]);
 
   const filteredItems = useMemo(() => {
     return applyClientFilters(

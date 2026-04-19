@@ -11,7 +11,19 @@ import { useEffect, useMemo, useState } from "react";
 
 const hideLostStorageKey = "my-bets-hide-lost";
 
-function normalizeTab(_value: unknown): MyBetTab {
+function normalizeTab(value: unknown): MyBetTab {
+  if (
+    value === "normal" ||
+    value === "shilisha" ||
+    value === "jackpot" ||
+    value === "virtual" ||
+    value === "sababisha" ||
+    value === "custom" ||
+    value === "all"
+  ) {
+    return value;
+  }
+
   return "all";
 }
 
@@ -80,8 +92,11 @@ function MyBetsPageContent() {
   }, [hideLost]);
 
   const formattedLastUpdated = useMemo(() => {
-    const source = bets.lastUpdatedAt ?? new Date().toISOString();
-    const parsed = new Date(source);
+    if (!bets.lastUpdatedAt) {
+      return "---";
+    }
+
+    const parsed = new Date(bets.lastUpdatedAt);
 
     return parsed.toLocaleTimeString([], {
       hour: "2-digit",

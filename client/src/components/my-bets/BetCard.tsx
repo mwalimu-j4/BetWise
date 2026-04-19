@@ -76,9 +76,7 @@ export function BetCard({ bet, onClick }: BetCardProps) {
 
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-mono text-sm font-bold text-white transition-colors group-hover:text-amber-400">
-            #{bet.bet_code}
-          </p>
+
           <span
             className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${badgeClassByStatus[bet.status]} ${
               flashStatus ? "animate-[statusPulse_0.9s_ease-out]" : ""
