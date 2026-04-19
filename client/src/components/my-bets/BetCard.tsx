@@ -52,11 +52,31 @@ export function BetCard({ bet, onClick }: BetCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full rounded-xl border border-[#25364d] bg-[#1a2332] p-4 text-left transition hover:border-[#3a516e] active:scale-[0.98]"
+      className={`group relative w-full overflow-hidden rounded-2xl border bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] p-4 text-left transition-all duration-300 active:scale-[0.98] ${
+        bet.status === "won"
+          ? "border-emerald-500/25 shadow-[0_0_24px_rgba(16,185,129,0.06)]"
+          : bet.status === "lost"
+            ? "border-red-500/20 opacity-90"
+            : bet.is_live
+              ? "border-emerald-500/25 shadow-[0_0_24px_rgba(16,185,129,0.06)]"
+              : "border-[#1e3350]/50 hover:border-amber-400/20"
+      }`}
     >
+      <div
+        className={`absolute inset-x-0 top-0 h-[2px] ${
+          bet.status === "won"
+            ? "bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent"
+            : bet.status === "lost"
+              ? "bg-gradient-to-r from-transparent via-red-500/40 to-transparent"
+              : bet.is_live
+                ? "bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent"
+                : "bg-gradient-to-r from-transparent via-amber-400/30 to-transparent"
+        }`}
+      />
+
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-mono text-sm font-bold text-white">
+          <p className="font-mono text-sm font-bold text-white transition-colors group-hover:text-amber-400">
             #{bet.bet_code}
           </p>
           <span
@@ -72,7 +92,7 @@ export function BetCard({ bet, onClick }: BetCardProps) {
           <p className="text-lg font-bold text-[#f8fafc]">
             {formatMoney(bet.possible_payout)}
           </p>
-          <p className="mt-1 text-xs text-[#91a2b9]">
+          <p className="mt-1 text-[10px] font-medium text-[#6b86a8]">
             {formatDate(bet.placed_at)}
           </p>
           {bet.status === "lost" ? (

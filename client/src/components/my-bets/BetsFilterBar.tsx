@@ -24,7 +24,7 @@ export function BetsFilterBar({
   lastUpdated,
 }: BetsFilterBarProps) {
   return (
-    <div className="sticky top-[52px] z-10 space-y-3 border-b border-[#243247] bg-[#0d1117]/95 px-3 py-3 backdrop-blur">
+    <div className="sticky top-[52px] z-10 space-y-3 rounded-2xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e]/95 via-[#0f1a2d]/95 to-[#0d1624]/95 p-4 shadow-xl backdrop-blur">
       <p className="text-xs text-[#8ea0b6]">Last updated at {lastUpdated}</p>
       <div className="flex items-center justify-between gap-3">
         <label className="inline-flex items-center gap-2">

@@ -30,7 +30,7 @@ export function BetsList({
   const showSkeleton = isLoading || isFetching;
 
   return (
-    <div className="space-y-4 px-3 py-4">
+    <div className="space-y-6 py-4">
       {showSkeleton ? <BetCardSkeleton count={5} /> : null}
 
       {!showSkeleton && items.length === 0 ? <EmptyBetsState /> : null}

@@ -123,7 +123,7 @@ function MyBetsPageContent() {
           </button>
         </div>
 
-        <section className="mx-auto w-full overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#111827] to-[#0f172a] shadow-xl">
+        <main className="mx-auto w-full space-y-6">
 
           <BetsFilterBar
             filter={filter}
@@ -161,7 +161,7 @@ function MyBetsPageContent() {
           />
 
           <Outlet />
-        </section>
+        </main>
       </div>
     </div>
   );
