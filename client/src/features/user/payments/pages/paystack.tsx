@@ -66,7 +66,7 @@ export default function PaystackDepositPage() {
 
   useEffect(() => {
     const status = verificationQuery.data?.status;
-    if (!verificationReference || !status) {
+    if (!shouldVerify || !verificationReference || !status) {
       return;
     }
 
@@ -75,7 +75,7 @@ export default function PaystackDepositPage() {
       setPaymentStatus("success");
       setShowPaymentResult(true);
       setIsProcessing(false);
-      setVerificationReference(null);
+      setShouldVerify(false);
       return;
     }
 
@@ -84,7 +84,7 @@ export default function PaystackDepositPage() {
       setPaymentStatus("failed");
       setShowPaymentResult(true);
       setIsProcessing(false);
-      setVerificationReference(null);
+      setShouldVerify(false);
       return;
     }
 
@@ -95,11 +95,12 @@ export default function PaystackDepositPage() {
     }
 
     setIsProcessing(true);
-  }, [verificationQuery.data?.status, verificationReference]);
+  }, [verificationQuery.data?.status, shouldVerify, verificationReference]);
 
   // Handle verification query errors - show error if it fails after many retries
   useEffect(() => {
     if (
+      shouldVerify &&
       verificationReference &&
       verificationQuery.isError &&
       verificationQuery.failureCount >= 10
@@ -109,11 +110,12 @@ export default function PaystackDepositPage() {
       setPaymentStatus("failed");
       setShowPaymentResult(true);
       setIsProcessing(false);
-      setVerificationReference(null);
+      setShouldVerify(false);
     }
   }, [
     verificationQuery.isError,
     verificationQuery.failureCount,
+    shouldVerify,
     verificationReference,
   ]);
 
@@ -206,6 +208,7 @@ export default function PaystackDepositPage() {
             setShowPaymentResult(false);
             setPaymentStatus(null);
             setVerificationReference(paymentReference);
+            setShouldVerify(true);
             setIsProcessing(true);
           }
         }}
