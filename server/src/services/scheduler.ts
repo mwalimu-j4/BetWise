@@ -2,6 +2,7 @@ import cron from "node-cron";
 import { prisma } from "../lib/prisma";
 import { fetchAndSaveFixtures } from "./fixturesService";
 import { fetchAndSaveOdds } from "./oddsService";
+import { expirePastSportEvents } from "./sportCategoriesService";
 import {
   emitCustomEventLive,
   emitCustomEventFinished,
@@ -86,7 +87,7 @@ export async function updateEventStatuses() {
   }
 
   console.log(
-    `[Scheduler] Status update complete - LIVE:${liveUpdated.count} FINISHED:${finishedUpdated.count}`,
+    `[Scheduler] Status update complete - EXPIRED:${expiredUpdated.count} FINISHED:${finishedUpdated.count}`,
   );
 }
 
@@ -233,7 +234,7 @@ void Promise.all([
 
 // ── Cron Jobs ──
 
-cron.schedule("*/2 * * * *", () => {
+cron.schedule("*/15 * * * *", () => {
   void updateEventStatuses().catch((error: unknown) => {
     console.error("[Scheduler] Status cron error:", error);
   });
@@ -259,5 +260,5 @@ cron.schedule("*/1 * * * *", () => {
 });
 
 console.log(
-  "[Scheduler] Running - fixtures:5min odds:10min custom-events:1min",
+  "[Scheduler] Running - sport-expiry:15min fixtures:5min odds:10min custom-events:1min",
 );

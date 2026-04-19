@@ -52,10 +52,6 @@ function toSafeJson(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
-function normalizePaystackChargeStatus(status: string | undefined) {
-  return (status ?? "").trim().toLowerCase();
-}
-
 async function finalizePaystackDeposit(
   reference: string,
 ): Promise<FinalizePaystackDepositResult> {
@@ -90,175 +86,20 @@ async function finalizePaystackDeposit(
   }
 
   if (transaction.status === "FAILED" || transaction.status === "REVERSED") {
-    // Allow retry for failed payments - re-verify with Paystack
-    // This handles cases where payment failed due to transient errors
-    logPaystackContext("finalize:retrying-failed-payment", {
+    logPaystackContext("finalize:already-terminal", {
       reference,
       transactionId: transaction.id,
       status: transaction.status,
-      message: "Attempting to re-verify failed payment with Paystack",
     });
 
-    try {
-      // Attempt to verify with Paystack again
-      const retryVerificationResult =
-        await verifyPaystackTransaction(reference);
-
-      if (retryVerificationResult.data.status === "success") {
-        // Payment actually succeeded on Paystack! Update our record
-        logPaystackContext("finalize:retry-succeeded", {
-          reference,
-          transactionId: transaction.id,
-          message: "Payment verified successful on Paystack after retry",
-        });
-
-        // Continue with normal success flow by falling through
-        // Set verificationResult for the rest of the function
-        const verificationResult = retryVerificationResult;
-
-        const paidAmountInKes = convertFromSmallestUnit(
-          verificationResult.data.amount,
-        );
-        const amountTolerance = transaction.amount * 0.01;
-
-        if (Math.abs(paidAmountInKes - transaction.amount) > amountTolerance) {
-          logPaystackContext("finalize:amount-mismatch-on-retry", {
-            reference,
-            transactionId: transaction.id,
-            expected: transaction.amount,
-            paidAmountInKes,
-            tolerance: amountTolerance,
-          });
-
-          const processedAt = new Date();
-          await prisma.walletTransaction.update({
-            where: { id: transaction.id },
-            data: {
-              status: "FAILED",
-              processedAt,
-              providerCallback: {
-                provider: "paystack",
-                verifiedAt: processedAt.toISOString(),
-                failureReason: "Amount mismatch",
-                paystackReference: verificationResult.data.reference,
-                verificationData: toSafeJson(verificationResult.data),
-              },
-            },
-          });
-
-          return {
-            status: "failed",
-            message: "Payment amount mismatch",
-            reference,
-            transactionId: transaction.id,
-            amount: transaction.amount,
-            processedAt,
-          };
-        }
-
-        // Update transaction to completed
-        const processedAt = new Date();
-        const wallet = transaction.wallet!;
-        const updatedWallet = await prisma.wallet.update({
-          where: { id: wallet.id },
-          data: { balance: { increment: transaction.amount } },
-        });
-
-        await prisma.walletTransaction.update({
-          where: { id: transaction.id },
-          data: {
-            status: "COMPLETED",
-            processedAt,
-            providerCallback: {
-              provider: "paystack",
-              verifiedAt: processedAt.toISOString(),
-              paystackReference: verificationResult.data.reference,
-              verificationData: toSafeJson(verificationResult.data),
-            },
-          },
-        });
-
-        emitWalletUpdate(transaction.userId, {
-          transactionId: transaction.id,
-          status: "COMPLETED",
-          message: "Deposit successful (recovered from previous failure)",
-          balance: updatedWallet.balance,
-          amount: transaction.amount,
-        });
-
-        await createDepositNotifications({
-          userId: transaction.userId,
-          transactionId: transaction.id,
-          amount: transaction.amount,
-          balance: updatedWallet.balance,
-          paystackReference: verificationResult.data.reference,
-          status: "COMPLETED",
-        });
-
-        return {
-          status: "success",
-          message: "Payment verified successfully (retry succeeded)",
-          reference,
-          transactionId: transaction.id,
-          amount: transaction.amount,
-          processedAt,
-        };
-      } else {
-        // Paystack confirms it's still failed
-        logPaystackContext("finalize:retry-still-failed", {
-          reference,
-          transactionId: transaction.id,
-          paystackStatus: retryVerificationResult.data.status,
-          message: "Payment confirmed as failed on Paystack",
-        });
-
-        return {
-          status: "failed",
-          message: "Payment is confirmed as failed. Please try a new payment.",
-          reference,
-          transactionId: transaction.id,
-          amount: transaction.amount,
-          processedAt: transaction.processedAt,
-        };
-      }
-    } catch (error) {
-      // If verification fails with network error, return pending to allow more retries
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown verification error";
-      const isNetworkError =
-        errorMessage.includes("timeout") ||
-        errorMessage.includes("ECONNREFUSED") ||
-        errorMessage.includes("ENOTFOUND") ||
-        errorMessage.includes("ETIMEDOUT") ||
-        errorMessage.includes("end of file");
-
-      logPaystackContext("finalize:retry-verification-error", {
-        reference,
-        transactionId: transaction.id,
-        error: errorMessage,
-        isNetworkError,
-      });
-
-      if (isNetworkError) {
-        return {
-          status: "pending",
-          message: "Re-verification in progress. Please try again in a moment.",
-          reference,
-          transactionId: transaction.id,
-          amount: transaction.amount,
-        };
-      }
-
-      // For non-network errors, return failed
-      return {
-        status: "failed",
-        message: `Payment failed: ${errorMessage}`,
-        reference,
-        transactionId: transaction.id,
-        amount: transaction.amount,
-        processedAt: transaction.processedAt,
-      };
-    }
+    return {
+      status: "failed",
+      message: "Payment is already finalized as failed",
+      reference,
+      transactionId: transaction.id,
+      amount: transaction.amount,
+      processedAt: transaction.processedAt,
+    };
   }
 
   if (!transaction.wallet || !transaction.user) {
@@ -271,117 +112,30 @@ async function finalizePaystackDeposit(
     throw new Error("Invalid transaction state");
   }
 
-  let verificationResult;
-  try {
-    verificationResult = await verifyPaystackTransaction(reference);
-    logPaystackContext("finalize:verified", {
-      reference,
-      transactionId: transaction.id,
-      paystackStatus: verificationResult.data.status,
-      paystackAmount: verificationResult.data.amount,
-    });
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown verification error";
-    const isNetworkError =
-      errorMessage.includes("timeout") ||
-      errorMessage.includes("ECONNREFUSED") ||
-      errorMessage.includes("ENOTFOUND") ||
-      errorMessage.includes("ETIMEDOUT") ||
-      errorMessage.includes("end of file");
-
-    logPaystackContext("finalize:verification-error", {
-      reference,
-      transactionId: transaction.id,
-      error: errorMessage,
-      isNetworkError,
-    });
-
-    // On network errors or timeouts, return pending to allow client retry
-    if (isNetworkError && transaction.status === "PENDING") {
-      return {
-        status: "pending",
-        message:
-          "Payment verification is still in progress. Please try again in a moment.",
-        reference,
-        transactionId: transaction.id,
-        amount: transaction.amount,
-        processedAt: transaction.processedAt,
-      };
-    }
-
-    // If verification fails completely, throw the error
-    throw error;
-  }
+  const verificationResult = await verifyPaystackTransaction(reference);
+  logPaystackContext("finalize:verified", {
+    reference,
+    transactionId: transaction.id,
+    paystackStatus: verificationResult.data.status,
+    paystackAmount: verificationResult.data.amount,
+  });
 
   const isSuccessful =
     verificationResult.status && verificationResult.data.status === "success";
 
-  const normalizedProviderStatus = normalizePaystackChargeStatus(
-    verificationResult.data.status,
-  );
-
-  if (
-    ["pending", "ongoing", "processing", "queued"].includes(
-      normalizedProviderStatus,
-    )
-  ) {
-    await prisma.walletTransaction.update({
-      where: { id: transaction.id },
-      data: {
-        status: "PROCESSING",
-        providerCallback: {
-          provider: "paystack",
-          verifiedAt: new Date().toISOString(),
-          verificationData: toSafeJson(verificationResult.data),
-          paystackReference: verificationResult.data.reference,
-        },
-      },
-    });
-
-    return {
-      status: "pending",
-      message: "Payment is still being confirmed by Paystack",
-      reference,
-      transactionId: transaction.id,
-      amount: transaction.amount,
-      processedAt: transaction.processedAt,
-    };
-  }
-
   if (!isSuccessful) {
-    const processedAt = new Date();
     await prisma.walletTransaction.update({
       where: { id: transaction.id },
       data: {
         status: "FAILED",
-        processedAt,
+        processedAt: new Date(),
         providerCallback: {
           provider: "paystack",
-          verifiedAt: processedAt.toISOString(),
+          verifiedAt: new Date().toISOString(),
           failureReason: `Paystack returned ${verificationResult.data.status}`,
-          paystackReference: verificationResult.data.reference,
           verificationData: toSafeJson(verificationResult.data),
         },
       },
-    });
-
-    emitWalletUpdate(transaction.userId, {
-      transactionId: transaction.id,
-      status: "FAILED",
-      message: "Deposit failed",
-      balance: transaction.wallet.balance,
-      amount: transaction.amount,
-    });
-
-    await createDepositNotifications({
-      userId: transaction.userId,
-      transactionId: transaction.id,
-      amount: transaction.amount,
-      balance: transaction.wallet.balance,
-      paystackReference: verificationResult.data.reference,
-      status: "FAILED",
-      failureReason: `Paystack returned ${verificationResult.data.status}`,
     });
 
     return {
@@ -396,50 +150,27 @@ async function finalizePaystackDeposit(
   const paidAmountInKes = convertFromSmallestUnit(
     verificationResult.data.amount,
   );
-  // Allow 1% tolerance for rounding/currency conversion differences
-  const amountTolerance = transaction.amount * 0.01;
-  if (Math.abs(paidAmountInKes - transaction.amount) > amountTolerance) {
+  if (paidAmountInKes !== transaction.amount) {
     logPaystackContext("finalize:amount-mismatch", {
       reference,
       transactionId: transaction.id,
       expected: transaction.amount,
       paidAmountInKes,
-      tolerance: amountTolerance,
       providerAmount: verificationResult.data.amount,
     });
 
-    const processedAt = new Date();
     await prisma.walletTransaction.update({
       where: { id: transaction.id },
       data: {
         status: "FAILED",
-        processedAt,
+        processedAt: new Date(),
         providerCallback: {
           provider: "paystack",
-          verifiedAt: processedAt.toISOString(),
+          verifiedAt: new Date().toISOString(),
           failureReason: "Amount mismatch",
-          paystackReference: verificationResult.data.reference,
           verificationData: toSafeJson(verificationResult.data),
         },
       },
-    });
-
-    emitWalletUpdate(transaction.userId, {
-      transactionId: transaction.id,
-      status: "FAILED",
-      message: "Deposit amount mismatch",
-      balance: transaction.wallet.balance,
-      amount: transaction.amount,
-    });
-
-    await createDepositNotifications({
-      userId: transaction.userId,
-      transactionId: transaction.id,
-      amount: transaction.amount,
-      balance: transaction.wallet.balance,
-      paystackReference: verificationResult.data.reference,
-      status: "FAILED",
-      failureReason: "Amount mismatch",
     });
 
     return {
@@ -736,41 +467,12 @@ export async function verifyPaystackPayment(
       return;
     }
 
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to verify Paystack payment";
-    const isNetworkError =
-      errorMessage.includes("timeout") ||
-      errorMessage.includes("ECONNREFUSED") ||
-      errorMessage.includes("ENOTFOUND") ||
-      errorMessage.includes("ETIMEDOUT") ||
-      errorMessage.includes("end of file");
-
-    console.error("Paystack verify error:", {
-      error: errorMessage,
-      isNetworkError,
-      reference: req.params.reference,
-    });
-
-    // Return pending status for network errors so client retries
-    if (isNetworkError) {
-      res.status(200).json({
-        status: "pending",
-        message: "Payment verification is in progress. Please try again.",
-        reference: req.params.reference,
-        data: {
-          reference: req.params.reference,
-          amount: 0,
-          status: "pending",
-          processedAt: null,
-        },
-      });
-      return;
-    }
-
+    console.error("Paystack verify error:", error);
     res.status(500).json({
-      error: errorMessage,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to verify Paystack payment",
       status: "error",
     });
   }
@@ -797,34 +499,31 @@ export async function handlePaystackBrowserCallback(
     return;
   }
 
-  // Attempt to finalize and verify the payment
-  let paymentStatus: "success" | "failed" | "pending" = "pending";
   try {
     const result = await finalizePaystackDeposit(reference);
-    paymentStatus = result.status;
-  } catch (error) {
-    logPaystackContext("callback:verification_error", {
+    const redirectUrl = new URL(
+      process.env.PAYSTACK_SUCCESS_REDIRECT_URL?.trim() ||
+        process.env.FRONTEND_URL?.trim() ||
+        "http://localhost:5173",
+    );
+    redirectUrl.pathname = "/user/payments/deposit";
+    redirectUrl.searchParams.set("reference", reference);
+    redirectUrl.searchParams.set("status", result.status);
+
+    logPaystackContext("callback:redirect", {
       reference,
-      error: error instanceof Error ? error.message : String(error),
+      status: result.status,
+      target: redirectUrl.toString(),
     });
-    paymentStatus = "pending";
+
+    res.redirect(302, redirectUrl.toString());
+  } catch (error) {
+    console.error("Paystack callback error:", error);
+    res.redirect(
+      302,
+      `${process.env.FRONTEND_URL?.trim() || "http://localhost:5173"}/user/payments/deposit?reference=${encodeURIComponent(reference)}&status=failed`,
+    );
   }
-
-  const redirectUrl = new URL(
-    process.env.PAYSTACK_SUCCESS_REDIRECT_URL?.trim() ||
-      process.env.FRONTEND_URL?.trim() ||
-      "http://localhost:5173",
-  );
-  redirectUrl.pathname = "/user/payments/deposit";
-  redirectUrl.searchParams.set("status", paymentStatus);
-
-  logPaystackContext("callback:redirect", {
-    reference,
-    paymentStatus,
-    target: redirectUrl.toString(),
-  });
-
-  res.redirect(302, redirectUrl.toString());
 }
 
 // ============================================================================

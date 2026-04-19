@@ -13,8 +13,8 @@ type BanAppealTokenPayload = {
   bannedAt: string;
 };
 
-const ACCESS_TOKEN_TTL_SECONDS = 60 * 60 * 24;
-const BAN_APPEAL_TOKEN_TTL_SECONDS = 60 * 60 * 24;  
+const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
+const BAN_APPEAL_TOKEN_TTL_SECONDS = 60 * 60 * 24;
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const ACCESS_TOKEN_ISSUER =
   process.env.ACCESS_TOKEN_ISSUER?.trim() || "betwise-api";
@@ -130,22 +130,8 @@ export function verifyAccessToken(token: string) {
     options.audience = ACCESS_TOKEN_AUDIENCE;
   }
 
-  try {
-    const decoded = jwt.verify(token, getAccessTokenSecret(), options);
-    return processDecodedToken(decoded);
-  } catch (error) {
-    const err = error instanceof Error ? error.message : String(error);
-    console.error("[TokenUtils] Verify failed:", {
-      err,
-      issuer: ACCESS_TOKEN_ISSUER,
-      hasAudience: Boolean(ACCESS_TOKEN_AUDIENCE),
-      secretLength: getAccessTokenSecret().length,
-    });
-    throw error;
-  }
-}
+  const decoded = jwt.verify(token, getAccessTokenSecret(), options);
 
-function processDecodedToken(decoded: unknown) {
   if (
     !decoded ||
     typeof decoded !== "object" ||

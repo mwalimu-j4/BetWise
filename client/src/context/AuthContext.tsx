@@ -4,7 +4,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -35,10 +34,10 @@ const AUTH_TOKEN_KEY = "betwise-auth-token";
 const AUTH_USER_KEY = "betwise-auth-user";
 const AUTH_RECOVERY_FLAG = "betwise-auth-recovery";
 
-// Utility functions for localStorage management (stable across redirects)
+// Utility functions for sessionStorage management
 function getStoredToken(): string | null {
   try {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
+    return sessionStorage.getItem(AUTH_TOKEN_KEY);
   } catch {
     return null;
   }
@@ -46,7 +45,7 @@ function getStoredToken(): string | null {
 
 function getStoredUser(): AuthUser | null {
   try {
-    const stored = localStorage.getItem(AUTH_USER_KEY);
+    const stored = sessionStorage.getItem(AUTH_USER_KEY);
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
@@ -55,26 +54,26 @@ function getStoredUser(): AuthUser | null {
 
 function persistAuthState(token: string, user: AuthUser): void {
   try {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+    sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+    sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
   } catch {
-    console.warn("[Auth] Failed to persist auth state to localStorage");
+    console.warn("[Auth] Failed to persist auth state to sessionStorage");
   }
 }
 
 function clearStoredAuth(): void {
   try {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_USER_KEY);
-    localStorage.removeItem(AUTH_RECOVERY_FLAG);
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.removeItem(AUTH_USER_KEY);
+    sessionStorage.removeItem(AUTH_RECOVERY_FLAG);
   } catch {
-    console.warn("[Auth] Failed to clear auth state from localStorage");
+    console.warn("[Auth] Failed to clear auth state from sessionStorage");
   }
 }
 
 function setRecoveryFlag(): void {
   try {
-    localStorage.setItem(AUTH_RECOVERY_FLAG, Date.now().toString());
+    sessionStorage.setItem(AUTH_RECOVERY_FLAG, Date.now().toString());
   } catch {
     // Silently fail - not critical
   }
@@ -82,7 +81,7 @@ function setRecoveryFlag(): void {
 
 function clearRecoveryFlag(): void {
   try {
-    localStorage.removeItem(AUTH_RECOVERY_FLAG);
+    sessionStorage.removeItem(AUTH_RECOVERY_FLAG);
   } catch {
     // Silently fail
   }
@@ -183,8 +182,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessTokenState, setAccessTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authModal, setAuthModal] = useState<AuthModal>("none");
-  const accessTokenRef = useRef<string | null>(null);
-  const hasInitializedRef = useRef(false);
 
   const openAuthModal = useCallback((modal: AuthModal) => {
     setAuthModal(modal);
@@ -197,7 +194,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateSession = useCallback((data: AuthResponse) => {
     setUser(data.user);
     setAccessTokenState(data.accessToken);
-    accessTokenRef.current = data.accessToken;
     setAccessToken(data.accessToken);
     persistAuthState(data.accessToken, data.user);
     clearRecoveryFlag();
@@ -205,7 +201,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = useCallback(async () => {
     let hasValidAuth = false;
-    const currentToken = accessTokenRef.current;
+    const currentToken = accessTokenState ?? getStoredToken();
+    const isRecoveryFlowActive = Boolean(currentToken);
+
+    // Avoid noisy unauthenticated probes for first-time visitors.
+    if (!isRecoveryFlowActive) {
+      return null;
+    }
 
     try {
       const me = await api.get<MeResponse>("/auth/me");
@@ -234,12 +236,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Clear auth state so the user gets the login modal
     if (!hasValidAuth) {
       clearAuthState(setUser, setAccessTokenState);
-      accessTokenRef.current = null;
       return null;
     }
 
     return currentToken;
-  }, [updateSession]);
+  }, [accessTokenState, updateSession]);
 
   const logout = useCallback(async () => {
     try {
@@ -248,7 +249,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // No-op: clear local auth state even if backend call fails.
     } finally {
       clearAuthState(setUser, setAccessTokenState);
-      accessTokenRef.current = null;
       setAuthModal("none");
     }
   }, []);
@@ -335,7 +335,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onRefresh: refreshSession,
       onUnauthorized: () => {
         clearAuthState(setUser, setAccessTokenState);
-        accessTokenRef.current = null;
         setAuthModal("login");
       },
     });
@@ -344,27 +343,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // CRITICAL: Initialize auth state from sessionStorage IMMEDIATELY
   // This prevents logout during payment redirects
   useEffect(() => {
-    if (hasInitializedRef.current) {
-      return;
-    }
-
-    hasInitializedRef.current = true;
-
     // Restore persisted auth state first (synchronous, fast)
     const storedToken = getStoredToken();
     const storedUser = getStoredUser();
 
     if (storedToken && storedUser) {
       setAccessTokenState(storedToken);
-      accessTokenRef.current = storedToken;
       setAccessToken(storedToken);
       setUser(storedUser);
-      console.log("[Auth] Restored session from sessionStorage", {
-        hasToken: Boolean(storedToken),
-        userEmail: storedUser.email,
-      });
-    } else {
-      console.log("[Auth] No stored session found");
+      console.debug("[Auth] Restored session from sessionStorage");
     }
 
     // Then verify/refresh the session (async)
@@ -399,7 +386,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // but token is still valid
         console.warn(
           "[Auth] Session refresh on init failed, keeping existing auth",
-          error,
         );
         clearRecoveryFlag();
       } finally {

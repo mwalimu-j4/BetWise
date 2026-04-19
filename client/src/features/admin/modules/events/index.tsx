@@ -51,6 +51,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
+const SportCategoriesManager = lazy(() => import("./SportCategoriesManager"));
 import {
   AdminSectionHeader,
   AdminStatCard,
@@ -1666,7 +1667,7 @@ function FeedEvents() {
 
 // ── Tab Wrapper ──
 
-type EventsTab = "feed" | "custom";
+type EventsTab = "sport-categories" | "feed" | "custom";
 
 export default function Events() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1677,6 +1678,18 @@ export default function Events() {
     <div className="space-y-3">
       {/* Tab Bar */}
       <div className="flex items-center gap-1 rounded-xl border border-admin-border/60 bg-admin-card p-1">
+        <button
+          type="button"
+          onClick={() => setActiveTab("sport-categories")}
+          className={cn(
+            "flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition",
+            activeTab === "sport-categories"
+              ? "bg-admin-accent/15 text-admin-accent shadow-sm"
+              : "text-admin-text-muted hover:text-admin-text-secondary",
+          )}
+        >
+          Sport Categories
+        </button>
         <button
           type="button"
           onClick={() => setActiveTab("feed")}
@@ -1704,7 +1717,25 @@ export default function Events() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === "feed" ? (
+      {activeTab === "sport-categories" ? (
+        <Suspense
+          fallback={
+            <div className="space-y-3 py-2">
+              <div className="h-10 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card" />
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <div
+                    key={`sport-categories-fallback-${idx}`}
+                    className="h-44 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card"
+                  />
+                ))}
+              </div>
+            </div>
+          }
+        >
+          <SportCategoriesManager />
+        </Suspense>
+      ) : activeTab === "feed" ? (
         <FeedEvents />
       ) : (
         <Suspense

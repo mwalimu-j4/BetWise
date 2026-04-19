@@ -1,5 +1,6 @@
+import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -9,7 +10,6 @@ import {
   CircleSlash,
   Crosshair,
   FileText,
-  Flag,
   Flame,
   HelpCircle,
   Hexagon,
@@ -28,7 +28,7 @@ import {
   Wallet,
   Zap
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type SidebarProps = {
@@ -41,8 +41,6 @@ type Item = {
   to: string;
   icon: React.ReactNode;
   liveBadge?: string;
-  badgeCount?: number;
-  badgeGold?: boolean;
   warn?: boolean;
   notificationBadge?: boolean;
 };
@@ -54,6 +52,58 @@ type Group = {
   children: Item[];
 };
 
+type LiveSidebarMatch = {
+  id: string;
+  sport: string;
+};
+
+const liveSportsOrder = [
+  "Soccer",
+  "Basketball",
+  "Tennis",
+  "Ice Hockey",
+  "Volleyball",
+  "Cricket",
+  "Handball",
+  "Table Tennis",
+] as const;
+
+function toSidebarSportName(raw: string) {
+  const value = raw.toLowerCase();
+  if (value.includes("soccer") || value.includes("football")) return "Soccer";
+  if (value.includes("basket")) return "Basketball";
+  if (value.includes("tennis") && value.includes("table"))
+    return "Table Tennis";
+  if (value.includes("tennis")) return "Tennis";
+  if (value.includes("hockey")) return "Ice Hockey";
+  if (value.includes("volley")) return "Volleyball";
+  if (value.includes("cricket")) return "Cricket";
+  if (value.includes("handball")) return "Handball";
+  return "Soccer";
+}
+
+function sportIcon(name: string): React.ReactNode {
+  switch (name) {
+    case "Soccer":
+      return "⚽";
+    case "Basketball":
+      return "🏀";
+    case "Tennis":
+      return "🎾";
+    case "Ice Hockey":
+      return "🏒";
+    case "Volleyball":
+      return "🏐";
+    case "Cricket":
+      return "🏏";
+    case "Handball":
+      return "🤾";
+    case "Table Tennis":
+      return "🏓";
+    default:
+      return "🎯";
+  }
+}
 
 const myAccount: Item[] = [
   {
@@ -124,11 +174,6 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
         {item.icon}
       </span>
       <span className="bc-side-label">{item.label}</span>
-      {item.badgeCount && item.badgeCount > 0 ? (
-        <span className={`bc-badge ${item.badgeGold ? "gold" : ""}`.trim()}>
-          {item.badgeCount}
-        </span>
-      ) : null}
       {item.liveBadge ? (
         <span className="bc-side-live-badge">{item.liveBadge}</span>
       ) : null}
@@ -138,22 +183,93 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isAuthenticated, logout, openAuthModal } = useAuth();
+  const navigate = useNavigate();
   const [openSports, setOpenSports] = useState<Record<string, boolean>>({
     football: true,
     basketball: true,
   });
+  const [liveSportsOpen, setLiveSportsOpen] = useState(!isAuthenticated);
+  const [liveCounts, setLiveCounts] = useState<Record<string, number>>(() => ({
+    Soccer: 0,
+    Basketball: 0,
+    Tennis: 0,
+    "Ice Hockey": 0,
+    Volleyball: 0,
+    Cricket: 0,
+    Handball: 0,
+    "Table Tennis": 0,
+  }));
 
   const accountSection = useMemo(() => {
     if (!isAuthenticated) return [];
     return myAccount;
   }, [isAuthenticated]);
 
+  // Update Live Sports section visibility based on auth state
+  useEffect(() => {
+    setLiveSportsOpen(!isAuthenticated);
+  }, [isAuthenticated]);
 
   function closeIfMobile() {
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
       onClose();
     }
   }
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchLiveCounts = async () => {
+      try {
+        const { data } = await api.get<{ matches: LiveSidebarMatch[] }>(
+          "/live/matches",
+          {
+            params: {
+              highlights: false,
+              market: "1x2",
+              limit: 300,
+            },
+          },
+        );
+
+        if (!mounted) {
+          return;
+        }
+
+        const nextCounts: Record<string, number> = {
+          Soccer: 0,
+          Basketball: 0,
+          Tennis: 0,
+          "Ice Hockey": 0,
+          Volleyball: 0,
+          Cricket: 0,
+          Handball: 0,
+          "Table Tennis": 0,
+        };
+
+        for (const match of data.matches ?? []) {
+          const sportName = toSidebarSportName(match.sport ?? "soccer");
+          nextCounts[sportName] = (nextCounts[sportName] ?? 0) + 1;
+        }
+
+        setLiveCounts(nextCounts);
+      } catch {
+        if (!mounted) {
+          return;
+        }
+      }
+    };
+
+    void fetchLiveCounts();
+    const timer = window.setInterval(() => {
+      void fetchLiveCounts();
+    }, 10_000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   return (
     <>
@@ -254,48 +370,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             ))}
           </div>
 
+          {/* MAIN NAVIGATION */}
           <div className="bc-side-section">
-            <p className="bc-side-heading">
-              <span className="bc-heading-dot" aria-hidden="true" />
-              More Sports
-            </p>
-            {[
-              {
-                label: "Boxing / MMA",
-                to: "/user/sport/boxing-mma",
-                icon: <Swords size={18} />,
-              },
-              {
-                label: "Baseball",
-                to: "/user/sport/baseball",
-                icon: <CircleDot size={18} />,
-              },
-              {
-                label: "Volleyball",
-                to: "/user/sport/volleyball",
-                icon: <Circle size={18} />,
-              },
-              {
-                label: "Table Tennis",
-                to: "/user/sport/table-tennis",
-                icon: <Crosshair size={18} />,
-              },
-              {
-                label: "Golf",
-                to: "/user/sport/golf",
-                icon: <Flag size={18} />,
-              },
-              {
-                label: "Snooker",
-                to: "/user/sport/snooker",
-                icon: <CircleSlash size={18} />,
-              },
-              {
-                label: "Darts",
-                to: "/user/sport/darts",
-                icon: <Target size={18} />,
-              },
-            ].map((item) => (
+            {navigationLinks.map((item) => (
               <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
             ))}
           </div>
