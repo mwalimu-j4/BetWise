@@ -7,7 +7,6 @@ interface PaymentFeedbackModalProps {
   status: "success" | "failed";
   title: string;
   message: string;
-  reference?: string;
   onClose: () => void;
   onRetry?: () => void;
 }
@@ -17,7 +16,6 @@ export function PaymentFeedbackModal({
   status,
   title,
   message,
-  reference,
   onClose,
   onRetry,
 }: PaymentFeedbackModalProps) {

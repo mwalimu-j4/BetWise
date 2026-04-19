@@ -40,80 +40,99 @@ export default function PaystackDepositPage() {
 
   const amountValue = useMemo(() => Number(amount) || 0, [amount]);
 
+  // Handle callback from Paystack with status parameter
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const routeStatus = params.get("status"); // "success", "failed", or "pending"
+    const handlePaystackCallback = () => {
+      const params = new URLSearchParams(window.location.search);
+      const routeStatus = params.get("status"); // "success", "failed", or "pending"
 
-    // Only process if we're coming back from payment (status in URL)
-    if (routeStatus) {
+      console.log("🔍 Paystack callback handler - status:", routeStatus);
+
+      if (!routeStatus) {
+        // Fresh page load without callback
+        localStorage.removeItem(pendingStorageKey);
+        return;
+      }
+
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      
+
       if (routeStatus === "success") {
+        console.log("✅ Payment successful from server callback");
         setPaymentStatus("success");
         setShowPaymentResult(true);
         setIsProcessing(false);
+        localStorage.removeItem(pendingStorageKey);
+        toast.success("Payment successful! Your wallet has been credited.");
       } else if (routeStatus === "failed") {
+        console.log("❌ Payment failed from server callback");
         setPaymentStatus("failed");
         setShowPaymentResult(true);
         setIsProcessing(false);
+        localStorage.removeItem(pendingStorageKey);
+        toast.error("Payment failed. Please try again.");
       } else if (routeStatus === "pending") {
-        // Payment is still pending, show loading modal
+        console.log("⏳ Payment pending - starting verification polling");
         setIsProcessing(true);
-        // Optional: retrieve stored reference to display in loading message
         const storedReference = localStorage.getItem(pendingStorageKey);
         if (storedReference) {
           setVerificationReference(storedReference);
           setPaymentReference(storedReference);
           setShouldVerify(true);
+        } else {
+          console.warn("⚠️ No stored reference for pending payment");
+          setIsProcessing(false);
         }
       }
-    } else {
-      // On fresh page load without URL status, reset state
-      localStorage.removeItem(pendingStorageKey);
-      setVerificationReference(null);
-      setPaymentReference(null);
-      setShouldVerify(false);
-      setIsProcessing(false);
-      setPaymentStatus(null);
-      setShowPaymentResult(false);
-    }
+    };
+
+    handlePaystackCallback();
   }, []);
 
+  // Handle verification polling results
   useEffect(() => {
-    const status = verificationQuery.data?.status;
-    if (!shouldVerify || !verificationReference || !status) {
+    if (!shouldVerify || !verificationReference) {
       return;
     }
 
+    const status = verificationQuery.data?.status;
+
+    if (!status) {
+      return;
+    }
+
+    console.log("📊 Verification result - status:", status);
+
     if (status === "success") {
+      console.log("✅ Payment confirmed via verification");
       localStorage.removeItem(pendingStorageKey);
       setPaymentStatus("success");
       setShowPaymentResult(true);
       setIsProcessing(false);
       setShouldVerify(false);
+      toast.success("Payment confirmed! Your wallet has been credited.");
       return;
     }
 
     if (status === "failed" || status === "reversed") {
+      console.log("❌ Payment verification failed");
       localStorage.removeItem(pendingStorageKey);
       setPaymentStatus("failed");
       setShowPaymentResult(true);
       setIsProcessing(false);
       setShouldVerify(false);
+      toast.error("Payment could not be confirmed.");
       return;
     }
 
-    // If pending, keep showing loading
     if (status === "pending") {
+      console.log("⏳ Still waiting for payment confirmation...");
       setIsProcessing(true);
       return;
     }
-
-    setIsProcessing(true);
   }, [verificationQuery.data?.status, shouldVerify, verificationReference]);
 
-  // Handle verification query errors - show error if it fails after many retries
+  // Handle verification polling errors
   useEffect(() => {
     if (
       shouldVerify &&
@@ -121,12 +140,15 @@ export default function PaystackDepositPage() {
       verificationQuery.isError &&
       verificationQuery.failureCount >= 10
     ) {
-      // After 10+ failed retries, show error
+      console.log("❌ Verification polling exhausted after 10+ retries");
       localStorage.removeItem(pendingStorageKey);
       setPaymentStatus("failed");
       setShowPaymentResult(true);
       setIsProcessing(false);
       setShouldVerify(false);
+      toast.error(
+        "Payment verification timed out. Please check your transaction status.",
+      );
     }
   }, [
     verificationQuery.isError,
@@ -134,6 +156,26 @@ export default function PaystackDepositPage() {
     shouldVerify,
     verificationReference,
   ]);
+
+  const onClose = () => {
+    console.log("🔴 Closing payment modal");
+    setShowPaymentResult(false);
+    setPaymentReference(null);
+    setPaymentStatus(null);
+    setShouldVerify(false);
+  };
+
+  const onRetry = () => {
+    if (paymentReference) {
+      console.log("🔄 Retrying payment verification");
+      setShowPaymentResult(false);
+      setPaymentStatus(null);
+      setVerificationReference(paymentReference);
+      setShouldVerify(true);
+      setIsProcessing(true);
+      toast.loading("Checking payment status...");
+    }
+  };
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -151,6 +193,7 @@ export default function PaystackDepositPage() {
     setIsProcessing(true);
 
     try {
+      console.log("💳 Initializing Paystack payment - Amount:", amountValue);
       const response = await initializeMutation.mutateAsync({
         email: user.email,
         amount: amountValue,
@@ -164,14 +207,18 @@ export default function PaystackDepositPage() {
       setVerificationReference(response.reference);
       setPaymentReference(response.reference);
 
+      console.log("🎟️ Paystack reference stored:", response.reference);
+
       toast.loading("Redirecting to Paystack checkout...", {
         description: `Amount: KES ${formatMoney(amountValue)}`,
       });
 
       setTimeout(() => {
+        console.log("→ Redirecting to Paystack checkout");
         window.location.assign(response.authorization_url);
       }, 500);
     } catch (error: any) {
+      console.error("❌ Payment initialization failed:", error);
       setIsProcessing(false);
       const message =
         error?.response?.data?.error ??
@@ -199,11 +246,7 @@ export default function PaystackDepositPage() {
         status="success"
         title="Payment Successful"
         message="Your wallet has been credited successfully."
-        onClose={() => {
-          setShowPaymentResult(false);
-          setPaymentReference(null);
-          setPaymentStatus(null);
-        }}
+        onClose={onClose}
       />
 
       <PaymentFeedbackModal
@@ -211,21 +254,8 @@ export default function PaystackDepositPage() {
         status="failed"
         title="Payment Failed"
         message="Your payment could not be confirmed. Please try again."
-        onClose={() => {
-          setShowPaymentResult(false);
-          setPaymentReference(null);
-          setPaymentStatus(null);
-        }}
-        onRetry={() => {
-          // Retry by re-verifying with the same reference
-          if (paymentReference) {
-            setShowPaymentResult(false);
-            setPaymentStatus(null);
-            setVerificationReference(paymentReference);
-            setShouldVerify(true);
-            setIsProcessing(true);
-          }
-        }}
+        onClose={onClose}
+        onRetry={onRetry}
       />
 
       <article className="overflow-hidden rounded-3xl border border-[#243a53] bg-[radial-gradient(circle_at_top,_rgba(245,197,24,0.14),_transparent_35%),linear-gradient(180deg,#111d2e_0%,#0b1421_100%)] shadow-2xl">
