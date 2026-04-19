@@ -124,9 +124,6 @@ export async function initializePaystackTransaction(
   };
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-
     const response = await fetch(
       "https://api.paystack.co/transaction/initialize",
       {
@@ -136,11 +133,8 @@ export async function initializePaystackTransaction(
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-        signal: controller.signal,
       },
     );
-
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -159,115 +153,54 @@ export async function initializePaystackTransaction(
 
     return data;
   } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      console.error("Paystack initialize timeout:", request.email);
-      throw new Error("Paystack service timeout. Please try again.");
-    }
     console.error("Paystack initialize error:", error);
     throw error;
   }
 }
 
 /**
- * Verify a Paystack transaction with retry logic and timeout
+ * Verify a Paystack transaction
  * @param reference Transaction reference
- * @param maxRetries Number of retry attempts (default: 3)
  * @returns Verification response with transaction details
  */
 export async function verifyPaystackTransaction(
   reference: string,
-  maxRetries = 3,
 ): Promise<PaystackVerifyResponse> {
   if (!PAYSTACK_SECRET_KEY) {
     throw new Error("PAYSTACK_SECRET_KEY not configured");
   }
 
-  let lastError: Error | null = null;
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-
-      const response = await fetch(
-        `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          },
-          signal: controller.signal,
+  try {
+    const response = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
         },
+      },
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        `Paystack API error: ${response.statusText} - ${JSON.stringify(errorData)}`,
       );
-
-      clearTimeout(timeoutId);
-
-      const data = (await response.json().catch(() => ({
-        status: false,
-        message: "Failed to parse response",
-      }))) as PaystackVerifyResponse;
-
-      if (!response.ok) {
-        // If not found and we haven't retried yet, retry as transaction might not be settled yet
-        if (response.status === 404 && attempt < maxRetries) {
-          console.warn(
-            `Paystack transaction ${reference} not found yet (attempt ${attempt + 1}/${maxRetries + 1}). Retrying...`,
-          );
-          const delayMs = Math.min(500 * Math.pow(2, attempt), 3000);
-          await new Promise((resolve) => setTimeout(resolve, delayMs));
-          continue;
-        }
-
-        const errorMessage = data.message || response.statusText;
-        throw new Error(
-          `Paystack API error ${response.status}: ${errorMessage}`,
-        );
-      }
-
-      if (!data.status) {
-        throw new Error(
-          `Paystack verification failed: ${data.message || "Unknown error"}`,
-        );
-      }
-
-      return data;
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      const isNetworkError =
-        lastError.name === "AbortError" ||
-        lastError.message.includes("ECONNREFUSED") ||
-        lastError.message.includes("ENOTFOUND") ||
-        lastError.message.includes("ETIMEDOUT") ||
-        lastError.message.includes("fetch error");
-
-      console.warn(
-        `Paystack verify attempt ${attempt + 1}/${maxRetries + 1} failed:`,
-        {
-          reference,
-          error: lastError.message,
-          isNetworkError,
-          willRetry: attempt < maxRetries,
-        },
-      );
-
-      // Retry on network errors or failed attempts that might recover
-      if (
-        attempt < maxRetries &&
-        (isNetworkError || lastError.message.includes("not found"))
-      ) {
-        const delayMs = Math.min(500 * Math.pow(2, attempt), 3000);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
-        continue;
-      }
-
-      // For other errors, throw immediately
-      throw lastError;
     }
-  }
 
-  throw (
-    lastError || new Error("Paystack verification failed after max retries")
-  );
+    const data = (await response.json()) as PaystackVerifyResponse;
+
+    if (!data.status) {
+      throw new Error(
+        `Paystack verification failed: ${data.message || "Unknown error"}`,
+      );
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Paystack verify error:", error);
+    throw error;
+  }
 }
 
 // ============================================================================
@@ -298,10 +231,7 @@ export function verifyPaystackWebhookSignature(
   const normalizedSignature = signature.trim().toLowerCase();
 
   // Ensure signature is valid hex before Buffer conversion/comparison.
-  if (
-    !/^[a-f0-9]+$/.test(normalizedSignature) ||
-    normalizedSignature.length % 2 !== 0
-  ) {
+  if (!/^[a-f0-9]+$/.test(normalizedSignature) || normalizedSignature.length % 2 !== 0) {
     return false;
   }
 
@@ -445,38 +375,16 @@ export async function createPaystackTransferRecipient(
     throw new Error("PAYSTACK_SECRET_KEY not configured");
   }
 
-  // Convert phone to local Kenyan format (0XXXXXXXXX)
-  // Paystack Kenya M-Pesa API expects local format, not international format
-  let formattedPhone = phoneNumber.replace(/\D/g, ""); // Remove all non-digits
+  // Normalize phone number to remove + prefix if present (Paystack expects different formats for different regions)
+  const normalizedPhone = phoneNumber.replace(/^\+/, "");
 
-  if (formattedPhone.startsWith("254")) {
-    // Convert from international (254789278383) to local (0789278383)
-    formattedPhone = `0${formattedPhone.slice(3)}`;
-  } else if (!formattedPhone.startsWith("0")) {
-    // If it doesn't start with 0 or 254, assume it's already missing country code
-    formattedPhone = `0${formattedPhone}`;
-  }
-
-  // For Kenya M-Pesa transfers, we need:
-  // - type: "mobile_money"
-  // - bank_code: "MPESA" (for individual users)
-  // - account_number: the phone number in LOCAL format (0789278383)
-  // - currency: "KES"
   const payload = {
     type: "mobile_money",
-    bank_code: "MPESA", // CRITICAL: Required for Kenya mobile money
-    account_number: formattedPhone, // Phone number in local format (0XXXXXXXXX)
-    currency: "KES", // Kenya Shilling
-    name: name || `M-Pesa - ${formattedPhone}`,
+    phone_number: normalizedPhone,
+    account_number: normalizedPhone, // Required by Paystack for mobile money transfers
+    name: name || `Mobile Money - ${phoneNumber}`,
+    business_name: name || `Mobile Money - ${phoneNumber}`, // Additional required field for some regions
   };
-
-  console.log("[Paystack] Creating transfer recipient:", {
-    originalPhone: phoneNumber,
-    formattedPhone: payload.account_number,
-    bank_code: payload.bank_code,
-    currency: payload.currency,
-    type: payload.type,
-  });
 
   try {
     const response = await fetch("https://api.paystack.co/transferrecipient", {

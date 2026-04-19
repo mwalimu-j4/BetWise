@@ -45,20 +45,10 @@ const userCustomEventsPageRoute = createRoute({
   ),
 });
 
-const sportCategoryPageRoute = createRoute({
-  getParentRoute: () => userIndexLayoutRoute,
-  path: "/sport/$sportSlug",
-  component: lazyRouteComponent(
-    () => import("@/features/user/pages/sport-category"),
-  ),
-});
-
 export const userIndexRoute = userIndexLayoutRoute.addChildren([
   userHomePageRoute,
   userBetsPageRoute.addChildren([userBetDetailPageRoute]),
   userEventsPageRoute,
   userCustomEventsPageRoute,
-  sportCategoryPageRoute,
 ]);
-
 
