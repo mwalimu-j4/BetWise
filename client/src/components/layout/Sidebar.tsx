@@ -3,29 +3,30 @@ import { Link, useLocation } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
+  ChevronDown,
   Circle,
   CircleDot,
   CircleSlash,
-  ChevronDown,
   Crosshair,
   FileText,
   Flag,
   Flame,
   HelpCircle,
   Hexagon,
-  House,
   History,
-  Home,
+  House,
   LogOut,
   MessageCircle,
   Shield,
-  Swords,
   Star,
+  Swords,
   Target,
   TrendingUp,
+  Triangle,
   Trophy,
   User,
-  Wallet
+  Wallet,
+  Zap
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -53,22 +54,6 @@ type Group = {
   children: Item[];
 };
 
-
-const navigationLinks: Item[] = [
-  { label: "Homepage", to: "/user", icon: <Home size={18} /> },
-  {
-    label: "Custom Events",
-    to: "/user/custom-events",
-    icon: <Trophy size={18} />,
-  },
-
-  {
-    label: "Live Betting",
-    to: "/user/live",
-    icon: <Flame size={18} />,
-    liveBadge: "LIVE",
-  },
-];
 
 const myAccount: Item[] = [
   {
@@ -225,44 +210,44 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 label: "Football",
                 to: "/user/sport/football",
                 icon: <Trophy size={18} />,
-                badgeCount: eventCounts?.football ?? 0,
+                badgeCount: 0,
                 badgeGold: true,
               },
               {
                 label: "Basketball",
                 to: "/user/sport/basketball",
                 icon: <CircleDot size={18} />,
-                badgeCount: eventCounts?.basketball ?? 0,
+                badgeCount: 0,
               },
               {
                 label: "Tennis",
                 to: "/user/sport/tennis",
                 icon: <Circle size={18} />,
-                badgeCount: eventCounts?.tennis ?? 0,
+                badgeCount: 0,
               },
               {
                 label: "American Football",
                 to: "/user/sport/american-football",
                 icon: <Shield size={18} />,
-                badgeCount: eventCounts?.americanFootball ?? 0,
+                badgeCount: 0,
               },
               {
                 label: "Cricket",
                 to: "/user/sport/cricket",
                 icon: <Triangle size={18} />,
-                badgeCount: eventCounts?.cricket ?? 0,
+                badgeCount: 0,
               },
               {
                 label: "Ice Hockey",
                 to: "/user/sport/ice-hockey",
                 icon: <CircleSlash size={18} />,
-                badgeCount: eventCounts?.iceHockey ?? 0,
+                badgeCount: 0,
               },
               {
                 label: "Rugby Union",
                 to: "/user/sport/rugby-union",
                 icon: <Hexagon size={18} />,
-                badgeCount: eventCounts?.rugbyUnion ?? 0,
+                badgeCount: 0,
               },
             ].map((item) => (
               <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
