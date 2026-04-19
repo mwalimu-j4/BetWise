@@ -90,12 +90,46 @@ test("allowed origins include production and localhost entries", () => {
       CORS_ORIGINS:
         "https://betixpro.com,https://www.betixpro.com,http://localhost:5173,http://localhost:3000",
       FRONTEND_URL: undefined,
-      NODE_ENV: "production",
+      NODE_ENV: "development",
     },
     () => {
       const allowed = resolveAllowedOriginsFromEnv();
       assert.ok(allowed.includes("https://betixpro.com"));
       assert.ok(allowed.includes("https://www.betixpro.com"));
+      assert.ok(allowed.includes("http://localhost:5173"));
+      assert.ok(allowed.includes("http://localhost:3000"));
+    },
+  );
+});
+
+test("production-like runtime excludes localhost unless explicitly enabled", () => {
+  withEnvSync(
+    {
+      CORS_ORIGINS: "https://betixpro.com,https://www.betixpro.com",
+      FRONTEND_URL: undefined,
+      NODE_ENV: "prod",
+      ENABLE_LOCALHOST_CORS_IN_PRODUCTION: undefined,
+    },
+    () => {
+      const allowed = resolveAllowedOriginsFromEnv();
+      assert.ok(allowed.includes("https://betixpro.com"));
+      assert.ok(allowed.includes("https://www.betixpro.com"));
+      assert.equal(allowed.includes("http://localhost:5173"), false);
+      assert.equal(allowed.includes("http://localhost:3000"), false);
+    },
+  );
+});
+
+test("production-like runtime can opt in localhost origins", () => {
+  withEnvSync(
+    {
+      CORS_ORIGINS: "https://betixpro.com,https://www.betixpro.com",
+      FRONTEND_URL: undefined,
+      NODE_ENV: "production",
+      ENABLE_LOCALHOST_CORS_IN_PRODUCTION: "true",
+    },
+    () => {
+      const allowed = resolveAllowedOriginsFromEnv();
       assert.ok(allowed.includes("http://localhost:5173"));
       assert.ok(allowed.includes("http://localhost:3000"));
     },
@@ -140,6 +174,25 @@ test("request origin validator accepts allowed origins and rejects unknown origi
         false,
       );
       assert.equal(isRequestOriginAllowed(undefined, undefined), true);
+    },
+  );
+});
+
+test("requests without Origin header are allowed for server-to-server paths", async () => {
+  await withEnv(
+    {
+      CORS_ORIGINS:
+        "https://betixpro.com,https://www.betixpro.com,http://localhost:5173,http://localhost:3000",
+      FRONTEND_URL: undefined,
+      NODE_ENV: "production",
+    },
+    async () => {
+      const app = createTestCorsApp();
+      const response = await request(app)
+        .post("/api/auth/login")
+        .send({ phone: "0700000000", password: "password" });
+
+      assert.equal(response.status, 200);
     },
   );
 });

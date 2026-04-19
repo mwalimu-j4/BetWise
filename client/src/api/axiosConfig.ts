@@ -1,6 +1,8 @@
 import axios from "axios";
 
 const PRODUCTION_API_BASE_URL = "https://api.betixpro.com/api";
+const PRODUCTION_APP_HOSTS = new Set(["betixpro.com", "www.betixpro.com"]);
+const PRODUCTION_API_HOST = "api.betixpro.com";
 
 type RefreshHandler = () => Promise<string | null>;
 type UnauthorizedHandler = () => void;
@@ -21,9 +23,33 @@ function resolveApiBaseUrl() {
 
   const appHost = window.location.hostname;
   const isLocalAppHost = appHost === "localhost" || appHost === "127.0.0.1";
+  const isPublicProductionHost = PRODUCTION_APP_HOSTS.has(appHost);
 
   if (!rawBaseUrl) {
     return isLocalAppHost ? "/api" : PRODUCTION_API_BASE_URL;
+  }
+
+  if (isPublicProductionHost) {
+    // Hard fail-safe for production frontend domains: always call the API origin.
+    if (rawBaseUrl.startsWith("/")) {
+      return PRODUCTION_API_BASE_URL;
+    }
+
+    try {
+      const baseUrl = new URL(rawBaseUrl, window.location.origin);
+      const host = baseUrl.hostname.toLowerCase();
+      const normalizedPath = baseUrl.pathname.replace(/\/+$/, "");
+      const hasApiPath =
+        normalizedPath === "/api" || normalizedPath.startsWith("/api/");
+
+      if (host === PRODUCTION_API_HOST && hasApiPath) {
+        return `${baseUrl.origin}/api`;
+      }
+
+      return PRODUCTION_API_BASE_URL;
+    } catch {
+      return PRODUCTION_API_BASE_URL;
+    }
   }
 
   if (!isLocalAppHost) {
@@ -58,6 +84,12 @@ let refreshHandler: RefreshHandler | null = null;
 let unauthorizedHandler: UnauthorizedHandler | null = null;
 let refreshPromise: Promise<string | null> | null = null;
 
+function debugLog(message: string, details: Record<string, unknown>) {
+  if (import.meta.env.DEV) {
+    console.log(message, details);
+  }
+}
+
 function shouldSkipRefresh(url: string | undefined) {
   if (!url) return false;
   return (
@@ -83,8 +115,30 @@ api.interceptors.request.use((config) => {
   const mutableConfig = config as RetryableRequestConfig;
   mutableConfig.headers = mutableConfig.headers ?? {};
 
-  if (accessToken) {
-    mutableConfig.headers.Authorization = `Bearer ${accessToken}`;
+  // CRITICAL: If token is not in memory, try to restore from sessionStorage
+  // This handles the case where the page was refreshed or came from a redirect
+  let tokenToUse = accessToken;
+  if (!tokenToUse) {
+    try {
+      const storedToken = sessionStorage.getItem("betwise-auth-token");
+      if (storedToken) {
+        tokenToUse = storedToken;
+        debugLog("[Axios] Restored token from sessionStorage", {
+          hasToken: Boolean(storedToken),
+          url: config.url,
+        });
+      }
+    } catch {
+      // localStorage might not be available in some contexts
+    }
+  }
+
+  if (tokenToUse) {
+    mutableConfig.headers.Authorization = `Bearer ${tokenToUse}`;
+    debugLog("[Axios] Added Authorization header", {
+      url: config.url,
+      hasToken: Boolean(tokenToUse),
+    });
   }
 
   return config;

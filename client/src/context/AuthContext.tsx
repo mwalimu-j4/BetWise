@@ -201,6 +201,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = useCallback(async () => {
     let hasValidAuth = false;
+    const currentToken = accessTokenState ?? getStoredToken();
+    const isRecoveryFlowActive = Boolean(currentToken);
+
+    // Avoid noisy unauthenticated probes for first-time visitors.
+    if (!isRecoveryFlowActive) {
+      return null;
+    }
 
     try {
       const me = await api.get<MeResponse>("/auth/me");
@@ -208,10 +215,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       hasValidAuth = true;
 
       // Keep existing token if /auth/me succeeds
-      if (accessTokenState) {
-        persistAuthState(accessTokenState, me.data.user);
+      if (currentToken) {
+        persistAuthState(currentToken, me.data.user);
       }
-      return accessTokenState;
+      return currentToken;
     } catch (meError) {
       // /auth/me failed, try refreshing token
     }
@@ -227,17 +234,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // If we couldn't verify auth but have an access token, keep it
     // This is critical for payment redirects where token might still be valid
-    if (accessTokenState && !hasValidAuth) {
-      return accessTokenState;
+    if (currentToken && !hasValidAuth) {
+      return currentToken;
     }
 
     // Only clear auth state if we're certain there's no valid session
-    if (!hasValidAuth && !accessTokenState) {
+    if (!hasValidAuth && !currentToken) {
       clearAuthState(setUser, setAccessTokenState);
       return null;
     }
 
-    return accessTokenState;
+    return currentToken;
   }, [accessTokenState, updateSession]);
 
   const logout = useCallback(async () => {

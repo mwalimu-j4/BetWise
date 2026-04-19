@@ -7,10 +7,7 @@ const REQUIRED_PRODUCTION_ORIGINS = [
 
 const DEVELOPMENT_ORIGINS = ["http://localhost:5173", "http://localhost:3000"];
 
-const DEFAULT_ALLOWED_ORIGINS = [
-  ...REQUIRED_PRODUCTION_ORIGINS,
-  ...DEVELOPMENT_ORIGINS,
-];
+const PRODUCTION_LIKE_ENV_NAMES = new Set(["production", "prod"]);
 
 function normalizeOrigin(value: string) {
   try {
@@ -22,6 +19,25 @@ function normalizeOrigin(value: string) {
 
 function unique(values: string[]) {
   return [...new Set(values)];
+}
+
+function isTruthy(value: string | undefined) {
+  if (!value) {
+    return false;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized !== "" && normalized !== "0" && normalized !== "false";
+}
+
+export function isProductionLikeRuntime() {
+  const runtimeEnv = (process.env.NODE_ENV ?? "").trim().toLowerCase();
+  return (
+    PRODUCTION_LIKE_ENV_NAMES.has(runtimeEnv) ||
+    isTruthy(process.env.VERCEL) ||
+    isTruthy(process.env.RENDER) ||
+    isTruthy(process.env.RAILWAY_ENVIRONMENT)
+  );
 }
 
 function parseRawOrigins(raw: string | undefined) {
@@ -41,27 +57,30 @@ export function resolveAllowedOriginsFromEnv() {
   const fromCorsOrigins = parseRawOrigins(process.env.CORS_ORIGINS);
   const fromFrontendUrl = parseRawOrigins(process.env.FRONTEND_URL);
   const configured = unique([...fromCorsOrigins, ...fromFrontendUrl]);
+  const includeDevOrigins =
+    !isProductionLikeRuntime() ||
+    isTruthy(process.env.ENABLE_LOCALHOST_CORS_IN_PRODUCTION);
+  const baselineOrigins = includeDevOrigins
+    ? [...REQUIRED_PRODUCTION_ORIGINS, ...DEVELOPMENT_ORIGINS]
+    : [...REQUIRED_PRODUCTION_ORIGINS];
 
-  if (configured.length > 0) {
-    return configured;
-  }
-
-  return DEFAULT_ALLOWED_ORIGINS;
+  return unique([...baselineOrigins, ...configured]);
 }
 
 export function validateCorsConfiguration() {
   const allowedOrigins = resolveAllowedOriginsFromEnv();
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProductionLike = isProductionLikeRuntime();
+  const configuredCorsOrigins = parseRawOrigins(process.env.CORS_ORIGINS);
 
-  if (isProduction && !(process.env.CORS_ORIGINS ?? "").trim()) {
+  if (isProductionLike && !(process.env.CORS_ORIGINS ?? "").trim()) {
     throw new Error(
       "CORS_ORIGINS must be set in production and include public frontend origins.",
     );
   }
 
-  if (isProduction) {
+  if (isProductionLike) {
     const missingRequiredOrigins = REQUIRED_PRODUCTION_ORIGINS.filter(
-      (requiredOrigin) => !allowedOrigins.includes(requiredOrigin),
+      (requiredOrigin) => !configuredCorsOrigins.includes(requiredOrigin),
     );
 
     if (missingRequiredOrigins.length > 0) {
@@ -129,7 +148,14 @@ export function createCorsOptions(): CorsOptions {
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-csrf-token",
+      "X-CSRF-Token",
+      "X-Requested-With",
+    ],
     optionsSuccessStatus: 204,
+    maxAge: 86400,
   };
 }
