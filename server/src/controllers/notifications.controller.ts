@@ -235,7 +235,6 @@ export async function createWithdrawalNotifications(args: {
 }
 
 function toClientNotification(notification: {
-  paystackReference: string | null;
   id: string;
   audience: "USER" | "ADMIN";
   type:
@@ -253,9 +252,6 @@ function toClientNotification(notification: {
   isRead: boolean;
   createdAt: Date;
 }) {
-  const paystackReference =
-    notification.paystackReference ?? notification.mpesaCode ?? null;
-
   return {
     id: notification.id,
     audience: notification.audience,
