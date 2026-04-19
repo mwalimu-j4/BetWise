@@ -16,8 +16,13 @@ export function MatchSelectionCard({ selection }: MatchSelectionCardProps) {
   return (
     <article className="rounded-xl border border-[#2b3a4f] bg-[#1a2332] p-3">
       <div className="flex items-center justify-between gap-2 border-b border-[#2b3a4f]/50 pb-2 mb-2">
-        <p className="truncate text-sm font-bold text-white">
+        <p className="truncate text-sm font-bold text-white uppercase">
           {selection.home_team} vs {selection.away_team}
+          {(selection.ft_result && selection.ft_result !== "-") && (
+            <span className="ml-2 text-[#f5c518]">
+              ({selection.ft_result})
+            </span>
+          )}
         </p>
         <span
           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight ${statusDotClass[selection.status]} text-white`}

@@ -468,7 +468,21 @@ myBetsRouter.get(
             userId: true,
             eventId: true,
             status: true,
-            selection: { select: { name: true, label: true } },
+            selection: {
+              select: {
+                name: true,
+                label: true,
+                market: {
+                  select: {
+                    selections: {
+                      where: { result: "WIN" },
+                      select: { name: true, label: true },
+                      take: 1,
+                    },
+                  },
+                },
+              },
+            },
             stake: true,
             odds: true,
             potentialWin: true,
@@ -502,6 +516,9 @@ myBetsRouter.get(
         else if (customBet.status === "LOST") statusStr = "lost";
         else if (customBet.status === "VOID" || customBet.status === "CANCELLED") statusStr = "cancelled";
         
+        const winner = customBet.selection.market.selections[0];
+        const ftResult = winner ? (winner.name || winner.label) : null;
+
         return res.status(200).json({
           id: customBet.id,
           bet_code: `CB-${customBet.id.substring(0, 8).toUpperCase()}`,
@@ -521,7 +538,7 @@ myBetsRouter.get(
               market_type: customBet.event.category,
               pick: customBet.selection.name || customBet.selection.label,
               odds: customBet.odds,
-              ft_result: null,
+              ft_result: ftResult,
               status: statusStr,
               live_score: null,
             }

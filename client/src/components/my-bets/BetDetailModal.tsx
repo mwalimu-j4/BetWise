@@ -63,8 +63,15 @@ export function BetDetailModal({
               {bet.status}
             </span>
             {bet.match_name && (
-              <h2 className="text-sm font-bold text-white truncate max-w-[180px] sm:max-w-[250px]">
+              <h2 className="text-sm font-bold text-white truncate max-w-[180px] sm:max-w-[250px] uppercase">
                 {bet.match_name}
+                {bet.selections.length === 1 &&
+                  bet.selections[0].ft_result &&
+                  bet.selections[0].ft_result !== "-" && (
+                    <span className="ml-2 text-[#f5c518]">
+                      ({bet.selections[0].ft_result})
+                    </span>
+                  )}
               </h2>
             )}
           </div>
