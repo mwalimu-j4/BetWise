@@ -6,7 +6,11 @@ import {
   emitCustomEventLive,
   emitCustomEventFinished,
 } from "../lib/socket";
-import { createEventEndedAdminNotification } from "../controllers/notifications.controller";
+import {
+  createEventEndedAdminNotification,
+  createMatchEndedUserNotifications,
+  createSportMatchEndedUserNotifications,
+} from "../controllers/notifications.controller";
 
 export async function updateEventStatuses() {
   const now = new Date();
@@ -60,14 +64,20 @@ export async function updateEventStatuses() {
         ]);
 
         if (totalCount > 0) {
-          await createEventEndedAdminNotification({
-            eventName: `${event.homeTeam} vs ${event.awayTeam}`,
-            eventType: "sport",
-            pendingBetsCount: pendingCount,
-            totalBetsCount: totalCount,
-            totalStaked: stakeAgg._sum.stake ?? 0,
-            eventId: event.eventId,
-          });
+          await Promise.all([
+            createEventEndedAdminNotification({
+              eventName: `${event.homeTeam} vs ${event.awayTeam}`,
+              eventType: "sport",
+              pendingBetsCount: pendingCount,
+              totalBetsCount: totalCount,
+              totalStaked: stakeAgg._sum.stake ?? 0,
+              eventId: event.eventId,
+            }),
+            createSportMatchEndedUserNotifications({
+              eventId: event.eventId,
+              eventName: `${event.homeTeam} vs ${event.awayTeam}`,
+            })
+          ]);
         }
       } catch (err) {
         console.error(`[Scheduler] Failed to send event-ended notification for ${event.eventId}:`, err);
@@ -174,14 +184,20 @@ export async function updateCustomEventStatuses() {
             ]);
 
             if (totalBets > 0) {
-              await createEventEndedAdminNotification({
-                eventName: event.title,
-                eventType: "custom",
-                pendingBetsCount: pendingBets,
-                totalBetsCount: totalBets,
-                totalStaked: stakeAgg._sum.stake ?? 0,
-                eventId: event.id,
-              });
+              await Promise.all([
+                createEventEndedAdminNotification({
+                  eventName: event.title,
+                  eventType: "custom",
+                  pendingBetsCount: pendingBets,
+                  totalBetsCount: totalBets,
+                  totalStaked: stakeAgg._sum.stake ?? 0,
+                  eventId: event.id,
+                }),
+                createMatchEndedUserNotifications({
+                  eventId: event.id,
+                  eventName: event.title,
+                })
+              ]);
             }
           } catch (err) {
             console.error(`[CustomEventsScheduler] Failed to send event-ended notification for ${event.id}:`, err);

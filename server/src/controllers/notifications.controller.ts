@@ -353,6 +353,102 @@ export async function createEventEndedAdminNotification(args: {
   }
 }
 
+/**
+ * Notifies all users who placed a bet on a custom event that the match has ended.
+ * Each user receives one notification regardless of how many bets they placed.
+ */
+export async function createMatchEndedUserNotifications(args: {
+  eventId: string;
+  eventName: string;
+}) {
+  try {
+    // Get distinct user IDs who placed bets on this event
+    const bettors = await prisma.customBet.findMany({
+      where: { eventId: args.eventId },
+      select: { userId: true },
+      distinct: ["userId"],
+    });
+
+    if (bettors.length === 0) return;
+
+    const createdAtIso = new Date().toISOString();
+    const title = "🏁 Match Ended";
+    const message = `${args.eventName} has ended. Results will be processed shortly — check back soon for your bet outcomes!`;
+
+    await prisma.notification.createMany({
+      data: bettors.map((bettor) => ({
+        userId: bettor.userId,
+        audience: "USER" as const,
+        type: "EVENT_ENDED" as const,
+        title,
+        message,
+      })),
+      skipDuplicates: true,
+    });
+
+    for (const bettor of bettors) {
+      emitNotificationUpdate(bettor.userId, {
+        audience: "USER",
+        type: "EVENT_ENDED",
+        title,
+        message,
+        createdAt: createdAtIso,
+      });
+    }
+
+    console.log(`[Notifications] Notified ${bettors.length} users about match ended: ${args.eventName}`);
+  } catch (error) {
+    console.error("[Notifications] Failed to notify users about match ending:", error);
+  }
+}
+
+/**
+ * Notifies all users who placed a bet on a standard sports event that the match has ended.
+ */
+export async function createSportMatchEndedUserNotifications(args: {
+  eventId: string;
+  eventName: string;
+}) {
+  try {
+    const bettors = await prisma.bet.findMany({
+      where: { eventId: args.eventId },
+      select: { userId: true },
+      distinct: ["userId"],
+    });
+
+    if (bettors.length === 0) return;
+
+    const createdAtIso = new Date().toISOString();
+    const title = "🏁 Match Ended";
+    const message = `${args.eventName} has ended. Results will be processed shortly — check back soon for your bet outcomes!`;
+
+    await prisma.notification.createMany({
+      data: bettors.map((bettor) => ({
+        userId: bettor.userId,
+        audience: "USER" as const,
+        type: "EVENT_ENDED" as const,
+        title,
+        message,
+      })),
+      skipDuplicates: true,
+    });
+
+    for (const bettor of bettors) {
+      emitNotificationUpdate(bettor.userId, {
+        audience: "USER",
+        type: "EVENT_ENDED",
+        title,
+        message,
+        createdAt: createdAtIso,
+      });
+    }
+
+    console.log(`[Notifications] Notified ${bettors.length} users about sport match ended: ${args.eventName}`);
+  } catch (error) {
+    console.error("[Notifications] Failed to notify users about sport match ending:", error);
+  }
+}
+
 function toClientNotification(notification: {
   id: string;
   audience: "USER" | "ADMIN";
