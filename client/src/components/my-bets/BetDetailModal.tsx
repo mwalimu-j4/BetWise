@@ -97,10 +97,10 @@ export function BetDetailModal({
             )}
 
             {/* STATS GRID */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
               <div className="rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#131f33] to-[#0f1a2d] p-3 shadow-inner">
                 <p className="text-[10px] uppercase font-bold tracking-wider text-[#6b86a8]">
-                  Amount
+                  Stake
                 </p>
                 <p className="mt-1 text-sm sm:text-base font-extrabold text-white">
                   {formatMoney(bet.amount)}
@@ -116,24 +116,23 @@ export function BetDetailModal({
               </div>
               <div className="rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#131f33] to-[#0f1a2d] p-3 shadow-inner">
                 <p className="text-[10px] uppercase font-bold tracking-wider text-[#6b86a8]">
-                  W/L/T
+                  Total Odds
+                </p>
+                <p className="mt-1 text-sm sm:text-base font-extrabold text-[#f5c518]">
+                  {bet.total_odds.toFixed(2)}x
+                </p>
+              </div>
+              <div className="rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#131f33] to-[#0f1a2d] p-3 shadow-inner">
+                <p className="text-[10px] uppercase font-bold tracking-wider text-[#6b86a8]">
+                  Results
                 </p>
                 <p className="mt-1 text-sm sm:text-base font-extrabold text-white">
-                  {bet.wlt.won}/{bet.wlt.lost}/{bet.wlt.tie}
+                  {bet.wlt.won}W/{bet.wlt.lost}L/{bet.wlt.tie}T
                 </p>
               </div>
             </div>
 
-            {/* ODDS ROW */}
-            <div className="flex items-center justify-between gap-2 rounded-xl border border-[#1e3350]/50 bg-[#0d1624]/60 px-4 py-3 shadow-sm">
-              <p className="text-xs sm:text-sm font-medium text-[#9db0c8]">
-                ID: <span className="text-white font-mono">{bet.bet_code}</span>{" "}
-                • Total Odds
-              </p>
-              <p className="text-lg font-black text-[#f5c518]">
-                {bet.total_odds.toFixed(2)}x
-              </p>
-            </div>
+
 
             {/* ACTIONS ROW */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">

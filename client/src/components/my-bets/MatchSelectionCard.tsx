@@ -15,36 +15,44 @@ type MatchSelectionCardProps = {
 export function MatchSelectionCard({ selection }: MatchSelectionCardProps) {
   return (
     <article className="rounded-xl border border-[#2b3a4f] bg-[#1a2332] p-3">
-      <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-sm font-semibold text-white">
+      <div className="flex items-center justify-between gap-2 border-b border-[#2b3a4f]/50 pb-2 mb-2">
+        <p className="truncate text-sm font-bold text-white">
           {selection.home_team} vs {selection.away_team}
         </p>
-        <span className="rounded-full border border-[#3e566f] bg-[#111827] px-2 py-0.5 text-xs text-[#f5c518]">
-          {selection.odds.toFixed(2)}
-        </span>
-      </div>
-
-      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#9fb1c8]">
-        <span className="inline-flex items-center gap-1">
-          <span
-            className={`h-2 w-2 rounded-full ${statusDotClass[selection.status]}`}
-          />
+        <span
+          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight ${statusDotClass[selection.status]} text-white`}
+        >
           {selection.status}
         </span>
-        <span>Type: {selection.market_type}</span>
-        <span>Pick: {selection.pick}</span>
       </div>
 
-      <div className="mt-2 text-xs text-[#9fb1c8]">
-        <p>FT Results: {selection.ft_result ?? "-"}</p>
-        <p>Outcome: {selection.pick}</p>
-        {selection.live_score ? (
-          <p className="mt-1 inline-flex items-center gap-1 text-[#22c55e]">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-[#22c55e]" />
-            Live score: {selection.live_score}
-          </p>
-        ) : null}
+      <div className="grid grid-cols-2 gap-2 text-xs text-[#9fb1c8]">
+        <div>
+          <p className="text-[9px] uppercase font-bold text-[#6b86a8]">Market</p>
+          <p className="text-white">{selection.market_type}</p>
+        </div>
+        <div>
+          <p className="text-[9px] uppercase font-bold text-[#6b86a8]">Pick</p>
+          <p className="text-white">{selection.pick}</p>
+        </div>
+        <div>
+          <p className="text-[9px] uppercase font-bold text-[#6b86a8]">Odds</p>
+          <p className="text-[#f5c518] font-bold">{selection.odds.toFixed(2)}</p>
+        </div>
+        {selection.ft_result && selection.ft_result !== "-" && (
+          <div>
+            <p className="text-[9px] uppercase font-bold text-[#6b86a8]">Score</p>
+            <p className="text-white">{selection.ft_result}</p>
+          </div>
+        )}
       </div>
+
+      {selection.live_score && (
+        <div className="mt-2 pt-2 border-t border-[#2b3a4f]/30 inline-flex items-center gap-1.5 text-[#22c55e] text-[10px] font-bold">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22c55e]" />
+          LIVE: {selection.live_score}
+        </div>
+      )}
     </article>
   );
 }
