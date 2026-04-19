@@ -16,10 +16,6 @@ export type AppNotification = {
     | "DEPOSIT_FAILED"
     | "WITHDRAWAL_SUCCESS"
     | "WITHDRAWAL_FAILED"
-    | "BET_WON"
-    | "BET_LOST"
-    | "BET_VOID"
-    | "EVENT_ENDED"
     | "SYSTEM";
   title: string;
   message: string;
@@ -99,37 +95,6 @@ export function useAppNotifications(take = 20) {
           if (payload.type === "WITHDRAWAL_FAILED") {
             toast.error(payload.title || "Withdrawal Failed", {
               description: payload.message,
-            });
-          }
-
-          // ── Bet Settlement Toasts ──
-          if (payload.type === "BET_WON") {
-            toast.success(payload.title || "🎉 Bet Won!", {
-              description: payload.message,
-              duration: 8000,
-            });
-          }
-
-          if (payload.type === "BET_LOST") {
-            toast(payload.title || "Bet Lost", {
-              description: payload.message,
-              duration: 6000,
-              icon: "😔",
-            });
-          }
-
-          if (payload.type === "BET_VOID") {
-            toast.info(payload.title || "Bet Voided", {
-              description: payload.message,
-              duration: 6000,
-            });
-          }
-
-          if (payload.type === "EVENT_ENDED") {
-            toast(payload.title || "Event Ended", {
-              description: payload.message,
-              duration: 6000,
-              icon: "🏁",
             });
           }
 

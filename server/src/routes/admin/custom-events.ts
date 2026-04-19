@@ -8,12 +8,7 @@ import {
   emitCustomEventPublished,
   emitCustomEventSuspended,
   emitCustomEventOddsUpdated,
-  emitCustomEventFinished,
 } from "../../lib/socket";
-import {
-  createBetSettlementNotification,
-  createEventEndedAdminNotification,
-} from "../../controllers/notifications.controller";
 
 const adminCustomEventsRouter = Router();
 const adminOnly = [authenticate, requireAdmin] as const;
@@ -215,13 +210,6 @@ adminCustomEventsRouter.get(
               select: {
                 bets: true,
                 markets: true,
-              },
-            },
-            markets: {
-              select: {
-                id: true,
-                name: true,
-                status: true,
               },
             },
           },
@@ -962,18 +950,7 @@ adminCustomEventsRouter.post(
             }
           }
 
-          // 7. Get losing bets for notifications
-          const losingBets = losingIds.length > 0
-            ? await tx.customBet.findMany({
-                where: {
-                  selectionId: { in: losingIds },
-                  status: "PENDING",
-                },
-                select: { id: true, userId: true, stake: true, odds: true, potentialWin: true },
-              })
-            : [];
-
-          // 8. Mark losing bets
+          // 7. Mark losing bets
           if (losingIds.length > 0) {
             await tx.customBet.updateMany({
               where: {
@@ -984,7 +961,7 @@ adminCustomEventsRouter.post(
             });
           }
 
-          // 9. Check if all markets are settled → finish event
+          // 8. Check if all markets are settled → finish event
           const unsettledMarkets = await tx.customMarket.count({
             where: {
               eventId,
@@ -1000,8 +977,6 @@ adminCustomEventsRouter.post(
           }
 
           return {
-            winningBets,
-            losingBets,
             winningBetsCount: winningBets.length,
             totalPayout: winningBets.reduce(
               (sum, b) => sum + b.potentialWin,
@@ -1020,57 +995,9 @@ adminCustomEventsRouter.post(
         `Winner: ${winningSelection.name} | Payouts: ${result.winningBetsCount} bets, ${result.totalPayout.toFixed(2)} total`,
       );
 
-      // Send notifications to winning bettors
-      const eventName = `${market.event.teamHome} vs ${market.event.teamAway}`;
-      for (const bet of result.winningBets) {
-        void createBetSettlementNotification({
-          userId: bet.userId,
-          betCode: `CB-${bet.id.slice(0, 8).toUpperCase()}`,
-          eventName,
-          stake: bet.stake,
-          potentialPayout: bet.potentialWin,
-          status: "WON",
-        });
-      }
-
-      // Send notifications to losing bettors
-      for (const bet of result.losingBets) {
-        void createBetSettlementNotification({
-          userId: bet.userId,
-          betCode: `CB-${bet.id.slice(0, 8).toUpperCase()}`,
-          eventName,
-          stake: bet.stake,
-          potentialPayout: bet.potentialWin,
-          status: "LOST",
-        });
-      }
-
-      // If all markets settled, notify admins and emit event finished
-      if (result.allMarketsSettled) {
-        emitCustomEventFinished({ eventId });
-
-        // Gather total stats for admin notification
-        const totalBets = await prisma.customBet.count({ where: { eventId } });
-        const stakeAgg = await prisma.customBet.aggregate({
-          where: { eventId },
-          _sum: { stake: true },
-        });
-
-        void createEventEndedAdminNotification({
-          eventName,
-          eventType: "custom",
-          pendingBetsCount: 0,
-          totalBetsCount: totalBets,
-          totalStaked: stakeAgg._sum.stake ?? 0,
-          eventId,
-        });
-      }
-
       return res.status(200).json({
         message: "Market settled successfully",
-        winningBetsCount: result.winningBetsCount,
-        totalPayout: result.totalPayout,
-        allMarketsSettled: result.allMarketsSettled,
+        ...result,
       });
     } catch (error) {
       next(error);

@@ -16,7 +16,6 @@ import {
   Zap,
   Check,
   X,
-  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -559,7 +558,7 @@ function CreateEventModal({
   );
 }
 
-// ── Enter Results Dialog ──
+// ── Settle Market Dialog ──
 
 function SettleMarketDialog({
   open,
@@ -576,33 +575,38 @@ function SettleMarketDialog({
     winningSelectionId: string,
   ) => Promise<void>;
 }) {
+  const [selectedMarketId, setSelectedMarketId] = useState("");
   const [selectedWinnerId, setSelectedWinnerId] = useState("");
   const [settling, setSettling] = useState(false);
 
-  // Include CLOSED markets — they are closed for betting but NOT yet settled
   const unsettledMarkets = useMemo(
     () =>
-      event?.markets.filter((m) => m.status !== "SETTLED") ?? [],
+      event?.markets.filter(
+        (m) => m.status !== "SETTLED" && m.status !== "CLOSED",
+      ) ?? [],
     [event],
   );
 
-  // Auto-select the first market (most events have just one)
-  const activeMarket = unsettledMarkets[0] ?? null;
+  const selectedMarket = useMemo(
+    () => unsettledMarkets.find((m) => m.id === selectedMarketId),
+    [unsettledMarkets, selectedMarketId],
+  );
 
   useEffect(() => {
-    if (open) {
+    if (open && unsettledMarkets.length > 0) {
+      setSelectedMarketId(unsettledMarkets[0].id);
       setSelectedWinnerId("");
     }
-  }, [open]);
+  }, [open, unsettledMarkets]);
 
   async function handleSettle() {
-    if (!event || !activeMarket || !selectedWinnerId) {
-      toast.error("Please select the winning outcome");
+    if (!event || !selectedMarketId || !selectedWinnerId) {
+      toast.error("Please select a market and winning selection");
       return;
     }
     setSettling(true);
     try {
-      await onSettle(event.id, activeMarket.id, selectedWinnerId);
+      await onSettle(event.id, selectedMarketId, selectedWinnerId);
       onOpenChange(false);
     } finally {
       setSettling(false);
@@ -617,91 +621,87 @@ function SettleMarketDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Trophy size={18} className="text-admin-accent" />
-            Enter Results
+            Settle Market
           </DialogTitle>
           <DialogDescription className="text-admin-text-muted">
-            Select the winning outcome for this match
+            {event.teamHome} vs {event.teamAway} — Select the winning outcome
           </DialogDescription>
         </DialogHeader>
 
-        {/* Match info */}
-        <div className="rounded-xl border border-admin-border/50 bg-admin-surface/20 p-4 text-center">
-          <p className="text-lg font-bold text-admin-text-primary">
-            {event.teamHome}{" "}
-            <span className="text-admin-text-muted">vs</span>{" "}
-            {event.teamAway}
-          </p>
-          <p className="mt-1 text-xs text-admin-text-muted">
-            {event.category} · {event.league}
-          </p>
-        </div>
-
         {unsettledMarkets.length === 0 ? (
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 py-6 text-center">
-            <Check size={24} className="mx-auto mb-2 text-emerald-400" />
-            <p className="text-sm font-medium text-emerald-300">
-              All results have been entered
-            </p>
-            <p className="mt-1 text-xs text-admin-text-muted">
-              All markets for this event have been settled and payouts processed.
-            </p>
-          </div>
+          <p className="py-6 text-center text-sm text-admin-text-muted">
+            All markets have been settled
+          </p>
         ) : (
-          <div className="space-y-3">
-            {/* If multiple markets, show market name as header */}
-            {unsettledMarkets.length > 1 && (
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                {activeMarket?.name} — ({unsettledMarkets.length} markets to settle)
-              </p>
-            )}
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                Market
+              </label>
+              <Select
+                value={selectedMarketId}
+                onValueChange={(v) => {
+                  setSelectedMarketId(v);
+                  setSelectedWinnerId("");
+                }}
+              >
+                <SelectTrigger className="border-admin-border/80 bg-admin-surface/30 text-admin-text-primary">
+                  <SelectValue placeholder="Select market" />
+                </SelectTrigger>
+                <SelectContent className="border-admin-border bg-admin-card text-admin-text-primary">
+                  {unsettledMarkets.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            {/* Show label if single market */}
-            {unsettledMarkets.length === 1 && activeMarket && (
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                Who won? — {activeMarket.name}
-              </p>
-            )}
-
-            {/* Selection buttons */}
-            {activeMarket && (
-              <div className="space-y-2">
-                {activeMarket.selections.map((sel) => (
-                  <button
-                    key={sel.id}
-                    type="button"
-                    onClick={() => setSelectedWinnerId(sel.id)}
-                    className={cn(
-                      "flex w-full items-center justify-between rounded-xl border p-3.5 transition",
-                      selectedWinnerId === sel.id
-                        ? "border-admin-accent/50 bg-admin-accent/10 shadow-[0_0_12px_rgba(245,166,35,0.05)]"
-                        : "border-admin-border/50 bg-admin-surface/20 hover:border-admin-border hover:bg-admin-surface/30",
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          "flex size-8 items-center justify-center rounded-lg text-sm font-bold",
-                          selectedWinnerId === sel.id
-                            ? "bg-admin-accent text-black"
-                            : "bg-admin-surface/50 text-admin-text-muted",
-                        )}
-                      >
-                        {sel.label}
-                      </span>
-                      <span className="text-sm font-semibold text-admin-text-primary">
-                        {sel.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-admin-text-muted">
-                        @{sel.odds?.toFixed(2)}
-                      </span>
-                      {selectedWinnerId === sel.id && (
-                        <Check size={18} className="text-admin-accent" />
+            {selectedMarket && (
+              <div>
+                <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wider text-admin-text-muted">
+                  Select Winner
+                </label>
+                <div className="space-y-1.5">
+                  {selectedMarket.selections.map((sel) => (
+                    <button
+                      key={sel.id}
+                      type="button"
+                      onClick={() => setSelectedWinnerId(sel.id)}
+                      className={cn(
+                        "flex w-full items-center justify-between rounded-xl border p-3 transition",
+                        selectedWinnerId === sel.id
+                          ? "border-admin-accent/50 bg-admin-accent/10"
+                          : "border-admin-border/50 bg-admin-surface/20 hover:border-admin-border",
                       )}
-                    </div>
-                  </button>
-                ))}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "flex size-6 items-center justify-center rounded-lg text-xs font-bold",
+                            selectedWinnerId === sel.id
+                              ? "bg-admin-accent text-black"
+                              : "bg-admin-surface/50 text-admin-text-muted",
+                          )}
+                        >
+                          {sel.label}
+                        </span>
+                        <span className="text-sm font-medium text-admin-text-primary">
+                          {sel.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-admin-text-muted">
+                          {sel.odds?.toFixed(2)} odds
+                        </span>
+                        {selectedWinnerId === sel.id && (
+                          <Check size={16} className="text-admin-accent" />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -715,20 +715,18 @@ function SettleMarketDialog({
           >
             Cancel
           </Button>
-          {unsettledMarkets.length > 0 && (
-            <Button
-              onClick={handleSettle}
-              disabled={settling || !selectedWinnerId}
-              className="bg-admin-accent text-black hover:bg-admin-accent/90"
-            >
-              {settling ? (
-                <Loader2 className="mr-1.5 size-3.5 animate-spin" />
-              ) : (
-                <Trophy className="mr-1.5 size-3.5" />
-              )}
-              Confirm Result
-            </Button>
-          )}
+          <Button
+            onClick={handleSettle}
+            disabled={settling || !selectedWinnerId}
+            className="bg-admin-accent text-black hover:bg-admin-accent/90"
+          >
+            {settling ? (
+              <Loader2 className="mr-1 size-3.5 animate-spin" />
+            ) : (
+              <Trophy className="mr-1 size-3.5" />
+            )}
+            Confirm Settlement
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1349,28 +1347,21 @@ export default function CustomEventsManager() {
 
                       {/* Status */}
                       <td className="px-3 py-2.5 text-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <StatusBadge status={toBadgeStatus(event.status)} />
-                          {event.status === "FINISHED" && (
-                            <span
-                              className={cn(
-                                "text-[9px] font-bold uppercase tracking-wider",
-                                event.markets && event.markets.length > 0 && event.markets.every((m) => m.status === "SETTLED")
-                                  ? "text-emerald-400"
-                                  : "text-amber-400"
-                              )}
-                            >
-                              {event.markets && event.markets.length > 0 && event.markets.every((m) => m.status === "SETTLED")
-                                ? "Settled"
-                                : "Unsettled"}
-                            </span>
-                          )}
-                        </div>
+                        <StatusBadge status={toBadgeStatus(event.status)} />
                       </td>
 
                       {/* Actions */}
                       <td className="px-3 py-2.5 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => void handleViewDetail(event)}
+                            className="rounded-lg p-1.5 text-admin-text-muted transition hover:bg-admin-surface hover:text-admin-text-primary"
+                            title="View details"
+                          >
+                            <Eye size={14} />
+                          </button>
+
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <button
@@ -1384,24 +1375,6 @@ export default function CustomEventsManager() {
                               align="end"
                               className="min-w-[160px] border-admin-border bg-admin-card text-admin-text-primary"
                             >
-                              <DropdownMenuItem
-                                onClick={() => void handleViewDetail(event)}
-                                className="gap-2 text-sm"
-                              >
-                                <Eye size={14} />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  void navigator.clipboard.writeText(event.id);
-                                  toast.success("Event ID copied!");
-                                }}
-                                className="gap-2 text-sm"
-                              >
-                                <Copy size={14} />
-                                Copy Event ID
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-admin-border/50" />
                               {event.status === "DRAFT" && (
                                 <DropdownMenuItem
                                   onClick={() =>
@@ -1454,7 +1427,7 @@ export default function CustomEventsManager() {
                                     className="gap-2 text-sm"
                                   >
                                     <Trophy size={14} />
-                                    Enter Results
+                                    Settle Market
                                   </DropdownMenuItem>
                                 </>
                               )}

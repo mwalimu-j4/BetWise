@@ -13,22 +13,13 @@ const userCustomEventsRouter = Router();
 
 userCustomEventsRouter.get("/user/custom-events", async (_req, res, next) => {
   try {
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-
     const events = await prisma.customEvent.findMany({
       where: {
-        OR: [
-          // Active events (PUBLISHED or LIVE)
-          { status: { in: ["PUBLISHED", "LIVE"] } },
-          // Recently finished events (within last 30 min)
-          {
-            status: "FINISHED",
-            updatedAt: { gte: thirtyMinutesAgo },
-          },
-        ],
+        status: { in: ["PUBLISHED", "LIVE"] },
       },
       include: {
         markets: {
+          where: { status: { in: ["OPEN", "SUSPENDED"] } },
           include: {
             selections: {
               orderBy: { createdAt: "asc" },

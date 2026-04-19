@@ -30,10 +30,6 @@ export type NotificationRealtimeEvent = {
     | "DEPOSIT_FAILED"
     | "WITHDRAWAL_SUCCESS"
     | "WITHDRAWAL_FAILED"
-    | "BET_WON"
-    | "BET_LOST"
-    | "BET_VOID"
-    | "EVENT_ENDED"
     | "SYSTEM";
   title: string;
   message: string;
