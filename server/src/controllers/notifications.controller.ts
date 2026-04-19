@@ -234,6 +234,125 @@ export async function createWithdrawalNotifications(args: {
   }
 }
 
+/**
+ * Creates a bet settlement notification for the user.
+ * Sent when a bet is settled (WON, LOST, or VOID).
+ */
+export async function createBetSettlementNotification(args: {
+  userId: string;
+  betCode: string;
+  eventName: string;
+  stake: number;
+  potentialPayout: number;
+  status: "WON" | "LOST" | "VOID";
+}) {
+  const createdAtIso = new Date().toISOString();
+
+  let notificationType: "BET_WON" | "BET_LOST" | "BET_VOID";
+  let title: string;
+  let message: string;
+
+  if (args.status === "WON") {
+    notificationType = "BET_WON";
+    title = "🎉 Bet Won!";
+    message = `Congratulations! Your bet ${args.betCode} on ${args.eventName} has won! You've been credited KES ${Math.round(args.potentialPayout).toLocaleString()}.`;
+  } else if (args.status === "LOST") {
+    notificationType = "BET_LOST";
+    title = "Bet Lost";
+    message = `Your bet ${args.betCode} on ${args.eventName} has lost. Stake: KES ${Math.round(args.stake).toLocaleString()}. Better luck next time!`;
+  } else {
+    notificationType = "BET_VOID";
+    title = "Bet Voided";
+    message = `Your bet ${args.betCode} on ${args.eventName} has been voided. Your stake of KES ${Math.round(args.stake).toLocaleString()} has been refunded.`;
+  }
+
+  try {
+    await prisma.notification.create({
+      data: {
+        userId: args.userId,
+        audience: "USER",
+        type: notificationType,
+        title,
+        message,
+        amount: Math.round(args.status === "WON" ? args.potentialPayout : args.stake),
+      },
+    });
+
+    emitNotificationUpdate(args.userId, {
+      audience: "USER",
+      type: notificationType,
+      title,
+      message,
+      amount: Math.round(args.status === "WON" ? args.potentialPayout : args.stake),
+      createdAt: createdAtIso,
+    });
+  } catch (error) {
+    console.error("[Notifications] Failed to create bet settlement notification:", error);
+  }
+}
+
+/**
+ * Notifies all admins when an event ends.
+ * Includes summary of pending bets that need settlement.
+ */
+export async function createEventEndedAdminNotification(args: {
+  eventName: string;
+  eventType: "sport" | "custom";
+  pendingBetsCount: number;
+  totalBetsCount: number;
+  totalStaked: number;
+  eventId: string;
+}) {
+  const adminUsers = await prisma.user.findMany({
+    where: { role: "ADMIN" },
+    select: { id: true },
+  });
+
+  if (adminUsers.length === 0) return;
+
+  const createdAtIso = new Date().toISOString();
+  const title = "Event Ended";
+
+  const settlementNote =
+    args.pendingBetsCount > 0
+      ? ` ${args.pendingBetsCount} bet(s) still pending settlement.`
+      : " All bets have been settled.";
+
+  const actionNote =
+    args.eventType === "custom" && args.pendingBetsCount > 0
+      ? " Go to Custom Events to configure results and settle markets."
+      : args.eventType === "sport" && args.pendingBetsCount > 0
+        ? " Go to Bets Management to settle pending bets."
+        : "";
+
+  const message = `${args.eventName} has ended. Total bets: ${args.totalBetsCount}, total staked: KES ${Math.round(args.totalStaked).toLocaleString()}.${settlementNote}${actionNote}`;
+
+  try {
+    await prisma.notification.createMany({
+      data: adminUsers.map((admin) => ({
+        userId: admin.id,
+        audience: "ADMIN" as const,
+        type: "EVENT_ENDED" as const,
+        title,
+        message,
+      })),
+      skipDuplicates: true,
+    });
+
+    for (const admin of adminUsers) {
+      emitNotificationUpdate(admin.id, {
+        audience: "ADMIN",
+        type: "EVENT_ENDED",
+        title,
+        message,
+        createdAt: createdAtIso,
+      });
+    }
+  } catch (error) {
+    console.error("[Notifications] Failed to create event ended admin notification:", error);
+  }
+}
+
 function toClientNotification(notification: {
   id: string;
   audience: "USER" | "ADMIN";
@@ -242,6 +361,10 @@ function toClientNotification(notification: {
     | "DEPOSIT_FAILED"
     | "WITHDRAWAL_SUCCESS"
     | "WITHDRAWAL_FAILED"
+    | "BET_WON"
+    | "BET_LOST"
+    | "BET_VOID"
+    | "EVENT_ENDED"
     | "SYSTEM";
   title: string;
   message: string;
