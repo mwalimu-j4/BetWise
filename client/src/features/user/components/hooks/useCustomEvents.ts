@@ -128,7 +128,7 @@ export const useCustomEvents = () => {
 
     socketRef.current = socket;
 
-    const onCustomEventLive = (payload: { eventId: string }) => {
+    const onCustomEventLive = () => {
       // Refresh events when a custom event goes live
       void loadEvents();
       toast.info("A custom event is now live!", { duration: 4000 });
