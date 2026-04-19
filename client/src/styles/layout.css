@@ -321,42 +321,145 @@
     height: 0;
   }
 
-  /* ── Premium mobile event cards ──────────────────── */
-  .event-card {
-    border-radius: 18px !important;
-    border-color: rgba(34, 56, 84, 0.7) !important;
-    background: linear-gradient(
-      160deg,
-      rgba(18, 31, 48, 0.98) 0%,
-      rgba(11, 20, 33, 1) 100%
-    ) !important;
-    box-shadow:
-      0 10px 24px rgba(2, 9, 20, 0.34),
-      inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  /* ── Mobile event cards: flat dense list style ───── */
+  .event-card.mobile-event-card {
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-radius: 0 !important;
+    background: #0d1420 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
   }
 
-  .event-card:hover {
-    transform: none;
-    box-shadow:
-      0 10px 24px rgba(2, 9, 20, 0.34),
-      inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  .event-card.mobile-event-card::before,
+  .event-card.mobile-event-card::after {
+    display: none !important;
+    content: none !important;
   }
 
-  .event-card:active {
-    transform: scale(0.985);
-    transition: transform 0.12s ease;
+  .mobile-home-panel
+    .space-y-2
+    > .event-card.mobile-event-card
+    + .event-card.mobile-event-card,
+  .mobile-home-panel
+    .space-y-3
+    > .event-card.mobile-event-card
+    + .event-card.mobile-event-card {
+    margin-top: 0 !important;
   }
 
-  .mobile-event-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.03),
-      transparent 28%
-    );
-    pointer-events: none;
+  .event-card.mobile-event-card > .relative {
+    padding: 10px 12px !important;
+  }
+
+  .event-card.mobile-event-card .event-card-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    padding: 0 !important;
+  }
+
+  .event-card.mobile-event-card .event-card-meta {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-left: auto !important;
+  }
+
+  .event-card.mobile-event-card .event-card-league {
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+    line-height: 1.1 !important;
+    color: #6c86a8 !important;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .event-card.mobile-event-card .event-card-matchup {
+    padding: 4px 12px !important;
+  }
+
+  .event-card.mobile-event-card .event-card-team {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    color: #f0f4ff !important;
+  }
+
+  .event-card.mobile-event-card .event-card-vs {
+    display: none !important;
+  }
+
+  .event-card.mobile-event-card .event-card-date {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    margin-top: 4px !important;
+    color: #5f7a9b !important;
+  }
+
+  .event-card.mobile-event-card .event-card-date span {
+    font-size: 9px !important;
+    font-weight: 500 !important;
+  }
+
+  .event-card.mobile-event-card .event-card-odds-wrap {
+    border-top: 0 !important;
+    padding: 0 !important;
+    margin-top: 6px !important;
+  }
+
+  .event-card.mobile-event-card .event-card-odds-wrap > .flex {
+    gap: 6px !important;
+  }
+
+  .event-card.mobile-event-card .mobile-event-odds {
+    height: 44px !important;
+    min-height: 44px !important;
+    border-radius: 8px !important;
+    background: #111e30 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+    justify-content: space-between !important;
+    padding: 4px 2px 5px !important;
+  }
+
+  .event-card.mobile-event-card .mobile-event-odds span:first-child {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    line-height: 1 !important;
+    color: #7a90ad !important;
+  }
+
+  .event-card.mobile-event-card .mobile-event-odds span:last-child {
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    color: #ffffff !important;
+  }
+
+  .event-card.mobile-event-card .mobile-event-odds.is-selected {
+    border-color: rgba(255, 213, 0, 0.55) !important;
+    background: rgba(255, 213, 0, 0.1) !important;
+  }
+
+  .event-card.mobile-event-card .mobile-event-odds.is-selected span:first-child,
+  .event-card.mobile-event-card .mobile-event-odds.is-selected span:last-child {
+    color: #ffd500 !important;
+  }
+
+  .event-card.mobile-event-card .mobile-event-odds.is-disabled,
+  .event-card.mobile-event-card .mobile-event-odds:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
   }
 
   /* ── Premium mobile custom event cards ──────────── */
