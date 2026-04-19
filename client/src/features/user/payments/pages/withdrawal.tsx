@@ -236,7 +236,7 @@ export default function PaymentsWithdrawalPage() {
             {numAmount > 0 && (
               <div className="grid grid-cols-3 divide-x divide-[#1a2f45] overflow-hidden rounded-2xl border border-[#1a2f45] bg-[#0d1829]">
                 <div className="px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-widest text-[#3d5a73]">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400">
                     Withdraw
                   </p>
                   <p className="mt-0.5 text-sm font-bold text-white">
@@ -244,18 +244,18 @@ export default function PaymentsWithdrawalPage() {
                   </p>
                 </div>
                 <div className="px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-widest text-[#3d5a73]">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400">
                     Fee ({WITHDRAWAL_FEE_PERCENTAGE}%)
                   </p>
-                  <p className="mt-0.5 text-sm font-bold text-red-400">
+                  <p className="mt-0.5 text-sm font-bold text-[#f5c518]">
                     −{formatMoney(feeAmount)}
                   </p>
                 </div>
                 <div className="px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-widest text-[#3d5a73]">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400]">
                     You Receive
                   </p>
-                  <p className="mt-0.5 text-sm font-bold text-[#f5c518]">
+                  <p className="mt-0.5 text-sm font-bold text-emerald-500">
                     {formatMoney(netAmount)}
                   </p>
                 </div>

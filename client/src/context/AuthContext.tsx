@@ -35,10 +35,10 @@ const AUTH_TOKEN_KEY = "betwise-auth-token";
 const AUTH_USER_KEY = "betwise-auth-user";
 const AUTH_RECOVERY_FLAG = "betwise-auth-recovery";
 
-// Utility functions for sessionStorage management
+// Utility functions for localStorage management (stable across redirects)
 function getStoredToken(): string | null {
   try {
-    return sessionStorage.getItem(AUTH_TOKEN_KEY);
+    return localStorage.getItem(AUTH_TOKEN_KEY);
   } catch {
     return null;
   }
@@ -46,7 +46,7 @@ function getStoredToken(): string | null {
 
 function getStoredUser(): AuthUser | null {
   try {
-    const stored = sessionStorage.getItem(AUTH_USER_KEY);
+    const stored = localStorage.getItem(AUTH_USER_KEY);
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
@@ -55,26 +55,26 @@ function getStoredUser(): AuthUser | null {
 
 function persistAuthState(token: string, user: AuthUser): void {
   try {
-    sessionStorage.setItem(AUTH_TOKEN_KEY, token);
-    sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
   } catch {
-    console.warn("[Auth] Failed to persist auth state to sessionStorage");
+    console.warn("[Auth] Failed to persist auth state to localStorage");
   }
 }
 
 function clearStoredAuth(): void {
   try {
-    sessionStorage.removeItem(AUTH_TOKEN_KEY);
-    sessionStorage.removeItem(AUTH_USER_KEY);
-    sessionStorage.removeItem(AUTH_RECOVERY_FLAG);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem(AUTH_RECOVERY_FLAG);
   } catch {
-    console.warn("[Auth] Failed to clear auth state from sessionStorage");
+    console.warn("[Auth] Failed to clear auth state from localStorage");
   }
 }
 
 function setRecoveryFlag(): void {
   try {
-    sessionStorage.setItem(AUTH_RECOVERY_FLAG, Date.now().toString());
+    localStorage.setItem(AUTH_RECOVERY_FLAG, Date.now().toString());
   } catch {
     // Silently fail - not critical
   }
@@ -82,7 +82,7 @@ function setRecoveryFlag(): void {
 
 function clearRecoveryFlag(): void {
   try {
-    sessionStorage.removeItem(AUTH_RECOVERY_FLAG);
+    localStorage.removeItem(AUTH_RECOVERY_FLAG);
   } catch {
     // Silently fail
   }
