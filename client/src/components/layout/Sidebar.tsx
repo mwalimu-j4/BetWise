@@ -1,6 +1,5 @@
-import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -9,14 +8,15 @@ import {
   Flame,
   HelpCircle,
   History,
+  Home,
   LogOut,
   MessageCircle,
   TrendingUp,
+  Trophy,
   User,
-  Wallet,
-  Zap
+  Wallet
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type SidebarProps = {
@@ -40,64 +40,14 @@ type Group = {
   children: Item[];
 };
 
-type LiveSidebarMatch = {
-  id: string;
-  sport: string;
-};
-
-const liveSportsOrder = [
-  "Soccer",
-  "Basketball",
-  "Tennis",
-  "Ice Hockey",
-  "Volleyball",
-  "Cricket",
-  "Handball",
-  "Table Tennis",
-] as const;
-
-function toSidebarSportName(raw: string) {
-  const value = raw.toLowerCase();
-  if (value.includes("soccer") || value.includes("football")) return "Soccer";
-  if (value.includes("basket")) return "Basketball";
-  if (value.includes("tennis") && value.includes("table"))
-    return "Table Tennis";
-  if (value.includes("tennis")) return "Tennis";
-  if (value.includes("hockey")) return "Ice Hockey";
-  if (value.includes("volley")) return "Volleyball";
-  if (value.includes("cricket")) return "Cricket";
-  if (value.includes("handball")) return "Handball";
-  return "Soccer";
-}
-
-function sportIcon(name: string): React.ReactNode {
-  switch (name) {
-    case "Soccer":
-      return "⚽";
-    case "Basketball":
-      return "🏀";
-    case "Tennis":
-      return "🎾";
-    case "Ice Hockey":
-      return "🏒";
-    case "Volleyball":
-      return "🏐";
-    case "Cricket":
-      return "🏏";
-    case "Handball":
-      return "🤾";
-    case "Table Tennis":
-      return "🏓";
-    default:
-      return "🎯";
-  }
-}
 
 const navigationLinks: Item[] = [
-  { label: "Homepage", to: "/user", icon: "H" },
-  { label: "Pre-match", to: "/user/payments", icon: "P" },
-  { label: "Live", to: "/user/live", icon: "L", liveBadge: "LIVE" },
-  { label: "Custom Events", to: "/user/custom-events", icon: "⚡" },
+  { label: "Homepage", to: "/user", icon: <Home size={18} /> },
+  {
+    label: "Custom Events",
+    to: "/user/custom-events",
+    icon: <Trophy size={18} />,
+  },
 
   {
     label: "Live Betting",
@@ -185,32 +135,16 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { isAuthenticated, logout, openAuthModal } = useAuth();
-  const navigate = useNavigate();
   const [openSports, setOpenSports] = useState<Record<string, boolean>>({
     football: true,
     basketball: true,
   });
-  const [liveSportsOpen, setLiveSportsOpen] = useState(!isAuthenticated);
-  const [liveCounts, setLiveCounts] = useState<Record<string, number>>(() => ({
-    Soccer: 0,
-    Basketball: 0,
-    Tennis: 0,
-    "Ice Hockey": 0,
-    Volleyball: 0,
-    Cricket: 0,
-    Handball: 0,
-    "Table Tennis": 0,
-  }));
 
   const accountSection = useMemo(() => {
     if (!isAuthenticated) return [];
     return myAccount;
   }, [isAuthenticated]);
 
-  // Update Live Sports section visibility based on auth state
-  useEffect(() => {
-    setLiveSportsOpen(!isAuthenticated);
-  }, [isAuthenticated]);
 
   function closeIfMobile() {
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
@@ -218,114 +152,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     }
   }
 
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchLiveCounts = async () => {
-      try {
-        const { data } = await api.get<{ matches: LiveSidebarMatch[] }>(
-          "/live/matches",
-          {
-            params: {
-              highlights: false,
-              market: "1x2",
-              limit: 300,
-            },
-          },
-        );
-
-        if (!mounted) {
-          return;
-        }
-
-        const nextCounts: Record<string, number> = {
-          Soccer: 0,
-          Basketball: 0,
-          Tennis: 0,
-          "Ice Hockey": 0,
-          Volleyball: 0,
-          Cricket: 0,
-          Handball: 0,
-          "Table Tennis": 0,
-        };
-
-        for (const match of data.matches ?? []) {
-          const sportName = toSidebarSportName(match.sport ?? "soccer");
-          nextCounts[sportName] = (nextCounts[sportName] ?? 0) + 1;
-        }
-
-        setLiveCounts(nextCounts);
-      } catch {
-        if (!mounted) {
-          return;
-        }
-      }
-    };
-
-    void fetchLiveCounts();
-    const timer = window.setInterval(() => {
-      void fetchLiveCounts();
-    }, 10_000);
-
-    return () => {
-      mounted = false;
-      window.clearInterval(timer);
-    };
-  }, []);
-
   return (
     <>
       <aside className={`bc-sidebar ${isOpen ? "is-open" : ""}`}>
         <div className="bc-side-scroll">
-          {/* LIVE SPORTS SECTION */}
-          <div className="bc-side-section max-md:mt-12 -mb-6">
-            <button
-              type="button"
-              className="bc-live-sports-toggle"
-              onClick={() => setLiveSportsOpen((prev) => !prev)}
-            >
-              <Zap size={16} />
-              <span>Live Sports</span>
-              <ChevronDown
-                size={14}
-                className={`bc-live-sports-chevron ${liveSportsOpen ? "is-open" : ""}`}
-              />
-            </button>
-            <div
-              className={`bc-live-sports-list ${liveSportsOpen ? "is-open" : ""}`}
-            >
-              {liveSportsOrder.map((name) => {
-                const count = liveCounts[name] ?? 0;
-                const sportKey = name.toLowerCase().replace(/\s+/g, "_");
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    onClick={() => {
-                      navigate({
-                        to: "/user/live",
-                        search: { sport: sportKey },
-                      });
-                      closeIfMobile();
-                    }}
-                    disabled={count === 0}
-                    className={`bc-live-sport-item ${count === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <span className="bc-side-icon" aria-hidden="true">
-                      {sportIcon(name)}
-                    </span>
-                    <span className="bc-live-sport-name">{name}</span>
-                    {count > 0 ? (
-                      <span className="bc-live-sport-count">
-                        {count > 99 ? "99+" : count}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
+      
           {/* MAIN NAVIGATION */}
           <div className="bc-side-section">
             {navigationLinks.map((item) => (

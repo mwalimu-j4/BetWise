@@ -71,8 +71,7 @@ export async function authenticate(
 
     return next();
   } catch (error) {
-    const errorMsg =
-      error instanceof Error ? error.message : "Unknown error";
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
     logAuthFailure(req, `Access token verification failed: ${errorMsg}`);
     console.error("[Auth] Token verification error details:", {
       error: errorMsg,
