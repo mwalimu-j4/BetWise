@@ -235,6 +235,7 @@ export async function createWithdrawalNotifications(args: {
 }
 
 function toClientNotification(notification: {
+  paystackReference: string | null;
   id: string;
   audience: "USER" | "ADMIN";
   type:
