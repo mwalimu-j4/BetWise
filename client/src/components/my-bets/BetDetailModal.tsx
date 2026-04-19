@@ -108,7 +108,7 @@ export function BetDetailModal({
               </div>
               <div className="rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#131f33] to-[#0f1a2d] p-3 shadow-inner">
                 <p className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[#6b86a8]">
-                  Payout <Info size={12} className="text-[#4a6382]" />
+                  {bet.status === "won" ? "Total Payout" : "Payout"} <Info size={12} className="text-[#4a6382]" />
                 </p>
                 <p className="mt-1 text-sm sm:text-base font-extrabold text-[#f8fafc]">
                   {formatMoney(bet.possible_payout)}
