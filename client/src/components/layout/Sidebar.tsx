@@ -15,20 +15,22 @@ import {
   Hexagon,
   House,
   History,
-  Home,
   LogOut,
   MessageCircle,
   Shield,
   Swords,
   Star,
   Target,
+  Triangle,
   TrendingUp,
   Trophy,
   User,
-  Wallet
+  Wallet,
+  Zap,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { api } from "@/lib/axios";
 
 type SidebarProps = {
   isOpen: boolean;
@@ -95,46 +97,18 @@ const SPORT_KEY_TO_SLUG: Record<string, string> = {
   darts: "darts",
 };
 
-const liveSportsOrder = [
-  "Soccer",
-  "Basketball",
-  "Tennis",
-  "Ice Hockey",
-  "Volleyball",
-  "Cricket",
-  "Handball",
-  "Table Tennis",
-] as const;
-
-function toSidebarSportName(raw: string) {
+function toEventCountKey(raw: string): keyof EventCounts | null {
   const value = raw.toLowerCase();
-  if (value.includes("soccer") || value.includes("football")) return "Soccer";
-  if (value.includes("basket")) return "Basketball";
-  if (value.includes("tennis") && value.includes("table"))
-    return "Table Tennis";
-  if (value.includes("tennis")) return "Tennis";
-  if (value.includes("hockey")) return "Ice Hockey";
-  if (value.includes("volley")) return "Volleyball";
-  if (value.includes("cricket")) return "Cricket";
-  if (value.includes("handball")) return "Handball";
-  return "Soccer";
+  if (value.includes("soccer") || value.includes("football")) return "football";
+  if (value.includes("basket")) return "basketball";
+  if (value.includes("tennis") && value.includes("table")) return null;
+  if (value.includes("tennis")) return "tennis";
+  if (value.includes("american")) return "americanFootball";
+  if (value.includes("cricket")) return "cricket";
+  if (value.includes("hockey")) return "iceHockey";
+  if (value.includes("rugby")) return "rugbyUnion";
+  return null;
 }
-
-const navigationLinks: Item[] = [
-  { label: "Homepage", to: "/user", icon: <Home size={18} /> },
-  {
-    label: "Custom Events",
-    to: "/user/custom-events",
-    icon: <Trophy size={18} />,
-  },
-
-  {
-    label: "Live Betting",
-    to: "/user/live",
-    icon: <Flame size={18} />,
-    liveBadge: "LIVE",
-  },
-];
 
 const myAccount: Item[] = [
   {
@@ -223,26 +197,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     football: true,
     basketball: true,
   });
-  const [liveSportsOpen, setLiveSportsOpen] = useState(!isAuthenticated);
   const [eventCounts, setEventCounts] = useState<EventCounts | null>(null);
-  const [liveCounts, setLiveCounts] = useState<Record<string, number>>(() => ({
-    Soccer: 0,
-    Basketball: 0,
-    Tennis: 0,
-    "Ice Hockey": 0,
-    Volleyball: 0,
-    Cricket: 0,
-    Handball: 0,
-    "Table Tennis": 0,
-  }));
-  const [dynamicCategories, setDynamicCategories] = useState<SportCategoryItem[]>([]);
+  const [dynamicCategories, setDynamicCategories] = useState<
+    SportCategoryItem[]
+  >([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 
   const accountSection = useMemo(() => {
     if (!isAuthenticated) return [];
     return myAccount;
   }, [isAuthenticated]);
-
 
   function closeIfMobile() {
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
@@ -301,16 +265,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           return;
         }
 
-        const nextCounts: Record<string, number> = {
-          Soccer: 0,
-          Basketball: 0,
-          Tennis: 0,
-          "Ice Hockey": 0,
-          Volleyball: 0,
-          Cricket: 0,
-          Handball: 0,
-          "Table Tennis": 0,
-        };
         const nextEventCounts: EventCounts = {
           football: 0,
           basketball: 0,
@@ -322,15 +276,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         };
 
         for (const match of data.matches ?? []) {
-          const sportName = toSidebarSportName(match.sport ?? "soccer");
-          nextCounts[sportName] = (nextCounts[sportName] ?? 0) + 1;
           const sportKey = toEventCountKey(match.sport ?? "soccer");
           if (sportKey) {
-            nextEventCounts[sportKey] = (nextEventCounts[sportKey] ?? 0) + 1;
+            nextEventCounts[sportKey] += 1;
           }
         }
 
-        setLiveCounts(nextCounts);
         setEventCounts(nextEventCounts);
       } catch {
         if (!mounted) {
@@ -354,7 +305,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <>
       <aside className={`bc-sidebar ${isOpen ? "is-open" : ""}`}>
         <div className="bc-side-scroll">
-      
           {/* MAIN NAVIGATION */}
           <div className="bc-side-section">
             <p className="bc-side-heading">
@@ -411,7 +361,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                       label: cat.displayName,
                       to: `/user/sport/${slug}`,
                       icon: <span className="text-base">{cat.icon}</span>,
-                      badgeCount: cat.eventCount > 0 ? cat.eventCount : undefined,
+                      badgeCount:
+                        cat.eventCount > 0 ? cat.eventCount : undefined,
                       badgeGold: cat.sportKey === "soccer",
                     }}
                     onClick={closeIfMobile}
@@ -472,7 +423,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     badgeCount: eventCounts?.rugbyUnion ?? 0,
                   },
                 ].map((item) => (
-                  <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
+                  <ItemLink
+                    key={item.label}
+                    item={item}
+                    onClick={closeIfMobile}
+                  />
                 ))}
               </div>
 
@@ -518,7 +473,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     icon: <Target size={18} />,
                   },
                 ].map((item) => (
-                  <ItemLink key={item.label} item={item} onClick={closeIfMobile} />
+                  <ItemLink
+                    key={item.label}
+                    item={item}
+                    onClick={closeIfMobile}
+                  />
                 ))}
               </div>
             </>
