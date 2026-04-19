@@ -26,7 +26,7 @@ export default function MpesaDepositPage() {
   const [verificationReference, setVerificationReference] = useState<
     string | null
   >(null);
-  const [amount, setAmount] = useState("100");
+  const [amount, setAmount] = useState("500");
   const [paymentStatus, setPaymentStatus] = useState<
     "success" | "failed" | null
   >(null);
@@ -156,8 +156,8 @@ export default function MpesaDepositPage() {
       toast.error("User email not found.");
       return;
     }
-    if (amountValue < 100) {
-      toast.error("Minimum deposit is KES 100.");
+    if (amountValue < 500) {
+      toast.error("Minimum deposit is KES 500.");
       return;
     }
 
@@ -221,8 +221,8 @@ export default function MpesaDepositPage() {
 
       <article className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
         {/* ── Header ── */}
-        <div className="bg-[#0d1829] px-6 pt-4 -b-4 border-b border-[#1a2f45]">
-          <div className="flex items-center justify-between mb-4">
+        <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
+          <div className="flex items-center justify-between">
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
               alt="M-Pesa"
@@ -233,12 +233,11 @@ export default function MpesaDepositPage() {
               Secured by Paystack
             </span>
           </div>
-      
         </div>
 
         {/* ── Body ── */}
-        <div className="px-7 py-6 space-y-5">
-          {/* Quick amounts — single row */}
+        <div className="space-y-5 px-7 py-6">
+          {/* Quick amounts */}
           <div>
             <p className="mb-2.5 text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
               Quick Select
@@ -261,7 +260,7 @@ export default function MpesaDepositPage() {
             </div>
           </div>
 
-          {/* Amount input */}
+          {/* Form */}
           <form onSubmit={onSubmit} className="space-y-4">
             <label className="block space-y-2">
               <span className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
@@ -277,7 +276,7 @@ export default function MpesaDepositPage() {
                 placeholder="Enter amount"
                 className="h-14 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-lg text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#00A859] focus:ring-1 focus:ring-[#00A859]"
               />
-              <p className="text-xs text-[#3d5a73]">Minimum deposit: KES 100</p>
+              <p className="text-xs text-[#3d5a73]">Minimum deposit: KES 500</p>
             </label>
 
             <Button

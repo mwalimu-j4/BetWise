@@ -29,11 +29,7 @@ authRouter.post(
   mfaRateLimiter,
   verifyAdminMfaLogin,
 );
-authRouter.post(
-  "/auth/refresh",
-  authGeneralRateLimiter,
-  refresh,
-);
+authRouter.post("/auth/refresh", authGeneralRateLimiter, refresh);
 authRouter.post(
   "/auth/logout",
   authGeneralRateLimiter,
