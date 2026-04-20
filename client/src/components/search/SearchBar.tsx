@@ -173,14 +173,16 @@ export default function SearchBar() {
                   setActiveIndex(-1);
                 }}
               >
-                <span className="bc-search-match-icon" aria-hidden="true">
-                  o
-                </span>
-                <div className="bc-search-meta">
-                  <span className="bc-search-name">{item.name}</span>
-                  <span className="bc-search-league">{item.league}</span>
+                <div className="bc-search-row-inner">
+                  <div className="bc-search-match-icon-wrap" aria-hidden="true">
+                    <Search size={12} />
+                  </div>
+                  <div className="bc-search-meta">
+                    <span className="bc-search-name">{item.name}</span>
+                    <span className="bc-search-league">{item.league}</span>
+                  </div>
+                  <div className="bc-search-odds-badge">{item.odds}</div>
                 </div>
-                <span className="bc-search-odds">{item.odds}</span>
               </Link>
             ))
           ) : (
