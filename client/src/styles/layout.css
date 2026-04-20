@@ -220,7 +220,7 @@
 
 @media (max-width: 767px) {
   :root {
-    --navbar-height: 76px;
+    --navbar-height: 52px;
   }
 
   .bc-page-wrap {

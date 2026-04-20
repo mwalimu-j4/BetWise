@@ -143,14 +143,38 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
     return true;
   });
 
+  const computeNavbarHeight = useMemo(
+    () => (showSubNav: boolean) => {
+      if (typeof window === "undefined") {
+        return showSubNav ? "130px" : "82px";
+      }
+
+      const width = window.innerWidth;
+      if (width <= 480) return "48px";
+      if (width <= 600) return "52px";
+      if (width <= 1024) return "82px";
+      return showSubNav ? "130px" : "82px";
+    },
+    [],
+  );
+
   useEffect(() => {
     localStorage.setItem("bc_show_sub_nav", String(showSubNav));
-    // Dynamically update the global navbar height variable
-    // Ticker (26px) + Main Row (56px) + SubNav (48px) = 130px
-    // Without SubNav: 26px + 56px = 82px
-    const totalHeight = showSubNav ? "130px" : "82px";
-    document.documentElement.style.setProperty("--navbar-height", totalHeight);
-  }, [showSubNav]);
+
+    const applyNavbarHeight = () => {
+      document.documentElement.style.setProperty(
+        "--navbar-height",
+        computeNavbarHeight(showSubNav),
+      );
+    };
+
+    applyNavbarHeight();
+    window.addEventListener("resize", applyNavbarHeight);
+
+    return () => {
+      window.removeEventListener("resize", applyNavbarHeight);
+    };
+  }, [computeNavbarHeight, showSubNav]);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent | Event) => {
