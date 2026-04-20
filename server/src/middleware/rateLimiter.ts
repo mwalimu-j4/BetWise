@@ -63,11 +63,12 @@ const commonLimiterOptions = {
   standardHeaders: true,
   legacyHeaders: false,
   passOnStoreError: false,
+  skip: (req: Request) => req.method === "OPTIONS",
 } as const;
 
 export const apiGlobalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 900,
+  max: 3000,
   keyGenerator: ipKeyGenerator,
   ...commonLimiterOptions,
   handler: createRateLimitHandler("Too many requests. Please try again later."),
@@ -108,7 +109,7 @@ export const forgotPasswordRateLimiter = rateLimit({
 
 export const authGeneralRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50,
+  max: 180,
   keyGenerator: ipKeyGenerator,
   ...commonLimiterOptions,
   handler: createRateLimitHandler("Too many requests. Please try again later."),
@@ -147,7 +148,7 @@ export const profileUpdateRateLimiter = rateLimit({
 
 export const myBetsListRateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 30,
+  max: 120,
   keyGenerator: userOrIpKeyGenerator,
   ...commonLimiterOptions,
   handler: createRateLimitHandler(
@@ -177,7 +178,7 @@ export const cancelBetRateLimiter = rateLimit({
 
 export const liveMatchesRateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 60,
+  max: 240,
   keyGenerator: ipKeyGenerator,
   ...commonLimiterOptions,
   handler: createRateLimitHandler(
@@ -187,7 +188,7 @@ export const liveMatchesRateLimiter = rateLimit({
 
 export const liveOddsRateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 120,
+  max: 300,
   keyGenerator: ipKeyGenerator,
   ...commonLimiterOptions,
   handler: createRateLimitHandler(

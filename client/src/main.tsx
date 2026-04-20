@@ -20,7 +20,14 @@ if (typeof window !== "undefined") {
   }
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 const router = createAppRouter(queryClient);
 
 declare module "@tanstack/react-router" {

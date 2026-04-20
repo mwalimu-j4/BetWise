@@ -167,7 +167,8 @@ export function useAppNotifications(take = 20) {
 
       return data;
     },
-    staleTime: 10_000,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

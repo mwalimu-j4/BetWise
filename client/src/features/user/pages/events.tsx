@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Calendar, Users, Zap, Clock } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Card } from "@/components/ui/card";
@@ -115,11 +114,7 @@ function CustomEventCard({ event }: { event: CustomEventData }) {
 }
 
 function EventsContent() {
-  const { events, loading, error, loadEvents } = useCustomEvents();
-
-  useEffect(() => {
-    void loadEvents();
-  }, [loadEvents]);
+  const { events, loading, error } = useCustomEvents();
 
   const upcomingEvents = events.filter(
     (e) => e.status === "PUBLISHED" || e.status === "LIVE",

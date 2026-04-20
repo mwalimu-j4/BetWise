@@ -184,6 +184,9 @@ export function useLiveMatches(filters: LiveFilterState) {
   const pollingRef = useRef<number | null>(null);
   const oddsPollingRef = useRef<number | null>(null);
   const scoresPollingRef = useRef<number | null>(null);
+  const fetchMatchesInFlightRef = useRef(false);
+  const oddsPollInFlightRef = useRef(false);
+  const scoresPollInFlightRef = useRef(false);
   const updateQueueRef = useRef<PendingUpdate[]>([]);
   const batchFlushTimerRef = useRef<number | null>(null);
   const [matches, setMatches] = useState<LiveMatch[]>([]);
@@ -297,6 +300,12 @@ export function useLiveMatches(filters: LiveFilterState) {
   );
 
   const fetchMatches = useCallback(async () => {
+    if (fetchMatchesInFlightRef.current) {
+      return;
+    }
+
+    fetchMatchesInFlightRef.current = true;
+
     try {
       setError(null);
 
@@ -314,6 +323,7 @@ export function useLiveMatches(filters: LiveFilterState) {
     } catch {
       setError("Unable to load live matches right now.");
     } finally {
+      fetchMatchesInFlightRef.current = false;
       setLoading(false);
     }
   }, [filters.highlights, filters.market, filters.q]);
@@ -436,14 +446,19 @@ export function useLiveMatches(filters: LiveFilterState) {
 
     pollingRef.current = window.setInterval(() => {
       void fetchMatches();
-    }, 8_000);
+    }, 30_000);
 
     oddsPollingRef.current = window.setInterval(() => {
+      if (oddsPollInFlightRef.current) {
+        return;
+      }
+
       const activeMatchIds = matchesRef.current.map((match) => match.id);
       if (activeMatchIds.length === 0) {
         return;
       }
 
+      oddsPollInFlightRef.current = true;
       void api
         .get<LiveOddsPollResponse>("/live/odds", {
           params: {
@@ -483,15 +498,23 @@ export function useLiveMatches(filters: LiveFilterState) {
         })
         .catch(() => {
           // Fallback polling failures are soft and should not disrupt the page.
+        })
+        .finally(() => {
+          oddsPollInFlightRef.current = false;
         });
-    }, 5_000);
+    }, 30_000);
 
     scoresPollingRef.current = window.setInterval(() => {
+      if (scoresPollInFlightRef.current) {
+        return;
+      }
+
       const activeMatchIds = matchesRef.current.map((match) => match.id);
       if (activeMatchIds.length === 0) {
         return;
       }
 
+      scoresPollInFlightRef.current = true;
       void api
         .get<LiveScoresPollResponse>("/live/scores", {
           params: {
@@ -525,8 +548,11 @@ export function useLiveMatches(filters: LiveFilterState) {
         })
         .catch(() => {
           // Fallback polling failures are soft and should not disrupt the page.
+        })
+        .finally(() => {
+          scoresPollInFlightRef.current = false;
         });
-    }, 5_000);
+    }, 30_000);
 
     return () => {
       if (pollingRef.current !== null) {

@@ -1,22 +1,21 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, PlayCircle, Receipt, List, User } from "lucide-react";
 import { useEffect, useState } from "react";
-import { api } from "@/api/axiosConfig";
 import {
   betSlipCountEventName,
   betSlipCountStorageKey,
   betSlipToggleEventName,
 } from "@/features/user/components/hooks/useBetSlip";
-
-type LiveEventsResponse = {
-  total?: number;
-  events?: Array<{ eventId: string }>;
-};
+import useEvents from "@/features/user/components/hooks/useEvents";
 
 export default function MobileBottomNav() {
   const location = useLocation();
   const [selectionCount, setSelectionCount] = useState(0);
-  const [liveCount, setLiveCount] = useState(0);
+  const { liveEvents } = useEvents({
+    includeEvents: false,
+    includeLiveEvents: true,
+    includeSports: false,
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -58,39 +57,7 @@ export default function MobileBottomNav() {
     };
   }, []);
 
-  useEffect(() => {
-    let isActive = true;
-
-    const fetchLiveCount = async () => {
-      try {
-        const { data } = await api.get<LiveEventsResponse>("/user/events/live");
-        if (!isActive) {
-          return;
-        }
-
-        const nextCount =
-          typeof data.total === "number"
-            ? data.total
-            : Array.isArray(data.events)
-              ? data.events.length
-              : 0;
-
-        setLiveCount(Math.max(0, nextCount));
-      } catch {
-        // Keep current badge value when request fails.
-      }
-    };
-
-    void fetchLiveCount();
-    const intervalId = window.setInterval(() => {
-      void fetchLiveCount();
-    }, 30_000);
-
-    return () => {
-      isActive = false;
-      window.clearInterval(intervalId);
-    };
-  }, []);
+  const liveCount = liveEvents.length;
 
   const isHomeActive =
     location.pathname === "/" || location.pathname === "/user";

@@ -313,7 +313,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     void fetchLiveCounts();
     const timer = window.setInterval(() => {
       void fetchLiveCounts();
-    }, 10_000);
+    }, 30_000);
 
     return () => {
       mounted = false;

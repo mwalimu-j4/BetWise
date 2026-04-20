@@ -99,6 +99,7 @@ export function useMyBets(args: UseMyBetsArgs) {
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   const query = useQuery({
     queryKey: myBetsQueryKey(args),
@@ -118,14 +119,20 @@ export function useMyBets(args: UseMyBetsArgs) {
       return data;
     },
     refetchInterval: (queryState) => {
+      if (isSocketConnected) {
+        return false;
+      }
+
       const nextData = queryState.state.data;
       if (!nextData) {
-        return 10_000;
+        return 60_000;
       }
 
       const hasOpenBets = nextData.items.some((item) => item.status === "open");
-      return hasOpenBets ? 10_000 : false;
+      return hasOpenBets ? 60_000 : false;
     },
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
@@ -147,6 +154,7 @@ export function useMyBets(args: UseMyBetsArgs) {
     if (!isAuthenticated || !accessToken || !user?.id) {
       socketRef.current?.disconnect();
       socketRef.current = null;
+      setIsSocketConnected(false);
       return;
     }
 
@@ -171,6 +179,14 @@ export function useMyBets(args: UseMyBetsArgs) {
 
     socketRef.current = socket;
 
+    const handleConnect = () => {
+      setIsSocketConnected(true);
+    };
+
+    const handleDisconnect = () => {
+      setIsSocketConnected(false);
+    };
+
     const refreshCurrentBets = () => {
       void queryClient.invalidateQueries({
         queryKey: myBetsQueryKey(args),
@@ -178,16 +194,21 @@ export function useMyBets(args: UseMyBetsArgs) {
       setLastUpdatedAt(new Date().toISOString());
     };
 
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
     socket.on("bets:update", refreshCurrentBets);
     socket.on(`user:${user.id}:bets`, refreshCurrentBets);
 
     return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
       socket.off("bets:update", refreshCurrentBets);
       socket.off(`user:${user.id}:bets`, refreshCurrentBets);
       socket.disconnect();
       if (socketRef.current === socket) {
         socketRef.current = null;
       }
+      setIsSocketConnected(false);
     };
   }, [accessToken, argsKey, isAuthenticated, queryClient, user?.id]);
 
@@ -229,7 +250,8 @@ export function useMyBetsCount() {
 
       return data.total;
     },
-    staleTime: 10_000,
-    refetchInterval: 20_000,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: false,
   });
 }

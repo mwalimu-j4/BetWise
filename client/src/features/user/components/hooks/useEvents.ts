@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { api } from "@/api/axiosConfig";
 
@@ -33,6 +34,7 @@ type EventsResponse = {
 
 type UseEventsOptions = {
   featured?: boolean;
+  includeEvents?: boolean;
   includeLiveEvents?: boolean;
   includeSports?: boolean;
   limit?: number;
@@ -60,38 +62,35 @@ function getErrorMessage(error: unknown) {
 export function useEvents(options: UseEventsOptions = {}) {
   const {
     featured = false,
+    includeEvents = true,
     includeLiveEvents = true,
     includeSports = true,
     limit = 20,
   } = options;
-  const [events, setEvents] = useState<ApiEvent[]>([]);
-  const [liveEvents, setLiveEvents] = useState<ApiEvent[]>([]);
-  const [sports, setSports] = useState<
-    { sportKey: string; leagues: string[] }[]
-  >([]);
   const [selectedSport, setSelectedSport] = useState("");
   const [selectedLeague, setSelectedLeague] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchSports = useCallback(async () => {
-    if (!includeSports) {
-      return;
-    }
-
-    try {
+  const sportsQuery = useQuery({
+    queryKey: ["user-events-sports"],
+    enabled: includeSports,
+    queryFn: async () => {
       const { data } = await api.get<SportsResponse>("/user/events/sports");
-      setSports(data.sports);
-    } catch (fetchError) {
-      setError(getErrorMessage(fetchError));
-    }
-  }, [includeSports]);
+      return data.sports;
+    },
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: false,
+  });
 
-  const fetchEvents = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
+  const eventsQuery = useQuery({
+    queryKey: [
+      "user-events",
+      selectedSport,
+      selectedLeague,
+      featured,
+      limit,
+    ],
+    enabled: includeEvents,
+    queryFn: async () => {
       const { data } = await api.get<EventsResponse>("/user/events", {
         params: {
           sport: selectedSport || undefined,
@@ -101,21 +100,17 @@ export function useEvents(options: UseEventsOptions = {}) {
         },
       });
 
-      setEvents(data.events);
-    } catch (fetchError) {
-      setError(getErrorMessage(fetchError));
-    } finally {
-      setLoading(false);
-    }
-  }, [featured, limit, selectedLeague, selectedSport]);
+      return data.events;
+    },
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: false,
+  });
 
-  const fetchLiveEvents = useCallback(async () => {
-    if (!includeLiveEvents) {
-      setLiveEvents([]);
-      return;
-    }
-
-    try {
+  const liveEventsQuery = useQuery({
+    queryKey: ["user-events-live", selectedSport, selectedLeague, featured],
+    enabled: includeLiveEvents,
+    queryFn: async () => {
       const { data } = await api.get<EventsResponse>("/user/events/live", {
         params: {
           sport: selectedSport || undefined,
@@ -124,62 +119,67 @@ export function useEvents(options: UseEventsOptions = {}) {
         },
       });
 
-      setLiveEvents(data.events);
-    } catch (fetchError) {
-      setError((current) => current ?? getErrorMessage(fetchError));
+      return data.events;
+    },
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const fetchSports = useCallback(async () => {
+    if (!includeSports) {
+      return;
     }
-  }, [featured, includeLiveEvents, selectedLeague, selectedSport]);
+
+    await sportsQuery.refetch();
+  }, [includeSports, sportsQuery]);
+
+  const fetchEvents = useCallback(async () => {
+    if (!includeEvents) {
+      return;
+    }
+
+    await eventsQuery.refetch();
+  }, [eventsQuery, includeEvents]);
+
+  const fetchLiveEvents = useCallback(async () => {
+    if (!includeLiveEvents) {
+      return;
+    }
+
+    await liveEventsQuery.refetch();
+  }, [includeLiveEvents, liveEventsQuery]);
 
   const refetch = useCallback(() => {
-    void Promise.all([
+    return Promise.all([
       fetchEvents(),
       includeLiveEvents ? fetchLiveEvents() : Promise.resolve(),
     ]);
   }, [fetchEvents, fetchLiveEvents, includeLiveEvents]);
 
-  useEffect(() => {
-    if (includeSports) {
-      void fetchSports();
-    }
-  }, [fetchSports, includeSports]);
+  const loading =
+    (includeEvents && eventsQuery.isLoading) ||
+    (includeLiveEvents && liveEventsQuery.isLoading) ||
+    (includeSports && sportsQuery.isLoading);
 
-  useEffect(() => {
-    void fetchEvents();
-    if (includeLiveEvents) {
-      void fetchLiveEvents();
-    }
-  }, [fetchEvents, fetchLiveEvents]);
-
-  useEffect(() => {
-    if (!includeLiveEvents) {
-      return;
-    }
-
-    const liveInterval = window.setInterval(() => {
-      void fetchLiveEvents();
-    }, 30_000);
-
-    const eventsInterval = window.setInterval(() => {
-      void fetchEvents();
-    }, 60_000);
-
-    return () => {
-      window.clearInterval(liveInterval);
-      window.clearInterval(eventsInterval);
-    };
-  }, [fetchEvents, fetchLiveEvents, includeLiveEvents]);
+  const error =
+    (eventsQuery.error && getErrorMessage(eventsQuery.error)) ||
+    (liveEventsQuery.error && getErrorMessage(liveEventsQuery.error)) ||
+    (sportsQuery.error && getErrorMessage(sportsQuery.error)) ||
+    null;
 
   return {
-    events,
-    liveEvents,
+    events: eventsQuery.data ?? [],
+    liveEvents: liveEventsQuery.data ?? [],
     loading,
     error,
-    sports,
+    sports: sportsQuery.data ?? [],
     selectedSport,
     selectedLeague,
     setSelectedSport,
     setSelectedLeague,
     refetch,
+    refreshSports: fetchSports,
   };
 }
 

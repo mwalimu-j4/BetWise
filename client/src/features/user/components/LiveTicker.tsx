@@ -1,11 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { api } from "@/api/axiosConfig";
-import type { ApiEvent } from "./hooks/useEvents";
+import { useMemo } from "react";
 import { Radio } from "lucide-react";
-
-type LiveEventsResponse = {
-  events: ApiEvent[];
-};
+import useEvents from "./hooks/useEvents";
 
 function getSportIcon(sportKey: string | null) {
   const value = sportKey?.toLowerCase() ?? "";
@@ -22,35 +17,11 @@ function getSportIcon(sportKey: string | null) {
 }
 
 export default function LiveTicker() {
-  const [events, setEvents] = useState<ApiEvent[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchLiveEvents = async () => {
-      try {
-        const { data } = await api.get<LiveEventsResponse>("/user/events/live");
-        if (!cancelled) {
-          setEvents(data.events);
-        }
-      } catch {
-        if (!cancelled) {
-          setEvents([]);
-        }
-      }
-    };
-
-    void fetchLiveEvents();
-
-    const interval = window.setInterval(() => {
-      void fetchLiveEvents();
-    }, 60_000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, []);
+  const { liveEvents: events } = useEvents({
+    includeEvents: false,
+    includeLiveEvents: true,
+    includeSports: false,
+  });
 
   const tickerItems = useMemo(() => {
     return events.map((event) => {

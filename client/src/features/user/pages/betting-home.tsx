@@ -62,10 +62,7 @@ export default function BettingHome() {
     includeSports: false,
   });
   const betSlip = useBetSlip();
-  const {
-    events: customEvents,
-    loadEvents: loadCustomEvents,
-  } = useCustomEvents();
+  const { events: customEvents } = useCustomEvents();
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [highlightsRefreshTick, setHighlightsRefreshTick] = useState(() =>
     Date.now(),
@@ -221,16 +218,13 @@ export default function BettingHome() {
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      const now = Date.now();
-      setHighlightsRefreshTick(now);
-      refetch();
-      void loadCustomEvents();
+      setHighlightsRefreshTick(Date.now());
     }, 60_000);
 
     return () => {
       window.clearInterval(timer);
     };
-  }, [loadCustomEvents, refetch]);
+  }, []);
 
   useEffect(() => {
     setHighlightsRefreshTick(Date.now());

@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { io, type Socket } from "socket.io-client";
 import { api } from "@/api/axiosConfig";
 import { toast } from "sonner";
+import { isAxiosError } from "axios";
 import type { CustomEventData } from "../CustomEventCard";
 
 export interface PlaceCustomBetData {
@@ -52,26 +54,25 @@ function resolveSocketBaseUrl() {
 }
 
 export const useCustomEvents = () => {
-  const [events, setEvents] = useState<CustomEventData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const socketRef = useRef<Socket | null>(null);
+  const queryClient = useQueryClient();
 
-  const loadEvents = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
+  const query = useQuery({
+    queryKey: ["user-custom-events"],
+    queryFn: async () => {
       const res = await api.get<{ events: CustomEventData[] }>(
         "/user/custom-events",
       );
-      setEvents(res.data.events);
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || "Failed to load custom events";
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return res.data.events;
+    },
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const loadEvents = useCallback(async () => {
+    await query.refetch();
+  }, [query]);
 
   const loadEvent = useCallback(async (id: string) => {
     try {
@@ -103,18 +104,6 @@ export const useCustomEvents = () => {
     }
   }, []);
 
-  useEffect(() => {
-    void loadEvents();
-  }, [loadEvents]);
-
-  // Auto-refresh every 30s
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      void loadEvents();
-    }, 30000);
-    return () => window.clearInterval(interval);
-  }, [loadEvents]);
-
   // Socket connection for real-time custom event status changes
   useEffect(() => {
     const socket = io(`${resolveSocketBaseUrl()}/ws/live`, {
@@ -130,14 +119,14 @@ export const useCustomEvents = () => {
 
     const onCustomEventLive = () => {
       // Refresh events when a custom event goes live
-      void loadEvents();
+      void queryClient.invalidateQueries({ queryKey: ["user-custom-events"] });
       toast.info("A custom event is now live!", { duration: 4000 });
     };
 
     const onCustomEventFinished = (payload: { eventId: string }) => {
       // Update the event status in-place immediately for real-time UI feedback
-      setEvents((prev) =>
-        prev.map((e) =>
+      queryClient.setQueryData<CustomEventData[]>(["user-custom-events"], (prev) =>
+        (prev ?? []).map((e) =>
           e.id === payload.eventId ? { ...e, status: "FINISHED" as const } : e,
         ),
       );
@@ -148,8 +137,8 @@ export const useCustomEvents = () => {
     };
 
     const onCustomEventSuspended = (payload: { eventId: string }) => {
-      setEvents((prev) =>
-        prev.map((e) =>
+      queryClient.setQueryData<CustomEventData[]>(["user-custom-events"], (prev) =>
+        (prev ?? []).map((e) =>
           e.id === payload.eventId ? { ...e, status: "SUSPENDED" as const } : e,
         ),
       );
@@ -157,12 +146,12 @@ export const useCustomEvents = () => {
 
     const onCustomEventPublished = () => {
       // New event published, refresh the list
-      void loadEvents();
+      void queryClient.invalidateQueries({ queryKey: ["user-custom-events"] });
     };
 
     const onCustomEventOddsUpdated = () => {
       // Odds changed, refresh to get new values
-      void loadEvents();
+      void queryClient.invalidateQueries({ queryKey: ["user-custom-events"] });
     };
 
     socket.on("custom_event:live", onCustomEventLive);
@@ -180,11 +169,17 @@ export const useCustomEvents = () => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [loadEvents]);
+  }, [queryClient]);
+
+  const error = isAxiosError<{ error?: string }>(query.error)
+    ? (query.error.response?.data?.error ?? "Failed to load custom events")
+    : query.error
+      ? "Failed to load custom events"
+      : "";
 
   return {
-    events,
-    loading,
+    events: query.data ?? [],
+    loading: query.isLoading,
     error,
     loadEvents,
     loadEvent,
