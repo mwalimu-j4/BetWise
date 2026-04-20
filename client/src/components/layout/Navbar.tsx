@@ -145,6 +145,11 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
 
   useEffect(() => {
     localStorage.setItem("bc_show_sub_nav", String(showSubNav));
+    // Dynamically update the global navbar height variable
+    // Ticker (26px) + Main Row (56px) + SubNav (48px) = 130px
+    // Without SubNav: 26px + 56px = 82px
+    const totalHeight = showSubNav ? "130px" : "82px";
+    document.documentElement.style.setProperty("--navbar-height", totalHeight);
   }, [showSubNav]);
 
   useEffect(() => {
