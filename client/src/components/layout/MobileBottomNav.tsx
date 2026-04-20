@@ -66,27 +66,27 @@ export default function MobileBottomNav() {
   const isProfileActive = location.pathname.startsWith("/user/profile");
 
   return (
-    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2 md:hidden">
-      <div className="mobile-bottom-nav__inner mx-auto grid max-w-md grid-cols-5 items-end gap-1">
+    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 px-2.5 pb-[calc(env(safe-area-inset-bottom)+6px)] pt-1 md:hidden">
+      <div className="mobile-bottom-nav__inner mx-auto grid max-w-md grid-cols-5 items-end gap-0.5">
         <Link
           to="/user"
-          className={`mobile-bottom-nav__link flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
+          className={`mobile-bottom-nav__link flex flex-col items-center gap-0.5 py-0.5 text-[9px] font-medium transition ${
             isHomeActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
         >
-          <Home size={20} />
+          <Home size={17} />
           <span>Home</span>
         </Link>
 
         <Link
           to="/user/live"
-          className={`mobile-bottom-nav__link relative flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
+          className={`mobile-bottom-nav__link relative flex flex-col items-center gap-0.5 py-0.5 text-[9px] font-medium transition ${
             isLiveActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
         >
-          <PlayCircle size={20} />
+          <PlayCircle size={17} />
           {liveCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-[#ef4444] px-1.5 py-0.5 text-center text-[10px] font-bold leading-none text-white">
+            <span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-[#ef4444] px-1 py-[2px] text-center text-[9px] font-bold leading-none text-white">
               {liveCount > 99 ? "99+" : liveCount}
             </span>
           ) : null}
@@ -101,12 +101,12 @@ export default function MobileBottomNav() {
                 window.dispatchEvent(new Event(betSlipToggleEventName));
               }
             }}
-            className="mobile-bottom-nav__betslip relative -mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#f5c518] text-[#0b1120] shadow-[0_10px_30px_rgba(245,197,24,0.35)] ring-4 ring-[#0b1120] transition-transform active:scale-95"
+            className="mobile-bottom-nav__betslip relative -mt-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#f5c518] text-[#0b1120] shadow-[0_8px_24px_rgba(245,197,24,0.3)] ring-3 ring-[#0b1120] transition-transform active:scale-95"
             aria-label="Open bet slip"
           >
-            <Receipt size={22} strokeWidth={2.5} />
+            <Receipt size={18} strokeWidth={2.4} />
             {selectionCount > 0 ? (
-              <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-[#ef4444] px-1.5 py-0.5 text-center text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-[#ef4444] px-1 py-[2px] text-center text-[9px] font-bold text-white">
                 {selectionCount > 99 ? "99+" : selectionCount}
               </span>
             ) : null}
@@ -120,21 +120,21 @@ export default function MobileBottomNav() {
             filter: "all",
             page: "1",
           }}
-          className={`mobile-bottom-nav__link flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
+          className={`mobile-bottom-nav__link flex flex-col items-center gap-0.5 py-0.5 text-[9px] font-medium transition ${
             isMyBetsActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
         >
-          <List size={20} />
+          <List size={17} />
           <span>My Bets</span>
         </Link>
 
         <Link
           to="/user/profile"
-          className={`mobile-bottom-nav__link flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
+          className={`mobile-bottom-nav__link flex flex-col items-center gap-0.5 py-0.5 text-[9px] font-medium transition ${
             isProfileActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
         >
-          <User size={20} />
+          <User size={17} />
           <span>Profile</span>
         </Link>
       </div>

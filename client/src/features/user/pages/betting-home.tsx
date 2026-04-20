@@ -266,14 +266,14 @@ export default function BettingHome() {
   return (
     <div className="betting-home-wrapper min-h-screen bg-[radial-gradient(circle_at_top,_#163154_0%,_#0b1120_42%,_#08101d_100%)] font-[IBM_Plex_Sans,Segoe_UI,sans-serif] text-white">
       <div
-        className={`betting-home-main mx-auto w-full max-w-7xl px-3 pb-24 pt-4 sm:px-4 sm:py-4 md:px-6 md:pb-6 lg:px-3 xl:px-4 2xl:px-6 ${
+        className={`betting-home-main mx-auto w-full max-w-none px-2 pb-24 pt-1.5 sm:px-3 sm:pb-24 sm:pt-2 md:px-4 md:pb-6 md:pt-2 lg:px-4 xl:px-5 2xl:px-6 ${
           hasSelections ? "has-betslip" : ""
         }`}
       >
         {/* ═══════════════════════════════════════════════════
             HERO CAROUSEL — compact, professional banner
           ═══════════════════════════════════════════════════ */}
-        <section className="hero-section mobile-home-hero relative mt-3 overflow-hidden rounded-xl border border-[#1e3350]/60 shadow-[0_4px_20px_rgba(0,0,0,0.35)] sm:mt-4 sm:rounded-2xl">
+        <section className="hero-section mobile-home-hero relative mt-1 overflow-hidden rounded-xl border border-[#1e3350]/60 shadow-[0_4px_20px_rgba(0,0,0,0.35)] sm:mt-2 sm:rounded-2xl">
           <div className="relative h-[70px] w-full sm:h-[80px] md:h-[95px] lg:h-[110px]">
             {heroImages.map((image, index) => (
               <article

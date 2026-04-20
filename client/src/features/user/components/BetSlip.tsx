@@ -446,15 +446,15 @@ export default function BetSlip(props: UseBetSlipReturn) {
         <button
           type="button"
           onClick={() => setMobileSheetOpen(true)}
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+74px)] left-2 right-2 z-[55] flex h-14 items-center justify-between rounded-xl border border-[#2a3f55] bg-[#0d1820]/95 px-4 text-left text-white shadow-[0_-4px_12px_rgba(0,0,0,0.5)] md:hidden"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+58px)] left-2 right-2 z-[55] flex h-11 items-center justify-between rounded-xl border border-[#2a3f55] bg-[#0d1820]/95 px-3 text-left text-white shadow-[0_-4px_10px_rgba(0,0,0,0.45)] md:hidden"
         >
           <div>
-            <p className="text-xs font-medium text-[#8fa3b1]">Betslip</p>
-            <p className="text-sm font-bold text-[#00c853]">
+            <p className="text-[11px] font-medium text-[#8fa3b1]">Betslip</p>
+            <p className="text-lg font-bold leading-tight text-[#00c853]">
               Win {formatCurrency(props.potentialPayout)}
             </p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f5a623] text-sm font-bold text-black">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f5a623] text-xs font-bold text-black">
             {selections.length}
           </div>
         </button>
