@@ -115,15 +115,15 @@ api.interceptors.request.use((config) => {
   const mutableConfig = config as RetryableRequestConfig;
   mutableConfig.headers = mutableConfig.headers ?? {};
 
-  // CRITICAL: If token is not in memory, try to restore from sessionStorage
+  // If token is not in memory, restore from localStorage (same source as AuthContext).
   // This handles the case where the page was refreshed or came from a redirect
   let tokenToUse = accessToken;
   if (!tokenToUse) {
     try {
-      const storedToken = sessionStorage.getItem("betwise-auth-token");
+      const storedToken = localStorage.getItem("betwise-auth-token");
       if (storedToken) {
         tokenToUse = storedToken;
-        debugLog("[Axios] Restored token from sessionStorage", {
+        debugLog("[Axios] Restored token from localStorage", {
           hasToken: Boolean(storedToken),
           url: config.url,
         });

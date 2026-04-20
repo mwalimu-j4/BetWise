@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: betixpro-server
+    runtime: node
+    rootDir: server
+    plan: starter
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+    startCommand: pnpm run start:render
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false

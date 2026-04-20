@@ -2268,3 +2268,34 @@
     transform: translateY(0);
   }
 }
+
+.featured-events-section {
+  margin-bottom: 20px;
+}
+
+.featured-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(245, 197, 24, 0.15);
+}
+
+.featured-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f5c518;
+  flex: 1;
+}
+
+.featured-see-all {
+  font-size: 12px;
+  color: #f5c518;
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+.featured-see-all:hover {
+  opacity: 1;
+}

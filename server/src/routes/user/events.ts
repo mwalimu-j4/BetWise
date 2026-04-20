@@ -159,11 +159,13 @@ async function getEvents(args: {
   status?: EventStatus;
   page: number;
   limit: number;
+  featuredOnly?: boolean;
 }) {
   const upcomingSafetyThreshold = new Date(Date.now() - 150 * 60 * 1000);
 
   const where: Prisma.SportEventWhereInput = {
     isActive: true,
+    ...(args.featuredOnly ? { isFeatured: true } : {}),
     ...(args.status
       ? { status: args.status }
       : {
@@ -185,7 +187,9 @@ async function getEvents(args: {
     prisma.sportEvent.findMany({
       where,
       select: eventSelect,
-      orderBy: [{ status: "asc" }, { commenceTime: "asc" }],
+      orderBy: args.featuredOnly
+        ? [{ featuredPriority: "asc" }, { commenceTime: "asc" }]
+        : [{ status: "asc" }, { commenceTime: "asc" }],
       skip: (args.page - 1) * args.limit,
       take: args.limit,
     }),
@@ -222,7 +226,12 @@ userEventsRouter.get("/user/events", async (req, res, next) => {
       return res.status(400).json({ error: "Invalid events query" });
     }
 
-    const result = await getEvents(parsedQuery.data);
+    const featuredOnly = req.query.featured === "true";
+
+    const result = await getEvents({
+      ...parsedQuery.data,
+      featuredOnly,
+    });
     return res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -231,10 +240,13 @@ userEventsRouter.get("/user/events", async (req, res, next) => {
 
 userEventsRouter.get("/user/events/live", async (req, res, next) => {
   try {
+    const featuredOnly = req.query.featured === "true";
+
     const result = await getEvents({
       page: 1,
       limit: 50,
       status: "LIVE",
+      featuredOnly,
       sport:
         typeof req.query.sport === "string" && req.query.sport.trim().length > 0
           ? req.query.sport.trim()

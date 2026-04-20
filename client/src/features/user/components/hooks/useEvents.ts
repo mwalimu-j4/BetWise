@@ -13,6 +13,8 @@ export interface ApiEvent {
   status: "UPCOMING" | "LIVE" | "FINISHED";
   homeScore: number | null;
   awayScore: number | null;
+  isFeatured?: boolean;
+  featuredPriority?: number;
   markets: {
     h2h: { home: number; draw: number | null; away: number } | null;
     spreads: { home: number | null; away: number | null } | null;
@@ -27,6 +29,13 @@ type SportsResponse = {
 
 type EventsResponse = {
   events: ApiEvent[];
+};
+
+type UseEventsOptions = {
+  featured?: boolean;
+  includeLiveEvents?: boolean;
+  includeSports?: boolean;
+  limit?: number;
 };
 
 function getErrorMessage(error: unknown) {
@@ -48,7 +57,13 @@ function getErrorMessage(error: unknown) {
   return "Unable to load matches right now.";
 }
 
-export function useEvents() {
+export function useEvents(options: UseEventsOptions = {}) {
+  const {
+    featured = false,
+    includeLiveEvents = true,
+    includeSports = true,
+    limit = 20,
+  } = options;
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [liveEvents, setLiveEvents] = useState<ApiEvent[]>([]);
   const [sports, setSports] = useState<
@@ -60,13 +75,17 @@ export function useEvents() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchSports = useCallback(async () => {
+    if (!includeSports) {
+      return;
+    }
+
     try {
       const { data } = await api.get<SportsResponse>("/user/events/sports");
       setSports(data.sports);
     } catch (fetchError) {
       setError(getErrorMessage(fetchError));
     }
-  }, []);
+  }, [includeSports]);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -77,6 +96,8 @@ export function useEvents() {
         params: {
           sport: selectedSport || undefined,
           league: selectedLeague || undefined,
+          featured: featured ? true : undefined,
+          limit,
         },
       });
 
@@ -88,14 +109,20 @@ export function useEvents() {
     } finally {
       setLoading(false);
     }
-  }, [selectedLeague, selectedSport]);
+  }, [featured, limit, selectedLeague, selectedSport]);
 
   const fetchLiveEvents = useCallback(async () => {
+    if (!includeLiveEvents) {
+      setLiveEvents([]);
+      return;
+    }
+
     try {
       const { data } = await api.get<EventsResponse>("/user/events/live", {
         params: {
           sport: selectedSport || undefined,
           league: selectedLeague || undefined,
+          featured: featured ? true : undefined,
         },
       });
 
@@ -103,22 +130,33 @@ export function useEvents() {
     } catch (fetchError) {
       setError((current) => current ?? getErrorMessage(fetchError));
     }
-  }, [selectedLeague, selectedSport]);
+  }, [featured, includeLiveEvents, selectedLeague, selectedSport]);
 
   const refetch = useCallback(() => {
-    void Promise.all([fetchEvents(), fetchLiveEvents()]);
-  }, [fetchEvents, fetchLiveEvents]);
+    void Promise.all([
+      fetchEvents(),
+      includeLiveEvents ? fetchLiveEvents() : Promise.resolve(),
+    ]);
+  }, [fetchEvents, fetchLiveEvents, includeLiveEvents]);
 
   useEffect(() => {
-    void fetchSports();
-  }, [fetchSports]);
+    if (includeSports) {
+      void fetchSports();
+    }
+  }, [fetchSports, includeSports]);
 
   useEffect(() => {
     void fetchEvents();
-    void fetchLiveEvents();
+    if (includeLiveEvents) {
+      void fetchLiveEvents();
+    }
   }, [fetchEvents, fetchLiveEvents]);
 
   useEffect(() => {
+    if (!includeLiveEvents) {
+      return;
+    }
+
     const liveInterval = window.setInterval(() => {
       void fetchLiveEvents();
     }, 30_000);
@@ -131,7 +169,7 @@ export function useEvents() {
       window.clearInterval(liveInterval);
       window.clearInterval(eventsInterval);
     };
-  }, [fetchEvents, fetchLiveEvents]);
+  }, [fetchEvents, fetchLiveEvents, includeLiveEvents]);
 
   return {
     events,
