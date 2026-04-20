@@ -446,7 +446,7 @@ export default function BetSlip(props: UseBetSlipReturn) {
         <button
           type="button"
           onClick={() => setMobileSheetOpen(true)}
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+72px)] left-2 right-2 z-[55] flex h-11 items-center justify-between rounded-xl border border-[#2a3f55] bg-[#0d1820]/95 px-3 text-left text-white shadow-[0_-4px_10px_rgba(0,0,0,0.45)] md:hidden"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+62px)] left-2 right-2 z-[55] flex h-11 items-center justify-between rounded-xl border border-[#2a3f55] bg-[#0d1820]/95 px-3 text-left text-white shadow-[0_-4px_10px_rgba(0,0,0,0.45)] md:hidden"
         >
           <div>
             <p className="text-[11px] font-medium text-[#8fa3b1]">Betslip</p>
@@ -476,8 +476,8 @@ export default function BetSlip(props: UseBetSlipReturn) {
             mobileSheetOpen ? "translate-y-0" : "translate-y-full"
           }`}
           style={{
-            bottom: "calc(env(safe-area-inset-bottom) + 78px)",
-            height: "calc(85vh - 78px)",
+            bottom: "calc(env(safe-area-inset-bottom) + 68px)",
+            height: "calc(85vh - 68px)",
           }}
         >
           <div className="min-h-0 flex-1 overflow-y-auto p-2 pb-3">

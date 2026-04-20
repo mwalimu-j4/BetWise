@@ -66,8 +66,8 @@ export default function MobileBottomNav() {
   const isProfileActive = location.pathname.startsWith("/user/profile");
 
   return (
-    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 px-2.5 pb-[calc(env(safe-area-inset-bottom)+6px)] pt-1 md:hidden">
-      <div className="mobile-bottom-nav__inner mx-auto grid max-w-md grid-cols-5 items-end gap-0.5">
+    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 px-0 pb-[env(safe-area-inset-bottom)] pt-0 md:hidden">
+      <div className="mobile-bottom-nav__inner grid w-full grid-cols-5 items-end gap-0.5 px-1.5 py-1.5">
         <Link
           to="/user"
           className={`mobile-bottom-nav__link flex flex-col items-center gap-0.5 py-0.5 text-[9px] font-medium transition ${
@@ -101,10 +101,10 @@ export default function MobileBottomNav() {
                 window.dispatchEvent(new Event(betSlipToggleEventName));
               }
             }}
-            className="mobile-bottom-nav__betslip relative -mt-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#f5c518] text-[#0b1120] shadow-[0_8px_24px_rgba(245,197,24,0.3)] ring-3 ring-[#0b1120] transition-transform active:scale-95"
+            className="mobile-bottom-nav__betslip relative -mt-2 flex h-10 w-10 items-center justify-center rounded-full bg-[#f5c518] text-[#0b1120] shadow-[0_5px_14px_rgba(245,197,24,0.22)] transition-transform active:scale-95"
             aria-label="Open bet slip"
           >
-            <Receipt size={18} strokeWidth={2.4} />
+            <Receipt size={17} strokeWidth={2.3} />
             {selectionCount > 0 ? (
               <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-[#ef4444] px-1 py-[2px] text-center text-[9px] font-bold text-white">
                 {selectionCount > 99 ? "99+" : selectionCount}
