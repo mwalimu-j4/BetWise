@@ -1231,25 +1231,27 @@
 .bc-account-trigger {
   height: 40px;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
   color: #ffffff;
-  padding: 0 14px;
+  padding: 0 16px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 600;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 800;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .bc-account-trigger:hover {
-  background: rgba(30, 41, 59, 0.7);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, rgba(45, 60, 90, 0.9), rgba(25, 35, 55, 1));
+  border-color: var(--nav-accent);
   color: #ffffff;
   transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 213, 0, 0.1);
 }
 
 .bc-account-trigger.is-open {
