@@ -101,8 +101,6 @@ export function useEvents(options: UseEventsOptions = {}) {
         },
       });
 
-      console.log("Fetched events:", data.events);
-
       setEvents(data.events);
     } catch (fetchError) {
       setError(getErrorMessage(fetchError));
@@ -163,7 +161,7 @@ export function useEvents(options: UseEventsOptions = {}) {
 
     const eventsInterval = window.setInterval(() => {
       void fetchEvents();
-    }, 120_000);
+    }, 60_000);
 
     return () => {
       window.clearInterval(liveInterval);

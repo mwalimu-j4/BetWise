@@ -41,6 +41,9 @@ type Item = {
   label: string;
   to: string;
   icon: React.ReactNode;
+  search?: Record<string, string>;
+  hash?: string;
+  match?: "highlights" | "home";
   liveBadge?: string;
   badgeCount?: number;
   badgeGold?: boolean;
@@ -162,11 +165,28 @@ const helpLinks: Item[] = [
 
 function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
   const location = useLocation();
-  const isActive = location.pathname === item.to;
+  const section =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("section")
+      : null;
+  const hash =
+    typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
+  const isActive =
+    item.match === "highlights"
+      ? location.pathname === "/user/highlights" ||
+        (location.pathname === "/user" &&
+          (section === "highlights" || hash === "highlights"))
+      : item.match === "home"
+        ? location.pathname === "/user" &&
+          section !== "highlights" &&
+          hash !== "highlights"
+        : location.pathname === item.to;
 
   return (
     <Link
       to={item.to as never}
+      search={item.search as never}
+      hash={item.hash}
       className={`bc-sidebar-link ${isActive ? "is-active" : ""}`}
       onClick={() => {
         if (item.warn) {
@@ -312,7 +332,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               Home & Quick Access
             </p>
             {[
-              { label: "Homepage", to: "/user", icon: <House size={18} /> },
+              {
+                label: "Homepage",
+                to: "/user",
+                icon: <House size={18} />,
+                match: "home" as const,
+              },
               {
                 label: "Live Betting",
                 to: "/user/live",
@@ -337,7 +362,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               },
               {
                 label: "Highlights",
-                to: "/user/highlights",
+                to: "/user",
+                search: { section: "highlights" },
+                hash: "highlights",
+                match: "highlights" as const,
                 icon: <Flame size={18} />,
               },
             ].map((item) => (

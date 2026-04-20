@@ -1,6 +1,7 @@
 import {
   Outlet,
   createRoute,
+  redirect,
   lazyRouteComponent,
 } from "@tanstack/react-router";
 import { userRoute } from "./route";
@@ -15,6 +16,18 @@ const userHomePageRoute = createRoute({
   getParentRoute: () => userIndexLayoutRoute,
   path: "/",
   component: lazyRouteComponent(() => import("@/features/user/home")),
+});
+
+const userHighlightsRedirectRoute = createRoute({
+  getParentRoute: () => userIndexLayoutRoute,
+  path: "/highlights",
+  beforeLoad: () => {
+    throw redirect({
+      to: "/user",
+      search: { section: "highlights" },
+      hash: "highlights",
+    });
+  },
 });
 
 const userBetsPageRoute = createRoute({
@@ -74,6 +87,7 @@ const sportCategoryPageRoute = createRoute({
 
 export const userIndexRoute = userIndexLayoutRoute.addChildren([
   userHomePageRoute,
+  userHighlightsRedirectRoute,
   userBetsPageRoute.addChildren([userBetDetailPageRoute]),
   userEventsPageRoute,
   userCustomEventsPageRoute,
