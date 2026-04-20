@@ -62,7 +62,10 @@ export default function BettingHome() {
     includeSports: false,
   });
   const betSlip = useBetSlip();
-  const { events: customEvents } = useCustomEvents();
+  const {
+    events: customEvents,
+    loadEvents: loadCustomEvents,
+  } = useCustomEvents();
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [highlightsRefreshTick, setHighlightsRefreshTick] = useState(() =>
     Date.now(),

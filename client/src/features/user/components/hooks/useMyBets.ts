@@ -242,7 +242,7 @@ export function useMyBetsCount() {
       const { data } = await api.get<MyBetsResponse>("/my-bets", {
         params: {
           tab: "all",
-          filter: "all",
+          filter: "open",
           page: 1,
           hideLost: false,
         },
