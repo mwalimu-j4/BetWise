@@ -10,6 +10,7 @@ type EventCardProps = {
   event: ApiEvent;
   onOddsSelect: (selection: BetSelection) => void;
   selectedOdds: Set<string>;
+  highlightLabel?: string;
 };
 
 type DisplayedOddCountItem = {
@@ -59,11 +60,13 @@ function OddsPreviewButton({
   entry,
   event,
   isSelected,
+  isBoosted,
   onOddsSelect,
 }: {
   entry: OddsPreview;
   event: ApiEvent;
   isSelected: boolean;
+  isBoosted: boolean;
   onOddsSelect: (selection: BetSelection) => void;
 }) {
   const disabled = typeof entry.odds !== "number";
@@ -92,6 +95,8 @@ function OddsPreviewButton({
           ? "cursor-not-allowed border-[#1a2a40]/50 bg-[#0d1829] text-[#3d5478]"
           : isSelected
             ? "border-[#ffd500]/50 bg-gradient-to-b from-[#ffd500]/15 to-[#ffd500]/5 text-[#ffd500] shadow-[0_0_16px_rgba(255,213,0,0.1),inset_0_1px_0_rgba(255,213,0,0.15)]"
+            : isBoosted
+              ? "border-[#d7921c]/60 bg-gradient-to-b from-[#2a2110] to-[#17181f] text-[#ffd36a] shadow-[0_0_14px_rgba(245,166,35,0.10)] hover:border-[#f5c518]/60 hover:from-[#352a14] hover:to-[#1b1b21]"
             : "border-[#1e3350]/60 bg-gradient-to-b from-[#131f33] to-[#0f1a2d] text-white hover:border-[#ffd500]/30 hover:bg-gradient-to-b hover:from-[#162540] hover:to-[#111d2e] active:scale-[0.97]"
       }`}
     >
@@ -101,6 +106,8 @@ function OddsPreviewButton({
             ? "text-[#3d5478]"
             : isSelected
               ? "text-[#ffd500]/80"
+              : isBoosted
+                ? "text-[#f5c518]/70"
               : "text-[#6f88ac]"
         }`}
       >
@@ -121,6 +128,7 @@ export default function EventCard({
   event,
   onOddsSelect,
   selectedOdds,
+  highlightLabel,
 }: EventCardProps) {
   const [marketCount, setMarketCount] = useState<number>(0);
   const [showMarkets, setShowMarkets] = useState(false);
@@ -182,13 +190,44 @@ export default function EventCard({
       event.markets.h2h?.home,
     ],
   );
+  const boostedOdd = useMemo(() => {
+    return oddsPreview.reduce<OddsPreview | null>((best, current) => {
+      if (typeof current.odds !== "number") {
+        return best;
+      }
+
+      if (!best || (best.odds ?? 0) < current.odds) {
+        return current;
+      }
+
+      return best;
+    }, null);
+  }, [oddsPreview]);
 
   return (
-    <article className="event-card mobile-event-card group relative w-full max-w-full overflow-hidden rounded-2xl border border-[#1e3350]/50 bg-gradient-to-br from-[#111d2e] via-[#0f1a2d] to-[#0d1624] transition-all duration-300 hover:border-[#2a4770]">
+    <article
+      className={`event-card mobile-event-card group relative w-full max-w-full overflow-hidden rounded-2xl border bg-gradient-to-br transition-all duration-300 ${
+        highlightLabel
+          ? "border-[#8e6612]/55 from-[#171512] via-[#111923] to-[#0d1624] hover:border-[#c48d1e]"
+          : "border-[#1e3350]/50 from-[#111d2e] via-[#0f1a2d] to-[#0d1624] hover:border-[#2a4770]"
+      }`}
+    >
       {/* Subtle top accent line */}
-      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#ffd500]/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+      <div
+        className={`absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent to-transparent transition-opacity group-hover:opacity-100 ${
+          highlightLabel ? "via-[#f5c518]/60 opacity-100" : "via-[#ffd500]/25 opacity-0"
+        }`}
+      />
 
       <div className="relative flex h-full flex-col justify-between gap-0 p-0">
+        {highlightLabel ? (
+          <div className="px-2 pt-2 sm:px-3.5 sm:pt-3">
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#8e6612]/40 bg-[#f5c518]/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-[#f5c518] sm:text-[9px]">
+              {highlightLabel}
+            </span>
+          </div>
+        ) : null}
+
         {/* Top section: League + time + markets badge */}
         <div className="event-card-header flex items-center justify-between gap-1.5 px-2 pt-2 sm:px-3.5 sm:pt-3">
           <p className="event-card-league min-w-0 truncate text-[7px] font-semibold uppercase tracking-[0.18em] text-[#6c86a8] sm:text-[10px]">
@@ -257,6 +296,12 @@ export default function EventCard({
                       ? entry.odds.toFixed(2)
                       : "0.00"
                   }`,
+                )}
+                isBoosted={Boolean(
+                  highlightLabel &&
+                    boostedOdd &&
+                    boostedOdd.label === entry.label &&
+                    boostedOdd.odds === entry.odds,
                 )}
                 onOddsSelect={onOddsSelect}
               />
