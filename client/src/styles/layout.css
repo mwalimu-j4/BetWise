@@ -1081,24 +1081,20 @@
 
 .bc-notify-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 12px);
   right: 0;
-  width: min(380px, calc(100vw - 24px));
-  border: 1px solid
-    color-mix(in srgb, var(--color-border-accent) 75%, white 25%);
-  border-radius: 18px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--nav-surface) 94%, white 6%),
-    var(--nav-surface)
-  );
-  box-shadow: 0 16px 40px
-    color-mix(in srgb, var(--color-bg-deepest) 75%, black 25%);
+  width: min(400px, calc(100vw - 24px));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   z-index: 1200;
   white-space: normal;
-  max-height: 440px;
+  max-height: 500px;
   overflow-y: auto;
+  animation: bcDropdownIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bc-notify-head {
@@ -1106,15 +1102,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--nav-border);
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--color-accent-soft) 70%, transparent),
-      transparent
-    ),
-    var(--nav-surface);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .bc-notify-title {
@@ -1152,23 +1142,23 @@
 .bc-notify-item {
   width: 100%;
   border: 0;
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--nav-border) 80%, transparent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background: transparent;
-  color: var(--nav-text);
-  font-size: 13px;
-  font-weight: 500;
-  text-align: left;
-  padding: 14px 16px;
+  color: #ffffff;
+  padding: 16px 20px;
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  white-space: normal;
+  gap: 14px;
+  transition: background 0.2s ease;
+  cursor: pointer;
 }
 
 .bc-notify-item:hover {
-  background: var(--color-accent-soft);
-  color: var(--nav-accent);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bc-notify-item:active {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .bc-notify-item:last-child {
@@ -1239,29 +1229,31 @@
 }
 
 .bc-account-trigger {
-  height: 36px;
+  height: 40px;
   border-radius: 12px;
-  border: 1px solid var(--color-border-primary);
-  background: var(--nav-surface2);
-  color: var(--nav-text);
-  padding: 0 12px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  padding: 0 14px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 10px;
+  font-size: 13px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .bc-account-trigger:hover {
-  background: var(--nav-surface);
-  border-color: var(--nav-accent);
-  color: var(--nav-accent);
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .bc-account-trigger.is-open {
-  background: var(--color-accent-soft);
+  background: rgba(255, 213, 0, 0.1);
   border-color: var(--nav-accent);
   color: var(--nav-accent);
 }
@@ -1312,24 +1304,26 @@
 
 .bc-account-dropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 12px);
   right: 0;
-  width: 230px;
-  background: var(--nav-surface);
-  border: 1px solid var(--nav-border);
-  border-radius: 10px;
-  box-shadow: 0 8px 32px var(--color-bg-deepest);
+  width: 260px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   z-index: 1001;
   overflow: hidden;
-  animation: bcDropdownIn 0.18s ease;
+  animation: bcDropdownIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bc-account-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--color-bg-hover);
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .bc-account-head-meta {
@@ -1354,7 +1348,7 @@
 }
 
 .bc-account-group + .bc-account-group {
-  border-top: 1px solid var(--color-bg-hover);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .bc-account-item {
@@ -1362,9 +1356,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
-  color: var(--nav-muted);
-  font-size: 13px;
+  padding: 12px 20px;
+  color: rgba(148, 163, 184, 0.8);
+  font-size: 14px;
   font-weight: 500;
   text-decoration: none;
   border: 0;
@@ -1375,8 +1369,8 @@
 }
 
 .bc-account-item:hover {
-  background: var(--color-bg-hover);
-  color: var(--nav-text);
+  background: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
 }
 
 .bc-account-item.is-active {
