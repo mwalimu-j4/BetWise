@@ -135,6 +135,18 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
 
+  const [showSubNav, setShowSubNav] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("bc_show_sub_nav");
+      return saved === null ? true : saved === "true";
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("bc_show_sub_nav", String(showSubNav));
+  }, [showSubNav]);
+
   useEffect(() => {
     if (location.pathname !== lastPathRef.current) {
       lastPathRef.current = location.pathname;
@@ -394,10 +406,21 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               </button>
             </div>
           )}
+
+          <div className="bc-nav-sep-v mx-1 opacity-20" aria-hidden="true" />
+
+          <button
+            type="button"
+            className={`bc-subnav-toggle ${!showSubNav ? "is-collapsed" : ""}`}
+            onClick={() => setShowSubNav(!showSubNav)}
+            aria-label={showSubNav ? "Hide sub-navigation" : "Show sub-navigation"}
+          >
+            <ChevronDown size={18} />
+          </button>
         </div>
       </div>
 
-      <div className="bc-leagues">
+      <div className={`bc-leagues ${!showSubNav ? "is-hidden" : ""}`}>
         {quickLinks.map((link) => {
           const isActive = location.pathname === link.to;
           return (

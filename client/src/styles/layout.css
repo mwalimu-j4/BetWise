@@ -1577,11 +1577,22 @@
   align-items: center;
   gap: 6px;
   padding: 0 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-  background: #0f172a;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, #0f1625, #0b1120);
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 1;
+  overflow: hidden;
+}
+
+.bc-leagues.is-hidden {
+  height: 0;
+  padding: 0 16px;
+  opacity: 0;
+  pointer-events: none;
+  border-top-color: transparent;
 }
 
 .bc-league-link {
@@ -1656,6 +1667,43 @@
 
 .bc-league-link-secondary:hover {
   color: #ffffff;
+}
+
+.bc-nav-sep-v {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 4px;
+}
+
+.bc-subnav-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(148, 163, 184, 0.7);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.bc-subnav-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.bc-subnav-toggle svg {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: rotate(180deg);
+}
+
+.bc-subnav-toggle.is-collapsed svg {
+  transform: rotate(0deg);
 }
 
 @keyframes bcLivePulse {
