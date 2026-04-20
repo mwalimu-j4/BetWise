@@ -18,21 +18,6 @@ type DisplayedOddCountItem = {
   bookmakerName: string;
 };
 
-function formatCardDateTime(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  })
-    .format(new Date(value))
-    .replace(",", " ")
-    .replace(/\s(AM|PM)$/i, (match) => ` ${match.trim().toUpperCase()}`)
-    .replace(/\s+/g, " ")
-    .replace(/(\d{1,2}:\d{2})\s(AM|PM)$/i, "· $1 $2");
-}
-
 function formatKickoffCompact(value: string) {
   return new Intl.DateTimeFormat(undefined, {
     weekday: "short",
@@ -303,9 +288,11 @@ export default function EventCard({
             <button
               type="button"
               onClick={() => setShowMarkets(true)}
-              className="event-card-markets event-card-markets-top inline-flex shrink-0 items-center gap-1 rounded border border-[#29425f] bg-[#122235] px-1.5 py-[2px] text-[9px] font-semibold text-[#95afcc] transition hover:border-[#f5c518]/55 hover:text-[#f5c518] sm:hidden"
+              className="event-card-markets event-card-markets-top inline-flex shrink-0 items-center gap-1 rounded border border-[#29425f] bg-[#122235] px-1.5 py-[2px] text-[9px] font-semibold text-[#95afcc] transition hover:border-[#f5c518]/55 hover:text-[#f5c518]"
             >
-              <TrendingUp size={10} /> +{marketCount}
+              <TrendingUp size={10} />
+              <span className="sm:hidden">+{marketCount}</span>
+              <span className="hidden sm:inline">+{marketCount} markets</span>
             </button>
             <span className="event-card-countdown inline-flex items-center gap-0.5 text-[10px] font-medium text-[#8099b8]">
               <Clock size={10} className="text-[#5f7898]" />
@@ -332,9 +319,6 @@ export default function EventCard({
 
           <div className="my-1.5 flex items-center gap-2">
             <span className="h-px flex-1 bg-[#21364d]" />
-            <span className="event-card-date text-[9px] font-medium uppercase tracking-[0.08em] text-[#5f7898]">
-              {isLive ? "In-Play" : formatCardDateTime(event.commenceTime)}
-            </span>
           </div>
 
           <div className="flex min-w-0 items-center justify-between gap-2">
@@ -372,16 +356,6 @@ export default function EventCard({
                 onOddsSelect={onOddsSelect}
               />
             ))}
-          </div>
-
-          <div className="mt-1.5 flex items-center justify-end">
-            <button
-              type="button"
-              onClick={() => setShowMarkets(true)}
-              className="event-card-markets hidden shrink-0 items-center gap-1 rounded border border-[#29425f] bg-[#122235] px-1.5 py-[2px] text-[9px] font-semibold text-[#95afcc] transition hover:border-[#f5c518]/55 hover:text-[#f5c518] sm:inline-flex"
-            >
-              <TrendingUp size={10} /> +{marketCount} markets
-            </button>
           </div>
         </div>
       </div>
