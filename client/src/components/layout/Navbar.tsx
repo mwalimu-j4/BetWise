@@ -6,6 +6,8 @@ import {
   CircleX,
   Menu,
   Search,
+  TrendingUp,
+  Wallet,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
@@ -215,16 +217,19 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
 
         <div className="bc-actions flex items-center gap-2">
-          {isAuthenticated && myBetsCount > 0 ? (
+          {isAuthenticated && myBetsCount >= 0 ? (
             <Link
               to="/my-bets"
               className="bc-my-bets-btn"
               aria-label={`Open My Bets (${myBetsCount})`}
             >
-              My Bets
-              <span className="bc-my-bets-badge" aria-hidden="true">
-                {myBetsCount > 99 ? "99+" : myBetsCount}
-              </span>
+              <TrendingUp size={16} className="bc-bets-icon" />
+              <span className="bc-bets-text">Bets</span>
+              {myBetsCount > 0 && (
+                <span className="bc-my-bets-badge" aria-hidden="true">
+                  {myBetsCount > 99 ? "99+" : myBetsCount}
+                </span>
+              )}
             </Link>
           ) : null}
 
@@ -235,10 +240,15 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               aria-label="Wallet Balance"
               onClick={() => navigate({ to: "/user/payments" })}
             >
-              <span className="bc-balance-label">Balance:</span>
-              <span className="bc-balance-value">
-                {formatMoney(walletSummary?.wallet.balance ?? 0)}
-              </span>
+              <div className="bc-balance-icon-wrap">
+                <Wallet size={16} />
+              </div>
+              <div className="bc-balance-content">
+                <span className="bc-balance-label">Wallet</span>
+                <span className="bc-balance-value">
+                  {formatMoney(walletSummary?.wallet.balance ?? 0)}
+                </span>
+              </div>
             </button>
           ) : (
             <span className="text-xs text-[#a8c4e0] font-medium hidden">
