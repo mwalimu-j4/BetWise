@@ -72,6 +72,8 @@ interface ApiEvent {
   homeScore: number | null;
   awayScore: number | null;
   isActive: boolean;
+  isFeatured: boolean;
+  featuredPriority: number;
   houseMargin: number;
   marketsEnabled: string[];
   _count: { odds: number; bets: number };
@@ -465,6 +467,35 @@ function FeedEvents() {
         ),
       );
       const msg = getErrorMessage(e, "Unable to update event status.");
+      setError(msg);
+      toast.error(msg);
+    }
+  }
+
+  async function handleToggleFeatured(eventId: string, currentValue: boolean) {
+    setEvents((currentEvents) =>
+      currentEvents.map((event) =>
+        event.eventId === eventId
+          ? { ...event, isFeatured: !currentValue }
+          : event,
+      ),
+    );
+
+    try {
+      await api.patch(`/admin/events/${eventId}`, {
+        isFeatured: !currentValue,
+      });
+      await loadEvents({ background: true });
+    } catch (err) {
+      setEvents((currentEvents) =>
+        currentEvents.map((event) =>
+          event.eventId === eventId
+            ? { ...event, isFeatured: currentValue }
+            : event,
+        ),
+      );
+      console.error("Failed to toggle featured:", err);
+      const msg = getErrorMessage(err, "Unable to update featured event.");
       setError(msg);
       toast.error(msg);
     }
@@ -953,6 +984,16 @@ function FeedEvents() {
             ) : null}
           </div>
 
+          {!loading && events.length > 0 ? (
+            <div className="hidden items-center gap-2 border-b border-admin-border/40 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.12em] text-admin-text-muted sm:flex">
+              <div className="w-4" />
+              <div className="min-w-0 flex-1">Event</div>
+              <div className="w-16 text-center">Active</div>
+              <div className="w-20 text-center">Featured</div>
+              <div className="w-[118px] text-right">Actions</div>
+            </div>
+          ) : null}
+
           {/* Skeleton */}
           {loading && events.length === 0 ? (
             <div className="divide-y divide-admin-border/40">
@@ -1060,6 +1101,38 @@ function FeedEvents() {
                       }
                       className="scale-[0.85]"
                     />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void handleToggleFeatured(
+                          event.eventId,
+                          event.isFeatured,
+                        )
+                      }
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                        event.isFeatured ? "bg-[#f5c518]" : "bg-[#1e3350]"
+                      }`}
+                      title={
+                        event.isFeatured
+                          ? "Remove from featured events"
+                          : "Add to featured events"
+                      }
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                          event.isFeatured ? "translate-x-4" : "translate-x-0.5"
+                        }`}
+                      />
+                    </button>
+                    {event.isFeatured ? (
+                      <span className="hidden min-w-8 text-[10px] font-semibold text-[#f5c518] sm:inline">
+                        On
+                      </span>
+                    ) : (
+                      <span className="hidden min-w-8 text-[10px] font-semibold text-admin-text-muted sm:inline">
+                        Off
+                      </span>
+                    )}
                     <div className="hidden items-center sm:flex">
                       <Button
                         size="icon"

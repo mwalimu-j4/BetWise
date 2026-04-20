@@ -130,6 +130,23 @@ type MeResponse = {
   user: AuthUser;
 };
 
+const SESSION_REFRESH_TIMEOUT_MS = 8000;
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+): Promise<T> {
+  return await Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(
+        () => reject(new Error("Session refresh timed out")),
+        timeoutMs,
+      );
+    }),
+  ]);
+}
+
 type RegisterPayload = {
   email: string;
   phone: string;
@@ -214,7 +231,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const me = await api.get<MeResponse>("/auth/me");
+      const me = await withTimeout(
+        api.get<MeResponse>("/auth/me"),
+        SESSION_REFRESH_TIMEOUT_MS,
+      );
       setUser(me.data.user);
       hasValidAuth = true;
 
@@ -228,7 +248,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { data } = await api.post<AuthResponse>("/auth/refresh");
+      const { data } = await withTimeout(
+        api.post<AuthResponse>("/auth/refresh"),
+        SESSION_REFRESH_TIMEOUT_MS,
+      );
       updateSession(data);
       hasValidAuth = true;
       return data.accessToken;

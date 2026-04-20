@@ -13,7 +13,9 @@ import {
   RefreshCw,
   Flame,
   Calendar,
+  Star,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import heroOne from "@/assets/h1.jfif";
 import heroTwo from "@/assets/h2.jfif";
 import heroThree from "@/assets/h3.jfif";
@@ -51,6 +53,11 @@ export default function BettingHome() {
     setSelectedLeague,
     refetch,
   } = useEvents();
+  const { events: featuredEvents } = useEvents({
+    featured: true,
+    includeLiveEvents: false,
+    includeSports: false,
+  });
   const betSlip = useBetSlip();
   const { events: customEvents } = useCustomEvents();
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
@@ -396,12 +403,44 @@ export default function BettingHome() {
               </section>
             )}
 
+            {featuredEvents.length > 0 ? (
+              <section className="featured-events-section mobile-home-panel overflow-hidden rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:rounded-2xl">
+                <div className="featured-section-header border-b border-[#1e3350]/40 px-3 py-2 sm:px-4 sm:py-2.5">
+                  <Star className="h-4 w-4 text-[#f5c518]" />
+                  <div className="min-w-0 flex-1">
+                    <h2 className="featured-section-title">Featured Events</h2>
+                  </div>
+                  <Link
+                    to="/user/featured-events"
+                    className="featured-see-all"
+                  >
+                    See all →
+                  </Link>
+                </div>
+
+                <div className="p-1.5 sm:p-3 md:p-4">
+                  <SportEvents
+                    events={featuredEvents.slice(0, 5)}
+                    onOddsSelect={betSlip.addSelection}
+                    selectedOdds={selectedOdds}
+                    cardsPerRow={1}
+                  />
+                </div>
+              </section>
+            ) : null}
+
             {/* UPCOMING MATCHES section */}
             <section className="matches-section mobile-home-panel min-w-0 rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:rounded-2xl">
               {/* Match Centre header */}
               <div className="border-b border-[#1e3350]/40 px-3 py-3 sm:px-4 sm:py-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
+                    <div className="mb-1 flex items-center gap-1.5">
+                      <Calendar className="h-2.5 w-2.5 text-[#ffd500] sm:h-3 sm:w-3" />
+                      <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#ffd500] sm:text-[9px]">
+                        All Events
+                      </p>
+                    </div>
                     <div className="mb-1 flex items-center gap-1.5">
                       <Calendar className="h-2.5 w-2.5 text-[#ffd500] sm:h-3 sm:w-3" />
                       <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#ffd500] sm:text-[9px]">

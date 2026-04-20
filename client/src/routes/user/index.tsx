@@ -56,6 +56,14 @@ const userCustomEventsPageRoute = createRoute({
   ),
 });
 
+const userFeaturedEventsPageRoute = createRoute({
+  getParentRoute: () => userIndexLayoutRoute,
+  path: "/featured-events",
+  component: lazyRouteComponent(
+    () => import("@/features/user/pages/featured-events"),
+  ),
+});
+
 const sportCategoryPageRoute = createRoute({
   getParentRoute: () => userIndexLayoutRoute,
   path: "/sport/$sportSlug",
@@ -69,6 +77,7 @@ export const userIndexRoute = userIndexLayoutRoute.addChildren([
   userBetsPageRoute.addChildren([userBetDetailPageRoute]),
   userEventsPageRoute,
   userCustomEventsPageRoute,
+  userFeaturedEventsPageRoute,
   sportCategoryPageRoute,
 ]);
 
