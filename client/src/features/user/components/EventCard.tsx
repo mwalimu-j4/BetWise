@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, Clock, TrendingUp } from "lucide-react";
+import { Clock, TrendingUp } from "lucide-react";
 import { isAxiosError } from "axios";
 import { api } from "@/api/axiosConfig";
 import EventMarketsModal from "./EventMarketsModal";
@@ -33,21 +33,68 @@ function formatCardDateTime(value: string) {
     .replace(/(\d{1,2}:\d{2})\s(AM|PM)$/i, "· $1 $2");
 }
 
-function getRelativeTime(value: string) {
-  const diffMs = new Date(value).getTime() - Date.now();
-  const diffMinutes = Math.round(diffMs / 60000);
+function formatKickoffCompact(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  })
+    .format(new Date(value))
+    .replace(",", "")
+    .replace(/\s(AM|PM)$/i, (match) => ` ${match.trim().toUpperCase()}`);
+}
 
-  if (Math.abs(diffMinutes) < 60) {
-    return `${Math.max(diffMinutes, 1)}m`;
+function getLeagueShortName(event: ApiEvent) {
+  const rawLeague = (event.leagueName ?? "").trim();
+  if (!rawLeague) {
+    return "MATCH";
   }
 
-  const diffHours = Math.round(diffMinutes / 60);
-  if (Math.abs(diffHours) < 24) {
-    return `${Math.max(diffHours, 1)}h`;
+  const upper = rawLeague.toUpperCase();
+  if (upper.includes("CHAMPIONS")) return "UCL";
+  if (upper.includes("PREMIER")) return "EPL";
+  if (upper.includes("LA LIGA")) return "LALIGA";
+  if (upper.includes("BUNDES")) return "BUND";
+  if (upper.includes("SERIE")) return "SERIE A";
+  if (upper.includes("LIGUE 1")) return "LIGUE 1";
+
+  const words = rawLeague.split(/\s+/).filter(Boolean);
+  if (words.length === 1) {
+    return words[0].slice(0, 8).toUpperCase();
   }
 
-  const diffDays = Math.round(diffHours / 24);
-  return `${Math.max(diffDays, 1)}d`;
+  return words
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 6)
+    .toUpperCase();
+}
+
+function getLeagueDotClass(event: ApiEvent) {
+  const league = (event.leagueName ?? "").toLowerCase();
+  const sport = (event.sportKey ?? "").toLowerCase();
+
+  if (league.includes("champions") || league.includes("premier")) {
+    return "bg-[#2da7ff]";
+  }
+
+  if (
+    league.includes("la liga") ||
+    league.includes("serie") ||
+    sport.includes("soccer")
+  ) {
+    return "bg-[#f5c518]";
+  }
+
+  if (league.includes("nba") || sport.includes("basketball")) {
+    return "bg-[#ff7a45]";
+  }
+
+  if (sport.includes("tennis")) {
+    return "bg-[#6be675]";
+  }
+
+  return "bg-[#8aa4c5]";
 }
 
 type OddsPreview = {
@@ -90,31 +137,31 @@ function OddsPreviewButton({
           commenceTime: event.commenceTime,
         });
       }}
-      className={`odds-btn mobile-event-odds ${isSelected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""} group/odds relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-xl border px-1 py-1.5 text-center transition-all duration-200 sm:px-2 sm:py-2.5 ${
+      className={`odds-btn mobile-event-odds ${isSelected ? "is-selected" : ""} ${disabled ? "is-disabled" : ""} group/odds relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-lg border px-1 py-1.5 text-center transition-all duration-200 ${
         disabled
-          ? "cursor-not-allowed border-[#1a2a40]/50 bg-[#0d1829] text-[#3d5478]"
+          ? "cursor-not-allowed border-[#203349] bg-[#122131] text-[#3d5478]"
           : isSelected
-            ? "border-[#ffd500]/50 bg-gradient-to-b from-[#ffd500]/15 to-[#ffd500]/5 text-[#ffd500] shadow-[0_0_16px_rgba(255,213,0,0.1),inset_0_1px_0_rgba(255,213,0,0.15)]"
+            ? "border-[#f5c518] bg-[linear-gradient(180deg,rgba(245,197,24,0.16),rgba(245,197,24,0.06))] text-[#f5c518] shadow-[0_0_0_1px_rgba(245,197,24,0.25),0_4px_14px_rgba(245,197,24,0.2)]"
             : isBoosted
-              ? "border-[#d7921c]/60 bg-gradient-to-b from-[#2a2110] to-[#17181f] text-[#ffd36a] shadow-[0_0_14px_rgba(245,166,35,0.10)] hover:border-[#f5c518]/60 hover:from-[#352a14] hover:to-[#1b1b21]"
-            : "border-[#1e3350]/60 bg-gradient-to-b from-[#131f33] to-[#0f1a2d] text-white hover:border-[#ffd500]/30 hover:bg-gradient-to-b hover:from-[#162540] hover:to-[#111d2e] active:scale-[0.97]"
+              ? "border-[#c48d1e] bg-[linear-gradient(180deg,#2b2311,#1b1a1d)] text-[#ffd36a] shadow-[0_0_10px_rgba(245,166,35,0.14)] hover:border-[#f5c518]"
+              : "border-[#26405b] bg-[#132437] text-white hover:border-[#f5c518]/70 hover:bg-[#163049] active:scale-[0.98]"
       }`}
     >
       <span
-        className={`text-[8px] font-bold uppercase tracking-[0.12em] sm:text-[10px] ${
+        className={`text-[8px] font-bold uppercase tracking-[0.12em] ${
           disabled
             ? "text-[#3d5478]"
             : isSelected
               ? "text-[#ffd500]/80"
               : isBoosted
                 ? "text-[#f5c518]/70"
-              : "text-[#6f88ac]"
+                : "text-[#7f98b8]"
         }`}
       >
         {entry.label}
       </span>
       <span
-        className={`text-[15px] font-extrabold tabular-nums sm:text-base ${
+        className={`text-[13px] font-extrabold tabular-nums sm:text-[14px] ${
           isSelected ? "text-[#ffd500]" : ""
         }`}
       >
@@ -204,86 +251,105 @@ export default function EventCard({
     }, null);
   }, [oddsPreview]);
 
+  const isLive = event.status === "LIVE";
+  const hasLiveScore =
+    typeof event.homeScore === "number" && typeof event.awayScore === "number";
+  const kickoffDisplay = formatKickoffCompact(event.commenceTime);
+  const leagueShortName = getLeagueShortName(event);
+  const leagueDotClass = getLeagueDotClass(event);
+
   return (
     <article
-      className={`event-card mobile-event-card group relative w-full max-w-full overflow-hidden rounded-2xl border bg-gradient-to-br transition-all duration-300 ${
+      className={`event-card mobile-event-card group relative w-full max-w-full overflow-hidden rounded-xl border bg-[#0f1923] transition-all duration-300 ${
         highlightLabel
-          ? "border-[#8e6612]/55 from-[#171512] via-[#111923] to-[#0d1624] hover:border-[#c48d1e]"
-          : "border-[#1e3350]/50 from-[#111d2e] via-[#0f1a2d] to-[#0d1624] hover:border-[#2a4770]"
+          ? "border-[#8e6612]/65 hover:border-[#c48d1e]"
+          : "border-[#24384f] hover:border-[#355373]"
       }`}
     >
       {/* Subtle top accent line */}
       <div
         className={`absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent to-transparent transition-opacity group-hover:opacity-100 ${
-          highlightLabel ? "via-[#f5c518]/60 opacity-100" : "via-[#ffd500]/25 opacity-0"
+          highlightLabel
+            ? "via-[#f5c518]/60 opacity-100"
+            : "via-[#ffd500]/25 opacity-0"
         }`}
       />
 
-      <div className="relative flex h-full flex-col justify-between gap-0 p-0">
+      <div className="relative flex h-full flex-col gap-0 p-[10px]">
         {highlightLabel ? (
-          <div className="px-2 pt-2 sm:px-3.5 sm:pt-3">
-            <span className="inline-flex items-center gap-1 rounded-full border border-[#8e6612]/40 bg-[#f5c518]/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-[#f5c518] sm:text-[9px]">
+          <div className="pb-1.5">
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#8e6612]/40 bg-[#f5c518]/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-[#f5c518]">
               {highlightLabel}
             </span>
           </div>
         ) : null}
 
-        {/* Top section: League + time + markets badge */}
-        <div className="event-card-header flex items-center justify-between gap-1.5 px-2 pt-2 sm:px-3.5 sm:pt-3">
-          <p className="event-card-league min-w-0 truncate text-[7px] font-semibold uppercase tracking-[0.18em] text-[#6c86a8] sm:text-[10px]">
-            {event.leagueName ?? "Featured Match"}
-          </p>
+        <div className="event-card-header flex items-center justify-between gap-2">
+          <div className="min-w-0 flex items-center gap-1.5">
+            <span
+              className={`h-2 w-2 shrink-0 rounded-full ${leagueDotClass}`}
+            />
+            <p className="event-card-league truncate text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8aa4c5]">
+              {leagueShortName}
+            </p>
+          </div>
 
-          <div className="event-card-meta flex shrink-0 items-center gap-1">
-            {/* Countdown chip */}
-            <span className="event-card-countdown inline-flex items-center gap-0.5 rounded-full border border-[#223752]/70 bg-[#0b1525]/88 px-1.5 py-[2px] text-[7px] font-bold tabular-nums text-[#89a3c7] sm:text-[9px]">
-              <Clock size={8} className="text-[#546e8f]" />
-              {getRelativeTime(event.commenceTime)}
-            </span>
-
-            {/* Markets badge */}
+          <div className="event-card-meta flex shrink-0 items-center gap-1.5">
+            {isLive ? (
+              <span className="inline-flex items-center rounded-full border border-[#1ea84a]/60 bg-[#1ea84a]/15 px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[0.08em] text-[#58e27f]">
+                Live
+              </span>
+            ) : null}
             <button
               type="button"
               onClick={() => setShowMarkets(true)}
-              className="event-card-markets inline-flex shrink-0 items-center gap-0.5 rounded-full border border-[#ffd500]/15 bg-[#ffd500]/[0.06] px-1.5 py-[2px] text-[7px] font-bold uppercase tracking-[0.18em] text-[#ffd500] transition hover:border-[#ffd500]/30 hover:bg-[#ffd500]/10 sm:text-[8px]"
+              className="event-card-markets event-card-markets-top inline-flex shrink-0 items-center gap-1 rounded border border-[#29425f] bg-[#122235] px-1.5 py-[2px] text-[9px] font-semibold text-[#95afcc] transition hover:border-[#f5c518]/55 hover:text-[#f5c518] sm:hidden"
             >
-              <TrendingUp size={8} className="sm:h-[9px] sm:w-[9px]" />+
-              {marketCount}
+              <TrendingUp size={10} /> +{marketCount}
             </button>
+            <span className="event-card-countdown inline-flex items-center gap-0.5 text-[10px] font-medium text-[#8099b8]">
+              <Clock size={10} className="text-[#5f7898]" />
+              {kickoffDisplay}
+            </span>
           </div>
         </div>
 
-        {/* Teams — full-width matchup row */}
         <button
           type="button"
           onClick={() => setShowMarkets(true)}
-          className="event-card-matchup w-full px-2 py-1.5 text-left sm:px-3.5 sm:py-2.5"
+          className="event-card-matchup w-full px-0 pb-0 pt-1.5 text-left"
         >
-          <div className="flex items-center gap-2">
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="event-card-team truncate text-[11px] font-extrabold leading-[1.1] text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
-                {event.homeTeam}
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <span className="event-card-team truncate text-[12px] font-semibold leading-[1.2] text-[#f1f6ff]">
+              {event.homeTeam}
+            </span>
+            {isLive && hasLiveScore ? (
+              <span className="shrink-0 text-[11px] font-bold tabular-nums text-[#c9d8ea]">
+                {event.homeScore} - {event.awayScore}
               </span>
-              <span className="event-card-team truncate text-[11px] font-extrabold leading-[1.1] text-white group-hover:text-[#ffd500]/90 sm:text-[13px]">
-                {event.awayTeam}
-              </span>
-            </div>
-            <span className="event-card-vs flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#223752]/80 bg-[#122133] text-[7px] font-black tracking-[0.18em] text-[#5f789b] sm:h-7 sm:w-7 sm:text-[9px]">
-              VS
+            ) : null}
+          </div>
+
+          <div className="my-1.5 flex items-center gap-2">
+            <span className="h-px flex-1 bg-[#21364d]" />
+            <span className="event-card-date text-[9px] font-medium uppercase tracking-[0.08em] text-[#5f7898]">
+              {isLive ? "In-Play" : formatCardDateTime(event.commenceTime)}
             </span>
           </div>
 
-          {/* Date row */}
-          <div className="event-card-date mt-1 flex items-center gap-1 text-[#6b86a8]">
-            <Calendar size={8} className="shrink-0" />
-            <span className="truncate text-[7px] font-medium sm:text-[9px]">
-              {formatCardDateTime(event.commenceTime)}
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <span className="event-card-team truncate text-[12px] font-semibold leading-[1.2] text-[#f1f6ff]">
+              {event.awayTeam}
             </span>
+            {!isLive ? (
+              <span className="event-card-vs shrink-0 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6f89aa]">
+                VS
+              </span>
+            ) : null}
           </div>
         </button>
 
-        {/* Odds row — 3 columns */}
-        <div className="event-card-odds-wrap border-t border-[#1e3350]/30 px-1.5 pb-1.5 pt-1.5 sm:px-3 sm:pb-3 sm:pt-2.5">
+        <div className="event-card-odds-wrap border-t border-[#1d3147] px-0 pb-0 pt-2">
           <div className="flex gap-1.5 sm:gap-2">
             {oddsPreview.map((entry) => (
               <OddsPreviewButton
@@ -299,13 +365,23 @@ export default function EventCard({
                 )}
                 isBoosted={Boolean(
                   highlightLabel &&
-                    boostedOdd &&
-                    boostedOdd.label === entry.label &&
-                    boostedOdd.odds === entry.odds,
+                  boostedOdd &&
+                  boostedOdd.label === entry.label &&
+                  boostedOdd.odds === entry.odds,
                 )}
                 onOddsSelect={onOddsSelect}
               />
             ))}
+          </div>
+
+          <div className="mt-1.5 flex items-center justify-end">
+            <button
+              type="button"
+              onClick={() => setShowMarkets(true)}
+              className="event-card-markets hidden shrink-0 items-center gap-1 rounded border border-[#29425f] bg-[#122235] px-1.5 py-[2px] text-[9px] font-semibold text-[#95afcc] transition hover:border-[#f5c518]/55 hover:text-[#f5c518] sm:inline-flex"
+            >
+              <TrendingUp size={10} /> +{marketCount} markets
+            </button>
           </div>
         </div>
       </div>
