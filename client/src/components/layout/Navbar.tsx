@@ -148,6 +148,18 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   }, [showSubNav]);
 
   useEffect(() => {
+    const handleStorageChange = (e: StorageEvent | Event) => {
+      if (e instanceof StorageEvent && e.key !== "bc_show_sub_nav") return;
+      
+      const saved = localStorage.getItem("bc_show_sub_nav");
+      setShowSubNav(saved === null ? true : saved === "true");
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  useEffect(() => {
     if (location.pathname !== lastPathRef.current) {
       lastPathRef.current = location.pathname;
       setNotificationsOpen(false);
@@ -406,47 +418,47 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               </button>
             </div>
           )}
-
-          <div className="bc-nav-sep-v mx-1 opacity-20" aria-hidden="true" />
-
-          <button
-            type="button"
-            className={`bc-subnav-toggle ${!showSubNav ? "is-collapsed" : ""}`}
-            onClick={() => setShowSubNav(!showSubNav)}
-            aria-label={showSubNav ? "Hide sub-navigation" : "Show sub-navigation"}
-          >
-            <ChevronDown size={18} />
-          </button>
         </div>
       </div>
 
       <div className={`bc-leagues ${!showSubNav ? "is-hidden" : ""}`}>
-        {quickLinks.map((link) => {
-          const isActive = location.pathname === link.to;
-          return (
+        <div className="bc-leagues-scroll">
+          {quickLinks.map((link) => {
+            const isActive = location.pathname === link.to;
+            return (
+              <Link
+                key={link.label}
+                to={link.to as never}
+                className={`bc-league-link ${isActive ? "is-active" : ""} ${link.isLive ? "is-live-link" : ""}`}
+              >
+                <span className="bc-league-icon">{link.icon}</span>
+                <span className="bc-league-label">{link.label}</span>
+                {link.isLive && <span className="bc-live-dot" />}
+              </Link>
+            );
+          })}
+
+          <div className="bc-league-sep-v" aria-hidden="true" />
+
+          {leagues.map((league) => (
             <Link
-              key={link.label}
-              to={link.to as never}
-              className={`bc-league-link ${isActive ? "is-active" : ""} ${link.isLive ? "is-live-link" : ""}`}
+              key={league.label}
+              to={league.to as never}
+              className="bc-league-link-secondary"
             >
-              <span className="bc-league-icon">{link.icon}</span>
-              <span className="bc-league-label">{link.label}</span>
-              {link.isLive && <span className="bc-live-dot" />}
+              {league.label}
             </Link>
-          );
-        })}
+          ))}
+        </div>
 
-        <div className="bc-league-sep-v" aria-hidden="true" />
-
-        {leagues.map((league) => (
-          <Link
-            key={league.label}
-            to={league.to as never}
-            className="bc-league-link-secondary"
-          >
-            {league.label}
-          </Link>
-        ))}
+        <button
+          type="button"
+          className="bc-subnav-close"
+          onClick={() => setShowSubNav(false)}
+          title="Hide categories (can be re-enabled in Profile Settings)"
+        >
+          <CircleX size={16} />
+        </button>
       </div>
     </header>
   );

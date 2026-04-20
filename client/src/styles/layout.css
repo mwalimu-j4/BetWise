@@ -1575,24 +1575,57 @@
   height: 48px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0;
   padding: 0 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   background: linear-gradient(180deg, #0f1625, #0b1120);
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  opacity: 1;
   overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
 }
 
 .bc-leagues.is-hidden {
   height: 0;
-  padding: 0 16px;
+  border-top-width: 0;
+  padding-top: 0;
+  padding-bottom: 0;
   opacity: 0;
   pointer-events: none;
-  border-top-color: transparent;
+  visibility: hidden;
+}
+
+.bc-leagues-scroll {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+}
+
+.bc-leagues-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.bc-subnav-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  color: rgba(148, 163, 184, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.bc-subnav-close:hover {
+  color: #ef4444;
+  transform: scale(1.1);
 }
 
 .bc-league-link {

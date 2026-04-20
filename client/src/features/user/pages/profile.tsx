@@ -156,8 +156,51 @@ export default function UserProfilePage() {
                   </div>
                 </div>
               </div>
+              
+              {/* Settings */}
+              <div className="rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#1a2332] to-[#111827] p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f5c518]/10">
+                    <User size={20} className="text-[#f5c518]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Display Settings</h3>
+                    <p className="text-sm text-gray-400">Customize your interface</p>
+                  </div>
+                </div>
 
-              {/* Actions */}
+                <div className="flex items-center justify-between p-4 rounded-xl bg-[#0a0f1a]/50">
+                  <div className="flex items-center gap-3">
+                    <TrendingUp size={18} className="text-gray-400" />
+                    <div>
+                      <p className="text-sm font-semibold text-white">Show Quick Navigation</p>
+                      <p className="text-xs text-gray-400">Display the sports categories below the top bar</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const current = localStorage.getItem("bc_show_sub_nav") !== "false";
+                      const next = !current;
+                      localStorage.setItem("bc_show_sub_nav", String(next));
+                      window.dispatchEvent(new Event("storage")); // Trigger Navbar update
+                      toast.success(
+                        next ? "Quick navigation enabled" : "Quick navigation hidden",
+                      );
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-hidden ${
+                      localStorage.getItem("bc_show_sub_nav") !== "false" ? "bg-[#f5c518]" : "bg-gray-700"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        localStorage.getItem("bc_show_sub_nav") !== "false" ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Navigation Links */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Link
                   to="/user/payments/deposit"
