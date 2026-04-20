@@ -221,6 +221,7 @@
 @media (max-width: 767px) {
   :root {
     --navbar-height: 52px;
+    --mobile-bottom-nav-height: 48px;
   }
 
   .bc-page-wrap {
@@ -544,6 +545,7 @@
   .mobile-bottom-nav {
     background: #081322;
     border-top: 1px solid rgba(43, 67, 98, 0.88);
+    min-height: var(--mobile-bottom-nav-height);
   }
 
   .mobile-bottom-nav__inner {
@@ -2296,6 +2298,7 @@
 @media (max-width: 480px) {
   :root {
     --navbar-height: 48px;
+    --mobile-bottom-nav-height: 46px;
   }
 
   /* Extra mobile breakpoint - ultra compact */

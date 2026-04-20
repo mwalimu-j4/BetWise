@@ -446,15 +446,17 @@ export default function BetSlip(props: UseBetSlipReturn) {
         <button
           type="button"
           onClick={() => setMobileSheetOpen(true)}
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+62px)] left-2 right-2 z-[55] flex h-11 items-center justify-between rounded-xl border border-[#2a3f55] bg-[#0d1820]/95 px-3 text-left text-white shadow-[0_-4px_10px_rgba(0,0,0,0.45)] md:hidden"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+var(--mobile-bottom-nav-height,48px))] left-0 right-0 z-[55] flex h-9 items-center justify-between border-t border-[#2a3f55] bg-[#0d1820] px-2.5 text-left text-white md:hidden"
         >
           <div>
-            <p className="text-[11px] font-medium text-[#8fa3b1]">Betslip</p>
-            <p className="text-lg font-bold leading-tight text-[#00c853]">
+            <p className="text-[10px] font-medium leading-none text-[#8fa3b1]">
+              Betslip
+            </p>
+            <p className="text-[13px] font-bold leading-tight text-[#00c853]">
               Win {formatCurrency(props.potentialPayout)}
             </p>
           </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f5a623] text-xs font-bold text-black">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f5a623] text-[11px] font-bold text-black">
             {selections.length}
           </div>
         </button>
@@ -476,8 +478,9 @@ export default function BetSlip(props: UseBetSlipReturn) {
             mobileSheetOpen ? "translate-y-0" : "translate-y-full"
           }`}
           style={{
-            bottom: "calc(env(safe-area-inset-bottom) + 68px)",
-            height: "calc(85vh - 68px)",
+            bottom:
+              "calc(env(safe-area-inset-bottom) + var(--mobile-bottom-nav-height,48px))",
+            height: "calc(85vh - var(--mobile-bottom-nav-height,48px))",
           }}
         >
           <div className="min-h-0 flex-1 overflow-y-auto p-2 pb-3">
