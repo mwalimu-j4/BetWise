@@ -321,15 +321,12 @@
     height: 0;
   }
 
-  /* ── Mobile event cards: flat dense list style ───── */
+  /* ── Mobile event cards: enterprise compact style ───── */
   .event-card.mobile-event-card {
-    border-top: none !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
-    border-radius: 0 !important;
-    background: #0d1420 !important;
-    box-shadow: none !important;
+    border: 1px solid rgba(38, 60, 83, 0.95) !important;
+    border-radius: 12px !important;
+    background: #0f1923 !important;
+    box-shadow: 0 8px 20px rgba(3, 10, 20, 0.28) !important;
     margin: 0 !important;
   }
 
@@ -351,14 +348,14 @@
   }
 
   .event-card.mobile-event-card > .relative {
-    padding: 10px 12px !important;
+    padding: 10px !important;
   }
 
   .event-card.mobile-event-card .event-card-header {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 8px !important;
+    gap: 6px !important;
     flex-wrap: nowrap !important;
     padding: 0 !important;
   }
@@ -366,30 +363,44 @@
   .event-card.mobile-event-card .event-card-meta {
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 4px !important;
     margin-left: auto !important;
+  }
+
+  .event-card.mobile-event-card .event-card-markets-top {
+    order: 1;
+    font-size: 8px !important;
+    letter-spacing: 0.02em !important;
+    padding: 1px 5px !important;
+    min-height: 18px;
+  }
+
+  .event-card.mobile-event-card .event-card-countdown {
+    order: 2;
+    font-size: 9px !important;
+    gap: 3px !important;
   }
 
   .event-card.mobile-event-card .event-card-league {
     font-size: 9px !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.12em !important;
+    letter-spacing: 0.1em !important;
     line-height: 1.1 !important;
-    color: #6c86a8 !important;
+    color: #89a5c3 !important;
     min-width: 0;
     flex: 1 1 auto;
   }
 
   .event-card.mobile-event-card .event-card-matchup {
-    padding: 4px 12px !important;
+    padding: 6px 0 0 !important;
   }
 
   .event-card.mobile-event-card .event-card-team {
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    line-height: 1.25 !important;
-    color: #f0f4ff !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    color: #f1f6ff !important;
   }
 
   .event-card.mobile-event-card .event-card-vs {
@@ -400,7 +411,7 @@
     display: flex !important;
     align-items: center !important;
     gap: 4px !important;
-    margin-top: 4px !important;
+    margin-top: 0 !important;
     color: #5f7a9b !important;
   }
 
@@ -410,9 +421,9 @@
   }
 
   .event-card.mobile-event-card .event-card-odds-wrap {
-    border-top: 0 !important;
+    border-top: 1px solid rgba(33, 53, 76, 0.9) !important;
     padding: 0 !important;
-    margin-top: 6px !important;
+    margin-top: 8px !important;
   }
 
   .event-card.mobile-event-card .event-card-odds-wrap > .flex {
@@ -420,18 +431,18 @@
   }
 
   .event-card.mobile-event-card .mobile-event-odds {
-    height: 44px !important;
-    min-height: 44px !important;
+    height: 40px !important;
+    min-height: 40px !important;
     border-radius: 8px !important;
-    background: #111e30 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: #132437 !important;
+    border: 1px solid rgba(39, 63, 90, 0.95) !important;
     box-shadow: none !important;
     justify-content: space-between !important;
     padding: 4px 2px 5px !important;
   }
 
   .event-card.mobile-event-card .mobile-event-odds span:first-child {
-    font-size: 10px !important;
+    font-size: 9px !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.06em !important;
@@ -440,15 +451,24 @@
   }
 
   .event-card.mobile-event-card .mobile-event-odds span:last-child {
-    font-size: 18px !important;
+    font-size: 14px !important;
     font-weight: 800 !important;
     line-height: 1 !important;
     color: #ffffff !important;
   }
 
+  .event-card.mobile-event-card .mobile-event-odds:hover {
+    border-color: rgba(245, 197, 24, 0.72) !important;
+    background: #17314a !important;
+  }
+
   .event-card.mobile-event-card .mobile-event-odds.is-selected {
-    border-color: rgba(255, 213, 0, 0.55) !important;
-    background: rgba(255, 213, 0, 0.1) !important;
+    border-color: rgba(245, 197, 24, 0.75) !important;
+    background: linear-gradient(
+      180deg,
+      rgba(245, 197, 24, 0.18),
+      rgba(245, 197, 24, 0.07)
+    ) !important;
   }
 
   .event-card.mobile-event-card .mobile-event-odds.is-selected span:first-child,
