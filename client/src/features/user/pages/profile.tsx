@@ -256,7 +256,12 @@ export default function UserProfilePage() {
               {/* Quick Navigation */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Link
-                  to="/my-bets"
+                  to="/user/bets"
+                  search={{
+                    tab: "normal",
+                    filter: "all",
+                    page: "1",
+                  }}
                   className="group relative overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#1a2332] to-[#111827] p-6 transition-all hover:border-[#22c55e]/50 hover:shadow-lg"
                 >
                   <div className="relative flex items-center justify-between">

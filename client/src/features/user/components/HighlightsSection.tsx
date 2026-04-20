@@ -54,7 +54,7 @@ export default function HighlightsSection({
         </span>
       </div>
 
-      <div className="grid gap-2 p-1.5 sm:gap-3 sm:p-3 md:p-4">
+      <div className="grid grid-cols-1 gap-2 p-1.5 sm:grid-cols-2 sm:gap-3 sm:p-3 md:p-4">
         {events.map((event) =>
           event.sourceType === "regular" && event.regularEvent ? (
             <EventCard
