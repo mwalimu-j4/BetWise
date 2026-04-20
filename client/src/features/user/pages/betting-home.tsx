@@ -62,10 +62,7 @@ export default function BettingHome() {
     includeSports: false,
   });
   const betSlip = useBetSlip();
-  const {
-    events: customEvents,
-    loadEvents: loadCustomEvents,
-  } = useCustomEvents();
+  const { events: customEvents } = useCustomEvents();
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [highlightsRefreshTick, setHighlightsRefreshTick] = useState(() =>
     Date.now(),
@@ -238,7 +235,8 @@ export default function BettingHome() {
       typeof window !== "undefined" ? window.location.search : "",
     );
     const shouldFocusHighlights =
-      params.get("section") === "highlights" || window.location.hash === "#highlights";
+      params.get("section") === "highlights" ||
+      window.location.hash === "#highlights";
 
     if (!shouldFocusHighlights) {
       return;
@@ -272,8 +270,6 @@ export default function BettingHome() {
           hasSelections ? "has-betslip" : ""
         }`}
       >
-        
-
         {/* ═══════════════════════════════════════════════════
             HERO CAROUSEL — compact, professional banner
           ═══════════════════════════════════════════════════ */}
@@ -503,10 +499,7 @@ export default function BettingHome() {
                   <div className="min-w-0 flex-1">
                     <h2 className="featured-section-title">Featured Events</h2>
                   </div>
-                  <Link
-                    to="/user/featured-events"
-                    className="featured-see-all"
-                  >
+                  <Link to="/user/featured-events" className="featured-see-all">
                     See all →
                   </Link>
                 </div>
