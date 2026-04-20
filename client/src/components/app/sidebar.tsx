@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 
 type RouteTo =
   | "/user"
+  | "/user/bets"
   | "/user/coming-soon"
   | "/user/payments"
   | "/user/payments/deposit"
@@ -133,7 +134,7 @@ const sportGroups: SportGroup[] = [
 
 const quickLinks: SidebarLink[] = [
   { label: "Favorites", to: "/user", icon: Star },
-  { label: "My Bets", to: "/user/payments", icon: Ticket },
+  { label: "My Bets", to: "/user/bets", icon: Ticket },
   { label: "Analytics", to: "/user/payments/history", icon: BarChart3 },
   { label: "Responsible Gambling", to: "/user/coming-soon", icon: ShieldCheck },
 ];

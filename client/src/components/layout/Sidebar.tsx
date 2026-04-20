@@ -41,7 +41,7 @@ type Item = {
   label: string;
   to: string;
   icon: React.ReactNode;
-  search?: Record<string, string>;
+  search?: Record<string, string | undefined>;
   hash?: string;
   match?: "highlights" | "home";
   liveBadge?: string;
@@ -120,7 +120,12 @@ const myAccount: Item[] = [
     icon: <User size={18} />,
   },
   { label: "My Wallet", to: "/user/payments", icon: <Wallet size={18} /> },
-  { label: "My Bets", to: "/my-bets", icon: <TrendingUp size={18} /> },
+  {
+    label: "My Bets",
+    to: "/user/bets",
+    search: { tab: "normal", filter: "all", page: "1" },
+    icon: <TrendingUp size={18} />,
+  },
 ];
 
 const payments: Item[] = [
@@ -357,7 +362,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               },
               {
                 label: "My Bets",
-                to: "/my-bets",
+                to: "/user/bets",
+                search: { tab: "normal", filter: "all", page: "1" },
                 icon: <TrendingUp size={18} />,
               },
               {

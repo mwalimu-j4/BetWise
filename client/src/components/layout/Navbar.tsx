@@ -217,7 +217,12 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         <div className="bc-actions flex items-center gap-2">
           {isAuthenticated && myBetsCount > 0 ? (
             <Link
-              to="/my-bets"
+              to="/user/bets"
+              search={{
+                tab: "normal",
+                filter: "all",
+                page: "1",
+              }}
               className="bc-my-bets-btn"
               aria-label={`Open My Bets (${myBetsCount})`}
             >
