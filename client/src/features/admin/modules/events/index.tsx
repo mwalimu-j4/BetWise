@@ -1666,7 +1666,9 @@ function FeedEvents() {
 
 // ── Tab Wrapper ──
 
-type EventsTab = "feed" | "custom";
+type EventsTab = "feed" | "custom" | "categories";
+
+const SportCategoriesManager = lazy(() => import("./SportCategoriesManager"));
 
 export default function Events() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1701,11 +1703,49 @@ export default function Events() {
         >
           Custom Events
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("categories")}
+          className={cn(
+            "flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition",
+            activeTab === "categories"
+              ? "bg-admin-accent/15 text-admin-accent shadow-sm"
+              : "text-admin-text-muted hover:text-admin-text-secondary",
+          )}
+        >
+          Sport Categories
+        </button>
       </div>
 
       {/* Tab Content */}
       {activeTab === "feed" ? (
         <FeedEvents />
+      ) : activeTab === "categories" ? (
+        <Suspense
+          fallback={
+            <div className="space-y-3 py-2">
+              <div className="h-10 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card" />
+              <div className="grid grid-cols-3 gap-2">
+                {Array.from({ length: 3 }).map((_, idx) => (
+                  <div
+                    key={`cat-fallback-${idx}`}
+                    className="h-20 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card"
+                  />
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <div
+                    key={`cat-card-fallback-${idx}`}
+                    className="h-36 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card"
+                  />
+                ))}
+              </div>
+            </div>
+          }
+        >
+          <SportCategoriesManager />
+        </Suspense>
       ) : (
         <Suspense
           fallback={
@@ -1729,3 +1769,4 @@ export default function Events() {
     </div>
   );
 }
+

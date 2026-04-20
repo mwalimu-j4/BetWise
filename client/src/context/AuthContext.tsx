@@ -205,7 +205,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = useCallback(async () => {
     let hasValidAuth = false;
-    const currentToken = accessTokenRef.current;
+    const currentToken = accessTokenState ?? getStoredToken();
+    const isRecoveryFlowActive = Boolean(currentToken);
+
+    // Avoid noisy unauthenticated probes for first-time visitors.
+    if (!isRecoveryFlowActive) {
+      return null;
+    }
 
     try {
       const me = await api.get<MeResponse>("/auth/me");
@@ -239,7 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     return currentToken;
-  }, [updateSession]);
+  }, [accessTokenState, updateSession]);
 
   const logout = useCallback(async () => {
     try {

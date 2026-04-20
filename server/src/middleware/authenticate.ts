@@ -3,7 +3,14 @@ import { prisma } from "../lib/prisma";
 import { verifyAccessToken } from "../utils/tokenUtils";
 
 function logAuthFailure(req: Request, reason: string) {
-  console.warn("[Auth] Unauthorized request", {
+  const originalPath = req.originalUrl.split("?")[0].toLowerCase();
+  const isExpectedSessionProbe =
+    originalPath.endsWith("/auth/me") &&
+    reason.includes("Missing or invalid Authorization bearer token");
+
+  const log = isExpectedSessionProbe ? console.info : console.warn;
+
+  log("[Auth] Unauthorized request", {
     reason,
     method: req.method,
     path: req.originalUrl,

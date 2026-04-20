@@ -341,4 +341,45 @@ userEventsRouter.get("/user/events/:eventId", async (req, res, next) => {
   }
 });
 
+// ── Sport Categories (cached) ── 
+const SPORT_CATEGORIES_CACHE_TTL_MS = 60_000;
+let sportCategoriesCache: { data: unknown; expiresAt: number } | null = null;
+
+userEventsRouter.get("/user/sport-categories", async (_req, res, next) => {
+  try {
+    if (
+      sportCategoriesCache &&
+      sportCategoriesCache.expiresAt > Date.now()
+    ) {
+      return res.status(200).json(sportCategoriesCache.data);
+    }
+
+    const categories = await prisma.sportCategory.findMany({
+      where: { isActive: true, showInNav: true },
+      select: {
+        id: true,
+        sportKey: true,
+        displayName: true,
+        icon: true,
+        sortOrder: true,
+        eventCount: true,
+        lastSyncedAt: true,
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+
+    const payload = { categories };
+
+    sportCategoriesCache = {
+      data: payload,
+      expiresAt: Date.now() + SPORT_CATEGORIES_CACHE_TTL_MS,
+    };
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export { userEventsRouter };
+
