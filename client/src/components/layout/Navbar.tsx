@@ -4,10 +4,15 @@ import {
   ChevronDown,
   CircleCheck,
   CircleX,
+  Flame,
+  House,
   Menu,
   Search,
+  Star,
   TrendingUp,
+  Trophy,
   Wallet,
+  Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
@@ -36,20 +41,35 @@ const tickerItems = [
   { label: "Chelsea vs Villa", odds: "2.40", up: false },
 ];
 
-const leagues = [
-  "All Sports",
-  "UCL",
-  "Premier League",
-  "La Liga",
-  "Bundesliga",
-  "Serie A",
-  "Ligue 1",
-  "NBA",
-  "Tennis",
-  "MMA/UFC",
-  "Cricket",
-  "Rugby",
-];
+  const quickLinks = [
+    { label: "Home", to: "/user", icon: <House size={14} /> },
+    {
+      label: "Live",
+      to: "/user/live",
+      icon: <Flame size={14} />,
+      isLive: true,
+    },
+    { label: "Featured", to: "/user/featured-events", icon: <Star size={14} /> },
+    {
+      label: "Football",
+      to: "/user/sport/football",
+      icon: <Trophy size={14} />,
+    },
+    {
+      label: "Basketball",
+      to: "/user/sport/basketball",
+      icon: <Zap size={14} />,
+    },
+    { label: "Tennis", to: "/user/sport/tennis", icon: <TrendingUp size={14} /> },
+  ];
+
+  const leagues = [
+    { label: "Premier League", to: "/user/sport/football" },
+    { label: "Champions League", to: "/user/sport/football" },
+    { label: "La Liga", to: "/user/sport/football" },
+    { label: "NBA", to: "/user/sport/basketball" },
+    { label: "UFC", to: "/user/sport/boxing-mma" },
+  ];
 
 function formatNotificationTime(isoDate: string) {
   const eventTime = new Date(isoDate).getTime();
@@ -378,15 +398,31 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       </div>
 
       <div className="bc-leagues">
-        {leagues.map((league, index) => (
-          <div key={league} className="bc-league-wrap">
-            <button
-              type="button"
-              className={`bc-league ${index === 0 ? "is-active" : ""}`}
+        {quickLinks.map((link) => {
+          const isActive = location.pathname === link.to;
+          return (
+            <Link
+              key={link.label}
+              to={link.to as never}
+              className={`bc-league-link ${isActive ? "is-active" : ""} ${link.isLive ? "is-live-link" : ""}`}
             >
-              {league}
-            </button>
-          </div>
+              <span className="bc-league-icon">{link.icon}</span>
+              <span className="bc-league-label">{link.label}</span>
+              {link.isLive && <span className="bc-live-dot" />}
+            </Link>
+          );
+        })}
+
+        <div className="bc-league-sep-v" aria-hidden="true" />
+
+        {leagues.map((league) => (
+          <Link
+            key={league.label}
+            to={league.to as never}
+            className="bc-league-link-secondary"
+          >
+            {league.label}
+          </Link>
         ))}
       </div>
     </header>
