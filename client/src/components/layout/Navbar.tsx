@@ -4,8 +4,15 @@ import {
   ChevronDown,
   CircleCheck,
   CircleX,
+  Flame,
+  House,
   Menu,
   Search,
+  Star,
+  TrendingUp,
+  Trophy,
+  Wallet,
+  Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AccountDropdown from "@/components/layout/AccountDropdown";
@@ -34,20 +41,35 @@ const tickerItems = [
   { label: "Chelsea vs Villa", odds: "2.40", up: false },
 ];
 
-const leagues = [
-  "All Sports",
-  "UCL",
-  "Premier League",
-  "La Liga",
-  "Bundesliga",
-  "Serie A",
-  "Ligue 1",
-  "NBA",
-  "Tennis",
-  "MMA/UFC",
-  "Cricket",
-  "Rugby",
-];
+  const quickLinks = [
+    { label: "Home", to: "/user", icon: <House size={14} /> },
+    {
+      label: "Live",
+      to: "/user/live",
+      icon: <Flame size={14} />,
+      isLive: true,
+    },
+    { label: "Featured", to: "/user/featured-events", icon: <Star size={14} /> },
+    {
+      label: "Football",
+      to: "/user/sport/football",
+      icon: <Trophy size={14} />,
+    },
+    {
+      label: "Basketball",
+      to: "/user/sport/basketball",
+      icon: <Zap size={14} />,
+    },
+    { label: "Tennis", to: "/user/sport/tennis", icon: <TrendingUp size={14} /> },
+  ];
+
+  const leagues = [
+    { label: "Premier League", to: "/user/sport/football" },
+    { label: "Champions League", to: "/user/sport/football" },
+    { label: "La Liga", to: "/user/sport/football" },
+    { label: "NBA", to: "/user/sport/basketball" },
+    { label: "UFC", to: "/user/sport/boxing-mma" },
+  ];
 
 function formatNotificationTime(isoDate: string) {
   const eventTime = new Date(isoDate).getTime();
@@ -112,6 +134,35 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const accountRef = useRef<HTMLDivElement>(null);
 
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
+
+  const [showSubNav, setShowSubNav] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("bc_show_sub_nav");
+      return saved === null ? true : saved === "true";
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("bc_show_sub_nav", String(showSubNav));
+    // Dynamically update the global navbar height variable
+    // Ticker (26px) + Main Row (56px) + SubNav (48px) = 130px
+    // Without SubNav: 26px + 56px = 82px
+    const totalHeight = showSubNav ? "130px" : "82px";
+    document.documentElement.style.setProperty("--navbar-height", totalHeight);
+  }, [showSubNav]);
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent | Event) => {
+      if (e instanceof StorageEvent && e.key !== "bc_show_sub_nav") return;
+      
+      const saved = localStorage.getItem("bc_show_sub_nav");
+      setShowSubNav(saved === null ? true : saved === "true");
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   useEffect(() => {
     if (location.pathname !== lastPathRef.current) {
@@ -215,16 +266,19 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
 
         <div className="bc-actions flex items-center gap-2">
-          {isAuthenticated && myBetsCount > 0 ? (
+          {isAuthenticated && myBetsCount >= 0 ? (
             <Link
               to="/my-bets"
               className="bc-my-bets-btn"
               aria-label={`Open My Bets (${myBetsCount})`}
             >
-              My Bets
-              <span className="bc-my-bets-badge" aria-hidden="true">
-                {myBetsCount > 99 ? "99+" : myBetsCount}
-              </span>
+              <TrendingUp size={16} className="bc-bets-icon" />
+              <span className="bc-bets-text">Bets</span>
+              {myBetsCount > 0 && (
+                <span className="bc-my-bets-badge" aria-hidden="true">
+                  {myBetsCount > 99 ? "99+" : myBetsCount}
+                </span>
+              )}
             </Link>
           ) : null}
 
@@ -235,10 +289,15 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               aria-label="Wallet Balance"
               onClick={() => navigate({ to: "/user/payments" })}
             >
-              <span className="bc-balance-label">Balance:</span>
-              <span className="bc-balance-value">
-                {formatMoney(walletSummary?.wallet.balance ?? 0)}
-              </span>
+              <div className="bc-balance-icon-wrap">
+                <Wallet size={16} />
+              </div>
+              <div className="bc-balance-content">
+                <span className="bc-balance-label">Wallet</span>
+                <span className="bc-balance-value">
+                  {formatMoney(walletSummary?.wallet.balance ?? 0)}
+                </span>
+              </div>
             </button>
           ) : (
             <span className="text-xs text-[#a8c4e0] font-medium hidden">
@@ -367,20 +426,44 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
       </div>
 
-      <div className="bc-leagues">
-        {leagues.map((league, index) => (
-          <div key={league} className="bc-league-wrap">
-            <button
-              type="button"
-              className={`bc-league ${index === 0 ? "is-active" : ""}`}
+      <div className={`bc-leagues ${!showSubNav ? "is-hidden" : ""}`}>
+        <div className="bc-leagues-scroll">
+          {quickLinks.map((link) => {
+            const isActive = location.pathname === link.to;
+            return (
+              <Link
+                key={link.label}
+                to={link.to as never}
+                className={`bc-league-link ${isActive ? "is-active" : ""} ${link.isLive ? "is-live-link" : ""}`}
+              >
+                <span className="bc-league-icon">{link.icon}</span>
+                <span className="bc-league-label">{link.label}</span>
+                {link.isLive && <span className="bc-live-dot" />}
+              </Link>
+            );
+          })}
+
+          <div className="bc-league-sep-v" aria-hidden="true" />
+
+          {leagues.map((league) => (
+            <Link
+              key={league.label}
+              to={league.to as never}
+              className="bc-league-link-secondary"
             >
-              {league}
-            </button>
-            {index < leagues.length - 1 ? (
-              <span className="bc-league-sep" aria-hidden="true" />
-            ) : null}
-          </div>
-        ))}
+              {league.label}
+            </Link>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className="bc-subnav-close"
+          onClick={() => setShowSubNav(false)}
+          title="Hide categories (can be re-enabled in Profile Settings)"
+        >
+          <CircleX size={16} />
+        </button>
       </div>
     </header>
   );
