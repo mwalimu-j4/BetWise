@@ -386,9 +386,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             >
               {league}
             </button>
-            {index < leagues.length - 1 ? (
-              <span className="bc-league-sep" aria-hidden="true" />
-            ) : null}
           </div>
         ))}
       </div>

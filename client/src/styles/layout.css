@@ -739,10 +739,12 @@
   position: relative;
   display: flex;
   align-items: center;
-  height: 36px;
-  border: 1px solid var(--color-border-primary);
-  border-radius: 7px;
-  background: var(--nav-surface2);
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 }
 
 .bc-search-input {
@@ -750,92 +752,108 @@
   height: 100%;
   background: transparent;
   border: 0;
-  padding: 0 36px 0 12px;
-  color: var(--nav-text);
-  font-size: 13px;
+  padding: 0 40px 0 16px;
+  color: #ffffff;
+  font-size: 14px;
   font-weight: 500;
   outline: none;
 }
 
 .bc-search-field:focus-within {
-  border-color: var(--color-border-focus);
+  border-color: var(--nav-accent);
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 4px rgba(255, 213, 0, 0.1);
 }
 
 .bc-search-icon {
   position: absolute;
-  right: 12px;
-  color: var(--nav-muted);
+  right: 14px;
+  color: rgba(148, 163, 184, 0.8);
+  transition: color 0.3s ease;
+}
+
+.bc-search-field:focus-within .bc-search-icon {
+  color: var(--nav-accent);
 }
 
 .bc-search-dropdown {
   position: absolute;
-  top: calc(100% + 2px);
+  top: calc(100% + 8px);
   left: 0;
   width: 100%;
-  z-index: 999;
-  border: 1px solid var(--nav-border);
-  border-radius: 0 0 8px 8px;
-  background: var(--nav-surface);
-  max-height: 320px;
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  max-height: 400px;
   overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  padding: 8px;
 }
 
 .bc-search-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  display: block;
+  padding: 4px;
   text-decoration: none;
-  color: var(--nav-muted);
+  border-radius: 12px;
+  margin-bottom: 2px;
+  transition: all 0.2s ease;
 }
 
 .bc-search-row:hover,
 .bc-search-row.is-active {
-  background: var(--color-accent-soft);
-  color: var(--nav-accent);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.bc-search-match-icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-border-accent);
-  color: var(--nav-accent);
-  display: inline-flex;
+.bc-search-row-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
+.bc-search-match-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  color: var(--nav-accent);
   flex-shrink: 0;
 }
 
 .bc-search-meta {
   min-width: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
 
 .bc-search-name {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
+  color: #ffffff;
 }
 
 .bc-search-league {
   font-size: 11px;
-  color: var(--nav-muted);
+  color: rgba(148, 163, 184, 0.7);
+  font-weight: 500;
 }
 
-.bc-search-odds {
-  margin-left: auto;
-  height: 16px;
-  min-width: 34px;
-  padding: 0 6px;
+.bc-search-odds-badge {
+  padding: 4px 10px;
   border-radius: 8px;
-  background: var(--color-border-accent);
+  background: rgba(255, 213, 0, 0.15);
   color: var(--nav-accent);
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 10px;
-  line-height: 16px;
+  font-size: 13px;
+  font-weight: 800;
   text-align: center;
+  border: 1px solid rgba(255, 213, 0, 0.2);
 }
 
 .bc-search-empty {
@@ -954,61 +972,64 @@
 .bc-balance-card {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 13px;
-  height: 32px;
-  border-radius: 6px;
-  background: var(--nav-surface2);
-  border: 1px solid var(--color-border-primary);
-  min-width: auto;
-  transition: all 0.2s ease;
+  gap: 10px;
+  padding: 0 14px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+  border: 1px solid rgba(255, 213, 0, 0.15);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .bc-balance-card:hover {
   border-color: var(--nav-accent);
-  background: var(--nav-surface);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), 0 0 15px rgba(255, 213, 0, 0.1);
 }
 
-.bc-balance-icon {
+.bc-balance-icon-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--nav-accent), var(--nav-accent2));
   color: var(--color-text-dark);
+  box-shadow: 0 2px 8px rgba(255, 213, 0, 0.2);
   flex-shrink: 0;
 }
 
 .bc-balance-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  width: 100%;
+  justify-content: center;
+  text-align: left;
 }
 
 .bc-balance-label {
   font-size: 9px;
-  font-weight: 700;
-  color: var(--nav-accent);
-  letter-spacing: 0.4px;
+  font-weight: 800;
+  color: rgba(148, 163, 184, 0.8);
+  letter-spacing: 0.8px;
   text-transform: uppercase;
-  margin: 0;
-  opacity: 0.9;
+  line-height: 1;
+  margin-bottom: 2px;
 }
 
 .bc-balance-value {
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--nav-accent), var(--nav-accent2));
+  color: #ffffff;
+  background: linear-gradient(135deg, #ffffff, var(--nav-accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.2;
-  margin: 0;
+  line-height: 1;
 }
 
 .bc-icon-btn {
@@ -1422,43 +1443,50 @@
 
 .bc-my-bets-btn {
   position: relative;
-  height: 36px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border-primary);
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 12px;
+  gap: 8px;
+  padding: 0 16px;
   text-decoration: none;
-  background: var(--nav-surface2);
-  color: var(--nav-text);
+  background: rgba(30, 41, 59, 0.5);
+  color: #ffffff;
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.3px;
-  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
 }
 
 .bc-my-bets-btn:hover {
-  border-color: var(--nav-accent);
-  color: var(--nav-accent);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(30, 41, 59, 0.8);
   transform: translateY(-1px);
+}
+
+.bc-bets-icon {
+  color: var(--nav-accent);
+  opacity: 0.9;
 }
 
 .bc-my-bets-badge {
   position: absolute;
-  top: -7px;
-  right: -7px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: 999px;
+  top: -8px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--nav-red), #ff8a8a);
+  background: linear-gradient(135deg, #ef4444, #f87171);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid #0f172a;
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
@@ -1548,13 +1576,13 @@
 }
 
 .bc-leagues {
-  height: 36px;
+  height: 44px;
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 0 14px;
-  border-top: 1px solid var(--color-border-primary);
-  background: var(--nav-surface);
+  gap: 8px;
+  padding: 0 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: #0f172a;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -1570,25 +1598,30 @@
 }
 
 .bc-league {
-  min-height: 36px;
-  border: 0;
-  border-radius: 6px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: 99px;
   background: transparent;
-  color: var(--nav-muted);
-  font-size: 12px;
+  color: rgba(148, 163, 184, 0.8);
+  font-size: 13px;
   font-weight: 600;
-  padding: 0 8px;
+  padding: 0 14px;
   white-space: nowrap;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
 }
 
 .bc-league:hover {
-  color: var(--nav-accent);
-  background: var(--color-accent-soft);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .bc-league.is-active {
-  color: var(--nav-accent);
-  background: var(--color-accent-soft);
+  color: var(--color-text-dark);
+  background: var(--nav-accent);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(255, 213, 0, 0.2);
 }
 
 .bc-league-sep {
