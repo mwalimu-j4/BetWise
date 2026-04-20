@@ -1,16 +1,22 @@
 import { useMemo } from "react";
 import {
   Bell,
+  CircleDot,
   Clock3,
   Copy,
+  Dumbbell,
   FileText,
   Flame,
+  Goal,
   Grid2x2,
   Plus,
   Search,
+  Shield,
+  Swords,
   Star,
   Trophy,
   User,
+  Volleyball,
 } from "lucide-react";
 
 import styles from "./navbar.module.css";
@@ -33,6 +39,13 @@ type NavItem = {
     tone: "red" | "gold" | "green";
   };
   isLive?: boolean;
+};
+
+type LeagueItem = {
+  id: string;
+  label: string;
+  icon: typeof Grid2x2;
+  color: string;
 };
 
 const tickerItems: TickerItem[] = [
@@ -94,22 +107,22 @@ const navItems: NavItem[] = [
   { id: "my-bets", label: "My Bets", icon: Copy },
 ];
 
-const leagueItems = [
-  "âš½ All Sports",
-  "ðŸ† UCL",
-  "ðŸ´ Premier League",
-  "ðŸ‡ªðŸ‡¸ La Liga",
-  "ðŸ‡©ðŸ‡ª Bundesliga",
-  "ðŸ‡®ðŸ‡¹ Serie A",
-  "ðŸ‡«ðŸ‡· Ligue 1",
-  "ðŸ€ NBA",
-  "ðŸŽ¾ Tennis",
-  "ðŸ¥Š MMA/UFC",
-  "ðŸ Cricket",
-  "ðŸ‰ Rugby",
-  "ðŸŽ° Casino",
-  "ðŸƒ Virtual",
-] as const;
+const leagueItems: LeagueItem[] = [
+  { id: "all-sports", label: "All Sports", icon: Goal, color: "#22c55e" },
+  { id: "ucl", label: "UCL", icon: Trophy, color: "#facc15" },
+  { id: "premier-league", label: "Premier League", icon: Goal, color: "#a855f7" },
+  { id: "la-liga", label: "La Liga", icon: Goal, color: "#ef4444" },
+  { id: "bundesliga", label: "Bundesliga", icon: Goal, color: "#dc2626" },
+  { id: "serie-a", label: "Serie A", icon: Goal, color: "#2563eb" },
+  { id: "ligue-1", label: "Ligue 1", icon: Goal, color: "#60a5fa" },
+  { id: "nba", label: "NBA", icon: Volleyball, color: "#f97316" },
+  { id: "tennis", label: "Tennis", icon: CircleDot, color: "#22c55e" },
+  { id: "mma-ufc", label: "MMA/UFC", icon: Swords, color: "#f97316" },
+  { id: "cricket", label: "Cricket", icon: Dumbbell, color: "#84cc16" },
+  { id: "rugby", label: "Rugby", icon: Shield, color: "#38bdf8" },
+  { id: "casino", label: "Casino", icon: Star, color: "#e879f9" },
+  { id: "virtual", label: "Virtual", icon: Flame, color: "#38bdf8" },
+];
 
 export default function Navbar() {
   const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
@@ -232,19 +245,29 @@ export default function Navbar() {
       </nav>
 
       <div className={styles.leaguesStrip}>
-        {leagueItems.map((league, index) => (
-          <div key={league} className={styles.leagueEntry}>
-            <button
-              type="button"
-              className={`${styles.leagueItem} ${index === 0 ? styles.leagueActive : ""}`}
-            >
-              {league}
-            </button>
-            {index < leagueItems.length - 1 ? (
-              <span className={styles.leagueDivider} aria-hidden="true" />
-            ) : null}
-          </div>
-        ))}
+        {leagueItems.map((league, index) => {
+          const LeagueIcon = league.icon;
+
+          return (
+            <div key={league.id} className={styles.leagueEntry}>
+              <button
+                type="button"
+                className={`${styles.leagueItem} ${index === 0 ? styles.leagueActive : ""}`}
+              >
+                <LeagueIcon
+                  size={14}
+                  className={styles.leagueIcon}
+                  style={{ color: league.color }}
+                  aria-hidden="true"
+                />
+                <span className={styles.leagueLabel}>{league.label}</span>
+              </button>
+              {index < leagueItems.length - 1 ? (
+                <span className={styles.leagueDivider} aria-hidden="true" />
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </header>
   );
