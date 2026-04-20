@@ -82,7 +82,7 @@ export function useWithdrawal(options?: { sourcePhone?: string | null }) {
       const normalizedPhone = normalizePhone(phoneInput);
       if (!isPhoneValid(normalizedPhone)) {
         setValidationError(
-          "Your account phone is invalid for Paystack payouts.",
+          "Your account phone is invalid for mobile money payouts.",
         );
         return;
       }
@@ -129,7 +129,7 @@ export function useWithdrawal(options?: { sourcePhone?: string | null }) {
     }
 
     if (!isPhoneValid(normalizedPhone)) {
-      throw new Error("Your account phone is invalid for Paystack payouts.");
+      throw new Error("Your account phone is invalid for M-PESA payouts.");
     }
 
     await mutation.mutateAsync({

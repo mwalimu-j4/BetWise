@@ -10,13 +10,27 @@ import {
   createDepositNotifications,
 } from "./notifications.controller";
 import {
+  getMpesaConfig,
+  getMpesaB2CConfig,
+  getTimestamp,
+  getMpesaAccessToken,
   normalizePhoneNumber,
+  stkPushBodySchema,
+  mpesaCallbackSchema,
   toClientTransaction,
+  getValue,
+  normalizeCallbackValue,
   type WalletTransactionStatus,
+  type WalletTransactionType,
+  type MpesaStkPushResponse,
+  type MpesaStkQueryResponse,
+  type MpesaB2CResponse,
+  type MpesaCallbackItem,
 } from "../lib/mpesa";
 import {
   initiatePaystackWithdrawal,
   getPaystackTransferStatus,
+  convertToSmallestUnit,
 } from "../lib/paystack";
 import { defaultAdminSettings } from "../lib/adminSettingsConfig";
 
@@ -160,6 +174,10 @@ function getNestedObject(value: unknown) {
   return value as Record<string, unknown>;
 }
 
+function getMpesaWithdrawalConfigErrorMessage(missingVars: string[]) {
+  return `M-Pesa withdrawal is not configured. Missing: ${missingVars.join(", ")}.`;
+}
+
 async function getWithdrawalSettings(): Promise<WithdrawalSettings> {
   const settings = await prisma.adminSettings.findUnique({
     where: { key: "global" },
@@ -198,6 +216,43 @@ async function getWithdrawalSettings(): Promise<WithdrawalSettings> {
     approvalThreshold: settings.mpesaWithdrawalApprovalThreshold,
     mpesaEnabled: settings.paymentMpesaEnabled,
   };
+}
+
+function extractB2CReceipt(body: unknown) {
+  if (!body || typeof body !== "object" || !("Result" in body)) {
+    return null;
+  }
+
+  const result = (body as { Result?: unknown }).Result;
+  if (!result || typeof result !== "object") {
+    return null;
+  }
+
+  const parameters = (
+    result as { ResultParameters?: { ResultParameter?: unknown } }
+  ).ResultParameters?.ResultParameter;
+  if (!Array.isArray(parameters)) {
+    return null;
+  }
+
+  const receipt = parameters.find((item) => {
+    if (!item || typeof item !== "object") {
+      return false;
+    }
+
+    return (item as { Key?: unknown }).Key === "TransactionReceipt";
+  });
+
+  const value =
+    receipt && typeof receipt === "object"
+      ? (receipt as { Value?: unknown }).Value
+      : null;
+
+  return typeof value === "string"
+    ? value
+    : typeof value === "number"
+      ? String(value)
+      : null;
 }
 
 async function settleFailedWithdrawal(args: {
@@ -404,84 +459,6 @@ async function finalizeSuccessfulWithdrawal(args: {
   return result;
 }
 
-function normalizePaystackTransferStatus(status: string | undefined) {
-  return (status ?? "").trim().toLowerCase();
-}
-
-async function syncPaystackWithdrawalStatus(transactionId: string) {
-  const transaction = await prisma.walletTransaction.findUnique({
-    where: { id: transactionId },
-  });
-
-  if (
-    !transaction ||
-    transaction.type !== "WITHDRAWAL" ||
-    transaction.channel !== "paystack" ||
-    transaction.status !== "PROCESSING" ||
-    !transaction.checkoutRequestId
-  ) {
-    return transaction;
-  }
-
-  try {
-    const providerStatus = await getPaystackTransferStatus(
-      transaction.checkoutRequestId,
-    );
-    const normalizedStatus = normalizePaystackTransferStatus(
-      providerStatus.data?.status,
-    );
-
-    if (["success", "successful", "completed"].includes(normalizedStatus)) {
-      await finalizeSuccessfulWithdrawal({
-        transactionId: transaction.id,
-        providerResponseDescription:
-          providerStatus.message || "Withdrawal completed on Paystack.",
-        providerCallback: providerStatus as never,
-      });
-    } else if (
-      ["failed", "failure", "reversed", "rejected", "abandoned"].includes(
-        normalizedStatus,
-      )
-    ) {
-      await settleFailedWithdrawal({
-        transactionId: transaction.id,
-        failureReason:
-          providerStatus.message || "Withdrawal failed on Paystack.",
-        failureStage: "B2C_RESULT",
-        providerResponseDescription:
-          providerStatus.message || "Withdrawal failed on Paystack.",
-        providerCallback: providerStatus as never,
-      });
-    } else {
-      await prisma.walletTransaction.update({
-        where: { id: transaction.id },
-        data: {
-          providerResponseDescription:
-            providerStatus.message || "Withdrawal is still processing.",
-          providerCallback: mergeProviderMeta(transaction.providerCallback, {
-            disbursementState: "PROCESSING",
-            mpesa: {
-              ...getNestedObject(
-                getWithdrawalProviderMeta(transaction.providerCallback).mpesa,
-              ),
-              statusCheck: providerStatus as unknown as Record<string, unknown>,
-            },
-          }),
-        },
-      });
-    }
-  } catch (error) {
-    console.error(
-      `[Withdrawals] Failed to sync Paystack payout status for ${transaction.id}:`,
-      error,
-    );
-  }
-
-  return prisma.walletTransaction.findUnique({
-    where: { id: transactionId },
-  });
-}
-
 async function initiateWithdrawalDisbursement(args: {
   transactionId: string;
   adminUserId: string;
@@ -601,64 +578,18 @@ async function initiateWithdrawalDisbursement(args: {
       };
     }
 
+    const currentMeta = getWithdrawalProviderMeta(transaction.providerCallback);
     const updatedTransaction = await prisma.walletTransaction.update({
       where: { id: transaction.id },
       data: {
         checkoutRequestId: payoutResponse.data.transfer_code,
-        providerResponseDescription:
-          payoutResponse.message || "Paystack transfer initiated successfully.",
+        providerResponseDescription: "Paystack transfer initiated successfully.",
         providerCallback: mergeProviderMeta(transaction.providerCallback, {
           requestedPayoutAt: new Date().toISOString(),
           disbursementState: "PROCESSING",
         }),
       },
     });
-
-    const initialTransferStatus = normalizePaystackTransferStatus(
-      payoutResponse.data.status,
-    );
-
-    if (["success", "successful", "completed"].includes(initialTransferStatus)) {
-      await finalizeSuccessfulWithdrawal({
-        transactionId: updatedTransaction.id,
-        providerResponseDescription:
-          payoutResponse.message || "Withdrawal completed on Paystack.",
-        providerCallback: payoutResponse as never,
-      });
-
-      const completedTransaction = await prisma.walletTransaction.findUnique({
-        where: { id: updatedTransaction.id },
-      });
-
-      return {
-        ok: true as const,
-        code: 200,
-        message: "Withdrawal approved and completed successfully.",
-        transaction: completedTransaction ?? updatedTransaction,
-      };
-    }
-
-    if (
-      ["failed", "failure", "reversed", "rejected", "abandoned"].includes(
-        initialTransferStatus,
-      )
-    ) {
-      await settleFailedWithdrawal({
-        transactionId: updatedTransaction.id,
-        failureReason:
-          payoutResponse.message || "Withdrawal failed on Paystack.",
-        failureStage: "B2C_REQUEST",
-        providerResponseDescription:
-          payoutResponse.message || "Withdrawal failed on Paystack.",
-        providerCallback: payoutResponse as never,
-      });
-
-      return {
-        ok: false as const,
-        code: 502,
-        message: payoutResponse.message || "Withdrawal failed on Paystack.",
-      };
-    }
 
     const wallet = await getOrCreateWallet(updatedTransaction.userId);
     emitWalletEvent({
@@ -937,20 +868,8 @@ export async function listWithdrawals(
       take: 50,
     });
 
-    const syncedWithdrawals = await Promise.all(
-      withdrawals.map(async (transaction) => {
-        if (transaction.status !== "PROCESSING") {
-          return transaction;
-        }
-
-        return (
-          (await syncPaystackWithdrawalStatus(transaction.id)) ?? transaction
-        );
-      }),
-    );
-
     return res.status(200).json({
-      withdrawals: syncedWithdrawals.map((transaction) => ({
+      withdrawals: withdrawals.map((transaction) => ({
         id: transaction.id,
         type: transaction.type.toLowerCase(),
         status: toTransactionStatus(transaction.status),
@@ -1159,6 +1078,7 @@ export async function getWalletSummary(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    const wallet = await getOrCreateWallet(req.user.id);
     const [transactions, totalDeposits] = await Promise.all([
       prisma.walletTransaction.findMany({
         where: { userId: req.user.id },
@@ -1171,33 +1091,551 @@ export async function getWalletSummary(
       }),
     ]);
 
-    const syncedTransactions = await Promise.all(
-      transactions.map(async (transaction) => {
-        if (
-          transaction.type !== "WITHDRAWAL" ||
-          transaction.status !== "PROCESSING"
-        ) {
-          return transaction;
-        }
-
-        return (
-          (await syncPaystackWithdrawalStatus(transaction.id)) ?? transaction
-        );
-      }),
-    );
-
-    const latestWallet = await getOrCreateWallet(req.user.id);
-
     return res.status(200).json({
       wallet: {
-        balance: latestWallet.balance,
+        balance: wallet.balance,
         totalDepositsThisMonth: totalDeposits._sum.amount ?? 0,
       },
-      transactions: syncedTransactions.map(toClientTransaction),
+      transactions: transactions.map(toClientTransaction),
     });
   } catch (error) {
     next(error);
   }
+}
+
+export async function initiateStk(
+  req: Request,
+  res: Response,
+  next: (error?: unknown) => void,
+) {
+  try {
+    const parsedBody = stkPushBodySchema.safeParse(req.body);
+
+    if (!parsedBody.success) {
+      return res.status(400).json({ message: "Invalid payment payload." });
+    }
+
+    const config = getMpesaConfig();
+    if (!config.isConfigured) {
+      return res.status(500).json({
+        message: `M-Pesa is not configured. Missing: ${config.missingVars.join(", ")}.`,
+      });
+    }
+
+    const normalizedPhone = normalizePhoneNumber(parsedBody.data.phone);
+    if (!normalizedPhone) {
+      return res.status(400).json({
+        message: "Phone must be in Kenyan format like 2547XXXXXXXX.",
+      });
+    }
+
+    let tokenData;
+    try {
+      tokenData = await getMpesaAccessToken(config);
+    } catch (authError) {
+      console.error("[STK Push] M-Pesa authentication failed:", authError);
+      return res.status(502).json({
+        message:
+          authError instanceof Error
+            ? authError.message
+            : "M-Pesa service authentication failed. Please try again later.",
+      });
+    }
+
+    const timestamp = getTimestamp();
+    const password = Buffer.from(
+      `${config.shortcode}${config.passkey}${timestamp}`,
+    ).toString("base64");
+
+    const stkPayload = {
+      BusinessShortCode: config.shortcode,
+      Password: password,
+      Timestamp: timestamp,
+      TransactionType: "CustomerPayBillOnline",
+      Amount: parsedBody.data.amount,
+      PartyA: normalizedPhone,
+      PartyB: config.shortcode,
+      PhoneNumber: normalizedPhone,
+      CallBackURL: config.callbackUrl,
+      AccountReference: parsedBody.data.accountReference ?? "BET-DEPOSIT",
+      TransactionDesc: parsedBody.data.description ?? "Bet wallet deposit",
+    };
+
+    const stkPushResponse = await fetch(
+      `${config.baseUrl}/mpesa/stkpush/v1/processrequest`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(stkPayload),
+      },
+    );
+
+    const stkData = (await stkPushResponse.json()) as MpesaStkPushResponse;
+
+    if (!stkPushResponse.ok || stkData.ResponseCode !== "0") {
+      return res.status(502).json({
+        message:
+          stkData.errorMessage ?? "M-Pesa rejected the STK push request.",
+      });
+    }
+
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const wallet = await getOrCreateWallet(req.user.id);
+    const transaction = await prisma.walletTransaction.create({
+      data: {
+        userId: req.user.id,
+        walletId: wallet.id,
+        type: "DEPOSIT",
+        status: "PENDING",
+        amount: parsedBody.data.amount,
+        currency: "KES",
+        channel: "M-Pesa STK",
+        reference:
+          stkData.CheckoutRequestID ??
+          stkData.MerchantRequestID ??
+          `DEP-${Date.now()}`,
+        checkoutRequestId: stkData.CheckoutRequestID ?? null,
+        merchantRequestId: stkData.MerchantRequestID ?? null,
+        phone: normalizedPhone,
+        accountReference: parsedBody.data.accountReference ?? "BET-DEPOSIT",
+        description: parsedBody.data.description ?? "Bet wallet deposit",
+      },
+    });
+
+    emitWalletEvent({
+      userId: req.user.id,
+      transactionId: transaction.id,
+      checkoutRequestId: transaction.checkoutRequestId,
+      merchantRequestId: transaction.merchantRequestId,
+      status: "PENDING",
+      message:
+        stkData.CustomerMessage ?? "Approve the STK prompt on your phone.",
+      balance: wallet.balance,
+      amount: transaction.amount,
+    });
+
+    return res.status(200).json({
+      message: "STK push initiated successfully.",
+      transactionId: transaction.id,
+      merchantRequestId: stkData.MerchantRequestID,
+      checkoutRequestId: stkData.CheckoutRequestID,
+      customerMessage: stkData.CustomerMessage,
+      wallet: {
+        balance: wallet.balance,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function checkDepositStatus(
+  req: Request,
+  res: Response,
+  next: (error?: unknown) => void,
+) {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const transactionId = Array.isArray(req.params.transactionId)
+      ? req.params.transactionId[0]
+      : req.params.transactionId;
+
+    if (!transactionId) {
+      return res.status(400).json({ message: "Invalid transaction id." });
+    }
+
+    const transaction = await prisma.walletTransaction.findFirst({
+      where: {
+        id: transactionId,
+        userId: req.user.id,
+        type: "DEPOSIT",
+      },
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found." });
+    }
+
+    if (transaction.status !== "PENDING") {
+      return res.status(200).json({
+        transaction,
+        transactionId: transaction.id,
+        status: transaction.status,
+        mpesaCode: transaction.providerReceiptNumber,
+        message:
+          transaction.status === "COMPLETED"
+            ? "Deposit confirmed."
+            : (transaction.providerResponseDescription ??
+              "Payment not completed."),
+      });
+    }
+
+    const config = getMpesaConfig();
+    if (!config.isConfigured) {
+      return res.status(500).json({
+        message: `M-Pesa is not configured. Missing: ${config.missingVars.join(", ")}.`,
+      });
+    }
+
+    if (!transaction.checkoutRequestId) {
+      return res.status(200).json({
+        transactionId: transaction.id,
+        status: transaction.status,
+        message: "Awaiting provider reference.",
+      });
+    }
+
+    const tokenData = await getMpesaAccessToken(config);
+    const timestamp = getTimestamp();
+    const password = Buffer.from(
+      `${config.shortcode}${config.passkey}${timestamp}`,
+    ).toString("base64");
+
+    const queryPayload = {
+      BusinessShortCode: config.shortcode,
+      Password: password,
+      Timestamp: timestamp,
+      CheckoutRequestID: transaction.checkoutRequestId,
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    let queryResponse: globalThis.Response;
+    try {
+      queryResponse = await fetch(
+        `${config.baseUrl}/mpesa/stkpushquery/v1/query`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(queryPayload),
+          signal: controller.signal,
+        },
+      );
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError instanceof Error && fetchError.name === "AbortError") {
+        console.error(
+          "[M-Pesa Query] Request timeout for transaction:",
+          transaction.id,
+        );
+        return res.status(200).json({
+          transactionId: transaction.id,
+          status: "PENDING",
+          message: "M-Pesa service temporarily unavailable. Will retry.",
+        });
+      }
+      throw fetchError;
+    }
+    clearTimeout(timeoutId);
+
+    const queryData = (await queryResponse.json()) as MpesaStkQueryResponse;
+
+    if (!queryResponse.ok || queryData.ResponseCode !== "0") {
+      return res.status(200).json({
+        transactionId: transaction.id,
+        status: "PENDING",
+        message:
+          queryData.errorMessage ?? "Still waiting for M-Pesa confirmation.",
+      });
+    }
+
+    return res.status(200).json({
+      transactionId: transaction.id,
+      status: transaction.status,
+      mpesaCode: transaction.providerReceiptNumber,
+      message:
+        transaction.providerResponseDescription ?? "Payment not completed.",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function handleMpesaCallback(req: Request, res: Response) {
+  const parsedBody = mpesaCallbackSchema.safeParse(req.body);
+
+  if (!parsedBody.success) {
+    return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
+  }
+
+  const callback = parsedBody.data.Body.stkCallback;
+  const resultCode = Number(callback.ResultCode ?? NaN);
+  const resultDesc = callback.ResultDesc ?? "Missing ResultDesc";
+  const checkoutRequestId = callback.CheckoutRequestID;
+  const callbackItems = callback.CallbackMetadata?.Item ?? [];
+
+  const mpesaReceiptValue = getValue(
+    callbackItems as MpesaCallbackItem[],
+    "MpesaReceiptNumber",
+  );
+  const mpesaReceiptNumber = normalizeCallbackValue(mpesaReceiptValue);
+
+  void (async () => {
+    if (!checkoutRequestId) {
+      return;
+    }
+
+    const matchedTransaction = await prisma.walletTransaction.findFirst({
+      where: {
+        checkoutRequestId,
+        type: "DEPOSIT",
+      },
+      include: {
+        wallet: true,
+      },
+    });
+
+    if (!matchedTransaction) {
+      return;
+    }
+
+    if (resultCode === 0) {
+      if (
+        matchedTransaction.status === "COMPLETED" &&
+        !matchedTransaction.providerReceiptNumber &&
+        mpesaReceiptNumber
+      ) {
+        await prisma.walletTransaction.update({
+          where: { id: matchedTransaction.id },
+          data: {
+            providerReceiptNumber: mpesaReceiptNumber,
+          },
+        });
+      }
+
+      const updatedWallet = await prisma.$transaction(async (tx) => {
+        const latestTransaction = await tx.walletTransaction.findUnique({
+          where: { id: matchedTransaction.id },
+          select: {
+            status: true,
+            amount: true,
+            walletId: true,
+            userId: true,
+          },
+        });
+
+        if (!latestTransaction || latestTransaction.status !== "PENDING") {
+          return null;
+        }
+
+        await tx.walletTransaction.update({
+          where: { id: matchedTransaction.id },
+          data: {
+            status: "COMPLETED",
+            providerResponseCode: String(resultCode),
+            providerResponseDescription: resultDesc,
+            providerCallback: callback as never,
+            processedAt: new Date(),
+          },
+        });
+
+        const wallet = latestTransaction.walletId
+          ? await tx.wallet.findUnique({
+              where: { id: latestTransaction.walletId },
+              select: { id: true },
+            })
+          : null;
+
+        const ensuredWallet =
+          wallet ??
+          (await tx.wallet.create({
+            data: {
+              userId: latestTransaction.userId,
+            },
+            select: { id: true },
+          }));
+
+        return tx.wallet.update({
+          where: { id: ensuredWallet.id },
+          data: {
+            balance: {
+              increment: latestTransaction.amount,
+            },
+          },
+          select: { balance: true },
+        });
+      });
+
+      const latestSummary = await getWalletBalance(matchedTransaction.userId);
+
+      emitWalletEvent({
+        userId: matchedTransaction.userId,
+        transactionId: matchedTransaction.id,
+        checkoutRequestId: matchedTransaction.checkoutRequestId,
+        merchantRequestId: matchedTransaction.merchantRequestId,
+        mpesaCode: mpesaReceiptNumber,
+        status: "COMPLETED",
+        message: "Deposit confirmed and wallet updated.",
+        balance: updatedWallet?.balance ?? latestSummary.balance,
+        amount: matchedTransaction.amount,
+      });
+
+      await createDepositNotifications({
+        userId: matchedTransaction.userId,
+        transactionId: matchedTransaction.id,
+        amount: matchedTransaction.amount,
+        balance: updatedWallet?.balance ?? latestSummary.balance,
+        mpesaCode: mpesaReceiptNumber,
+        status: "COMPLETED",
+      });
+      return;
+    }
+
+    await prisma.walletTransaction.update({
+      where: { id: matchedTransaction.id },
+      data: {
+        status: "FAILED",
+        providerResponseCode: String(resultCode),
+        providerResponseDescription: resultDesc,
+        providerCallback: callback as never,
+        processedAt: new Date(),
+      },
+    });
+
+    const latestSummary = await getWalletBalance(matchedTransaction.userId);
+
+    emitWalletEvent({
+      userId: matchedTransaction.userId,
+      transactionId: matchedTransaction.id,
+      checkoutRequestId: matchedTransaction.checkoutRequestId,
+      merchantRequestId: matchedTransaction.merchantRequestId,
+      mpesaCode: null,
+      status: "FAILED",
+      message: resultDesc,
+      balance: latestSummary.balance,
+      amount: matchedTransaction.amount,
+    });
+
+    await createDepositNotifications({
+      userId: matchedTransaction.userId,
+      transactionId: matchedTransaction.id,
+      amount: matchedTransaction.amount,
+      balance: latestSummary.balance,
+      status: "FAILED",
+      failureReason: resultDesc,
+    });
+  })().catch((error) => {
+    console.error("CRITICAL ERROR IN M-PESA CALLBACK PROCESSING:", error);
+  });
+
+  return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
+}
+
+export async function handleMpesaWithdrawalResult(req: Request, res: Response) {
+  const result = req.body?.Result;
+  if (!result || typeof result !== "object") {
+    return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
+  }
+
+  const originatorConversationId =
+    typeof (result as { OriginatorConversationID?: unknown })
+      .OriginatorConversationID === "string"
+      ? (result as { OriginatorConversationID: string })
+          .OriginatorConversationID
+      : null;
+  const responseConversationId =
+    typeof (result as { ConversationID?: unknown }).ConversationID === "string"
+      ? (result as { ConversationID: string }).ConversationID
+      : null;
+  const resultCode = Number(
+    (result as { ResultCode?: unknown }).ResultCode ?? NaN,
+  );
+  const resultDesc =
+    typeof (result as { ResultDesc?: unknown }).ResultDesc === "string"
+      ? (result as { ResultDesc: string }).ResultDesc
+      : "Unknown withdrawal result from M-Pesa.";
+  const mpesaCode = extractB2CReceipt(req.body);
+
+  void (async () => {
+    if (!originatorConversationId) {
+      return;
+    }
+
+    if (resultCode === 0) {
+      await finalizeSuccessfulWithdrawal({
+        transactionId: originatorConversationId,
+        providerResponseCode: Number.isNaN(resultCode)
+          ? null
+          : String(resultCode),
+        providerResponseDescription: resultDesc,
+        mpesaCode,
+        providerCallback: {
+          result: req.body,
+          conversationId: responseConversationId,
+        } as never,
+      });
+      return;
+    }
+
+    await settleFailedWithdrawal({
+      transactionId: originatorConversationId,
+      failureReason: resultDesc,
+      failureStage: "B2C_RESULT",
+      providerResponseCode: Number.isNaN(resultCode)
+        ? null
+        : String(resultCode),
+      providerResponseDescription: resultDesc,
+      providerCallback: {
+        result: req.body,
+        conversationId: responseConversationId,
+      } as never,
+    });
+  })().catch((error) => {
+    console.error(
+      "CRITICAL ERROR IN M-PESA WITHDRAWAL RESULT PROCESSING:",
+      error,
+    );
+  });
+
+  return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
+}
+
+export async function handleMpesaWithdrawalTimeout(
+  req: Request,
+  res: Response,
+) {
+  const originatorConversationId =
+    typeof req.body?.OriginatorConversationID === "string"
+      ? req.body.OriginatorConversationID
+      : null;
+  const resultDesc =
+    typeof req.body?.ResultDesc === "string"
+      ? req.body.ResultDesc
+      : "Withdrawal request timed out before completion.";
+
+  void (async () => {
+    if (!originatorConversationId) {
+      return;
+    }
+
+    await settleFailedWithdrawal({
+      transactionId: originatorConversationId,
+      failureReason: resultDesc,
+      failureStage: "B2C_TIMEOUT",
+      providerResponseDescription: resultDesc,
+      providerCallback: req.body as never,
+    });
+  })().catch((error) => {
+    console.error(
+      "CRITICAL ERROR IN M-PESA WITHDRAWAL TIMEOUT PROCESSING:",
+      error,
+    );
+  });
+
+  return res.status(200).json({ ResultCode: 0, ResultDesc: "Accepted" });
 }
 
 export async function listAdminWithdrawals(
@@ -1243,32 +1681,8 @@ export async function listAdminWithdrawals(
       take: 100,
     });
 
-    const syncedWithdrawals = await Promise.all(
-      withdrawals.map(async (transaction) => {
-        if (transaction.status !== "PROCESSING") {
-          return transaction;
-        }
-
-        const syncedTransaction = await syncPaystackWithdrawalStatus(
-          transaction.id,
-        );
-        if (!syncedTransaction) {
-          return transaction;
-        }
-
-        return {
-          ...transaction,
-          ...syncedTransaction,
-        };
-      }),
-    );
-
-    const filteredWithdrawals = syncedWithdrawals.filter(
-      (transaction) => transaction.status === (status as typeof transaction.status),
-    );
-
     return res.status(200).json({
-      withdrawals: filteredWithdrawals.map((w) => ({
+      withdrawals: withdrawals.map((w) => ({
         id: w.id,
         userId: w.userId,
         userEmail: w.user.email,

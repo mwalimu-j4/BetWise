@@ -77,14 +77,8 @@ export async function authenticate(
     };
 
     return next();
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    logAuthFailure(req, `Access token verification failed: ${errorMsg}`);
-    console.error("[Auth] Token verification error details:", {
-      error: errorMsg,
-      tokenLength: token?.length || 0,
-      tokenPrefix: token?.substring(0, 20),
-    });
+  } catch {
+    logAuthFailure(req, "Access token verification failed");
     return res.status(401).json({ message: "Unauthorized" });
   }
 }

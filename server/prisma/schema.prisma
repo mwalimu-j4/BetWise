@@ -304,6 +304,40 @@ model SportEvent {
   @@map("sport_events")
 }
 
+model SportCategory {
+  id           String    @id @default(uuid()) @db.Uuid
+  sportKey     String    @unique @map("sport_key")
+  displayName  String    @map("display_name")
+  apiSportId   String?   @map("api_sport_id")
+  icon         String
+  isActive     Boolean   @default(false) @map("is_active")
+  showInNav    Boolean   @default(true) @map("show_in_nav")
+  sortOrder    Int       @map("sort_order")
+  eventCount   Int       @default(0) @map("event_count")
+  lastSyncedAt DateTime? @map("last_synced_at")
+  configuredBy String?   @db.Uuid @map("configured_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("sport_categories")
+}
+
+model CategoryConfigLog {
+  id               String   @id @default(uuid()) @db.Uuid
+  sportKey         String   @map("sport_key")
+  adminId          String   @db.Uuid @map("admin_id")
+  eventsConfigured Int      @map("events_configured")
+  action           String
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([sportKey])
+  @@index([adminId])
+  @@index([createdAt])
+  @@map("category_config_logs")
+}
+
 model EventOdds {
   id            String    @id @default(uuid()) @db.Uuid
   eventId       String    @map("event_id")
@@ -676,40 +710,4 @@ model CustomEventAuditLog {
   @@index([adminId])
   @@index([createdAt])
   @@map("custom_event_audit_logs")
-}
-
-model SportCategory {
-  id            String              @id @default(uuid()) @db.Uuid
-  sportKey      String              @unique @map("sport_key")
-  displayName   String              @map("display_name")
-  apiSportId    String?             @map("api_sport_id")
-  icon          String              @default("🎯")
-  isActive      Boolean             @default(false) @map("is_active")
-  showInNav     Boolean             @default(true) @map("show_in_nav")
-  sortOrder     Int                 @default(0) @map("sort_order")
-  eventCount    Int                 @default(0) @map("event_count")
-  lastSyncedAt  DateTime?           @map("last_synced_at")
-  configuredBy  String?             @map("configured_by") @db.Uuid
-  createdAt     DateTime            @default(now()) @map("created_at")
-  updatedAt     DateTime            @updatedAt @map("updated_at")
-  configLogs    CategoryConfigLog[]
-
-  @@index([isActive])
-  @@index([sortOrder])
-  @@map("sport_categories")
-}
-
-model CategoryConfigLog {
-  id               String         @id @default(uuid()) @db.Uuid
-  sportKey         String         @map("sport_key")
-  adminId          String         @map("admin_id") @db.Uuid
-  eventsConfigured Int            @map("events_configured")
-  action           String
-  createdAt        DateTime       @default(now()) @map("created_at")
-  category         SportCategory  @relation(fields: [sportKey], references: [sportKey])
-
-  @@index([sportKey])
-  @@index([adminId])
-  @@index([createdAt])
-  @@map("category_config_logs")
 }
