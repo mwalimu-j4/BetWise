@@ -115,11 +115,7 @@ export default function MobileBottomNav() {
 
         <Link
           to="/user/bets"
-          search={{
-            tab: "normal",
-            filter: "all",
-            page: "1",
-          }}
+          search={{}}
           className={`mobile-bottom-nav__link flex flex-col items-center gap-1 py-1 text-[10px] font-medium transition ${
             isMyBetsActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}
