@@ -6,12 +6,16 @@ interface PaymentLoadingModalProps {
   isOpen: boolean;
   amount?: number;
   message?: string;
+  onCancel?: () => void;
+  cancelLabel?: string;
 }
 
 export function PaymentLoadingModal({
   isOpen,
   amount,
   message = "Processing your payment",
+  onCancel,
+  cancelLabel = "Cancel",
 }: PaymentLoadingModalProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -74,6 +78,16 @@ export function PaymentLoadingModal({
         <p className="text-xs text-[#62738a] mt-6">
           Do not refresh or leave this page
         </p>
+
+        {onCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="mt-4 inline-flex rounded-xl border border-[#243a53] px-4 py-2 text-sm font-semibold text-[#a8c4e0] transition hover:border-[#f5c518]/40 hover:text-white"
+          >
+            {cancelLabel}
+          </button>
+        ) : null}
       </div>
     </div>,
     document.body,

@@ -232,6 +232,33 @@ export default function DepositPage() {
     setPaymentStatus(null);
   };
 
+  const onCancelProcessing = () => {
+    if (processingMethod === "mpesa") {
+      localStorage.removeItem(mpesaPendingStorageKey);
+      setPendingMpesaTransactionId(null);
+      setPaymentReference(null);
+      setIsProcessing(false);
+      setShowPaymentResult(false);
+      setPaymentStatus(null);
+      toast.message("M-Pesa confirmation dismissed.", {
+        description:
+          "You can still complete the prompt on your phone and retry from the deposit page if needed.",
+      });
+      return;
+    }
+
+    if (processingMethod === "paystack") {
+      localStorage.removeItem(paystackPendingStorageKey);
+      setShouldVerifyPaystack(false);
+      setPaystackReference(null);
+      setPaymentReference(null);
+      setIsProcessing(false);
+      setShowPaymentResult(false);
+      setPaymentStatus(null);
+      toast.message("Paystack confirmation dismissed.");
+    }
+  };
+
   const onRetry = () => {
     if (processingMethod === "mpesa" && pendingMpesaTransactionId) {
       setShowPaymentResult(false);
@@ -503,6 +530,10 @@ export default function DepositPage() {
         isOpen={isProcessing}
         amount={processingAmount}
         message={processingMessage}
+        onCancel={onCancelProcessing}
+        cancelLabel={
+          processingMethod === "mpesa" ? "Cancel Waiting" : "Close"
+        }
       />
 
       <PaymentFeedbackModal

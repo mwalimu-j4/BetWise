@@ -331,40 +331,84 @@ async function queryMpesaTransaction(transactionId: string): Promise<MpesaDeposi
     };
   }
 
-  const token = await getMpesaAccessToken(config);
-  const timestamp = getTimestamp();
-  const password = buildMpesaPassword(config.shortcode, config.passkey, timestamp);
-
-  const response = await fetch(`${config.baseUrl}/mpesa/stkpushquery/v1/query`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token.access_token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      BusinessShortCode: config.shortcode,
-      Password: password,
-      Timestamp: timestamp,
-      CheckoutRequestID: transaction.checkoutRequestId,
-    }),
-  });
-
-  const data = (await response.json().catch(() => ({}))) as MpesaStkQueryResponse;
-
-  if (!response.ok) {
-    throw new Error(
-      data.errorMessage ||
-        data.ResponseDescription ||
-        `M-Pesa status query failed with ${response.status}`,
+  try {
+    const token = await getMpesaAccessToken(config);
+    const timestamp = getTimestamp();
+    const password = buildMpesaPassword(
+      config.shortcode,
+      config.passkey,
+      timestamp,
     );
-  }
 
-  if (String(data.ResultCode ?? "") === "0") {
-    const result = await finalizeSuccessfulMpesaDeposit({
+    const response = await fetch(`${config.baseUrl}/mpesa/stkpushquery/v1/query`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        BusinessShortCode: config.shortcode,
+        Password: password,
+        Timestamp: timestamp,
+        CheckoutRequestID: transaction.checkoutRequestId,
+      }),
+    });
+
+    const data = (await response.json().catch(() => ({}))) as MpesaStkQueryResponse;
+
+    if (!response.ok) {
+      throw new Error(
+        data.errorMessage ||
+          data.ResponseDescription ||
+          `M-Pesa status query failed with ${response.status}`,
+      );
+    }
+
+    if (String(data.ResultCode ?? "") === "0") {
+      const result = await finalizeSuccessfulMpesaDeposit({
+        transactionId: transaction.id,
+        providerResponseCode: data.ResultCode ?? data.ResponseCode ?? "0",
+        providerResponseDescription:
+          data.ResultDesc ??
+          data.ResponseDescription ??
+          "M-Pesa payment completed.",
+        providerCallback: toSafeJson({
+          provider: "mpesa",
+          query: data,
+        }),
+      });
+
+      return {
+        status: "completed",
+        message:
+          result?.transaction.providerResponseDescription ??
+          "M-Pesa payment completed successfully.",
+        transactionId: transaction.id,
+        amount: transaction.amount,
+        mpesaCode: result?.transaction.providerReceiptNumber,
+        processedAt: result?.transaction.processedAt ?? new Date(),
+      };
+    }
+
+    if (isPendingQueryResult(data.ResultCode)) {
+      return {
+        status: "pending",
+        message:
+          data.ResultDesc ??
+          data.ResponseDescription ??
+          "Awaiting confirmation on your phone.",
+        transactionId: transaction.id,
+        amount: transaction.amount,
+        mpesaCode: transaction.providerReceiptNumber,
+        processedAt: transaction.processedAt,
+      };
+    }
+
+    const failed = await finalizeFailedMpesaDeposit({
       transactionId: transaction.id,
-      providerResponseCode: data.ResultCode ?? data.ResponseCode ?? "0",
+      providerResponseCode: data.ResultCode ?? data.ResponseCode ?? null,
       providerResponseDescription:
-        data.ResultDesc ?? data.ResponseDescription ?? "M-Pesa payment completed.",
+        data.ResultDesc ?? data.ResponseDescription ?? "M-Pesa payment failed.",
       providerCallback: toSafeJson({
         provider: "mpesa",
         query: data,
@@ -372,51 +416,33 @@ async function queryMpesaTransaction(transactionId: string): Promise<MpesaDeposi
     });
 
     return {
-      status: "completed",
+      status: "failed",
       message:
-        result?.transaction.providerResponseDescription ??
-        "M-Pesa payment completed successfully.",
+        failed?.transaction.providerResponseDescription ?? "M-Pesa payment failed.",
       transactionId: transaction.id,
       amount: transaction.amount,
-      mpesaCode: result?.transaction.providerReceiptNumber,
-      processedAt: result?.transaction.processedAt ?? new Date(),
+      mpesaCode: failed?.transaction.providerReceiptNumber,
+      processedAt: failed?.transaction.processedAt,
     };
-  }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "M-Pesa status query failed.";
 
-  if (isPendingQueryResult(data.ResultCode)) {
+    console.error("[M-Pesa Status] Query failed, falling back to pending state:", {
+      transactionId,
+      message,
+    });
+
     return {
       status: "pending",
       message:
-        data.ResultDesc ??
-        data.ResponseDescription ??
-        "Awaiting confirmation on your phone.",
+        "We're still waiting for M-Pesa confirmation. If you've already approved the prompt, please retry in a moment.",
       transactionId: transaction.id,
       amount: transaction.amount,
       mpesaCode: transaction.providerReceiptNumber,
       processedAt: transaction.processedAt,
     };
   }
-
-  const failed = await finalizeFailedMpesaDeposit({
-    transactionId: transaction.id,
-    providerResponseCode: data.ResultCode ?? data.ResponseCode ?? null,
-    providerResponseDescription:
-      data.ResultDesc ?? data.ResponseDescription ?? "M-Pesa payment failed.",
-    providerCallback: toSafeJson({
-      provider: "mpesa",
-      query: data,
-    }),
-  });
-
-  return {
-    status: "failed",
-    message:
-      failed?.transaction.providerResponseDescription ?? "M-Pesa payment failed.",
-    transactionId: transaction.id,
-    amount: transaction.amount,
-    mpesaCode: failed?.transaction.providerReceiptNumber,
-    processedAt: failed?.transaction.processedAt,
-  };
 }
 
 export async function initializeMpesaDeposit(req: Request, res: Response) {
@@ -599,9 +625,12 @@ export async function checkMpesaDepositStatus(req: Request, res: Response) {
       return;
     }
 
-    res.status(500).json({
+    res.status(200).json({
+      transactionId: req.params.transactionId,
+      status: "PENDING",
+      mpesaCode: null,
       message:
-        error instanceof Error ? error.message : "Failed to check M-Pesa status.",
+        "We're still waiting for M-Pesa confirmation. Please try again shortly.",
     });
   }
 }
