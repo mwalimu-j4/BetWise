@@ -4,20 +4,20 @@ import {
   AlertTriangle,
   ArrowLeft,
   Banknote,
+  ChevronRight,
   CreditCard,
   Loader2,
   Mail,
   Eye,
   EyeOff,
   Percent,
-  QrCode,
   Sparkles,
   Search,
   Shield,
-  ShieldCheck,
   Smartphone,
   UserCog,
   CheckCircle2,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -75,21 +75,7 @@ type SectionDefinition = {
   fields: FieldDefinition[];
 };
 
-type AdminTwoFactorStatusResponse = {
-  enabled: boolean;
-};
 
-type AdminTwoFactorSetupResponse = {
-  setupToken: string;
-  expiresInSeconds: number;
-  qrCodeDataUrl: string;
-  manualEntryKey: string;
-  message: string;
-};
-
-type GenericMessageResponse = {
-  message: string;
-};
 
 type ChangePasswordResponse = {
   message: string;
@@ -109,12 +95,7 @@ const inputClassName =
   "h-10 w-full rounded-lg border border-admin-border bg-admin-surface px-3 text-sm text-admin-text-primary outline-none transition focus:border-admin-border-strong";
 const textareaClassName =
   "w-full rounded-lg border border-admin-border bg-admin-surface px-3 py-2.5 text-sm text-admin-text-primary outline-none transition focus:border-admin-border-strong";
-const MICROSOFT_AUTHENTICATOR_ANDROID_URL =
-  "https://play.google.com/store/apps/details?id=com.azure.authenticator";
-const MICROSOFT_AUTHENTICATOR_IOS_URL =
-  "https://apps.apple.com/app/microsoft-authenticator/id983156458";
-const MICROSOFT_AUTHENTICATOR_FALLBACK_URL =
-  "https://www.microsoft.com/security/mobile-authenticator-app";
+
 
 function cloneSettings(settings: AdminSettingsConfig) {
   return JSON.parse(JSON.stringify(settings)) as AdminSettingsConfig;
@@ -223,92 +204,98 @@ const sectionDefinitions: SectionDefinition[] = [
     ],
   },
   {
-    id: "payments",
-    title: "Payment Gateways",
-    subtitle: "M-Pesa, Paystack, and bank transfer connectivity",
+    id: "mpesa",
+    title: "M-Pesa Integration",
+    subtitle: "STK Push, B2C transfers, and automated reconciliation",
     group: "Financial Operations",
-    icon: <CreditCard size={16} />,
+    icon: <Smartphone size={16} />,
     fields: [
       {
         path: "paymentsConfig.methods.mpesa",
-        label: "Enable M-Pesa",
+        label: "Enable M-Pesa Gateway",
         type: "switch",
       },
-      {
-        path: "paymentsConfig.methods.paystack",
-        label: "Enable Paystack",
-        type: "switch",
-      },
-      {
-        path: "paymentsConfig.methods.bankTransfer",
-        label: "Enable bank transfer",
-        type: "switch",
-      },
-      { type: "header", label: "M-Pesa Configuration" },
+      { type: "header", label: "Api Configuration" },
       {
         path: "paymentsConfig.mpesa.shortcode",
-        label: "M-Pesa shortcode",
+        label: "Shortcode (Paybill/Till)",
         type: "text",
       },
       {
         path: "paymentsConfig.mpesa.consumerKey",
-        label: "M-Pesa consumer key",
+        label: "Consumer Key",
         type: "text",
       },
       {
         path: "paymentsConfig.mpesa.consumerSecret",
-        label: "M-Pesa consumer secret",
+        label: "Consumer Secret",
         type: "text",
       },
       {
         path: "paymentsConfig.mpesa.passkey",
-        label: "M-Pesa passkey",
+        label: "Online Passkey",
         type: "text",
       },
+      { type: "header", label: "Operations" },
       {
         path: "paymentsConfig.mpesa.callbackUrl",
-        label: "M-Pesa callback URL",
+        label: "Result Callback URL",
         type: "text",
       },
       {
         path: "paymentsConfig.mpesa.transactionFeePercent",
-        label: "Transaction fees (%)",
+        label: "Platform Fee (%)",
         type: "number",
       },
       {
         path: "paymentsConfig.mpesa.autoWithdrawEnabled",
-        label: "Auto-withdraw",
+        label: "Auto-approval for Withdrawals",
         type: "switch",
       },
       {
         path: "paymentsConfig.mpesa.mpesaWithdrawalApprovalThreshold",
-        label: "Withdrawal approval threshold",
+        label: "Withdrawal Threshold",
         type: "number",
       },
-      { type: "header", label: "Paystack Configuration" },
+    ],
+  },
+  {
+    id: "paystack",
+    title: "Paystack Gateway",
+    subtitle: "Card payments, Apple Pay, and bank transfers via Paystack",
+    group: "Financial Operations",
+    icon: <CreditCard size={16} />,
+    fields: [
+      {
+        path: "paymentsConfig.methods.paystack",
+        label: "Enable Paystack Gateway",
+        type: "switch",
+      },
+      { type: "header", label: "API Credentials" },
       {
         path: "paymentsConfig.paystack.secretKey",
-        label: "Paystack secret key",
+        label: "Live Secret Key",
         type: "text",
       },
       {
         path: "paymentsConfig.paystack.publicKey",
-        label: "Paystack public key",
+        label: "Live Public Key",
         type: "text",
       },
+      { type: "header", label: "Webhooks & Callbacks" },
       {
         path: "paymentsConfig.paystack.webhookSecret",
-        label: "Paystack webhook secret",
+        label: "Webhook Secret (Signing Key)",
         type: "text",
       },
       {
         path: "paymentsConfig.paystack.callbackUrl",
-        label: "Paystack callback URL",
+        label: "Merchant Callback URL",
         type: "text",
       },
       {
         path: "paymentsConfig.paystack.webhookUrl",
-        label: "Paystack webhook URL",
+        label: "Webhook URL",
         type: "text",
       },
     ],
@@ -356,6 +343,17 @@ export default function Settings() {
   const navigate = useNavigate();
   const mustChangePassword = user?.mustChangePassword === true;
 
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordChangeError, setPasswordChangeError] = useState<string | null>(
+    null,
+  );
+
   const { data, isLoading, isError, error } = useAdminSettings({
     enabled: !mustChangePassword,
   });
@@ -368,168 +366,7 @@ export default function Settings() {
   const [modalDraft, setModalDraft] = useState<AdminSettingsConfig | null>(
     null,
   );
-  const [twoFactorCode, setTwoFactorCode] = useState("");
-  const [setupToken, setSetupToken] = useState<string | null>(null);
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
-  const [manualEntryKey, setManualEntryKey] = useState<string | null>(null);
-  const [setupStep, setSetupStep] = useState<1 | 2 | 3>(1);
-  const [stepOneCompleted, setStepOneCompleted] = useState(false);
-  const [stepOneSkipped, setStepOneSkipped] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordChangeError, setPasswordChangeError] = useState<string | null>(
-    null,
-  );
 
-  const openAuthenticatorInstallLink = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isAndroid = userAgent.includes("android");
-    const isIos = /iphone|ipad|ipod/.test(userAgent);
-    const installUrl = isAndroid
-      ? MICROSOFT_AUTHENTICATOR_ANDROID_URL
-      : isIos
-        ? MICROSOFT_AUTHENTICATOR_IOS_URL
-        : MICROSOFT_AUTHENTICATOR_FALLBACK_URL;
-
-    window.open(installUrl, "_blank", "noopener,noreferrer");
-    setStepOneCompleted(true);
-    setStepOneSkipped(false);
-    setSetupStep(2);
-  };
-
-  const resetTwoFactorWizard = () => {
-    setSetupStep(1);
-    setStepOneCompleted(false);
-    setStepOneSkipped(false);
-    setSetupToken(null);
-    setQrCodeDataUrl(null);
-    setManualEntryKey(null);
-    setTwoFactorCode("");
-  };
-
-  const adminTwoFactorStatusQuery = useQuery({
-    queryKey: ["admin-2fa-status"],
-    enabled: !mustChangePassword,
-    queryFn: async () => {
-      const response = await api.get<AdminTwoFactorStatusResponse>(
-        "/profile/admin-2fa/status",
-      );
-      return response.data;
-    },
-  });
-
-  const startAdminTwoFactorSetup = useMutation({
-    mutationFn: async () => {
-      const response = await api.post<AdminTwoFactorSetupResponse>(
-        "/profile/admin-2fa/setup",
-      );
-      return response.data;
-    },
-    onSuccess: (payload) => {
-      setSetupToken(payload.setupToken);
-      setQrCodeDataUrl(payload.qrCodeDataUrl);
-      setManualEntryKey(payload.manualEntryKey);
-      setTwoFactorCode("");
-      setSetupStep(3);
-      toast.success(payload.message);
-    },
-    onError: (mutationError: unknown) => {
-      const message =
-        typeof mutationError === "object" &&
-        mutationError !== null &&
-        "response" in mutationError &&
-        typeof (mutationError as { response?: unknown }).response === "object"
-          ? ((mutationError as { response?: { data?: { message?: string } } })
-              .response?.data?.message ?? "Failed to start 2FA setup.")
-          : "Failed to start 2FA setup.";
-      toast.error(message);
-    },
-  });
-
-  const enableAdminTwoFactor = useMutation({
-    mutationFn: async () => {
-      if (!setupToken) {
-        throw new Error("Start setup first.");
-      }
-
-      await api.post("/profile/admin-2fa/enable", {
-        setupToken,
-        otpCode: twoFactorCode.trim(),
-      });
-    },
-    onSuccess: () => {
-      toast.success("2FA enabled successfully.");
-      resetTwoFactorWizard();
-      void queryClient.invalidateQueries({ queryKey: ["admin-2fa-status"] });
-    },
-    onError: (mutationError: unknown) => {
-      const message =
-        typeof mutationError === "object" &&
-        mutationError !== null &&
-        "response" in mutationError &&
-        typeof (mutationError as { response?: unknown }).response === "object"
-          ? ((mutationError as { response?: { data?: { message?: string } } })
-              .response?.data?.message ?? "Failed to enable 2FA.")
-          : "Failed to enable 2FA.";
-      toast.error(message);
-    },
-  });
-
-  const disableAdminTwoFactor = useMutation({
-    mutationFn: async () => {
-      await api.post("/profile/admin-2fa/disable", {
-        otpCode: twoFactorCode.trim(),
-      });
-    },
-    onSuccess: () => {
-      toast.success("2FA disabled successfully.");
-      resetTwoFactorWizard();
-      void queryClient.invalidateQueries({ queryKey: ["admin-2fa-status"] });
-    },
-    onError: (mutationError: unknown) => {
-      const message =
-        typeof mutationError === "object" &&
-        mutationError !== null &&
-        "response" in mutationError &&
-        typeof (mutationError as { response?: unknown }).response === "object"
-          ? ((mutationError as { response?: { data?: { message?: string } } })
-              .response?.data?.message ?? "Failed to disable 2FA.")
-          : "Failed to disable 2FA.";
-      toast.error(message);
-    },
-  });
-
-  const sendAdminTwoFactorAppLink = useMutation({
-    mutationFn: async () => {
-      const response = await api.post<GenericMessageResponse>(
-        "/profile/admin-2fa/send-app-link",
-      );
-      return response.data;
-    },
-    onSuccess: (payload) => {
-      toast.success(payload.message);
-      setStepOneCompleted(true);
-      setStepOneSkipped(false);
-      setSetupStep(2);
-    },
-    onError: (mutationError: unknown) => {
-      const message =
-        typeof mutationError === "object" &&
-        mutationError !== null &&
-        "response" in mutationError &&
-        typeof (mutationError as { response?: unknown }).response === "object"
-          ? ((mutationError as { response?: { data?: { message?: string } } })
-              .response?.data?.message ??
-            "Failed to send Microsoft Authenticator install link.")
-          : "Failed to send Microsoft Authenticator install link.";
-      toast.error(message);
-    },
-  });
 
   useEffect(() => {
     if (data?.config) {
@@ -983,306 +820,30 @@ export default function Settings() {
         </div>
       </AdminCard>
 
-      <AdminCard className="border-admin-border bg-admin-card/95 p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-semibold text-admin-text-primary">
-              Admin 2FA Security Wizard
-            </h3>
-            <p className="mt-1 text-xs text-admin-text-muted">
-              Professional step-by-step setup with strict progression. You
-              cannot reach the next step until the current one is complete.
-            </p>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-admin-border bg-admin-surface px-3 py-1.5 text-xs text-admin-text-secondary">
-            <Shield size={12} className="text-admin-accent" />
-            <span>
-              {adminTwoFactorStatusQuery.data?.enabled
-                ? "Protected"
-                : "Not protected"}
-            </span>
-          </div>
-        </div>
-
-        {adminTwoFactorStatusQuery.data?.enabled ? (
-          <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]">
-            <div className="space-y-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
-              <div className="flex items-center gap-2 text-emerald-300">
-                <ShieldCheck size={16} />
-                <p className="text-sm font-semibold">
-                  Authenticator protection is active
-                </p>
-              </div>
-              <p className="text-xs text-admin-text-muted">
-                Your admin account currently requires a TOTP code at sign-in.
-                Enter a valid code below only if you intentionally want to
-                disable this protection.
+      <AdminCard className="border-admin-border/50 bg-[linear-gradient(135deg,rgba(245,197,24,0.03)_0%,rgba(0,0,0,0)_100%)] p-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-admin-accent/10 text-admin-accent">
+              <Shield size={24} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-admin-text-primary">
+                Security & Access Control
+              </h3>
+              <p className="mt-0.5 text-xs text-admin-text-muted">
+                Manage administrative security protocols and multi-factor
+                authentication.
               </p>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
-                  Authenticator code
-                </label>
-                <input
-                  value={twoFactorCode}
-                  onChange={(event) =>
-                    setTwoFactorCode(
-                      event.target.value.replace(/\D/g, "").slice(0, 6),
-                    )
-                  }
-                  inputMode="numeric"
-                  maxLength={6}
-                  placeholder="6-digit code"
-                  className={inputClassName}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button
-                onClick={() => void disableAdminTwoFactor.mutateAsync()}
-                disabled={
-                  disableAdminTwoFactor.isPending ||
-                  twoFactorCode.trim().length !== 6
-                }
-                variant="outline"
-                className="h-9"
-              >
-                {disableAdminTwoFactor.isPending ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    Disabling...
-                  </>
-                ) : (
-                  "Disable 2FA"
-                )}
-              </Button>
             </div>
           </div>
-        ) : (
-          <div className="mt-4 space-y-4">
-            <div className="grid gap-2 md:grid-cols-3">
-              {[
-                {
-                  id: 1,
-                  title: "Install App",
-                  icon: <Mail size={14} />,
-                  done: stepOneCompleted || stepOneSkipped,
-                  active: setupStep === 1,
-                },
-                {
-                  id: 2,
-                  title: "Generate QR",
-                  icon: <QrCode size={14} />,
-                  done: Boolean(setupToken),
-                  active: setupStep === 2,
-                },
-                {
-                  id: 3,
-                  title: "Verify & Enable",
-                  icon: <CheckCircle2 size={14} />,
-                  done: false,
-                  active: setupStep === 3,
-                },
-              ].map((step) => (
-                <div
-                  key={step.id}
-                  className={`rounded-xl border p-3 text-xs transition ${
-                    step.active
-                      ? "border-admin-border-strong bg-admin-surface"
-                      : "border-admin-border bg-admin-surface/40"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="inline-flex items-center gap-1.5 text-admin-text-secondary">
-                      {step.icon}
-                      <span>Step {step.id}</span>
-                    </div>
-                    {step.done ? (
-                      <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-emerald-300">
-                        {step.id === 1 && stepOneSkipped ? "Skipped" : "Done"}
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-2 text-sm font-semibold text-admin-text-primary">
-                    {step.title}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-3 rounded-xl border border-admin-border bg-admin-surface/40 p-4">
-              {setupStep === 1 ? (
-                <>
-                  <div className="flex items-start gap-2 text-admin-text-secondary">
-                    <Smartphone
-                      size={16}
-                      className="mt-0.5 text-admin-accent"
-                    />
-                    <p className="text-xs leading-5 text-admin-text-muted">
-                      Step 1 of 3. Open the install link directly on this phone,
-                      or optionally send install links to your email. If you
-                      already have the app, skip this step and continue.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      onClick={openAuthenticatorInstallLink}
-                      className="h-9"
-                    >
-                      Open install link on this phone
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        void sendAdminTwoFactorAppLink.mutateAsync()
-                      }
-                      disabled={sendAdminTwoFactorAppLink.isPending}
-                      variant="outline"
-                      className="h-9"
-                    >
-                      {sendAdminTwoFactorAppLink.isPending ? (
-                        <>
-                          <Loader2 size={14} className="animate-spin" />
-                          Sending email...
-                        </>
-                      ) : (
-                        "Send install links to email"
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-9"
-                      onClick={() => {
-                        setStepOneSkipped(true);
-                        setStepOneCompleted(false);
-                        setSetupStep(2);
-                      }}
-                    >
-                      I already have the app
-                    </Button>
-                  </div>
-                </>
-              ) : null}
-
-              {(stepOneCompleted || stepOneSkipped) && setupStep === 2 ? (
-                <>
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-xs leading-5 text-admin-text-muted">
-                      Step 2 of 3. Generate your QR code and setup secret. You
-                      will scan this in Microsoft Authenticator.
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="h-8"
-                      onClick={() => {
-                        setSetupStep(1);
-                        setStepOneCompleted(false);
-                        setStepOneSkipped(false);
-                        setSetupToken(null);
-                        setQrCodeDataUrl(null);
-                        setManualEntryKey(null);
-                        setTwoFactorCode("");
-                      }}
-                    >
-                      <ArrowLeft size={14} />
-                      Back
-                    </Button>
-                  </div>
-                  <Button
-                    onClick={() => void startAdminTwoFactorSetup.mutateAsync()}
-                    disabled={startAdminTwoFactorSetup.isPending}
-                    className="h-9"
-                  >
-                    {startAdminTwoFactorSetup.isPending ? (
-                      <>
-                        <Loader2 size={14} className="animate-spin" />
-                        Generating QR...
-                      </>
-                    ) : (
-                      "Generate setup QR"
-                    )}
-                  </Button>
-                </>
-              ) : null}
-
-              {setupToken && setupStep === 3 ? (
-                <>
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-xs leading-5 text-admin-text-muted">
-                      Step 3 of 3. Scan the QR code or use manual key, then
-                      enter the current 6-digit code to activate 2FA.
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="h-8"
-                      onClick={() => {
-                        setSetupStep(2);
-                        setTwoFactorCode("");
-                      }}
-                    >
-                      <ArrowLeft size={14} />
-                      Back
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-3 md:grid-cols-[auto,1fr]">
-                    {qrCodeDataUrl ? (
-                      <img
-                        src={qrCodeDataUrl}
-                        alt="Admin 2FA setup QR"
-                        className="h-44 w-44 rounded-lg border border-admin-border bg-white p-2"
-                      />
-                    ) : null}
-                    <div className="space-y-3">
-                      {manualEntryKey ? (
-                        <p className="text-xs text-admin-text-muted break-all">
-                          Manual key:{" "}
-                          <span className="text-admin-text-primary">
-                            {manualEntryKey}
-                          </span>
-                        </p>
-                      ) : null}
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
-                          Authenticator code
-                        </label>
-                        <input
-                          value={twoFactorCode}
-                          onChange={(event) =>
-                            setTwoFactorCode(
-                              event.target.value.replace(/\D/g, "").slice(0, 6),
-                            )
-                          }
-                          inputMode="numeric"
-                          maxLength={6}
-                          placeholder="6-digit code"
-                          className={inputClassName}
-                        />
-                      </div>
-
-                      <Button
-                        onClick={() => void enableAdminTwoFactor.mutateAsync()}
-                        disabled={
-                          enableAdminTwoFactor.isPending ||
-                          twoFactorCode.trim().length !== 6
-                        }
-                        className="h-9"
-                      >
-                        {enableAdminTwoFactor.isPending ? (
-                          <>
-                            <Loader2 size={14} className="animate-spin" />
-                            Enabling...
-                          </>
-                        ) : (
-                          "Verify & enable 2FA"
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              ) : null}
-            </div>
-          </div>
-        )}
+          <Button
+            onClick={() => void navigate({ to: "/admin/security" })}
+            className="h-10 px-5 gap-2 shadow-lg shadow-admin-accent/10"
+          >
+            Launch Security Wizard
+            <ChevronRight size={14} />
+          </Button>
+        </div>
       </AdminCard>
 
       {(
@@ -1303,38 +864,41 @@ export default function Settings() {
             <h2 className="text-lg font-semibold text-admin-text-primary">
               {groupName}
             </h2>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sections.map((section) => (
-                <AdminCard
+                <div
                   key={section.id}
-                  className="border-admin-border bg-admin-card/95 p-4 transition hover:border-admin-border-strong"
+                  className="group relative overflow-hidden rounded-[1.6rem] border border-admin-border bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] bg-admin-card/50 p-6 transition-all duration-300 hover:border-admin-accent/50 hover:bg-admin-accent/[0.03] hover:shadow-[0_12px_32px_-12px_rgba(245,197,24,0.15)]"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-admin-text-primary">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-2">
+                       <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-admin-surface text-admin-accent transition-transform duration-300 group-hover:scale-110">
+                        {section.icon}
+                      </div>
+                      <h4 className="text-sm font-bold tracking-tight text-admin-text-primary">
                         {section.title}
-                      </p>
-                      <p className="text-xs leading-5 text-admin-text-muted">
+                      </h4>
+                      <p className="text-xs leading-relaxed text-admin-text-muted/80 line-clamp-2">
                         {section.subtitle}
                       </p>
                     </div>
-                    <div className="grid h-8 w-8 place-items-center rounded-lg bg-admin-surface text-admin-accent">
-                      {section.icon}
-                    </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-admin-text-muted">
-                      {section.fields.length} configurable options
-                    </span>
+                  <div className="mt-8 flex items-center justify-between border-t border-admin-border/50 pt-4">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-1 w-1 rounded-full bg-admin-accent" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-admin-text-muted">
+                        {section.fields.filter(f => f.type !== 'header').length} OPTIONS
+                      </span>
+                    </div>
                     <Button
                       onClick={() => openSectionModal(section.id)}
-                      className="h-8 rounded-md px-3 text-xs"
+                      className="h-8 rounded-lg px-4 text-xs font-bold transition-all group-hover:bg-admin-accent group-hover:text-black"
                     >
                       Configure
                     </Button>
                   </div>
-                </AdminCard>
+                </div>
               ))}
             </div>
           </section>
