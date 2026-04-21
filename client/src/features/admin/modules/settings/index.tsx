@@ -772,28 +772,9 @@ export default function Settings() {
         subtitle="Centralized configuration for your betting platform operations"
       />
 
-      <AdminCard className="border-admin-border/80 bg-[linear-gradient(90deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-3.5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-admin-border bg-admin-surface px-3 py-1.5 text-xs text-admin-text-secondary">
-            <Sparkles size={12} className="text-admin-accent" />
-            <span>3 configuration modules</span>
-          </div>
-          <div className="relative w-full max-w-70">
-            <Search
-              size={13}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-admin-text-muted"
-            />
-            <input
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search modules"
-              className="h-9 w-full rounded-full border border-admin-border bg-admin-surface pl-8 pr-3 text-xs text-admin-text-primary outline-none transition focus:border-admin-border-strong"
-            />
-          </div>
-        </div>
-      </AdminCard>
 
-      <AdminCard className="border-admin-border/50 bg-[linear-gradient(135deg,rgba(245,197,24,0.03)_0%,rgba(0,0,0,0)_100%)] p-4">
+
+      <AdminCard className="border-admin-border/50 bg-[#0b1426]/60 p-5 shadow-lg shadow-black/20">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-admin-accent/10 text-admin-accent">
