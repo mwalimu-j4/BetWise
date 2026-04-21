@@ -260,7 +260,8 @@ export default function Dashboard() {
                   Pending Withdrawal Requests
                 </h4>
                 <p className="mt-0.5 text-xs text-amber-100/70">
-                  You have {pendingCount} withdrawal request{pendingCount === 1 ? "" : "s"} waiting for review.
+                  You have {pendingCount} withdrawal request
+                  {pendingCount === 1 ? "" : "s"} waiting for review.
                 </p>
               </div>
               <Link
@@ -271,10 +272,10 @@ export default function Dashboard() {
               </Link>
             </div>
             <Link
-                to="/admin/withdrawals"
-                className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
-              >
-                Review Requests
+              to="/admin/withdrawals"
+              className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
+            >
+              Review Requests
             </Link>
           </div>
         ) : null}
@@ -290,7 +291,9 @@ export default function Dashboard() {
                   Events Finished — Settlement Required
                 </h4>
                 <p className="mt-0.5 text-xs text-emerald-100/70">
-                  {finishedEventsCount} custom event{finishedEventsCount === 1 ? "s has" : "s have"} ended and need market settlement.
+                  {finishedEventsCount} custom event
+                  {finishedEventsCount === 1 ? "s has" : "s have"} ended and
+                  need market settlement.
                 </p>
               </div>
               <Link
@@ -302,11 +305,11 @@ export default function Dashboard() {
               </Link>
             </div>
             <Link
-                to="/admin/events"
-                search={{ tab: "custom" }}
-                className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
-              >
-                Settle Events
+              to="/admin/events"
+              search={{ tab: "custom" }}
+              className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
+            >
+              Settle Events
             </Link>
           </div>
         ) : null}
@@ -480,7 +483,7 @@ export default function Dashboard() {
           <AdminCard className="overflow-hidden max-w-full w-full">
             <AdminCardHeader
               title="Recent Activity"
-               actions={
+              actions={
                 <>
                   <AdminButton
                     variant="ghost"
@@ -510,209 +513,199 @@ export default function Dashboard() {
             <TableShell className="w-full">
               <table className={`${adminTableClassName} w-full min-w-175`}>
                 <thead>
-                    <tr>
-                      {[
-                        "#",
-                        "Phone",
-                        "Type",
-                        "Amount",
-                        "Status",
-                        "Time",
-                        "",
-                      ].map((heading) => (
+                  <tr>
+                    {["#", "Phone", "Type", "Amount", "Status", "Time", ""].map(
+                      (heading) => (
                         <th
                           key={heading}
                           className={adminTableHeadCellClassName}
                         >
                           {heading}
                         </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {isLoading ? (
-                      <tr>
-                        <td className={adminTableCellClassName} colSpan={7}>
-                          <div className="flex items-center justify-center py-8">
-                            <Loader className="animate-spin" size={24} />
-                          </div>
-                        </td>
-                      </tr>
-                    ) : recentTransactions.length === 0 ? (
-                      <tr>
-                        <td className={adminTableCellClassName} colSpan={7}>
-                          <div className="flex items-center justify-center py-8 text-admin-text-muted">
-                            No recent activity yet.
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      // Paginate transactions - 5 per page
-                      recentTransactions
-                        .slice(
-                          (currentPage - 1) * itemsPerPage,
-                          currentPage * itemsPerPage,
-                        )
-                        .map((transaction, index) => (
-                          <tr
-                            key={transaction.id}
-                            className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
-                            onClick={() => handleViewDetails(transaction)}
-                          >
-                            <td className={adminTableCellClassName}>
-                              {(currentPage - 1) * itemsPerPage + index + 1}
-                            </td>
-                            <td className={adminTableCellClassName}>
-                              {transaction.userPhone}
-                            </td>
-                            <td className={adminTableCellClassName}>
-                              <InlinePill
-                                label={transaction.type}
-                                tone={
-                                  transaction.type === "deposit"
-                                    ? "live"
-                                    : "gold"
-                                }
-                              />
-                            </td>
-                            <td className={adminTableCellClassName}>
-                              {formatCurrency(transaction.amount)}
-                            </td>
-                            <td className={adminTableCellClassName}>
-                              <StatusBadge status={transaction.status} />
-                            </td>
-                            <td className={adminTableCellClassName}>
-                              {new Date(transaction.createdAt).toLocaleString(
-                                "en-KE",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                },
-                              )}
-                            </td>
-                            <td
-                              className={adminTableCellClassName}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <button className="p-1 rounded hover:bg-white/10 transition-colors">
-                                    <MoreHorizontal
-                                      size={16}
-                                      className="text-admin-text-muted"
-                                    />
-                                  </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                  align="end"
-                                  className={`${adminDropdownContentClassName} w-56`}
-                                >
-                                  <DropdownMenuItem
-                                    className={adminDropdownItemClassName}
-                                    onClick={() =>
-                                      handleViewDetails(transaction)
-                                    }
-                                  >
-                                    View full details
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className={adminDropdownItemClassName}
-                                    onClick={() => handleOpenUser(transaction)}
-                                  >
-                                    Open user profile
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className={adminDropdownItemClassName}
-                                    onClick={() =>
-                                      handleReviewTransaction(transaction)
-                                    }
-                                  >
-                                    {transaction.type === "withdrawal"
-                                      ? "Review & manage payout"
-                                      : "Review & manage deposit"}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </td>
-                          </tr>
-                        ))
+                      ),
                     )}
-                  </tbody>
-                </table>
-              </TableShell>
-
-              {/* Pagination Controls */}
-              {recentTransactions.length > itemsPerPage && (
-                <div className="flex items-center justify-between border-t border-admin-border/40 px-4 py-2.5">
-                  <div className="text-xs text-admin-text-muted">
-                    Showing{" "}
-                    {Math.min(
-                      (currentPage - 1) * itemsPerPage + 1,
-                      recentTransactions.length,
-                    )}{" "}
-                    to{" "}
-                    {Math.min(
-                      currentPage * itemsPerPage,
-                      recentTransactions.length,
-                    )}{" "}
-                    of {recentTransactions.length} transactions
-                  </div>
-                  <div className="flex gap-2">
-                    <AdminButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(1, prev - 1))
-                      }
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft size={16} />
-                    </AdminButton>
-                    <div className="flex items-center gap-1">
-                      {Array.from(
-                        {
-                          length: Math.ceil(
-                            recentTransactions.length / itemsPerPage,
-                          ),
-                        },
-                        (_, i) => i + 1,
-                      ).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`h-7 w-7 rounded text-xs font-medium transition ${
-                            currentPage === page
-                              ? "bg-admin-accent text-admin-bg"
-                              : "border border-admin-border/50 bg-admin-surface/50 text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-surface/80"
-                          }`}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {isLoading ? (
+                    <tr>
+                      <td className={adminTableCellClassName} colSpan={7}>
+                        <div className="flex items-center justify-center py-8">
+                          <Loader className="animate-spin" size={24} />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : recentTransactions.length === 0 ? (
+                    <tr>
+                      <td className={adminTableCellClassName} colSpan={7}>
+                        <div className="flex items-center justify-center py-8 text-admin-text-muted">
+                          No recent activity yet.
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    // Paginate transactions - 5 per page
+                    recentTransactions
+                      .slice(
+                        (currentPage - 1) * itemsPerPage,
+                        currentPage * itemsPerPage,
+                      )
+                      .map((transaction, index) => (
+                        <tr
+                          key={transaction.id}
+                          className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
+                          onClick={() => handleViewDetails(transaction)}
                         >
-                          {page}
-                        </button>
-                      ))}
-                    </div>
-                    <AdminButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(
-                            Math.ceil(recentTransactions.length / itemsPerPage),
-                            prev + 1,
-                          ),
-                        )
-                      }
-                      disabled={
-                        currentPage ===
-                        Math.ceil(recentTransactions.length / itemsPerPage)
-                      }
-                    >
-                      <ChevronRight size={16} />
-                    </AdminButton>
-                  </div>
+                          <td className={adminTableCellClassName}>
+                            {(currentPage - 1) * itemsPerPage + index + 1}
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            {transaction.userPhone}
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            <InlinePill
+                              label={transaction.type}
+                              tone={
+                                transaction.type === "deposit" ? "live" : "gold"
+                              }
+                            />
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            {formatCurrency(transaction.amount)}
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            <StatusBadge status={transaction.status} />
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            {new Date(transaction.createdAt).toLocaleString(
+                              "en-KE",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
+                          </td>
+                          <td
+                            className={adminTableCellClassName}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="p-1 rounded hover:bg-white/10 transition-colors">
+                                  <MoreHorizontal
+                                    size={16}
+                                    className="text-admin-text-muted"
+                                  />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className={`${adminDropdownContentClassName} w-56`}
+                              >
+                                <DropdownMenuItem
+                                  className={adminDropdownItemClassName}
+                                  onClick={() => handleViewDetails(transaction)}
+                                >
+                                  View full details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className={adminDropdownItemClassName}
+                                  onClick={() => handleOpenUser(transaction)}
+                                >
+                                  Open user profile
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className={adminDropdownItemClassName}
+                                  onClick={() =>
+                                    handleReviewTransaction(transaction)
+                                  }
+                                >
+                                  {transaction.type === "withdrawal"
+                                    ? "Review & manage payout"
+                                    : "Review & manage deposit"}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </TableShell>
+
+            {/* Pagination Controls */}
+            {recentTransactions.length > itemsPerPage && (
+              <div className="flex items-center justify-between border-t border-admin-border/40 px-4 py-2.5">
+                <div className="text-xs text-admin-text-muted">
+                  Showing{" "}
+                  {Math.min(
+                    (currentPage - 1) * itemsPerPage + 1,
+                    recentTransactions.length,
+                  )}{" "}
+                  to{" "}
+                  {Math.min(
+                    currentPage * itemsPerPage,
+                    recentTransactions.length,
+                  )}{" "}
+                  of {recentTransactions.length} transactions
                 </div>
-              )}
+                <div className="flex gap-2">
+                  <AdminButton
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft size={16} />
+                  </AdminButton>
+                  <div className="flex items-center gap-1">
+                    {Array.from(
+                      {
+                        length: Math.ceil(
+                          recentTransactions.length / itemsPerPage,
+                        ),
+                      },
+                      (_, i) => i + 1,
+                    ).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-7 w-7 rounded text-xs font-medium transition ${
+                          currentPage === page
+                            ? "bg-admin-accent text-admin-bg"
+                            : "border border-admin-border/50 bg-admin-surface/50 text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-surface/80"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <AdminButton
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(
+                          Math.ceil(recentTransactions.length / itemsPerPage),
+                          prev + 1,
+                        ),
+                      )
+                    }
+                    disabled={
+                      currentPage ===
+                      Math.ceil(recentTransactions.length / itemsPerPage)
+                    }
+                  >
+                    <ChevronRight size={16} />
+                  </AdminButton>
+                </div>
+              </div>
+            )}
           </AdminCard>
         </div>
       </div>
