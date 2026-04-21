@@ -40,18 +40,17 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SEVERITY_COLORS: Record<string, string> = {
-  CRITICAL: "bg-red-500/10 text-red-600",
-  HIGH: "bg-orange-500/10 text-orange-600",
-  MEDIUM: "bg-yellow-500/10 text-yellow-600",
-  LOW: "bg-blue-500/10 text-blue-600",
+  CRITICAL: "bg-red-500/10 text-red-400 border border-red-500/20",
+  HIGH: "bg-orange-500/10 text-orange-400 border border-orange-500/20",
+  MEDIUM: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20",
+  LOW: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
 };
-
 const STATUS_COLORS: Record<string, string> = {
-  OPEN: "bg-red-500/10 text-red-600",
-  IN_REVIEW: "bg-yellow-500/10 text-yellow-600",
-  ESCALATED: "bg-red-600/10 text-red-700",
-  RESOLVED: "bg-green-500/10 text-green-600",
-  DISMISSED: "bg-gray-500/10 text-gray-600",
+  OPEN: "bg-red-500/10 text-red-500 border border-red-500/20",
+  IN_REVIEW: "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20",
+  ESCALATED: "bg-red-500/20 text-red-600 border border-red-600/30",
+  RESOLVED: "bg-green-500/10 text-green-500 border border-green-500/20",
+  DISMISSED: "bg-white/5 text-gray-400 border border-white/10",
 };
 
 const ALERT_TYPE_LABELS: Record<string, string> = {
