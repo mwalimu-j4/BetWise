@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { 
   CalendarClock, 
   Loader2, 
   RefreshCw, 
   Search, 
-  Trophy, 
-  Zap 
+  Trophy
 } from "lucide-react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -23,6 +22,7 @@ import {
   adminTableHeadCellClassName,
 } from "../../components/ui";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type OddsFilter = "configured" | "configured-with-odds" | "all-with-odds";
 

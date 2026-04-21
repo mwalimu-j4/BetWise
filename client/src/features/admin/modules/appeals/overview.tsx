@@ -1,19 +1,24 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
   AdminCard,
   AdminStatCard,
   AdminSectionHeader,
   StatusBadge,
+  TableShell,
+  adminTableClassName,
+  adminTableHeadCellClassName,
+  adminTableCellClassName,
 } from "../../components/ui";
 import { Loader } from "lucide-react";
+import { useAdminBanAppeals, type BanAppeal } from "@/hooks/useBanAppeals";
 
 export default function BanAppealsOverviewPage() {
   const navigate = useNavigate();
   const { appeals, loading, error } = useAdminBanAppeals(1, 20, "all");
 
-  const pendingCount = appeals.filter((a) => a.status === "PENDING").length;
-  const approvedCount = appeals.filter((a) => a.status === "APPROVED").length;
-  const rejectedCount = appeals.filter((a) => a.status === "REJECTED").length;
+  const pendingCount = appeals.filter((a: BanAppeal) => a.status === "PENDING").length;
+  const approvedCount = appeals.filter((a: BanAppeal) => a.status === "APPROVED").length;
+  const rejectedCount = appeals.filter((a: BanAppeal) => a.status === "REJECTED").length;
   const totalCount = appeals.length;
 
   return (
@@ -74,7 +79,7 @@ export default function BanAppealsOverviewPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {appeals.map((appeal) => (
+                {appeals.map((appeal: BanAppeal) => (
                   <tr
                     key={appeal.id}
                     className="group hover:bg-admin-surface/20 transition-colors cursor-pointer"
