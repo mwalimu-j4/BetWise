@@ -12,9 +12,9 @@ import {
 } from "../controllers/auth.controller";
 import {
   authGeneralRateLimiter,
-  forgotPasswordRateLimiter,
   loginRateLimiter,
   mfaRateLimiter,
+  passwordResetRouteRateLimiter,
   registerRateLimiter,
 } from "../middleware/rateLimiter";
 import { authenticate } from "../middleware/authenticate";
@@ -38,10 +38,14 @@ authRouter.post(
 );
 authRouter.post(
   "/auth/forgot-password",
-  forgotPasswordRateLimiter,
+  passwordResetRouteRateLimiter,
   forgotPassword,
 );
-authRouter.post("/auth/reset-password", authGeneralRateLimiter, resetPassword);
+authRouter.post(
+  "/auth/reset-password",
+  passwordResetRouteRateLimiter,
+  resetPassword,
+);
 authRouter.post(
   "/auth/change-password",
   authGeneralRateLimiter,

@@ -394,6 +394,14 @@
   white-space: nowrap;
 }
 
+.leagueIcon {
+  flex-shrink: 0;
+}
+
+.leagueLabel {
+  line-height: 1;
+}
+
 .leagueActive {
   color: var(--nav-accent);
   background: var(--color-accent-soft);

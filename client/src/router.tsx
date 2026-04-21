@@ -18,6 +18,7 @@ import { adminSettingsRoute } from "./routes/admin/settings";
 import { adminTransactionsRoute } from "./routes/admin/transactions";
 import { adminWithdrawalsRoute } from "./routes/admin/withdrawals";
 import { adminUsersRoute } from "./routes/admin/users";
+import { forgotPasswordRoute } from "./routes/forgot-password";
 import { indexRoute } from "./routes";
 import { myBetDetailRoute } from "./routes/my-bets.$betId";
 import { myBetsRoute } from "./routes/my-bets";
@@ -42,6 +43,7 @@ import { userLiveMatchRoute } from "./routes/user/live.$matchId";
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  forgotPasswordRoute,
   myBetsRoute.addChildren([myBetDetailRoute]),
   profileRoute,
   resetPasswordRoute,

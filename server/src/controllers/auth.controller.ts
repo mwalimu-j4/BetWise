@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { verifySync } from "otplib";
@@ -8,17 +9,15 @@ import {
   decryptAdminTotpSecret,
   encryptAdminTotpSecret,
 } from "../utils/adminTotpSecretCrypto";
-import { sendPasswordResetEmail } from "../utils/emailUtils";
+import { sendPasswordResetEmail } from "../utils/email";
 import {
   getAccessTokenSecret,
   createAccessToken,
   createBanAppealToken,
   createRefreshToken,
-  createResetToken,
   getRefreshExpiryDate,
   getRefreshTokenCookieOptions,
   getRefreshTokenSecret,
-  getResetTokenSecret,
   hashToken,
   verifyAccessToken,
 } from "../utils/tokenUtils";
@@ -26,6 +25,11 @@ import {
 const PASSWORD_SALT_ROUNDS = 12;
 const KENYAN_PHONE_REGEX = /^(\+?254|0)(7|1)\d{8}$/;
 const PASSWORD_MIN_LENGTH = 6;
+const RESET_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const RESET_RATE_LIMIT_MAX_ATTEMPTS = 3;
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,128}$/;
 const ADMIN_MFA_TTL_MS = 10 * 60 * 1000;
 const ADMIN_MFA_TOKEN_ISSUER = "betixpro-admin-mfa";
 const ADMIN_MFA_TOKEN_AUDIENCE = "betixpro-admin";
@@ -115,7 +119,6 @@ const forgotPasswordSchema = z.object({
 const resetPasswordSchema = z.object({
   token: z.string().trim().min(1),
   newPassword: z.string(),
-  confirmPassword: z.string(),
 });
 
 const changePasswordSchema = z.object({
@@ -189,10 +192,8 @@ function getAdminMfaFailureResponse(error: unknown) {
     }
 
     if (
-      error.message.includes("EMAIL_HOST is required") ||
-      error.message.includes("EMAIL_PORT is required") ||
-      error.message.includes("EMAIL_USER is required") ||
-      error.message.includes("EMAIL_PASS is required")
+      error.message.includes("SENDGRID_API_KEY is required") ||
+      error.message.includes("FROM_EMAIL is required")
     ) {
       return {
         status: 503,
@@ -933,157 +934,158 @@ export async function logout(req: Request, res: Response) {
 }
 
 export async function forgotPassword(req: Request, res: Response) {
-  const parsed = forgotPasswordSchema.safeParse(req.body);
-  const notFoundMessage = {
-    message: "No account found for that email.",
+  const genericResponse = {
+    message:
+      "If an account with that email exists, a reset link has been sent.",
   };
 
+  const parsed = forgotPasswordSchema.safeParse(req.body);
+
   if (!parsed.success) {
-    return res.status(200).json(notFoundMessage);
+    return res.type("application/json").status(200).json(genericResponse);
   }
 
   try {
-    // STEP 1: First, verify the user exists in the database
+    const normalizedEmail = parsed.data.email.trim().toLowerCase();
+    const now = new Date();
+
     const user = await prisma.user.findFirst({
       where: {
         email: {
-          equals: parsed.data.email,
+          equals: normalizedEmail,
           mode: "insensitive",
         },
       },
       select: {
         id: true,
         email: true,
+        resetAttempts: true,
+        resetLastAttempt: true,
       },
     });
 
-    // STEP 2: If user NOT found, return error and STOP (no email sending)
     if (!user) {
-      return res.status(200).json(notFoundMessage);
+      return res.type("application/json").status(200).json(genericResponse);
     }
 
-    // STEP 3: Only if user exists, create reset token and send email
-    const rawResetToken = createResetToken();
-    const hashedResetToken = hashToken(rawResetToken, getResetTokenSecret());
+    const hasActiveWindow =
+      user.resetLastAttempt !== null &&
+      now.getTime() - user.resetLastAttempt.getTime() < RESET_RATE_LIMIT_WINDOW_MS;
+    const attemptsInWindow = hasActiveWindow ? user.resetAttempts : 0;
 
-    // STEP 4: Save token to database
-    await prisma.$transaction([
-      prisma.passwordResetToken.updateMany({
-        where: {
-          userId: user.id,
-          used: false,
-        },
-        data: {
-          used: true,
-        },
-      }),
-      prisma.passwordResetToken.create({
-        data: {
-          userId: user.id,
-          tokenHash: hashedResetToken,
-          expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-        },
-      }),
-    ]);
-
-    // STEP 5: Send email ONLY after user is verified and token is saved
-    try {
-      await sendPasswordResetEmail(user.email, rawResetToken);
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError);
-      return res.status(500).json({
-        message: "User found, but failed to send reset email. Try again.",
-      });
+    if (attemptsInWindow >= RESET_RATE_LIMIT_MAX_ATTEMPTS) {
+      return res.type("application/json").status(200).json(genericResponse);
     }
 
-    // STEP 6: Success response
-    return res.status(200).json({
-      message: "Account found. Reset link sent.",
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    const nextAttempts = attemptsInWindow + 1;
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetAttempts: nextAttempts,
+        resetLastAttempt: now,
+        resetToken: resetTokenHash,
+        resetTokenExpiry: new Date(now.getTime() + RESET_TOKEN_TTL_MS),
+      },
     });
+
+    try {
+      await sendPasswordResetEmail(user.email, resetToken);
+    } catch (emailError) {
+      console.error("Forgot password email sending failed:", emailError);
+    }
+
+    return res.type("application/json").status(200).json(genericResponse);
   } catch (error) {
     console.error("Forgot password error:", error);
-    return res.status(500).json({
-      message: "An error occurred. Please try again.",
-    });
+    return res.type("application/json").status(200).json(genericResponse);
   }
 }
 
 export async function resetPassword(req: Request, res: Response) {
-  const parsed = resetPasswordSchema.safeParse(req.body);
+  try {
+    const parsed = resetPasswordSchema.safeParse(req.body);
 
-  if (!parsed.success) {
-    return res
-      .status(400)
-      .json({ message: "Reset link is invalid or has expired" });
-  }
+    if (!parsed.success) {
+      return res
+        .type("application/json")
+        .status(400)
+        .json({ error: "Token and newPassword are required." });
+    }
 
-  if (parsed.data.newPassword !== parsed.data.confirmPassword) {
-    return res.status(400).json({
-      errors: {
-        confirmPassword: ["Confirm password must exactly match password."],
+    if (!STRONG_PASSWORD_REGEX.test(parsed.data.newPassword)) {
+      return res.type("application/json").status(400).json({
+        error:
+          "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+      });
+    }
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(parsed.data.token)
+      .digest("hex");
+
+    const now = new Date();
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: tokenHash,
+        resetTokenExpiry: {
+          gt: now,
+        },
+      },
+      select: {
+        id: true,
       },
     });
-  }
 
-  const passwordErrors = validatePassword(parsed.data.newPassword);
-  if (passwordErrors.length > 0) {
-    return res.status(400).json({
-      errors: {
-        newPassword: passwordErrors,
-      },
+    if (!user) {
+      return res
+        .type("application/json")
+        .status(400)
+        .json({ error: "Invalid or expired reset link." });
+    }
+
+    const passwordHash = await bcrypt.hash(
+      parsed.data.newPassword,
+      PASSWORD_SALT_ROUNDS,
+    );
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          resetToken: null,
+          resetTokenExpiry: null,
+          resetAttempts: 0,
+          resetLastAttempt: null,
+        },
+      }),
+      prisma.refreshToken.deleteMany({
+        where: {
+          userId: user.id,
+        },
+      }),
+    ]);
+
+    res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
+
+    return res.type("application/json").status(200).json({
+      message: "Password reset successful. You can now log in.",
     });
-  }
-
-  const tokenHash = hashToken(parsed.data.token, getResetTokenSecret());
-
-  const tokenRecord = await prisma.passwordResetToken.findFirst({
-    where: {
-      tokenHash,
-      used: false,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
-  });
-
-  if (!tokenRecord) {
+  } catch (error) {
+    console.error("Reset password error:", error);
     return res
-      .status(400)
-      .json({ message: "Reset link is invalid or has expired" });
+      .type("application/json")
+      .status(500)
+      .json({ error: "Unable to reset password right now." });
   }
-
-  const passwordHash = await bcrypt.hash(
-    parsed.data.newPassword,
-    PASSWORD_SALT_ROUNDS,
-  );
-
-  await prisma.$transaction([
-    prisma.user.update({
-      where: {
-        id: tokenRecord.userId,
-      },
-      data: {
-        passwordHash,
-      },
-    }),
-    prisma.passwordResetToken.update({
-      where: {
-        id: tokenRecord.id,
-      },
-      data: {
-        used: true,
-      },
-    }),
-    prisma.refreshToken.deleteMany({
-      where: {
-        userId: tokenRecord.userId,
-      },
-    }),
-  ]);
-
-  res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
-
-  return res.status(200).json({ message: "Password reset successful." });
 }
 
 export async function changePassword(req: Request, res: Response) {
