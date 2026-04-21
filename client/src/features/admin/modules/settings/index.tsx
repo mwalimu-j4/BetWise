@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
-  Banknote,
   ChevronRight,
   CreditCard,
   Loader2,
@@ -15,6 +14,9 @@ import {
   Smartphone,
   UserCog,
   CheckCircle2,
+  Globe,
+  Lock,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,15 +28,13 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   AdminCard,
   AdminSectionHeader,
-  AdminCardHeader,
 } from "../../components/ui";
 import {
   type AdminSettingsConfig,
@@ -89,9 +89,9 @@ type ChangePasswordErrorResponse = {
 };
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-admin-border bg-admin-surface px-3 text-sm text-admin-text-primary outline-none transition focus:border-admin-border-strong";
+  "h-12 w-full rounded-xl border border-[#3d6ba3]/40 bg-[#0d2137]/60 px-4 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/70 focus:bg-[#1a3a6b]/40 focus:ring-4 focus:ring-[#f5c518]/10";
 const textareaClassName =
-  "w-full rounded-lg border border-admin-border bg-admin-surface px-3 py-2.5 text-sm text-admin-text-primary outline-none transition focus:border-admin-border-strong";
+  "w-full rounded-xl border border-[#3d6ba3]/40 bg-[#0d2137]/60 px-4 py-3 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/70 focus:bg-[#1a3a6b]/40 focus:ring-4 focus:ring-[#f5c518]/10";
 
 
 function cloneSettings(settings: AdminSettingsConfig) {
@@ -110,25 +110,7 @@ function toNumber(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function hasValue(value: unknown) {
-  if (typeof value === "string") {
-    return value.trim().length > 0;
-  }
 
-  if (typeof value === "number") {
-    return Number.isFinite(value);
-  }
-
-  if (typeof value === "boolean") {
-    return true;
-  }
-
-  if (Array.isArray(value)) {
-    return value.length > 0;
-  }
-
-  return value !== null && value !== undefined;
-}
 
 function getByPath(obj: unknown, path: string): unknown {
   return path.split(".").reduce<unknown>((acc, part) => {
@@ -422,21 +404,7 @@ export default function Settings() {
     return JSON.stringify(draft) !== JSON.stringify(modalDraft);
   }, [draft, modalDraft]);
 
-  const modalStats = useMemo(() => {
-    if (!selectedSection || !modalDraft) {
-      return { filled: 0, total: 0, percent: 0 };
-    }
 
-    const dataFields = selectedSection.fields.filter((f) => f.type !== "header");
-    const total = dataFields.length;
-    const filled = dataFields.reduce((acc, field) => {
-      const value = field.path ? getByPath(modalDraft, field.path) : undefined;
-      return acc + (hasValue(value) ? 1 : 0);
-    }, 0);
-    const percent = total > 0 ? Math.round((filled / total) * 100) : 0;
-
-    return { filled, total, percent };
-  }, [selectedSection, modalDraft]);
 
   const openSectionModal = (sectionId: string) => {
     if (!draft) {
@@ -861,42 +829,62 @@ export default function Settings() {
             <h2 className="text-lg font-semibold text-admin-text-primary">
               {groupName}
             </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {sections.map((section) => (
-                <div
-                  key={section.id}
-                  className="group relative overflow-hidden rounded-[1.6rem] border border-admin-border bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] bg-admin-card/50 p-6 transition-all duration-300 hover:border-admin-accent/50 hover:bg-admin-accent/[0.03] hover:shadow-[0_12px_32px_-12px_rgba(245,197,24,0.15)]"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2">
-                       <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-admin-surface text-admin-accent transition-transform duration-300 group-hover:scale-110">
-                        {section.icon}
-                      </div>
-                      <h4 className="text-sm font-bold tracking-tight text-admin-text-primary">
-                        {section.title}
-                      </h4>
-                      <p className="text-xs leading-relaxed text-admin-text-muted/80 line-clamp-2">
-                        {section.subtitle}
-                      </p>
-                    </div>
-                  </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {sections.map((section) => {
+                const isGateway = section.id === "mpesa" || section.id === "paystack";
+                const gatewayPath = isGateway ? (section.id === "mpesa" ? "paymentsConfig.methods.mpesa" : "paymentsConfig.methods.paystack") : null;
+                const isEnabled = gatewayPath ? Boolean(getByPath(draft, gatewayPath)) : false;
 
-                  <div className="mt-8 flex items-center justify-between border-t border-admin-border/50 pt-4">
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-1 w-1 rounded-full bg-admin-accent" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-admin-text-muted">
-                        {section.fields.filter(f => f.type !== 'header').length} OPTIONS
-                      </span>
+                return (
+                  <div
+                    key={section.id}
+                    className="group relative overflow-hidden rounded-[2rem] border border-[#3d6ba3]/30 bg-linear-to-br from-[#0d2137] via-[#1a3a6b]/40 to-[#0d2137] p-7 transition-all duration-500 hover:border-[#f5c518]/40 hover:shadow-[0_20px_50px_-12px_rgba(245,197,24,0.15)]"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-3">
+                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f5c518]/10 text-[#f5c518] shadow-inner transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
+                          {section.icon}
+                        </div>
+                        <h4 className="text-base font-bold tracking-tight text-white">
+                          {section.title}
+                        </h4>
+                        <p className="text-xs leading-relaxed text-[#a8c4e0]/80 line-clamp-2">
+                          {section.subtitle}
+                        </p>
+                      </div>
+                      
+                      {isGateway && (
+                        <Switch
+                          checked={isEnabled}
+                          onCheckedChange={(checked) => {
+                            if (gatewayPath) {
+                              const updated = setByPath(draft, gatewayPath, checked);
+                              setDraft(updated);
+                              void updateSettings.mutateAsync(updated);
+                            }
+                          }}
+                          className="data-[state=checked]:bg-[#f5c518]"
+                        />
+                      )}
                     </div>
-                    <Button
-                      onClick={() => openSectionModal(section.id)}
-                      className="h-8 rounded-lg px-4 text-xs font-bold transition-all group-hover:bg-admin-accent group-hover:text-black"
-                    >
-                      Configure
-                    </Button>
+
+                    <div className="mt-10 flex items-center justify-between border-t border-[#3d6ba3]/20 pt-5">
+                      <div className="flex items-center gap-2">
+                        <div className={cn("h-1.5 w-1.5 rounded-full", isGateway ? (isEnabled ? "bg-emerald-400" : "bg-red-400") : "bg-[#f5c518]")} />
+                        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#a8c4e0]">
+                          {section.fields.filter(f => f.type !== 'header').length} CONFIG FIELDS
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => openSectionModal(section.id)}
+                        className="h-9 rounded-xl px-5 text-xs font-bold transition-all bg-[#f5c518] text-[#0d2137] hover:bg-[#e6b800] hover:scale-105 active:scale-95"
+                      >
+                        Configure
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         ),
@@ -906,58 +894,43 @@ export default function Settings() {
         open={Boolean(selectedSection)}
         onOpenChange={(open) => (!open ? closeModal() : null)}
       >
-        <DialogContent className="border-admin-border bg-admin-card p-5 sm:max-w-5xl max-h-[90vh] flex flex-col">
+        <DialogContent className="border-[#3d6ba3]/40 bg-linear-to-br from-[#0d2137] via-[#1a3a6b] to-[#0d2137] p-0 sm:max-w-4xl max-h-[85vh] overflow-hidden rounded-[2.5rem] shadow-[0_0_100px_rgba(0,0,0,0.8)]">
           {selectedSection && modalDraft ? (
-            <>
-              <DialogHeader className="rounded-2xl border border-admin-border bg-[linear-gradient(145deg,var(--color-bg-hover),transparent)] p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <DialogTitle className="text-admin-text-primary">
-                      {selectedSection.title}
-                    </DialogTitle>
-                    <DialogDescription className="mt-1 text-admin-text-muted">
-                      {selectedSection.subtitle}
-                    </DialogDescription>
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="px-10 py-8 border-b border-[#3d6ba3]/20 bg-black/20 backdrop-blur-md">
+                <div className="flex items-center justify-between gap-6">
+                  <div className="flex items-center gap-5">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-[#f5c518] to-[#e6b800] shadow-lg shadow-[#f5c518]/20">
+                      {selectedSection.icon}
+                    </div>
+                    <div>
+                      <DialogTitle className="text-2xl font-black tracking-tight text-white">
+                        {selectedSection.title}
+                      </DialogTitle>
+                      <DialogDescription className="mt-1 text-sm text-[#a8c4e0]">
+                        {selectedSection.subtitle}
+                      </DialogDescription>
+                    </div>
                   </div>
-                  <div className="rounded-xl border border-admin-border bg-admin-surface px-3 py-1 text-xs text-admin-text-secondary">
-                    {modalStats.filled}/{modalStats.total} fields configured
+                  
+                  <div className={cn(
+                    "flex items-center gap-2 rounded-full border px-4 py-2 transition-all duration-500",
+                    modalHasChanges 
+                      ? "border-[#f5c518]/30 bg-[#f5c518]/5 text-[#f5c518]" 
+                      : "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
+                  )}>
+                    {modalHasChanges ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
+                    <span className="text-[10px] font-black uppercase tracking-widest">
+                      {modalHasChanges ? "Unsaved Progress" : "System Synced"}
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <div className="h-2 w-45 overflow-hidden rounded-full bg-admin-surface">
-                    <div
-                      className="h-full rounded-full bg-[linear-gradient(90deg,var(--admin-accent),var(--admin-blue))]"
-                      style={{ width: `${modalStats.percent}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-admin-text-muted">
-                    {modalStats.percent}% complete
-                  </span>
-                  <span
-                    className={`ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                      modalHasChanges
-                        ? "bg-admin-gold-dim text-admin-gold"
-                        : "bg-admin-live-dim text-admin-live"
-                    }`}
-                  >
-                    {modalHasChanges ? (
-                      <AlertTriangle size={12} />
-                    ) : (
-                      <CheckCircle2 size={12} />
-                    )}
-                    {modalHasChanges ? "Unsaved changes" : "All changes saved"}
-                  </span>
-                </div>
-              </DialogHeader>
-
-              <div className="grid gap-3 px-1 overflow-y-auto flex-1">
-                <AdminCardHeader
-                  title="Configuration Fields"
-                  subtitle="Review and update values below"
-                />
-
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto px-10 py-8 scrollbar-hide">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {selectedSection.fields.map((field, index) => {
                     const value = field.path
                       ? getByPath(modalDraft, field.path)
@@ -971,165 +944,160 @@ export default function Settings() {
                       return (
                         <div
                           key={`header-${index}`}
-                          className="md:col-span-2 pt-4 pb-2"
+                          className="md:col-span-2 mt-4 flex items-center gap-4"
                         >
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-admin-accent/80">
+                          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#f5c518]/80 whitespace-nowrap">
                             {field.label}
-                          </h4>
-                          <div className="mt-2 h-px w-full bg-admin-border/40" />
+                          </span>
+                          <div className="h-px w-full bg-linear-to-r from-[#3d6ba3]/40 to-transparent" />
                         </div>
                       );
                     }
 
+                    // Field Icons Mapping
+                    let FieldIcon = Sparkles;
+                    if (field.label.toLowerCase().includes("key") || field.label.toLowerCase().includes("secret") || field.label.toLowerCase().includes("passkey")) FieldIcon = Lock;
+                    else if (field.label.toLowerCase().includes("url")) FieldIcon = Globe;
+                    else if (field.label.toLowerCase().includes("fee") || field.label.toLowerCase().includes("tax")) FieldIcon = Percent;
+                    else if (field.label.toLowerCase().includes("shortcode")) FieldIcon = Zap;
+
                     return (
-                      <label
+                      <div
                         key={field.path ?? `field-${index}`}
-                        className={`space-y-1.5 rounded-xl border border-admin-border bg-admin-surface/40 p-3 ${
-                          fullWidth ? "md:col-span-2" : ""
-                        }`}
+                        className={cn("space-y-2.5", fullWidth ? "md:col-span-2" : "")}
                       >
-                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-admin-text-muted">
-                          {field.label}
-                        </p>
+                        <div className="flex items-center gap-2 ml-1">
+                          <FieldIcon size={12} className="text-[#a8c4e0]/60" />
+                          <p className="text-[11px] font-bold uppercase tracking-widest text-[#a8c4e0]/70">
+                            {field.label}
+                          </p>
+                        </div>
 
-                        {field.type === "text" && (
-                          <input
-                            className={inputClassName}
-                            value={String(value ?? "")}
-                            onChange={(event) =>
-                              updateModalField(field, event.target.value)
-                            }
-                          />
-                        )}
-
-                        {field.type === "number" && (
-                          <input
-                            className={inputClassName}
-                            type="number"
-                            value={String(value ?? 0)}
-                            onChange={(event) =>
-                              updateModalField(field, event.target.value)
-                            }
-                          />
-                        )}
-
-                        {field.type === "textarea" && (
-                          <textarea
-                            className={textareaClassName}
-                            rows={4}
-                            value={String(value ?? "")}
-                            onChange={(event) =>
-                              updateModalField(field, event.target.value)
-                            }
-                          />
-                        )}
-
-                        {field.type === "select" && (
-                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            {(field.options ?? []).map((option) => {
-                              const checked =
-                                String(value ?? "") === option.value;
-
-                              return (
-                                <label
-                                  key={option.value}
-                                  className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition ${
-                                    checked
-                                      ? "border-admin-gold bg-admin-gold-dim text-admin-gold"
-                                      : "border-admin-border bg-admin-surface text-admin-text-secondary hover:border-admin-border-strong"
-                                  }`}
-                                >
-                                  <input
-                                    type="radio"
-                                    name={field.path}
-                                    value={option.value}
-                                    checked={checked}
-                                    onChange={(event) =>
-                                      updateModalField(
-                                        field,
-                                        event.target.value,
-                                      )
-                                    }
-                                    className="sr-only"
-                                  />
-                                  <span className="flex items-center gap-2">
-                                    <span
-                                      className={`h-3 w-3 rounded-full border ${
-                                        checked
-                                          ? "border-admin-gold bg-admin-gold"
-                                          : "border-admin-border"
-                                      }`}
-                                    />
-                                    {option.label}
-                                  </span>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {field.type === "switch" && (
-                          <div className="flex h-10 items-center justify-between rounded-lg border border-admin-border bg-admin-surface px-3">
-                            <span className="text-sm text-admin-text-secondary">
-                              {Boolean(value) ? "Enabled" : "Disabled"}
-                            </span>
-                            <Switch
-                              checked={Boolean(value)}
-                              onCheckedChange={(checked) =>
-                                updateModalField(field, checked)
+                        <div className="relative group/field">
+                          {field.type === "text" && (
+                            <input
+                              className={inputClassName}
+                              value={String(value ?? "")}
+                              onChange={(event) =>
+                                updateModalField(field, event.target.value)
                               }
                             />
-                          </div>
-                        )}
+                          )}
 
-                        {field.type === "list" && (
-                          <textarea
-                            className={textareaClassName}
-                            rows={3}
-                            value={Array.isArray(value) ? value.join("\n") : ""}
-                            onChange={(event) =>
-                              updateModalField(field, event.target.value)
-                            }
-                          />
-                        )}
+                          {field.type === "number" && (
+                            <input
+                              className={inputClassName}
+                              type="number"
+                              value={String(value ?? 0)}
+                              onChange={(event) =>
+                                updateModalField(field, event.target.value)
+                              }
+                            />
+                          )}
 
-                        {field.hint ? (
-                          <p className="text-[11px] text-admin-text-muted">
-                            {field.hint}
+                          {field.type === "textarea" && (
+                            <textarea
+                              className={textareaClassName}
+                              rows={4}
+                              value={String(value ?? "")}
+                              onChange={(event) =>
+                                updateModalField(field, event.target.value)
+                              }
+                            />
+                          )}
+
+                          {field.type === "select" && (
+                            <div className="grid grid-cols-2 gap-3">
+                              {(field.options ?? []).map((option) => {
+                                const checked = String(value ?? "") === option.value;
+                                return (
+                                  <label
+                                    key={option.value}
+                                    className={cn(
+                                      "cursor-pointer rounded-xl border px-4 py-3 text-sm font-bold transition-all duration-300 flex items-center justify-center gap-3",
+                                      checked
+                                        ? "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518] shadow-[0_0_15px_rgba(245,197,24,0.1)]"
+                                        : "border-[#3d6ba3]/30 bg-[#0d2137]/40 text-[#a8c4e0] hover:border-[#3d6ba3]/60 hover:bg-[#1a3a6b]/20"
+                                    )}
+                                  >
+                                    <input
+                                      type="radio"
+                                      name={field.path}
+                                      value={option.value}
+                                      checked={checked}
+                                      onChange={(event) =>
+                                        updateModalField(field, event.target.value)
+                                      }
+                                      className="sr-only"
+                                    />
+                                    {option.label}
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {field.type === "switch" && (
+                            <div className="flex h-[3.2rem] items-center justify-between rounded-xl border border-[#3d6ba3]/30 bg-[#0d2137]/40 px-5">
+                              <span className="text-sm font-medium text-[#a8c4e0]">
+                                {Boolean(value) ? "Active Status" : "Inactive Status"}
+                              </span>
+                              <Switch
+                                checked={Boolean(value)}
+                                onCheckedChange={(checked) =>
+                                  updateModalField(field, checked)
+                                }
+                                className="data-[state=checked]:bg-[#f5c518]"
+                              />
+                            </div>
+                          )}
+
+                          {field.type === "list" && (
+                            <textarea
+                              className={textareaClassName}
+                              rows={3}
+                              value={Array.isArray(value) ? value.join("\n") : ""}
+                              onChange={(event) =>
+                                updateModalField(field, event.target.value)
+                              }
+                            />
+                          )}
+                        </div>
+
+                        {field.hint && (
+                          <p className="ml-1 text-[10px] italic text-[#a8c4e0]/50">
+                            * {field.hint}
                           </p>
-                        ) : null}
-                      </label>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
               </div>
 
-              <DialogFooter className="pt-2">
+              {/* Footer */}
+              <div className="px-10 py-8 border-t border-[#3d6ba3]/20 bg-black/30 flex justify-end gap-4">
                 <Button
                   variant="outline"
                   onClick={closeModal}
                   disabled={updateSettings.isPending}
+                  className="h-12 px-8 rounded-2xl border-[#3d6ba3]/30 text-[#a8c4e0] hover:bg-white/5"
                 >
-                  Cancel
+                  Discard
                 </Button>
                 <Button
                   onClick={() => void saveSection()}
                   disabled={updateSettings.isPending || !modalHasChanges}
+                  className="h-12 px-10 rounded-2xl bg-linear-to-r from-[#f5c518] to-[#e6b800] text-[#0d2137] font-black shadow-xl shadow-[#f5c518]/10 hover:shadow-[#f5c518]/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {updateSettings.isPending ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      Saving...
-                    </>
+                    <Loader2 size={18} className="animate-spin" />
                   ) : (
-                    <>
-                      <Banknote size={14} />
-                      Save changes
-                    </>
+                    "Confirm Changes"
                   )}
                 </Button>
-              </DialogFooter>
-            </>
+              </div>
+            </div>
           ) : null}
         </DialogContent>
       </Dialog>
