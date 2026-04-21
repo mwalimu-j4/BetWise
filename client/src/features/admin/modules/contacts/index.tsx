@@ -241,7 +241,7 @@ export default function Contacts() {
         </div>
 
         {/* Contacts Table */}
-        <AdminCard>
+        <AdminCard className="overflow-hidden p-0">
           {isContactsLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader className="h-6 w-6 animate-spin text-admin-accent" />
@@ -382,37 +382,42 @@ export default function Contacts() {
               </table>
             </TableShell>
           )}
+
+          {/* Pagination inside card */}
+          {pagination.pages > 1 && (
+            <div className="flex items-center justify-between border-t border-white/5 bg-white/[0.02] px-3 py-2">
+              <div className="flex items-center gap-4">
+                <p className="text-[11px] font-medium text-admin-text-muted">
+                  Page {currentPage} of {pagination.pages}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="h-7 text-[11px] text-admin-text-primary hover:bg-white/5"
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(pagination.pages, p + 1))
+                  }
+                  disabled={currentPage === pagination.pages}
+                  className="h-7 text-[11px] text-admin-text-primary hover:bg-white/5"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </AdminCard>
       </div>
 
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <AdminCard>
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <p className="text-sm text-admin-text-muted font-medium">
-              Page {currentPage} of {pagination.pages}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setCurrentPage((p) => Math.min(pagination.pages, p + 1))
-              }
-              disabled={currentPage === pagination.pages}
-            >
-              Next
-            </Button>
-          </div>
-        </AdminCard>
-      )}
 
       {/* Single Details Modal */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>

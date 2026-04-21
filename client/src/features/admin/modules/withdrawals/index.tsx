@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
+import { cn } from "@/lib/utils";
 import {
   AdminButton,
   AdminCard,
@@ -21,6 +22,9 @@ import {
   adminDropdownContentClassName,
   adminDropdownItemClassName,
   adminInputClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
+  adminTableCellClassName,
 } from "../../components/ui";
 import {
   Dialog,
@@ -306,7 +310,7 @@ export default function WithdrawalsAdmin() {
         ))}
       </div>
 
-      <AdminCard>
+      <AdminCard className="overflow-hidden p-0">
         <TableShell>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
@@ -317,8 +321,8 @@ export default function WithdrawalsAdmin() {
               No {statusFilter.toLowerCase()} withdrawals found.
             </div>
           ) : (
-            <table className="w-full">
-              <thead className="bg-black/40 border-b border-white/5">
+            <table className={adminTableClassName}>
+              <thead>
                 <tr>
                   {[
                     "#",
@@ -332,7 +336,7 @@ export default function WithdrawalsAdmin() {
                   ].map((heading, i) => (
                     <th
                       key={i}
-                      className="text-left px-4 py-4 text-[10px] font-bold text-admin-text-muted/60 uppercase tracking-[0.2em]"
+                      className={adminTableHeadCellClassName}
                     >
                       {heading}
                     </th>
@@ -346,29 +350,29 @@ export default function WithdrawalsAdmin() {
                     className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                     onClick={() => openDetails(withdrawal)}
                   >
-                    <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                    <td className={cn(adminTableCellClassName, "font-mono")}>
                       {index + 1}
                     </td>
-                    <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                    <td className={cn(adminTableCellClassName, "font-mono")}>
                       {withdrawal.userPhone}
                     </td>
-                    <td className="px-3 py-3 text-sm text-admin-accent">
+                    <td className={cn(adminTableCellClassName, "text-admin-accent")}>
                       {formatCurrency(withdrawal.amount)}
                     </td>
-                    <td className="px-3 py-3 text-sm text-admin-text-primary">
+                    <td className={adminTableCellClassName}>
                       {formatCurrency(withdrawal.fee)}
                     </td>
-                    <td className="px-3 py-3 text-sm text-admin-text-primary">
+                    <td className={adminTableCellClassName}>
                       {formatCurrency(withdrawal.totalDebit)}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className={adminTableCellClassName}>
                       <StatusBadge status={withdrawal.status} />
                     </td>
-                    <td className="px-3 py-3 text-xs text-admin-text-muted">
+                    <td className={cn(adminTableCellClassName, "text-xs text-admin-text-muted")}>
                       {formatDateTime(withdrawal.createdAt)}
                     </td>
                     <td
-                      className="px-3 py-3"
+                      className={adminTableCellClassName}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <DropdownMenu>

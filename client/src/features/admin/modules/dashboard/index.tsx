@@ -506,10 +506,9 @@ export default function Dashboard() {
               }
             />
 
-            <TableShell className="mt-2 w-full border-t border-admin-border/40">
-              <div className="w-full overflow-x-auto pb-2 -webkit-overflow-scrolling-touch">
-                <table className={`${adminTableClassName} w-full min-w-175`}>
-                  <thead className="bg-black/40 border-b border-white/5">
+            <TableShell className="w-full">
+              <table className={`${adminTableClassName} w-full min-w-175`}>
+                <thead>
                     <tr>
                       {[
                         "#",
@@ -522,7 +521,7 @@ export default function Dashboard() {
                       ].map((heading) => (
                         <th
                           key={heading}
-                          className="text-left px-4 py-4 text-[10px] font-bold text-admin-text-muted/60 uppercase tracking-[0.2em]"
+                          className={adminTableHeadCellClassName}
                         >
                           {heading}
                         </th>
@@ -559,13 +558,13 @@ export default function Dashboard() {
                             className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                             onClick={() => handleViewDetails(transaction)}
                           >
-                            <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                            <td className={adminTableCellClassName}>
                               {(currentPage - 1) * itemsPerPage + index + 1}
                             </td>
-                            <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                            <td className={adminTableCellClassName}>
                               {transaction.userPhone}
                             </td>
-                            <td className="px-3 py-3">
+                            <td className={adminTableCellClassName}>
                               <InlinePill
                                 label={transaction.type}
                                 tone={
@@ -575,13 +574,13 @@ export default function Dashboard() {
                                 }
                               />
                             </td>
-                            <td className="px-3 py-3 text-sm text-admin-text-primary">
+                            <td className={adminTableCellClassName}>
                               {formatCurrency(transaction.amount)}
                             </td>
-                            <td className="px-3 py-3">
+                            <td className={adminTableCellClassName}>
                               <StatusBadge status={transaction.status} />
                             </td>
-                            <td className="px-3 py-3 text-xs text-admin-text-muted">
+                            <td className={adminTableCellClassName}>
                               {new Date(transaction.createdAt).toLocaleString(
                                 "en-KE",
                                 {
@@ -593,7 +592,7 @@ export default function Dashboard() {
                               )}
                             </td>
                             <td
-                              className="px-3 py-3"
+                              className={adminTableCellClassName}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <DropdownMenu>

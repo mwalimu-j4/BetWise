@@ -298,7 +298,7 @@ export default function Bets() {
         </AdminCard>
       )}
 
-      <AdminCard>
+      <AdminCard className="overflow-hidden p-0">
         <TableShell>
           <table className={`${adminTableClassName} w-full`}>
             <thead>

@@ -318,12 +318,11 @@ function UsersReportsTab() {
         ))}
       </div>
 
-      <AdminCard className="space-y-4">
-        <h3 className="font-semibold text-admin-text-primary">Top Bettors</h3>
+      <AdminCard className="overflow-hidden p-0">
         <TableShell>
           <table className={adminTableClassName}>
             <thead>
-              <tr className="border-b border-admin-border">
+              <tr>
                 <th className={adminTableHeadCellClassName}>Email</th>
                 <th className={adminTableHeadCellClassName}>Name</th>
                 <th className={`${adminTableHeadCellClassName} text-right`}>
@@ -333,10 +332,7 @@ function UsersReportsTab() {
             </thead>
             <tbody>
               {data.topBettors.map((bettor) => (
-                <tr
-                  key={bettor.id}
-                  className="border-b border-admin-border/50 hover:bg-admin-surface/50"
-                >
+                <tr key={bettor.id}>
                   <td className={adminTableCellClassName} title={bettor.email}>
                     {truncateEmailForTable(bettor.email)}
                   </td>

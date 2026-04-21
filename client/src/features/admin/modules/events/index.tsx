@@ -44,22 +44,27 @@ import {
   RefreshCw,
   Search,
   Settings2,
+  Star,
   Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
+
 import {
   AdminCard,
   AdminSectionHeader,
   AdminStatCard,
   StatusBadge,
+  TableShell,
+  adminTableCellClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
   adminInputClassName,
   adminSelectContentClassName,
   adminSelectTriggerClassName,
 } from "../../components/ui";
-
 interface ApiEvent {
   id: string;
   eventId: string;
@@ -958,175 +963,176 @@ function FeedEvents() {
             className="border-admin-red/30 bg-admin-red/10 text-admin-red"
           >
             <AlertTitle>Error loading events</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : null}
-
-        {/* ── Event list ── */}
-        <AdminCard>
-          {/* List header row */}
-          <div className="flex items-center justify-between border-b border-admin-border/70 px-3 py-1.5 sm:px-4">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-admin-text-muted">
-              Event list
-            </p>
-            {!loading && events.length > 0 ? (
-              <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-admin-text-secondary">
-                <input
-                  checked={allVisibleSelected}
-                  className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
-                  onChange={(e) => toggleSelectAllVisible(e.target.checked)}
-                  type="checkbox"
-                />
-                Select page
-              </label>
-            ) : null}
-          </div>
-
-          {!loading && events.length > 0 ? (
-            <div className="hidden items-center gap-2 border-b border-admin-border/40 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.12em] text-admin-text-muted sm:flex">
-              <div className="w-4" />
-              <div className="min-w-0 flex-1">Event</div>
-              <div className="w-16 text-center">Active</div>
-              <div className="w-20 text-center">Featured</div>
-              <div className="w-[118px] text-right">Actions</div>
-            </div>
-          ) : null}
-
-          {/* Skeleton */}
-          {loading && events.length === 0 ? (
-            <div className="divide-y divide-admin-border/40">
-              {skeletonRows}
-            </div>
-          ) : null}
-
-          {!loading && events.length === 0 ? (
-            <div className="px-4 py-10 text-center">
-              <p className="text-sm font-medium text-admin-text-primary">
-                No events found
-              </p>
-              <p className="mt-1 text-xs text-admin-text-muted">
-                Try clearing a filter or refreshing the feed.
-              </p>
-            </div>
-          ) : null}
-
-          {!loading && events.length > 0 ? (
-            <div className="divide-y divide-white/5">
-              {events.map((event) => {
-                const isSelected = selectedEventIds.includes(event.eventId);
-                return (
-                  <div
-                    key={event.eventId}
-                    className={cn(
-                      "group flex items-center gap-4 px-4 py-4 transition-all duration-300 hover:bg-white/[0.03]",
-                      isSelected && "bg-admin-accent/[0.04]"
-                    )}
-                  >
-                    <div className="flex shrink-0 items-center justify-center">
-                      <input
-                        checked={isSelected}
-                        className="size-4 rounded border-white/10 bg-white/5 transition checked:bg-admin-accent accent-admin-accent"
-                        onChange={(e) =>
-                          toggleSelection(event.eventId, e.target.checked)
-                        }
-                        type="checkbox"
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate text-sm font-bold text-admin-text-primary">
-                          {event.homeTeam} vs {event.awayTeam}
-                        </span>
-                        <StatusBadge status={toBadgeStatus(event.status)} />
-                        {event.isFeatured && (
-                          <Badge className="bg-admin-accent/10 text-admin-accent border-admin-accent/20 text-[10px] font-bold">FEAT</Badge>
-                        )}
+            <AlertDescription>{error}</AlertDe        {/* ── Event list ── */}
+        <AdminCard className="overflow-hidden p-0">
+          <TableShell>
+            <table className={adminTableClassName}>
+              <thead>
+                <tr>
+                  <th className={cn(adminTableHeadCellClassName, "w-10 text-center")}>
+                    <input
+                      checked={allVisibleSelected}
+                      className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
+                      onChange={(e) => toggleSelectAllVisible(e.target.checked)}
+                      type="checkbox"
+                    />
+                  </th>
+                  <th className={adminTableHeadCellClassName}>Event</th>
+                  <th className={cn(adminTableHeadCellClassName, "w-20 text-center")}>Active</th>
+                  <th className={cn(adminTableHeadCellClassName, "w-20 text-center")}>Featured</th>
+                  <th className={cn(adminTableHeadCellClassName, "w-24 text-right")}>Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {/* Skeleton */}
+                {loading && events.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-0">
+                      <div className="divide-y divide-admin-border/40">
+                        {skeletonRows}
                       </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-admin-text-muted/60">
-                        <span className="flex items-center gap-1">
-                          <span className="font-bold text-admin-text-muted/80">{formatSportLabel(event.sportKey || "")}</span>
-                          <span className="opacity-40">·</span>
-                          <span>{event.leagueName}</span>
-                        </span>
-                        <span className="flex items-center gap-1.5 font-mono">
-                          <CalendarClock size={12} className="opacity-60" />
-                          {formatEventTime(event.commenceTime)}
-                          {event.status === "UPCOMING" && (
-                            <span className="text-admin-accent/70 font-semibold">
-                              ({formatUpcomingCountdown(event.commenceTime, currentTimeMs)})
+                    </td>
+                  </tr>
+                ) : null}
+
+                {/* Empty State */}
+                {!loading && events.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-20 text-center">
+                      <p className="text-sm font-medium text-admin-text-primary">
+                        No events found
+                      </p>
+                      <p className="mt-1 text-xs text-admin-text-muted">
+                        Try clearing a filter or refreshing the feed.
+                      </p>
+                    </td>
+                  </tr>
+                ) : null}
+
+                {/* Data Rows */}
+                {events.map((event) => {
+                  const isSelected = selectedEventIds.includes(event.eventId);
+                  return (
+                    <tr
+                      key={event.eventId}
+                      className={cn(
+                        "group transition-all duration-300 hover:bg-white/[0.03]",
+                        isSelected && "bg-admin-accent/[0.04]"
+                      )}
+                    >
+                      <td className={cn(adminTableCellClassName, "w-10 text-center")}>
+                        <div className="flex shrink-0 items-center justify-center">
+                          <input
+                            checked={isSelected}
+                            className="size-4 rounded border-white/10 bg-white/5 transition checked:bg-admin-accent accent-admin-accent"
+                            onChange={(e) =>
+                              toggleSelection(event.eventId, e.target.checked)
+                            }
+                            type="checkbox"
+                          />
+                        </div>
+                      </td>
+
+                      <td className={adminTableCellClassName}>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-sm font-bold text-admin-text-primary">
+                              {event.homeTeam} vs {event.awayTeam}
                             </span>
-                          )}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="hidden shrink-0 items-center gap-4 sm:flex">
-                      <div className="flex flex-col items-end gap-1 text-right">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-admin-text-muted/30">House Margin</span>
-                        <span className="text-[11px] font-mono font-medium text-admin-text-primary">{event.houseMargin}%</span>
-                      </div>
-
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-admin-text-muted/30">Active</span>
-                        <Switch
-                          checked={event.isActive}
-                          onCheckedChange={() => void handleToggle(event)}
-                          className="scale-90 data-[state=checked]:bg-admin-accent"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="shrink-0 pl-1">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="size-8 rounded-lg text-admin-text-muted/60 hover:bg-white/5 hover:text-admin-text-primary transition-colors"
-                          >
-                            <MoreHorizontal size={16} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-52 border-white/10 bg-[#0b1426] backdrop-blur-xl">
-                          <DropdownMenuItem
-                            className="gap-2 focus:bg-white/5"
-                            onSelect={() => openDetailDialog(event)}
-                          >
-                            <Eye size={14} className="opacity-60" /> View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="gap-2 focus:bg-white/5"
-                            onSelect={() => openConfigDialog(event)}
-                          >
-                            <Settings2 size={14} className="opacity-60" /> Configure Odds
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-white/5" />
-                          <DropdownMenuItem
-                            className="gap-2 focus:bg-white/5"
-                            onSelect={() => handleToggleFeatured(event.eventId, event.isFeatured)}
-                          >
-                            <Zap className={cn("size-3.5", event.isFeatured ? "text-admin-accent" : "opacity-60")} />
-                            {event.isFeatured ? "Remove Featured" : "Mark as Featured"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className={cn(
-                              "gap-2",
-                              event.isActive ? "text-red-400 focus:bg-red-400/10 focus:text-red-400" : "text-emerald-400 focus:bg-emerald-400/10 focus:text-emerald-400"
+                            <StatusBadge status={toBadgeStatus(event.status)} />
+                            {event.isFeatured && (
+                              <Badge className="bg-admin-accent/10 text-admin-accent border-admin-accent/20 text-[10px] font-bold">FEAT</Badge>
                             )}
-                            onSelect={() => void handleToggle(event)}
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-admin-text-muted/60">
+                            <span className="flex items-center gap-1">
+                              <span className="font-bold text-admin-text-muted/80">{formatSportLabel(event.sportKey || "")}</span>
+                              <span className="opacity-40">·</span>
+                              <span>{event.leagueName}</span>
+                            </span>
+                            <span className="flex items-center gap-1.5 font-mono">
+                              <CalendarClock size={12} className="opacity-60" />
+                              {formatEventTime(event.commenceTime)}
+                              {event.status === "UPCOMING" && (
+                                <span className="text-admin-accent/70 font-semibold">
+                                  ({formatUpcomingCountdown(event.commenceTime, currentTimeMs)})
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className={cn(adminTableCellClassName, "text-center")}>
+                        <div className="flex items-center justify-center">
+                          <Switch
+                            checked={event.isActive}
+                            onCheckedChange={() => void handleToggle(event)}
+                            className="scale-90 data-[state=checked]:bg-admin-accent"
+                          />
+                        </div>
+                      </td>
+
+                      <td className={cn(adminTableCellClassName, "text-center")}>
+                        <div className="flex items-center justify-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void handleToggleFeatured(event.eventId, event.isFeatured)}
+                            className={cn(
+                              "size-8 rounded-full",
+                              event.isFeatured ? "text-admin-accent" : "text-admin-text-muted/40"
+                            )}
                           >
-                            <Power size={14} />
-                            {event.isActive ? "Deactivate" : "Activate"}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : null}
+                            <Star size={16} fill={event.isFeatured ? "currentColor" : "none"} />
+                          </Button>
+                        </div>
+                      </td>
+
+                      <td className={cn(adminTableCellClassName, "text-right")}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="size-8 rounded-lg text-admin-text-muted/60 hover:bg-white/5 hover:text-admin-text-primary transition-colors"
+                            >
+                              <MoreHorizontal size={16} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-52 border-white/10 bg-[#0b1426] backdrop-blur-xl">
+                            <DropdownMenuItem
+                              className="gap-2 focus:bg-white/5"
+                              onSelect={() => openDetailDialog(event)}
+                            >
+                              <Eye size={14} className="opacity-60" /> View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="gap-2 focus:bg-white/5"
+                              onSelect={() => openConfigDialog(event)}
+                            >
+                              <Settings2 size={14} className="opacity-60" /> Configure Odds
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/5" />
+                            <DropdownMenuItem
+                              className={cn(
+                                "gap-2",
+                                event.isActive ? "text-red-400 focus:bg-red-400/10 focus:text-red-400" : "text-emerald-400 focus:bg-emerald-400/10 focus:text-emerald-400"
+                              )}
+                              onSelect={() => void handleToggle(event)}
+                            >
+                              <Power size={14} />
+                              {event.isActive ? "Deactivate" : "Activate"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </TableShell>
         </AdminCard>
 
         {/* ── Pagination ── */}

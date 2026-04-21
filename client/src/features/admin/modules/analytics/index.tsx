@@ -533,12 +533,11 @@ export default function Analytics() {
           {/* Tables */}
           <div className="grid gap-3 md:grid-cols-2">
             {/* Top Leagues */}
-            <AdminCard className="p-3">
+            <AdminCard className="overflow-hidden p-0">
               <AdminCardHeader
                 title="Top Leagues"
                 subtitle="Highest handle leagues"
               />
-              <div className="overflow-x-auto">
                 <TableShell>
                   <table className={adminTableClassName}>
                     <thead>
@@ -553,10 +552,7 @@ export default function Analytics() {
                       {(data?.breakdowns.leagues ?? [])
                         .slice(0, 6)
                         .map((league) => (
-                          <tr
-                            className="even:bg-admin-surface/30 hover:bg-admin-surface/50 transition-colors"
-                            key={`${league.sport}-${league.league}`}
-                          >
+                          <tr key={`${league.sport}-${league.league}`}>
                             <td className={adminTableCellClassName}>
                               <span className="text-xs font-medium">
                                 {league.league}
@@ -580,7 +576,6 @@ export default function Analytics() {
                     </tbody>
                   </table>
                 </TableShell>
-              </div>
             </AdminCard>
 
             {/* Recommendations */}

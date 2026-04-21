@@ -188,8 +188,8 @@ export default function Risk() {
       </div>
 
       {/* Filters and Actions */}
-      <AdminCard>
-        <div className="space-y-4">
+      <div className="space-y-3">
+        <div className="space-y-4 p-4 bg-admin-card/40 rounded-2xl border border-admin-border/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-admin-text-muted" />
@@ -297,7 +297,7 @@ export default function Risk() {
             </div>
           )}
         </div>
-      </AdminCard>
+      </div>
 
       {/* Alerts Table */}
       {isAlertsLoading ? (
@@ -318,12 +318,8 @@ export default function Risk() {
           </div>
         </AdminCard>
       ) : (
-        <AdminCard>
-          <div className="space-y-4">
-            <h3 className="font-medium text-admin-text">
-              Risk Alerts ({pagination.total})
-            </h3>
-            <TableShell>
+      <AdminCard className="overflow-hidden p-0">
+        <TableShell>
               <table className={adminTableClassName}>
                 <thead>
                   <tr>
@@ -670,7 +666,6 @@ export default function Risk() {
                 </div>
               </div>
             )}
-          </div>
         </AdminCard>
       )}
 

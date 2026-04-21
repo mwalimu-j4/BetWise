@@ -132,9 +132,9 @@ interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const adminTableClassName =
   "w-full border-separate border-spacing-0";
 export const adminTableHeadCellClassName =
-  "border-b border-white/5 bg-black/40 px-3 py-3.5 text-left text-[10px] font-bold uppercase tracking-[0.2em] text-admin-text-muted/60";
+  "border-b border-white/10 bg-admin-surface/30 px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-admin-text-muted/80";
 export const adminTableCellClassName =
-  "border-b border-white/5 px-3 py-4 text-sm text-admin-text-secondary";
+  "border-b border-white/5 px-3 py-3 text-sm text-admin-text-secondary";
 export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
 export const adminDialogContentClassName =
@@ -457,7 +457,7 @@ export function TableShell({
   return (
     <div
       className={cn(
-        "w-full overflow-x-auto overscroll-x-contain rounded-2xl border border-admin-border/40 bg-[#0b1426]/40 p-1 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.3)] backdrop-blur-md [scrollbar-width:thin]",
+        "w-full overflow-x-auto overscroll-x-contain [scrollbar-width:thin]",
         className,
       )}
     >

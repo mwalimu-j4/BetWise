@@ -134,7 +134,7 @@ export default function Newsletter() {
       </div>
 
       {/* Table */}
-      <AdminCard>
+      <AdminCard className="overflow-hidden p-0">
         <TableShell>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">

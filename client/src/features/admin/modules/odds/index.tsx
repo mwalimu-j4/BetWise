@@ -774,140 +774,178 @@ export default function Odds() {
           <p className="text-sm text-admin-red">{listError}</p>
         ) : null}
 
-        {listLoading ? (
-          <div className="space-y-2">
-            <div className="h-16 animate-pulse rounded bg-admin-surface" />
-            <div className="h-16 animate-pulse rounded bg-admin-surface" />
-            <div className="h-16 animate-pulse rounded bg-admin-surface" />
-          </div>
-        ) : !events.length ? (
-          <p className="text-sm text-admin-text-muted">
-            No events match the current filter.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {events.map((event) => {
-              const expanded = expandedEventId === event.eventId;
-              const oddsDetails = oddsDetailsByEventId[event.eventId];
-              const oddsLoading = Boolean(oddsLoadingByEventId[event.eventId]);
-              const oddsError = oddsErrorByEventId[event.eventId];
+        <AdminCard className="overflow-hidden p-0">
+          {listLoading && !events.length ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-6 w-6 animate-spin text-admin-accent" />
+            </div>
+          ) : !events.length ? (
+            <div className="py-20 text-center">
+              <Trophy className="mx-auto h-8 w-8 mb-3 text-admin-text-muted opacity-50" />
+              <p className="text-sm text-admin-text-muted">
+                No events match the current filter.
+              </p>
+            </div>
+          ) : (
+            <TableShell>
+              <table className={adminTableClassName}>
+                <thead>
+                  <tr>
+                    <th className={cn(adminTableHeadCellClassName, "w-10 text-center")}>
+                      <input
+                        checked={selectedEventIds.length === events.length && events.length > 0}
+                        className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedEventIds(events.map(ev => ev.eventId));
+                          else setSelectedEventIds([]);
+                        }}
+                        type="checkbox"
+                      />
+                    </th>
+                    <th className={adminTableHeadCellClassName}>Status</th>
+                    <th className={adminTableHeadCellClassName}>Event</th>
+                    <th className={cn(adminTableHeadCellClassName, "text-center w-24")}>Odds</th>
+                    <th className={cn(adminTableHeadCellClassName, "text-right w-40")}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {events.map((event) => {
+                    const expanded = expandedEventId === event.eventId;
+                    const oddsDetails = oddsDetailsByEventId[event.eventId];
+                    const oddsLoading = Boolean(oddsLoadingByEventId[event.eventId]);
+                    const oddsError = oddsErrorByEventId[event.eventId];
 
-              return (
-                <AdminCard
-                  key={event.eventId}
-                  className="space-y-2 border-admin-border bg-admin-surface p-2.5 sm:p-3"
-                >
-                  <div className="flex items-start gap-2.5">
-                    {/* checkbox */}
-                    <input
-                      checked={selectedEventIds.includes(event.eventId)}
-                      className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border-admin-border bg-admin-surface"
-                      onChange={(e) =>
-                        toggleEventSelection(event.eventId, e.target.checked)
-                      }
-                      type="checkbox"
-                    />
+                    return (
+                      <Fragment key={event.eventId}>
+                        <tr className={cn(
+                          "group transition-colors duration-200",
+                          expanded ? "bg-white/[0.04]" : "hover:bg-white/[0.02]"
+                        )}>
+                          <td className={cn(adminTableCellClassName, "w-10 text-center")}>
+                            <input
+                              checked={selectedEventIds.includes(event.eventId)}
+                              className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
+                              onChange={(e) =>
+                                toggleEventSelection(event.eventId, e.target.checked)
+                              }
+                              type="checkbox"
+                            />
+                          </td>
+                          <td className={cn(adminTableCellClassName, "w-24")}>
+                            <StatusBadge status={toBadgeStatus(event.status)} />
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-admin-text-primary leading-tight">
+                                {event.homeTeam} vs {event.awayTeam}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5 text-[10px] text-admin-text-muted">
+                                <span>{event.leagueName ?? "Unknown league"}</span>
+                                <span>•</span>
+                                <span>{new Date(event.commenceTime).toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className={cn(adminTableCellClassName, "text-center")}>
+                            <span className="rounded bg-admin-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-admin-accent border border-admin-accent/20">
+                              {event._count.odds}
+                            </span>
+                          </td>
+                          <td className={cn(adminTableCellClassName, "text-right")}>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 text-[11px] text-admin-text-primary hover:bg-white/5"
+                                onClick={() => void handleViewOdds(event.eventId)}
+                              >
+                                {expanded ? "Hide" : "View"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={bookmarkedEventIds[event.eventId] ? "ghost" : "outline"}
+                                className={cn(
+                                  "h-7 px-2 text-[11px] transition-all",
+                                  bookmarkedEventIds[event.eventId] 
+                                    ? "text-admin-accent bg-admin-accent/5 hover:bg-admin-accent/10" 
+                                    : "border-admin-border text-admin-text-primary hover:bg-white/5"
+                                )}
+                                onClick={() => void handleBookmarkSingle(event.eventId)}
+                                disabled={Boolean(bookmarkingEventIds[event.eventId])}
+                              >
+                                {bookmarkingEventIds[event.eventId] ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : bookmarkedEventIds[event.eventId] ? (
+                                  "Saved ✓"
+                                ) : (
+                                  "Bookmark"
+                                )}
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
 
-                    {/* main info */}
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex flex-wrap items-center gap-1.5">
-                        <StatusBadge status={toBadgeStatus(event.status)} />
-                        <span className="rounded bg-admin-accent-dim px-1.5 py-0.5 text-[10px] font-semibold text-admin-accent">
-                          {event._count.odds} odds
-                        </span>
-                        <span className="text-[10px] text-admin-text-muted">
-                          {event.leagueName ?? "Unknown league"}
-                        </span>
-                      </div>
-                      <p className="text-sm font-semibold leading-snug text-admin-text-primary">
-                        {event.homeTeam}{" "}
-                        <span className="text-admin-text-muted">vs</span>{" "}
-                        {event.awayTeam}
-                      </p>
-                      <p className="mt-0.5 text-[10px] text-admin-text-muted">
-                        {new Date(event.commenceTime).toLocaleString()}
-                      </p>
-                    </div>
-
-                    {/* action buttons — stacked on mobile, row on sm+ */}
-                    <div className="flex shrink-0 flex-col gap-1.5 sm:flex-row sm:items-center">
-                      <AdminButton
-                        size="sm"
-                        className="px-2.5 text-xs"
-                        variant="ghost"
-                        onClick={() => void handleViewOdds(event.eventId)}
-                      >
-                        {expanded ? "Hide" : "Odds"}
-                      </AdminButton>
-                      <AdminButton
-                        size="sm"
-                        className="px-2.5 text-xs"
-                        onClick={() => void handleBookmarkSingle(event.eventId)}
-                        disabled={Boolean(bookmarkingEventIds[event.eventId])}
-                      >
-                        {bookmarkingEventIds[event.eventId] ? (
-                          <Loader2 className="animate-spin" size={12} />
-                        ) : bookmarkedEventIds[event.eventId] ? (
-                          "Saved ✓"
-                        ) : (
-                          "Bookmark"
+                        {expanded && (
+                          <tr className="bg-white/[0.04]">
+                            <td colSpan={5} className="px-3 py-3 border-t border-white/5">
+                              <div className="rounded-lg border border-white/5 bg-[#0b1426]/50 p-3 shadow-inner">
+                                {oddsLoading ? (
+                                  <div className="flex items-center justify-center py-6">
+                                    <Loader2 className="h-4 w-4 animate-spin text-admin-accent" />
+                                  </div>
+                                ) : oddsError ? (
+                                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
+                                    <p className="text-xs text-red-400 text-center">{oddsError}</p>
+                                  </div>
+                                ) : !oddsDetails ? (
+                                  <p className="text-xs text-admin-text-muted text-center py-4">
+                                    No odds data available.
+                                  </p>
+                                ) : (
+                                  <TableShell>
+                                    <table className={cn(adminTableClassName, "text-[11px]")}>
+                                      <thead>
+                                        <tr>
+                                          <th className={adminTableHeadCellClassName}>Bookmaker</th>
+                                          <th className={adminTableHeadCellClassName}>Market</th>
+                                          <th className={adminTableHeadCellClassName}>Selection</th>
+                                          <th className={cn(adminTableHeadCellClassName, "w-16")}>Odds</th>
+                                          <th className={adminTableHeadCellClassName}>Updated</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-white/5">
+                                        {oddsDetails.markets.flatMap((market) =>
+                                          market.odds.map((row, index) => (
+                                            <tr key={`${market.marketType}-${row.bookmakerId}-${row.selection}-${index}`}>
+                                              <td className={adminTableCellClassName}>{row.bookmakerName}</td>
+                                              <td className={adminTableCellClassName}>{market.marketType}</td>
+                                              <td className={adminTableCellClassName}>{row.selection}</td>
+                                              <td className={adminTableCellClassName}>
+                                                <span className={row.isBest ? "font-bold text-admin-accent" : ""}>
+                                                  {row.odds.toFixed(2)}
+                                                </span>
+                                              </td>
+                                              <td className={adminTableCellClassName}>
+                                                {new Date(row.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                              </td>
+                                            </tr>
+                                          )),
+                                        )}
+                                      </tbody>
+                                    </table>
+                                  </TableShell>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
                         )}
-                      </AdminButton>
-                    </div>
-                  </div>
-
-                  {expanded ? (
-                    <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-sm">
-                      {oddsLoading ? (
-                        <div className="space-y-2">
-                          <div className="h-7 animate-pulse rounded bg-admin-surface" />
-                          <div className="h-7 animate-pulse rounded bg-admin-surface" />
-                        </div>
-                      ) : oddsError ? (
-                        <p className="text-xs text-admin-red">{oddsError}</p>
-                      ) : !oddsDetails ? (
-                        <p className="text-xs text-admin-text-muted">
-                          No odds data available.
-                        </p>
-                      ) : (
-                        <TableShell>
-                          <table className={adminTableClassName}>
-                            <thead>
-                              <tr>
-                                <th className={adminTableHeadCellClassName}>Bookmaker</th>
-                                <th className={adminTableHeadCellClassName}>Market</th>
-                                <th className={adminTableHeadCellClassName}>Selection</th>
-                                <th className={adminTableHeadCellClassName}>Odds</th>
-                                <th className={adminTableHeadCellClassName}>Updated</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {oddsDetails.markets.flatMap((market) =>
-                                market.odds.map((row, index) => (
-                                  <tr key={`${market.marketType}-${row.bookmakerId}-${row.selection}-${index}`}>
-                                    <td className={adminTableCellClassName}>{row.bookmakerName}</td>
-                                    <td className={adminTableCellClassName}>{market.marketType}</td>
-                                    <td className={adminTableCellClassName}>{row.selection}</td>
-                                    <td className={adminTableCellClassName}>
-                                      <span className={row.isBest ? "font-bold text-admin-accent" : ""}>
-                                        {row.odds.toFixed(2)}
-                                      </span>
-                                    </td>
-                                    <td className={adminTableCellClassName}>{new Date(row.updatedAt).toLocaleString()}</td>
-                                  </tr>
-                                )),
-                              )}
-                            </tbody>
-                          </table>
-                        </TableShell>
-                      )}
-                    </div>
-                  ) : null}
-                </AdminCard>
-              );
-            })}
-          </div>
-        )}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </TableShell>
+          )}
 
         {/* Pagination */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
