@@ -36,8 +36,7 @@ export interface AdminSettingsConfig {
     methods: {
       mpesa: boolean;
       bankTransfer: boolean;
-      airtelMoney: boolean;
-      card: boolean;
+      paystack: boolean;
     };
     mpesa: {
       shortcode: string;

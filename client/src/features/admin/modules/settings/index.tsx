@@ -305,8 +305,8 @@ const sectionDefinitions: SectionDefinition[] = [
   },
   {
     id: "payments",
-    title: "Payments (M-Pesa / Others)",
-    subtitle: "Payment method switches and M-Pesa credentials",
+    title: "Payment Gateways",
+    subtitle: "M-Pesa, Paystack, and bank transfer connectivity",
     group: "Financial Operations",
     icon: <CreditCard size={16} />,
     fields: [
@@ -985,15 +985,17 @@ export default function Settings() {
 
   const grouped = useMemo(() => {
     return {
-      System: filteredSections.filter((section) => section.group === "System"),
-      Operations: filteredSections.filter(
-        (section) => section.group === "Operations",
+      "Platform & Security": filteredSections.filter(
+        (section) => section.group === "Platform & Security",
       ),
-      "Risk & Compliance": filteredSections.filter(
-        (section) => section.group === "Risk & Compliance",
+      "Financial Operations": filteredSections.filter(
+        (section) => section.group === "Financial Operations",
       ),
-      Commercial: filteredSections.filter(
-        (section) => section.group === "Commercial",
+      "Gambling Engine": filteredSections.filter(
+        (section) => section.group === "Gambling Engine",
+      ),
+      "Growth & Legal": filteredSections.filter(
+        (section) => section.group === "Growth & Legal",
       ),
     };
   }, [filteredSections]);
@@ -1699,7 +1701,12 @@ export default function Settings() {
       {(
         Object.entries(grouped) as Array<
           [
-            "System" | "Operations" | "Risk & Compliance" | "Commercial",
+            (
+              | "Platform & Security"
+              | "Financial Operations"
+              | "Gambling Engine"
+              | "Growth & Legal"
+            ),
             SectionDefinition[],
           ]
         >

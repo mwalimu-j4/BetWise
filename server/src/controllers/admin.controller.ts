@@ -292,6 +292,7 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
       methods: {
         mpesa: record.paymentMpesaEnabled,
         bankTransfer: record.paymentBankTransferEnabled,
+        paystack: record.paymentPaystackEnabled,
       },
       mpesa: {
         shortcode: record.mpesaShortcode,
