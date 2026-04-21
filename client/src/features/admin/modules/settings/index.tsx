@@ -350,35 +350,6 @@ const sectionDefinitions: SectionDefinition[] = [
       },
     ],
   },
-  {
-    id: "affiliate",
-    title: "Affiliate / Agent Config",
-    subtitle: "Referral economics and payout policies",
-    group: "Financial Operations",
-    icon: <Briefcase size={16} />,
-    fields: [
-      {
-        path: "affiliateAndAgentConfig.commissionPercent",
-        label: "Commission percentage",
-        type: "number",
-      },
-      {
-        path: "affiliateAndAgentConfig.multiLevelReferralsEnabled",
-        label: "Multi-level referrals",
-        type: "switch",
-      },
-      {
-        path: "affiliateAndAgentConfig.minimumPayoutThreshold",
-        label: "Minimum payout threshold",
-        type: "number",
-      },
-      {
-        path: "affiliateAndAgentConfig.withdrawalRule",
-        label: "Affiliate withdrawal rules",
-        type: "textarea",
-      },
-    ],
-  },
 ];
 
 export default function Settings() {
@@ -989,7 +960,7 @@ export default function Settings() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-admin-border bg-admin-surface px-3 py-1.5 text-xs text-admin-text-secondary">
             <Sparkles size={12} className="text-admin-accent" />
-            <span>4 configuration modules</span>
+            <span>3 configuration modules</span>
           </div>
           <div className="relative w-full max-w-70">
             <Search
