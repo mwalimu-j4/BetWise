@@ -1,10 +1,6 @@
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
-import {
-  ArrowLeft,
-  Loader2,
-  Mail,
-} from "lucide-react";
+import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 const GENERIC_SUCCESS_MESSAGE =
