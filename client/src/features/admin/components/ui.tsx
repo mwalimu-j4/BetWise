@@ -130,25 +130,25 @@ interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const adminTableClassName =
-  "w-full border-separate border-spacing-0 text-[10px] sm:text-xs lg:text-sm";
+  "w-full border-separate border-spacing-0";
 export const adminTableHeadCellClassName =
-  "border-b border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-2 py-2 text-left text-[9px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted break-words sm:px-3 sm:py-2.5 sm:text-[10px] lg:px-4 lg:py-3 lg:text-[11px]";
+  "border-b border-white/5 bg-black/40 px-3 py-3.5 text-left text-[10px] font-bold uppercase tracking-[0.2em] text-admin-text-muted/60";
 export const adminTableCellClassName =
-  "border-b border-admin-border/65 px-2 py-2.5 align-top text-[10px] text-admin-text-secondary break-words sm:px-3 sm:py-3 sm:text-xs lg:px-4 lg:py-3.5 lg:text-sm";
+  "border-b border-white/5 px-3 py-4 text-sm text-admin-text-secondary";
 export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
 export const adminDialogContentClassName =
-  "overflow-hidden rounded-[1.35rem] border border-[rgba(245,197,24,0.16)] bg-[linear-gradient(180deg,#244a8e_0%,#1f4380_50%,#1a3a70_100%)] text-admin-text-primary shadow-[0_20px_60px_rgba(13,33,55,0.35),0_0px_1px_rgba(245,197,24,0.1)] backdrop-blur-md max-h-[85vh] overflow-y-auto";
+  "overflow-hidden rounded-2xl border border-admin-border/50 bg-[#0b1426]/90 text-admin-text-primary shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-300";
 export const adminInputClassName =
-  "h-10 rounded-xl border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3 text-admin-text-primary placeholder:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
+  "h-12 rounded-xl border border-white/5 bg-black/20 px-4 text-admin-text-primary placeholder:text-admin-text-muted/60 transition-all focus-visible:border-admin-accent/40 focus-visible:bg-black/40 focus-visible:ring-4 focus-visible:ring-admin-accent/5";
 export const adminSelectTriggerClassName =
-  "h-10 w-full rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))] px-3 text-admin-text-primary shadow-none data-[placeholder]:text-admin-text-muted focus-visible:border-admin-border-strong focus-visible:ring-[3px] focus-visible:ring-admin-accent/15";
+  "h-12 w-full rounded-xl border border-white/5 bg-black/20 px-4 text-admin-text-primary shadow-none data-[placeholder]:text-admin-text-muted/60 focus-visible:border-admin-accent/40 focus-visible:bg-black/40 focus-visible:ring-4 focus-visible:ring-admin-accent/5";
 export const adminSelectContentClassName =
-  "rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card text-admin-text-primary shadow-[0_12px_28px_rgba(2,8,23,0.24)]";
+  "rounded-xl border border-admin-border/50 bg-[#0b1426]/95 text-admin-text-primary shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl";
 export const adminDropdownContentClassName =
-  "rounded-xl border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)_62%)] bg-admin-card p-1.5 text-admin-text-primary shadow-[0_12px_28px_rgba(2,8,23,0.24)]";
+  "rounded-xl border border-admin-border/50 bg-[#0b1426]/95 p-1.5 text-admin-text-primary shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl";
 export const adminDropdownItemClassName =
-  "rounded-lg px-3 py-2 text-sm text-admin-text-secondary focus:bg-admin-accent/12 focus:text-admin-text-primary";
+  "rounded-lg px-4 py-2.5 text-sm text-admin-text-secondary transition-all focus:bg-white/5 focus:text-admin-text-primary";
 
 export function AdminDialogContent({
   className,
@@ -178,18 +178,20 @@ export function AdminCard({
   children,
   className,
   interactive = false,
+  onClick,
 }: {
   children: ReactNode;
   className?: string;
   interactive?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <section
+      onClick={onClick}
       className={cn(
-        "relative rounded-2xl border border-admin-border bg-admin-card p-3 text-admin-text-primary shadow-[0_8px_22px_rgba(2,8,23,0.18)] ",
-        "bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_120px)]",
+        "relative rounded-2xl border border-admin-border/50 bg-[#0b1426]/60 p-5 text-admin-text-primary shadow-[0_12px_40px_-15px_rgba(0,0,0,0.35)] backdrop-blur-xl",
         interactive &&
-          "transition duration-200 hover:border-admin-border-strong",
+          "transition duration-400 hover:border-admin-accent/30 hover:bg-[#0b1426]/80 hover:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]",
         className,
       )}
     >
@@ -344,33 +346,36 @@ export function AdminStatCard({
   label,
   value,
   tone,
+  icon: Icon,
   className,
 }: {
   label: string;
   value: string;
   tone: AdminTone;
-  helper?: string;
+  icon?: LucideIcon;
   className?: string;
 }) {
   return (
     <AdminCard
-      className={cn("border p-2.5 sm:p-3", toneBorderClasses[tone], className)}
+      className={cn("border p-5 group", toneBorderClasses[tone], className)}
       interactive
     >
       <div
         aria-hidden="true"
         className={cn(
-          "absolute right-3 top-3 h-5 w-5 rounded-lg opacity-75",
+          "absolute right-4 top-4 h-8 w-8 rounded-xl opacity-40 transition-all duration-500 group-hover:scale-110 group-hover:opacity-80 grid place-items-center",
           toneSoftClasses[tone],
         )}
-      />
-      <div className="space-y-2">
-        <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-gray-300 sm:text-[9px]">
+      >
+        {Icon && <Icon size={16} />}
+      </div>
+      <div className="space-y-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-admin-text-muted/60">
           {label}
         </p>
         <p
           className={cn(
-            "text-lg font-bold sm:text-xl md:text-2xl",
+            "text-xl font-bold tracking-tight sm:text-2xl",
             toneTextClasses[tone],
           )}
         >
@@ -452,7 +457,7 @@ export function TableShell({
   return (
     <div
       className={cn(
-        "w-full overflow-x-auto overscroll-x-contain rounded-xl border border-admin-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)_58%)] bg-admin-surface/35 [scrollbar-width:thin]",
+        "w-full overflow-x-auto overscroll-x-contain rounded-2xl border border-admin-border/40 bg-[#0b1426]/40 p-1 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.3)] backdrop-blur-md [scrollbar-width:thin]",
         className,
       )}
     >
@@ -468,39 +473,42 @@ export function MiniChart() {
         data={revenueTrend}
         margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
         <XAxis
           dataKey="day"
-          stroke="rgba(255,255,255,0.5)"
-          style={{ fontSize: "12px" }}
+          stroke="rgba(255,255,255,0.35)"
+          style={{ fontSize: "11px", fontWeight: 500 }}
+          axisLine={false}
+          tickLine={false}
         />
-        <YAxis stroke="rgba(255,255,255,0.5)" style={{ fontSize: "12px" }} />
+        <YAxis stroke="rgba(255,255,255,0.35)" style={{ fontSize: "11px", fontWeight: 500 }} axisLine={false} tickLine={false} />
         <Tooltip
           contentStyle={{
-            backgroundColor: "rgba(10,14,26,0.95)",
-            border: "1px solid rgba(0,229,160,0.2)",
-            borderRadius: "8px",
+            backgroundColor: "rgba(11,20,38,0.95)",
+            border: "1px solid rgba(245,197,24,0.15)",
+            borderRadius: "16px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+            backdropFilter: "blur(10px)",
           }}
-          labelStyle={{ color: "#00e5a0" }}
-          itemStyle={{ color: "#00e5a0" }}
+          labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
         />
         <Line
           type="monotone"
           dataKey="profit"
-          stroke="#00e5a0"
+          stroke="#00c97a"
           strokeWidth={3}
-          dot={{ fill: "#00e5a0", r: 5 }}
-          activeDot={{ r: 6 }}
+          dot={{ fill: "#00c97a", r: 4, strokeWidth: 0 }}
+          activeDot={{ r: 6, strokeWidth: 0 }}
           name="Profit"
         />
         <Line
           type="monotone"
           dataKey="loss"
-          stroke="#ff9800"
+          stroke="#ff3b30"
           strokeWidth={3}
           strokeDasharray="8 4"
-          dot={{ fill: "#ff9800", r: 5 }}
-          activeDot={{ r: 6 }}
+          dot={{ fill: "#ff3b30", r: 4, strokeWidth: 0 }}
+          activeDot={{ r: 6, strokeWidth: 0 }}
           name="Loss"
         />
       </LineChart>
@@ -594,38 +602,40 @@ export function FinancialTrendChart({ data }: { data: any[] }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
         <XAxis
           dataKey="day"
-          stroke="rgba(168,196,224,0.7)"
-          style={{ fontSize: "12px" }}
+          stroke="rgba(255,255,255,0.35)"
+          style={{ fontSize: "11px", fontWeight: 500 }}
+          axisLine={false}
+          tickLine={false}
         />
-        <YAxis stroke="rgba(168,196,224,0.7)" style={{ fontSize: "12px" }} />
+        <YAxis stroke="rgba(255,255,255,0.35)" style={{ fontSize: "11px", fontWeight: 500 }} axisLine={false} tickLine={false} />
         <Tooltip
           contentStyle={{
-            background:
-              "linear-gradient(180deg, rgba(20,35,58,0.97), rgba(13,26,44,0.94))",
-            border: "1px solid rgba(245,197,24,0.18)",
-            borderRadius: "14px",
-            boxShadow: "0 22px 50px rgba(0,0,0,0.35)",
+            background: "rgba(11,20,38,0.95)",
+            border: "1px solid rgba(245,197,24,0.15)",
+            borderRadius: "16px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+            backdropFilter: "blur(10px)",
           }}
-          labelStyle={{ color: "#ffffff" }}
-          itemStyle={{ color: "#a8c4e0" }}
+          labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
+          itemStyle={{ color: "rgba(255,255,255,0.8)" }}
         />
-        <Legend />
+        <Legend iconType="circle" wrapperStyle={{ paddingTop: "12px", fontSize: "11px", fontWeight: 600 }} />
         <Line
           type="monotone"
           dataKey="stake"
           stroke="#f5c518"
-          strokeWidth={2}
+          strokeWidth={3}
           dot={false}
           name="Stake (KES)"
         />
         <Line
           type="monotone"
           dataKey="ggr"
-          stroke="#a8c4e0"
-          strokeWidth={2}
+          stroke="#3b82f6"
+          strokeWidth={3}
           dot={false}
           name="GGR (KES)"
         />
@@ -633,7 +643,7 @@ export function FinancialTrendChart({ data }: { data: any[] }) {
           type="monotone"
           dataKey="ngr"
           stroke="#00c97a"
-          strokeWidth={2}
+          strokeWidth={3}
           dot={false}
           name="NGR (KES)"
         />
@@ -672,51 +682,55 @@ export function DepositWithdrawalChart({
       >
         <CartesianGrid
           strokeDasharray="3 3"
-          stroke="rgba(255,255,255,0.06)"
-          vertical={period === "1w"}
+          stroke="rgba(255,255,255,0.04)"
+          vertical={false}
         />
         <XAxis
           dataKey="period"
-          stroke="rgba(168,196,224,0.62)"
-          style={{ fontSize: "11px" }}
+          stroke="rgba(255,255,255,0.35)"
+          style={{ fontSize: "10px", fontWeight: 500 }}
+          axisLine={false}
+          tickLine={false}
           interval={xAxisInterval}
         />
         <YAxis
-          stroke="rgba(168,196,224,0.62)"
-          style={{ fontSize: "11px" }}
+          stroke="rgba(255,255,255,0.35)"
+          style={{ fontSize: "10px", fontWeight: 500 }}
+          axisLine={false}
+          tickLine={false}
           tickFormatter={(value: number) => formatLargeNumber(value)}
         />
         <Tooltip
           contentStyle={{
-            background:
-              "linear-gradient(180deg, rgba(20,35,58,0.97), rgba(13,26,44,0.94))",
-            border: "1px solid rgba(245,197,24,0.18)",
-            borderRadius: "14px",
-            boxShadow: "0 20px 48px rgba(0,0,0,0.4)",
+            background: "rgba(11,20,38,0.95)",
+            border: "1px solid rgba(245,197,24,0.15)",
+            borderRadius: "16px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+            backdropFilter: "blur(10px)",
           }}
-          labelStyle={{ color: "#ffffff", fontSize: "11px" }}
-          cursor={{ fill: "rgba(255,255,255,0.05)" }}
+          labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
+          cursor={{ stroke: "rgba(255,255,255,0.1)", strokeWidth: 1 }}
         />
         <Legend
-          iconSize={8}
-          wrapperStyle={{ fontSize: "11px", paddingTop: 8 }}
+          iconType="circle"
+          wrapperStyle={{ fontSize: "10px", fontWeight: 600, paddingTop: 12 }}
         />
         <Line
           type="monotone"
           dataKey="deposits"
-          stroke="#10b981"
-          strokeWidth={2}
-          dot={{ r: 2 }}
-          activeDot={{ r: 4 }}
+          stroke="#00c97a"
+          strokeWidth={3}
+          dot={{ fill: "#00c97a", r: 3, strokeWidth: 0 }}
+          activeDot={{ r: 5, strokeWidth: 0 }}
           name="Deposits"
         />
         <Line
           type="monotone"
           dataKey="withdrawals"
-          stroke="#fde047"
-          strokeWidth={2}
-          dot={{ r: 2 }}
-          activeDot={{ r: 4 }}
+          stroke="#f5c518"
+          strokeWidth={3}
+          dot={{ fill: "#f5c518", r: 3, strokeWidth: 0 }}
+          activeDot={{ r: 5, strokeWidth: 0 }}
           name="Withdrawals"
         />
       </LineChart>
@@ -751,39 +765,44 @@ export function UserRegistrationChart({
       <BarChart data={data} margin={{ top: 8, right: 8, left: -24, bottom: 2 }}>
         <CartesianGrid
           strokeDasharray="3 3"
-          stroke="rgba(255,255,255,0.06)"
-          vertical={period === "1w"}
+          stroke="rgba(255,255,255,0.04)"
+          vertical={false}
         />
         <XAxis
           dataKey="period"
-          stroke="rgba(168,196,224,0.62)"
-          style={{ fontSize: "11px" }}
+          stroke="rgba(255,255,255,0.35)"
+          style={{ fontSize: "10px", fontWeight: 500 }}
+          axisLine={false}
+          tickLine={false}
           interval={xAxisInterval}
         />
         <YAxis
-          stroke="rgba(168,196,224,0.62)"
-          style={{ fontSize: "11px" }}
+          stroke="rgba(255,255,255,0.35)"
+          style={{ fontSize: "10px", fontWeight: 500 }}
+          axisLine={false}
+          tickLine={false}
           tickFormatter={(value: number) => formatLargeNumber(value)}
         />
         <Tooltip
           contentStyle={{
-            background:
-              "linear-gradient(180deg, rgba(20,35,58,0.97), rgba(13,26,44,0.94))",
-            border: "1px solid rgba(59,130,246,0.18)",
-            borderRadius: "14px",
-            boxShadow: "0 20px 48px rgba(0,0,0,0.4)",
+            background: "rgba(11,20,38,0.95)",
+            border: "1px solid rgba(59,130,246,0.15)",
+            borderRadius: "16px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+            backdropFilter: "blur(10px)",
           }}
-          labelStyle={{ color: "#ffffff", fontSize: "11px" }}
+          labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
           cursor={{ fill: "rgba(255,255,255,0.05)" }}
         />
         <Bar
           dataKey="registrations"
           fill="#3b82f6"
-          radius={[3, 3, 0, 0]}
-          fillOpacity={0.9}
+          radius={[6, 6, 0, 0]}
+          fillOpacity={0.8}
+          activeBar={{ fillOpacity: 1, stroke: "#3b82f6", strokeWidth: 1 }}
           maxBarSize={16}
           isAnimationActive={true}
-          animationDuration={500}
+          animationDuration={800}
           name="New Users"
         />
       </BarChart>

@@ -1,5 +1,4 @@
 import { api } from "@/api/axiosConfig";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Dialog,
   DialogDescription,
@@ -250,47 +249,65 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="space-y-6">
         {pendingCount > 0 ? (
-          <Alert className="border-amber-400/30 bg-amber-400/10">
-            <TriangleAlert className="h-4 w-4 text-amber-300" />
-            <AlertTitle className="text-amber-200">
-              Pending Withdrawal Requests
-            </AlertTitle>
-            <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-amber-100/90">
-              <span>
-                You have {pendingCount} withdrawal request
-                {pendingCount === 1 ? "" : "s"} waiting for review.
-              </span>
+          <div className="overflow-hidden rounded-xl border border-amber-400/20 bg-amber-400/[0.03] p-4 shadow-[0_10px_25px_-10px_rgba(251,191,36,0.15)] backdrop-blur-md">
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/10 text-amber-300">
+                <TriangleAlert className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-amber-200">
+                  Pending Withdrawal Requests
+                </h4>
+                <p className="mt-0.5 text-xs text-amber-100/70">
+                  You have {pendingCount} withdrawal request{pendingCount === 1 ? "" : "s"} waiting for review.
+                </p>
+              </div>
               <Link
                 to="/admin/withdrawals"
-                className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-amber-100 transition hover:bg-amber-300/20 whitespace-nowrap"
+                className="hidden sm:inline-flex items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
               >
                 Review Requests
               </Link>
-            </AlertDescription>
-          </Alert>
+            </div>
+            <Link
+                to="/admin/withdrawals"
+                className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
+              >
+                Review Requests
+            </Link>
+          </div>
         ) : null}
 
         {finishedEventsCount > 0 ? (
-          <Alert className="border-emerald-400/30 bg-emerald-400/10">
-            <Trophy className="h-4 w-4 text-emerald-300" />
-            <AlertTitle className="text-emerald-200">
-              🏁 Events Finished — Settlement Required
-            </AlertTitle>
-            <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-emerald-100/90">
-              <span>
-                {finishedEventsCount} custom event
-                {finishedEventsCount === 1 ? " has" : "s have"} ended and{" "}
-                {finishedEventsCount === 1 ? "needs" : "need"} market
-                settlement. Enter results to process payouts.
-              </span>
-              <a
-                href="/admin/events?tab=custom"
-                className="rounded-lg border border-emerald-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-300/20 whitespace-nowrap"
+          <div className="overflow-hidden rounded-xl border border-emerald-400/20 bg-emerald-400/[0.03] p-4 shadow-[0_10px_25px_-10px_rgba(16,185,129,0.15)] backdrop-blur-md">
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-300">
+                <Trophy className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-emerald-200">
+                  Events Finished — Settlement Required
+                </h4>
+                <p className="mt-0.5 text-xs text-emerald-100/70">
+                  {finishedEventsCount} custom event{finishedEventsCount === 1 ? "s has" : "s have"} ended and need market settlement.
+                </p>
+              </div>
+              <Link
+                to="/admin/events"
+                search={{ tab: "custom" }}
+                className="hidden sm:inline-flex items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
               >
                 Settle Events
-              </a>
-            </AlertDescription>
-          </Alert>
+              </Link>
+            </div>
+            <Link
+                to="/admin/events"
+                search={{ tab: "custom" }}
+                className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
+              >
+                Settle Events
+            </Link>
+          </div>
         ) : null}
 
         {/* Stat Cards */}
@@ -315,7 +332,6 @@ export default function Dashboard() {
                     label={metric.label}
                     value={metric.value}
                     tone={metric.tone}
-                    helper={metric.helper}
                     className={hideOnMobile ? "hidden sm:block" : undefined}
                   />
                 );
@@ -493,7 +509,7 @@ export default function Dashboard() {
             <TableShell className="mt-2 w-full border-t border-admin-border/40">
               <div className="w-full overflow-x-auto pb-2 -webkit-overflow-scrolling-touch">
                 <table className={`${adminTableClassName} w-full min-w-175`}>
-                  <thead className="bg-admin-surface/30 border-b border-white/10">
+                  <thead className="bg-black/40 border-b border-white/5">
                     <tr>
                       {[
                         "#",
@@ -506,7 +522,7 @@ export default function Dashboard() {
                       ].map((heading) => (
                         <th
                           key={heading}
-                          className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
+                          className="text-left px-4 py-4 text-[10px] font-bold text-admin-text-muted/60 uppercase tracking-[0.2em]"
                         >
                           {heading}
                         </th>

@@ -853,7 +853,7 @@ export default function Settings() {
                           />
                           <span
                             className={cn(
-                              "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border",
+                              "text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-lg border",
                               isGatewayValidated(draft, section.id)
                                 ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/5"
                                 : "text-amber-400 border-amber-400/20 bg-amber-400/5",
@@ -870,7 +870,7 @@ export default function Settings() {
                     <div className="mt-10 flex items-center justify-between border-t border-[#3d6ba3]/20 pt-5">
                       <div className="flex items-center gap-2">
                         <div className={cn("h-1.5 w-1.5 rounded-full", isGateway ? (isEnabled ? "bg-emerald-400" : "bg-red-400") : "bg-[#f5c518]")} />
-                        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#a8c4e0]">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#a8c4e0]">
                           {section.fields.filter(f => f.type !== 'header').length} CONFIG FIELDS
                         </span>
                       </div>
@@ -904,7 +904,7 @@ export default function Settings() {
                       {selectedSection.icon}
                     </div>
                     <div>
-                      <DialogTitle className="text-2xl font-black tracking-tight text-white">
+                      <DialogTitle className="text-xl font-bold tracking-tight text-white">
                         {selectedSection.title}
                       </DialogTitle>
                       <DialogDescription className="mt-1 text-sm text-[#a8c4e0]">
@@ -920,7 +920,7 @@ export default function Settings() {
                       : "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
                   )}>
                     {modalHasChanges ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
-                    <span className="text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
                       {modalHasChanges ? "Unsaved Progress" : "System Synced"}
                     </span>
                   </div>
@@ -945,7 +945,7 @@ export default function Settings() {
                           key={`header-${index}`}
                           className="md:col-span-2 mt-4 flex items-center gap-4"
                         >
-                          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#f5c518]/80 whitespace-nowrap">
+                          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#f5c518]/80 whitespace-nowrap">
                             {field.label}
                           </span>
                           <div className="h-px w-full bg-linear-to-r from-[#3d6ba3]/40 to-transparent" />
@@ -1087,7 +1087,7 @@ export default function Settings() {
                 <Button
                   onClick={() => void saveSection()}
                   disabled={updateSettings.isPending || !modalHasChanges}
-                  className="h-12 px-10 rounded-2xl bg-[#f5c518] text-[#0d2137] font-black shadow-xl shadow-[#f5c518]/10 hover:shadow-[#f5c518]/30 transition-all hover:scale-[1.02] active:scale-[0.98] hover:bg-[#e6b800]"
+                  className="h-12 px-10 rounded-xl bg-[#f5c518] text-[#0d2137] font-bold shadow-xl shadow-[#f5c518]/10 hover:shadow-[#f5c518]/30 transition-all hover:scale-[1.02] active:scale-[0.98] hover:bg-[#e6b800]"
                 >
                   {updateSettings.isPending ? (
                     <Loader2 size={18} className="animate-spin" />

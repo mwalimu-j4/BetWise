@@ -142,10 +142,10 @@ export default function Analytics() {
                   onChange={(e) =>
                     setTimeframe(e.target.value as AnalyticsTimeframe)
                   }
-                  className="rounded border border-admin-border/50 bg-admin-surface px-2 py-1.5 text-xs font-medium text-admin-text-primary transition-colors hover:border-admin-accent focus:border-admin-accent focus:outline-none focus:ring-2 focus:ring-admin-accent/20"
+                  className="rounded-xl border border-white/5 bg-black/40 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-admin-text-primary transition-all hover:border-admin-accent/40 focus:border-admin-accent/60 focus:outline-none focus:ring-4 focus:ring-admin-accent/5"
                 >
                   {timeframeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option key={option.value} value={option.value} className="bg-[#0b1426]">
                       {option.label}
                     </option>
                   ))}
@@ -195,12 +195,13 @@ export default function Analytics() {
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(15,20,35,0.98)",
-                      border: "1px solid rgba(0,229,160,0.3)",
-                      borderRadius: "8px",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                      backgroundColor: "rgba(11,20,38,0.95)",
+                      border: "1px solid rgba(0,229,160,0.2)",
+                      borderRadius: "16px",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                      backdropFilter: "blur(10px)",
                     }}
-                    labelStyle={{ color: "rgba(255,255,255,0.8)" }}
+                    labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
                     formatter={(value: any) => formatCurrency(value ?? 0)}
                   />
                   <Legend
@@ -243,45 +244,45 @@ export default function Analytics() {
               <h4 className="text-xs font-semibold uppercase tracking-wide text-admin-text-muted mb-2">
                 Snapshot
               </h4>
-              <div className="space-y-2">
-                <div className="rounded-lg bg-gradient-to-br from-admin-accent/10 to-transparent border border-admin-accent/20 p-2.5">
-                  <p className="text-[10px] uppercase tracking-wider text-admin-text-muted">
+              <div className="space-y-3">
+                <div className="rounded-2xl bg-black/20 border border-admin-accent/20 p-3 transition-colors hover:bg-black/30">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-admin-text-muted/60">
                     Handle
                   </p>
-                  <p className="mt-1 text-base font-bold text-admin-accent">
+                  <p className="mt-1 text-lg font-bold text-admin-accent">
                     {formatCurrency(data?.financialSummary.handle ?? 0)}
                   </p>
                 </div>
-                <div className="rounded-lg bg-gradient-to-br from-admin-blue/10 to-transparent border border-admin-blue/20 p-2.5">
-                  <p className="text-[10px] uppercase tracking-wider text-admin-text-muted">
+                <div className="rounded-2xl bg-black/20 border border-admin-blue/20 p-3 transition-colors hover:bg-black/30">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-admin-text-muted/60">
                     GGR
                   </p>
-                  <p className="mt-1 text-base font-bold text-admin-blue">
+                  <p className="mt-1 text-lg font-bold text-admin-blue">
                     {formatCurrency(data?.financialSummary.ggr ?? 0)}
                   </p>
                 </div>
-                <div className="rounded-lg bg-gradient-to-br from-admin-gold/10 to-transparent border border-admin-gold/20 p-2.5">
-                  <p className="text-[10px] uppercase tracking-wider text-admin-text-muted">
+                <div className="rounded-2xl bg-black/20 border border-admin-gold/20 p-3 transition-colors hover:bg-black/30">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-admin-text-muted/60">
                     NGR
                   </p>
-                  <p className="mt-1 text-base font-bold text-admin-gold">
+                  <p className="mt-1 text-lg font-bold text-admin-gold">
                     {formatCurrency(data?.financialSummary.ngr ?? 0)}
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="rounded-lg border border-admin-border/30 bg-admin-surface/30 p-2">
-                    <p className="text-[9px] uppercase tracking-wider text-admin-text-muted">
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="rounded-xl border border-white/5 bg-white/5 p-3">
+                    <p className="text-[8px] font-bold uppercase tracking-widest text-admin-text-muted/50">
                       GGR Δ
                     </p>
-                    <p className="mt-1 text-xs font-bold text-admin-text-primary">
+                    <p className="mt-1 text-sm font-bold text-admin-text-primary">
                       {formatPercent(data?.growth.ggrChangePct ?? 0)}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-admin-border/30 bg-admin-surface/30 p-2">
-                    <p className="text-[9px] uppercase tracking-wider text-admin-text-muted">
+                  <div className="rounded-xl border border-white/5 bg-white/5 p-3">
+                    <p className="text-[8px] font-bold uppercase tracking-widest text-admin-text-muted/50">
                       Active Δ
                     </p>
-                    <p className="mt-1 text-xs font-bold text-admin-text-primary">
+                    <p className="mt-1 text-sm font-bold text-admin-text-primary">
                       {formatPercent(data?.growth.activeBettorsChangePct ?? 0)}
                     </p>
                   </div>
@@ -346,11 +347,13 @@ export default function Analytics() {
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(15,20,35,0.98)",
-                      border: "1px solid rgba(0,229,160,0.3)",
-                      borderRadius: "8px",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                      backgroundColor: "rgba(11,20,38,0.95)",
+                      border: "1px solid rgba(0,229,160,0.2)",
+                      borderRadius: "16px",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                      backdropFilter: "blur(10px)",
                     }}
+                    labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
                     formatter={(value: any) => formatCurrency(value ?? 0)}
                   />
                   <Legend wrapperStyle={{ paddingTop: "4px" }} />
@@ -399,11 +402,13 @@ export default function Analytics() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(15,20,35,0.98)",
-                      border: "1px solid rgba(0,229,160,0.3)",
-                      borderRadius: "8px",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                      backgroundColor: "rgba(11,20,38,0.95)",
+                      border: "1px solid rgba(0,229,160,0.2)",
+                      borderRadius: "16px",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                      backdropFilter: "blur(10px)",
                     }}
+                    labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -441,11 +446,13 @@ export default function Analytics() {
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(15,20,35,0.98)",
-                      border: "1px solid rgba(255,153,0,0.3)",
-                      borderRadius: "8px",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                      backgroundColor: "rgba(11,20,38,0.95)",
+                      border: "1px solid rgba(255,153,0,0.2)",
+                      borderRadius: "16px",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                      backdropFilter: "blur(10px)",
                     }}
+                    labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
                     formatter={(value: any) => formatCurrency(value ?? 0)}
                   />
                   <Bar
@@ -490,11 +497,13 @@ export default function Analytics() {
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(15,20,35,0.98)",
-                      border: "1px solid rgba(0,229,160,0.3)",
-                      borderRadius: "8px",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                      backgroundColor: "rgba(11,20,38,0.95)",
+                      border: "1px solid rgba(0,229,160,0.2)",
+                      borderRadius: "16px",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                      backdropFilter: "blur(10px)",
                     }}
+                    labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
                     formatter={(value: any) => formatPercent(value ?? 0)}
                   />
                   <Legend wrapperStyle={{ paddingTop: "4px" }} />

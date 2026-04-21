@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw, Search } from "lucide-react";
+import { 
+  CalendarClock, 
+  Loader2, 
+  RefreshCw, 
+  Search, 
+  Trophy, 
+  Zap 
+} from "lucide-react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
@@ -8,12 +15,14 @@ import {
   AdminButton,
   AdminCard,
   AdminSectionHeader,
+  AdminStatCard,
   StatusBadge,
   TableShell,
   adminTableCellClassName,
   adminTableClassName,
   adminTableHeadCellClassName,
 } from "../../components/ui";
+import { cn } from "@/lib/utils";
 
 type OddsFilter = "configured" | "configured-with-odds" | "all-with-odds";
 
@@ -188,7 +197,6 @@ export default function Odds() {
   const [configuredDropdownSearch, setConfiguredDropdownSearch] = useState("");
 
   const [stats, setStats] = useState<OddsStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(false);
 
   const [events, setEvents] = useState<OddsEvent[]>([]);
   const [listLoading, setListLoading] = useState(true);
@@ -285,14 +293,11 @@ export default function Odds() {
   }, [debouncedSearch]);
 
   async function loadStats() {
-    setStatsLoading(true);
     try {
       const response = await api.get<OddsStats>("/admin/odds/stats");
       setStats(response.data);
     } catch (error) {
       toast.error(getErrorMessage(error, "Unable to load odds stats."));
-    } finally {
-      setStatsLoading(false);
     }
   }
 
@@ -568,105 +573,58 @@ export default function Odds() {
       />
 
       {/* ── Stat cards ── */}
-      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
-        {[
-          {
-            filter: "configured" as OddsFilter,
-            label: "Configured",
-            value: stats?.totalConfigured ?? 0,
-            tone: "blue" as const,
-          },
-          {
-            filter: "configured-with-odds" as OddsFilter,
-            label: "With Odds",
-            value: stats?.withOdds ?? 0,
-            tone: "accent" as const,
-          },
-          {
-            filter: "all-with-odds" as OddsFilter,
-            label: "All w/ Odds",
-            value: stats?.withOdds ?? 0,
-            tone: "gold" as const,
-          },
-          {
-            filter: null,
-            label: "Bookmakers",
-            value: stats?.bookmakers ?? 0,
-            tone: "gold" as const,
-          },
-        ].map((metric: any) => {
-          const colorMap: Record<
-            string,
-            { bg: string; text: string; icon: string; border: string }
-          > = {
-            accent: {
-              bg: "bg-admin-accent/5",
-              text: "text-admin-accent",
-              icon: "bg-admin-accent/15 text-admin-accent",
-              border: "border-admin-accent/20",
-            },
-            blue: {
-              bg: "bg-admin-blue/5",
-              text: "text-admin-blue",
-              icon: "bg-admin-blue/15 text-admin-blue",
-              border: "border-admin-blue/20",
-            },
-            gold: {
-              bg: "bg-admin-gold/5",
-              text: "text-admin-gold",
-              icon: "bg-admin-gold/15 text-admin-gold",
-              border: "border-admin-gold/20",
-            },
-            red: {
-              bg: "bg-red-500/5",
-              text: "text-red-500",
-              icon: "bg-red-500/15 text-red-500",
-              border: "border-red-500/20",
-            },
-          };
-
-          const colors = colorMap[metric.tone] || colorMap.accent;
-          const isClickable = metric.filter !== null;
-
-          const card = (
-            <AdminCard
-              className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3 ${
-                isClickable && activeFilter === metric.filter
-                  ? "ring-1 ring-offset-0"
-                  : ""
-              }`}
-              interactive={isClickable}
-            >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
-                    {metric.label}
-                  </p>
-                  <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
-                    <div className="h-3 w-3" />
-                  </div>
-                </div>
-                <p className={`text-base font-bold sm:text-lg ${colors.text}`}>
-                  {statsLoading ? "—" : metric.value}
-                </p>
-              </div>
-            </AdminCard>
-          );
-
-          return isClickable ? (
-            <button
-              key={metric.label}
-              className="h-full w-full text-left"
-              type="button"
-              onClick={() => setFilter(metric.filter!)}
-            >
-              {card}
-            </button>
-          ) : (
-            <div key={metric.label}>{card}</div>
-          );
-        })}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <AdminStatCard
+          label="Configured Events"
+          value={(stats?.totalConfigured ?? 0).toLocaleString()}
+          icon={CalendarClock}
+          tone="blue"
+        />
+        <AdminStatCard
+          label="Events with Odds"
+          value={(stats?.withOdds ?? 0).toLocaleString()}
+          icon={Zap}
+          tone="accent"
+        />
+        <AdminStatCard
+          label="Missing Odds"
+          value={(stats?.noOdds ?? 0).toLocaleString()}
+          icon={Trophy}
+          tone="red"
+        />
+        <AdminStatCard
+          label="Active Bookies"
+          value={(stats?.bookmakers ?? 0).toLocaleString()}
+          icon={RefreshCw}
+          tone="purple"
+        />
       </div>
+
+      {/* ── Filters ── */}
+      <AdminCard className="p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5">
+            {[
+              { id: "configured", label: "Configured Only" },
+              { id: "configured-with-odds", label: "Configured w/ Odds" },
+              { id: "all-with-odds", label: "All w/ Odds" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id as OddsFilter)}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold tracking-tight transition-all",
+                  activeFilter === f.id
+                    ? "border-admin-accent/30 bg-admin-accent text-black shadow-[0_0_20px_rgba(245,197,24,0.15)]"
+                    : "border-white/5 bg-white/[0.03] text-admin-text-muted hover:border-white/10 hover:bg-white/[0.06] hover:text-admin-text-primary",
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </AdminCard>
 
       {/* ── Event selectors: stacked compact panels ── */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -789,10 +747,17 @@ export default function Odds() {
               className="shrink-0 text-xs"
             >
               {bulkBookmarking ? (
-                <>
-                  <Loader2 className="animate-spin" size={12} />
+                <div className="flex items-center gap-2">
+                  <div className="h-1 w-16 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full animate-pulse bg-admin-accent"
+                      style={{
+                        width: `${(bulkProgress.current / bulkProgress.total) * 100}%`,
+                      }}
+                    />
+                  </div>
                   {`${bulkProgress.current}/${bulkProgress.total}`}
-                </>
+                </div>
               ) : (
                 <>
                   <span className="hidden sm:inline">
@@ -892,7 +857,7 @@ export default function Odds() {
                   </div>
 
                   {expanded ? (
-                    <div className="rounded-lg border border-admin-border bg-admin-card p-2.5">
+                    <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 backdrop-blur-sm">
                       {oddsLoading ? (
                         <div className="space-y-2">
                           <div className="h-7 animate-pulse rounded bg-admin-surface" />
@@ -906,56 +871,29 @@ export default function Odds() {
                         </p>
                       ) : (
                         <TableShell>
-                          <table className={`${adminTableClassName} min-w-170`}>
+                          <table className={adminTableClassName}>
                             <thead>
                               <tr>
-                                {[
-                                  "Bookmaker",
-                                  "Market",
-                                  "Selection",
-                                  "Odds",
-                                  "Updated",
-                                ].map((heading) => (
-                                  <th
-                                    key={heading}
-                                    className={adminTableHeadCellClassName}
-                                  >
-                                    {heading}
-                                  </th>
-                                ))}
+                                <th className={adminTableHeadCellClassName}>Bookmaker</th>
+                                <th className={adminTableHeadCellClassName}>Market</th>
+                                <th className={adminTableHeadCellClassName}>Selection</th>
+                                <th className={adminTableHeadCellClassName}>Odds</th>
+                                <th className={adminTableHeadCellClassName}>Updated</th>
                               </tr>
                             </thead>
                             <tbody>
                               {oddsDetails.markets.flatMap((market) =>
                                 market.odds.map((row, index) => (
-                                  <tr
-                                    key={`${market.marketType}-${row.bookmakerId}-${row.selection}-${index}`}
-                                  >
-                                    <td
-                                      className={`${adminTableCellClassName} text-admin-text-primary`}
-                                    >
-                                      {row.bookmakerName}
-                                    </td>
+                                  <tr key={`${market.marketType}-${row.bookmakerId}-${row.selection}-${index}`}>
+                                    <td className={adminTableCellClassName}>{row.bookmakerName}</td>
+                                    <td className={adminTableCellClassName}>{market.marketType}</td>
+                                    <td className={adminTableCellClassName}>{row.selection}</td>
                                     <td className={adminTableCellClassName}>
-                                      {market.marketType}
-                                    </td>
-                                    <td className={adminTableCellClassName}>
-                                      {row.selection}
-                                    </td>
-                                    <td className={adminTableCellClassName}>
-                                      <span
-                                        className={
-                                          row.isBest
-                                            ? "rounded bg-yellow-300 px-2 py-0.5 font-bold text-black"
-                                            : "text-admin-text-secondary"
-                                        }
-                                      >
+                                      <span className={row.isBest ? "font-bold text-admin-accent" : ""}>
                                         {row.odds.toFixed(2)}
                                       </span>
                                     </td>
-                                    <td className={adminTableCellClassName}>
-                                      {new Date(row.updatedAt).toLocaleString()}
-                                    </td>
+                                    <td className={adminTableCellClassName}>{new Date(row.updatedAt).toLocaleString()}</td>
                                   </tr>
                                 )),
                               )}
@@ -999,7 +937,7 @@ export default function Odds() {
                     type="button"
                     className={`h-7 min-w-7 rounded px-1.5 text-xs font-semibold ${
                       item === currentPage
-                        ? "bg-yellow-300 text-black"
+                        ? "bg-admin-accent text-black"
                         : "border border-admin-border text-admin-text-secondary"
                     }`}
                   >

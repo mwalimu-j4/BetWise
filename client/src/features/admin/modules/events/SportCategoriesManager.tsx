@@ -1,7 +1,6 @@
 import { api } from "@/api/axiosConfig";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
@@ -15,6 +14,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
+  AdminCard,
   AdminSectionHeader,
   AdminStatCard,
 } from "../../components/ui";
@@ -207,21 +207,21 @@ export default function SportCategoriesManager() {
 
   if (loading) {
     return (
-      <div className="space-y-3">
-        <div className="h-12 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card" />
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="space-y-4">
+        <div className="h-12 animate-pulse rounded-2xl border border-white/5 bg-white/5" />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={`cat-skel-${i}`}
-              className="h-20 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card"
+              className="h-24 animate-pulse rounded-2xl border border-white/5 bg-white/5"
             />
           ))}
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 9 }).map((_, i) => (
             <div
               key={`card-skel-${i}`}
-              className="h-36 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card"
+              className="h-40 animate-pulse rounded-2xl border border-white/5 bg-white/5"
             />
           ))}
         </div>
@@ -275,18 +275,18 @@ export default function SportCategoriesManager() {
       </div>
 
       {/* Summary bar */}
-      <Card className="border-admin-border bg-admin-card shadow-sm">
-        <CardContent className="flex flex-wrap items-center justify-between gap-2 p-2 sm:p-3">
-          <p className="text-xs text-admin-text-muted">
+      <AdminCard className="p-3 sm:p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-admin-text-muted/70">
             <span className="font-bold text-admin-text-primary">
               {categories.length}
             </span>{" "}
             sports available ·{" "}
-            <span className="font-bold text-emerald-400">
+            <span className="font-bold text-admin-accent">
               {totalActive}
             </span>{" "}
             active ·{" "}
-            <span className="font-bold text-red-400">
+            <span className="font-bold text-admin-red">
               {totalInactive}
             </span>{" "}
             inactive
@@ -324,33 +324,33 @@ export default function SportCategoriesManager() {
               Configure Selected ({selectedKeys.size})
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </AdminCard>
 
       {/* Progress bar during configure */}
       {configuring && syncStatus && (
-        <Card className="border-admin-accent/30 bg-admin-card shadow-sm">
-          <CardContent className="p-3">
-            <div className="mb-2 flex items-center justify-between text-xs">
-              <span className="font-semibold text-admin-accent">
+        <AdminCard className="border-admin-accent/30 p-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-admin-accent uppercase tracking-wider">
                 Configuring: {syncStatus.currentSport || "Starting..."}
               </span>
-              <span className="tabular-nums text-admin-text-muted">
+              <span className="tabular-nums text-admin-text-muted/80">
                 {syncStatus.completedSports}/{syncStatus.totalSports} sports ·{" "}
                 {syncStatus.totalConfigured.toLocaleString()} events
               </span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-admin-surface">
+            <div className="h-2.5 overflow-hidden rounded-full bg-white/5 border border-white/5">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-admin-accent to-amber-400 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-admin-accent via-amber-400 to-admin-accent bg-[length:200%_auto] animate-[shimmer_2s_linear_infinite] transition-all duration-700 shadow-[0_0_10px_rgba(245,197,24,0.3)]"
                 style={{ width: `${syncStatus.progress}%` }}
               />
             </div>
-            <p className="mt-1.5 text-[10px] text-admin-text-muted">
-              {syncStatus.progress}% complete
+            <p className="text-[10px] text-admin-text-muted/60 text-right font-mono">
+              {syncStatus.progress}% COMPLETE
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </AdminCard>
       )}
 
       {/* Sport cards grid */}
@@ -360,15 +360,16 @@ export default function SportCategoriesManager() {
           const isTogglingThis = toggling === category.id;
 
           return (
-            <Card
+            <AdminCard
               key={category.id}
               className={cn(
-                "group cursor-pointer border-admin-border bg-admin-card shadow-sm transition-all hover:border-admin-accent/30",
-                isSelected && "border-admin-accent/50 bg-admin-accent/[0.04]",
+                "group cursor-pointer border-white/5 hover:border-admin-accent/30 transition-all duration-300",
+                isSelected && "border-admin-accent/40 bg-admin-accent/[0.03] shadow-[0_0_30px_rgba(245,197,24,0.05)]",
               )}
               onClick={() => toggleSelect(category.sportKey)}
+              interactive
             >
-              <CardContent className="p-3">
+              <div className="p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2.5">
                     {/* Checkbox */}
@@ -445,8 +446,8 @@ export default function SportCategoriesManager() {
                     Synced: {formatSyncTime(category.lastSyncedAt)}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </AdminCard>
           );
         })}
       </div>
