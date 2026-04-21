@@ -188,6 +188,11 @@ const sectionDefinitions: SectionDefinition[] = [
     group: "Financial Operations",
     icon: <Smartphone size={16} />,
     fields: [
+      {
+        path: "paymentsConfig.methods.mpesa",
+        label: "Enable M-Pesa Deposits",
+        type: "switch",
+      },
       { type: "header", label: "Api Configuration" },
       {
         path: "paymentsConfig.mpesa.shortcode",
@@ -239,6 +244,7 @@ const sectionDefinitions: SectionDefinition[] = [
     group: "Financial Operations",
     icon: <CreditCard size={16} />,
     fields: [
+                      
       { type: "header", label: "API Credentials" },
       {
         path: "paymentsConfig.paystack.secretKey",

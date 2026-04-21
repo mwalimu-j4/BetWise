@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { LoaderCircle, ShieldCheck, Wallet } from "lucide-react";
+import { LoaderCircle, ShieldCheck, Wallet, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import {
   usePaystackInitialize,
   usePaystackVerification,
 } from "../hooks/usePaystackPayment";
+import { useEnabledPaymentMethods } from "../hooks/usePaymentMethods";
 
 const quickAmounts = [500, 1000, 2500, 5000];
 const pendingStorageKey = "betwise-mpesa-pending-reference";
@@ -138,6 +139,10 @@ export default function MpesaDepositPage() {
     setShouldVerify(false);
   };
 
+  const enabledMethodsQuery = useEnabledPaymentMethods();
+
+  const isPaystackEnabled = enabledMethodsQuery.data?.paystack ?? false;
+
   const onRetry = () => {
     if (paymentReference) {
       setShowPaymentResult(false);
@@ -151,6 +156,11 @@ export default function MpesaDepositPage() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!isPaystackEnabled) {
+      toast.error("Paystack payments are currently disabled.");
+      return;
+    }
 
     if (!user?.email) {
       toast.error("User email not found.");
@@ -237,61 +247,83 @@ export default function MpesaDepositPage() {
 
         {/* ── Body ── */}
         <div className="space-y-5 px-7 py-6">
-          {/* Quick amounts */}
-          <div>
-            <p className="mb-2.5 text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
-              Quick Select
-            </p>
-            <div className="grid grid-cols-4 gap-2">
-              {quickAmounts.map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setAmount(String(value))}
-                  className={`rounded-xl border py-2.5 text-xs font-semibold transition-all duration-150 ${
-                    amountValue === value
-                      ? "border-[#00A859] bg-[#00A859]/10 text-[#00A859]"
-                      : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#00A859]/30 hover:text-white"
-                  }`}
-                >
-                  {formatMoney(value)}
-                </button>
-              ))}
+          {!isPaystackEnabled ? (
+            <div className="rounded-3xl border border-[#7a2f36] bg-[#2a101e] p-6 text-center text-sm text-[#f2c7cb] shadow-inner">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#7a2f36]/10 text-[#f5a8ad]">
+                <AlertCircle className="h-7 w-7" />
+              </div>
+              <p className="font-semibold text-white">Paystack is disabled</p>
+              <p className="mt-2 text-[#d7b1b8]">
+                Paystack deposits are currently turned off by the administrator.
+                Please try another payment method or contact support.
+              </p>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Quick amounts */}
+              <div>
+                <p className="mb-2.5 text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
+                  Quick Select
+                </p>
+                <div className="grid grid-cols-4 gap-2">
+                  {quickAmounts.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setAmount(String(value))}
+                      className={`rounded-xl border py-2.5 text-xs font-semibold transition-all duration-150 ${
+                        amountValue === value
+                          ? "border-[#00A859] bg-[#00A859]/10 text-[#00A859]"
+                          : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#00A859]/30 hover:text-white"
+                      }`}
+                    >
+                      {formatMoney(value)}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {/* Form */}
-          <form onSubmit={onSubmit} className="space-y-4">
-            <label className="block space-y-2">
-              <span className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
-                Amount (KES)
-              </span>
-              <Input
-                value={amount}
-                onChange={(event) =>
-                  setAmount(normalizeAmount(event.target.value))
-                }
-                inputMode="numeric"
-                type="text"
-                placeholder="Enter amount"
-                className="h-14 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-lg text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#00A859] focus:ring-1 focus:ring-[#00A859]"
-              />
-              <p className="text-xs text-[#3d5a73]">Minimum deposit: KES 500</p>
-            </label>
+              {/* Form */}
+              <form onSubmit={onSubmit} className="space-y-4">
+                <label className="block space-y-2">
+                  <span className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
+                    Amount (KES)
+                  </span>
+                  <Input
+                    value={amount}
+                    onChange={(event) =>
+                      setAmount(normalizeAmount(event.target.value))
+                    }
+                    inputMode="numeric"
+                    type="text"
+                    placeholder="Enter amount"
+                    className="h-14 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-lg text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#00A859] focus:ring-1 focus:ring-[#00A859]"
+                    disabled={!isPaystackEnabled}
+                  />
+                  <p className="text-xs text-[#3d5a73]">
+                    Minimum deposit: KES 500
+                  </p>
+                </label>
 
-            <Button
-              type="submit"
-              disabled={initializeMutation.isPending || isProcessing}
-              className="h-14 w-full rounded-2xl bg-[#00A859] text-base font-bold text-white transition-colors hover:bg-[#009950] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isProcessing ? (
-                <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Wallet className="mr-2 h-5 w-5" />
-              )}
-              {isProcessing ? "Processing..." : "Pay with M-Pesa"}
-            </Button>
-          </form>
+                <Button
+                  type="submit"
+                  disabled={
+                    !isPaystackEnabled ||
+                    initializeMutation.isPending ||
+                    isProcessing
+                  }
+                  className="h-14 w-full rounded-2xl bg-[#00A859] text-base font-bold text-white transition-colors hover:bg-[#009950] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isProcessing ? (
+                    <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <Wallet className="mr-2 h-5 w-5" />
+                  )}
+                  {isProcessing ? "Processing..." : "Pay with M-Pesa"}
+                </Button>
+              </form>
+            </>
+          )}
         </div>
       </article>
     </section>

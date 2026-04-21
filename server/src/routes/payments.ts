@@ -9,9 +9,13 @@ import {
   listAdminWithdrawals,
   listWithdrawals,
   rejectWithdrawal,
+  getEnabledPaymentMethods,
 } from "../controllers/payments.controller";
 
 const paymentRouter = Router();
+
+// Public endpoint - get enabled payment methods
+paymentRouter.get("/payments/methods/enabled", getEnabledPaymentMethods);
 
 // Wallet endpoints
 paymentRouter.get("/payments/wallet/summary", authenticate, getWalletSummary);

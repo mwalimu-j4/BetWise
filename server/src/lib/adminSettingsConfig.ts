@@ -36,6 +36,7 @@ export const adminSettingsSchema = z.object({
     methods: z.object({
       mpesa: z.boolean(),
       bankTransfer: z.boolean(),
+      paystack: z.boolean(),
     }),
     mpesa: z.object({
       shortcode: z.string().trim().min(5).max(20),
@@ -187,6 +188,7 @@ export const defaultAdminSettings: AdminSettingsConfig = {
     methods: {
       mpesa: true,
       bankTransfer: false,
+      paystack: true,
     },
     mpesa: {
       shortcode: "174379",
