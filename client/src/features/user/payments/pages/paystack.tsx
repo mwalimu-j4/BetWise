@@ -141,7 +141,8 @@ export default function MpesaDepositPage() {
 
   const enabledMethodsQuery = useEnabledPaymentMethods();
 
-  const isPaystackEnabled = enabledMethodsQuery.data?.paystack ?? false;
+  const isPaystackEnabled = enabledMethodsQuery.data?.paystack ?? true;
+  const isPaymentMethodsLoading = enabledMethodsQuery.isLoading;
 
   const onRetry = () => {
     if (paymentReference) {
@@ -247,7 +248,16 @@ export default function MpesaDepositPage() {
 
         {/* ── Body ── */}
         <div className="space-y-5 px-7 py-6">
-          {!isPaystackEnabled ? (
+          {isPaymentMethodsLoading ? (
+            <div className="rounded-3xl border border-[#3d5a73] bg-[#101c2a] p-6 text-center text-sm text-[#a8c4e0] shadow-inner">
+              <p className="font-semibold text-white">
+                Loading payment settings…
+              </p>
+              <p className="mt-2 text-[#8a9bb0]">
+                Checking available deposit methods. Please wait a moment.
+              </p>
+            </div>
+          ) : !isPaystackEnabled ? (
             <div className="rounded-3xl border border-[#7a2f36] bg-[#2a101e] p-6 text-center text-sm text-[#f2c7cb] shadow-inner">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#7a2f36]/10 text-[#f5a8ad]">
                 <AlertCircle className="h-7 w-7" />

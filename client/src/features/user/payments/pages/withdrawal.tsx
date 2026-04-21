@@ -6,14 +6,12 @@ import {
   ArrowUpRight,
   Inbox,
   LoaderCircle,
-  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatMoney } from "../data";
 import { useWalletSummary, walletSummaryQueryKey } from "../wallet";
-import { useEnabledPaymentMethods } from "../hooks/usePaymentMethods";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
 
@@ -40,8 +38,6 @@ function isPhoneValid(phone: string) {
 
 export default function PaymentsWithdrawalPage() {
   const { user } = useAuth();
-  const enabledMethodsQuery = useEnabledPaymentMethods();
-  const isMpesaEnabled = enabledMethodsQuery.data?.mpesa ?? false;
   const [amount, setAmount] = useState("500");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: walletData, refetch: refetchWallet } = useWalletSummary();
@@ -94,9 +90,8 @@ export default function PaymentsWithdrawalPage() {
       numAmount >= MIN_WITHDRAWAL &&
       numAmount <= MAX_WITHDRAWAL &&
       totalNeeded <= balance &&
-      isPhoneValid(normalizedPhone) &&
-      isMpesaEnabled,
-    [numAmount, balance, normalizedPhone, totalNeeded, isMpesaEnabled],
+      isPhoneValid(normalizedPhone),
+    [numAmount, balance, normalizedPhone, totalNeeded],
   );
 
   const recentWithdrawals = Array.isArray(walletData?.transactions)
@@ -106,9 +101,7 @@ export default function PaymentsWithdrawalPage() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canWithdraw) {
-      if (!isMpesaEnabled) {
-        toast.error("M-Pesa withdrawals are currently disabled.");
-      } else if (!isPhoneValid(normalizedPhone))
+      if (!isPhoneValid(normalizedPhone))
         toast.error("Invalid phone. Use format: 2547XXXXXXXX");
       else if (numAmount < MIN_WITHDRAWAL)
         toast.error(`Minimum withdrawal is KES ${MIN_WITHDRAWAL}.`);
@@ -168,135 +161,120 @@ export default function PaymentsWithdrawalPage() {
 
         {/* Body */}
         <div className="px-6 py-5">
-          {!isMpesaEnabled ? (
-            <div className="rounded-3xl border border-[#7a2f36] bg-[#2a101e] p-6 text-center text-sm text-[#f2c7cb] shadow-inner">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#7a2f36]/10 text-[#f5a8ad]">
-                <AlertCircle className="h-7 w-7" />
-              </div>
-              <p className="font-semibold text-white">Withdrawals Disabled</p>
-              <p className="mt-2 text-[#d7b1b8]">
-                M-Pesa withdrawals are turned off by the administrator. Please
-                contact support or try again later.
+          <form onSubmit={onSubmit} className="space-y-4">
+            {/* Amount */}
+            <div className="space-y-2">
+              <p className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
+                Amount (KES)
               </p>
-            </div>
-          ) : (
-            <form onSubmit={onSubmit} className="space-y-4">
-              {/* Amount */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
-                  Amount (KES)
-                </p>
-                <div className="flex overflow-hidden rounded-2xl border border-[#1a2f45] bg-[#0f1d2e] transition-colors focus-within:border-[#f5c518]">
-                  <span className="flex items-center border-r border-[#1a2f45] px-4 text-xs font-bold text-[#3d5a73]">
-                    KES
-                  </span>
-                  <input
-                    className="h-14 w-full bg-transparent px-4 text-lg font-semibold text-white outline-none placeholder:text-[#2e4a63]"
-                    type="number"
-                    min={MIN_WITHDRAWAL}
-                    max={MAX_WITHDRAWAL}
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder={`Min ${MIN_WITHDRAWAL}`}
-                  />
-                </div>
-
-                {/* Quick amounts */}
-                <div className="grid grid-cols-4 gap-2">
-                  {quickAmounts.map((value) => {
-                    const fee = Math.ceil(
-                      (value * WITHDRAWAL_FEE_PERCENTAGE) / 100,
-                    );
-                    const insufficient = value + fee > balance;
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        disabled={insufficient}
-                        onClick={() => setAmount(String(value))}
-                        className={`rounded-xl border py-2.5 text-xs font-semibold transition-all duration-150 ${
-                          numAmount === value
-                            ? "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518]"
-                            : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#f5c518]/30 hover:text-white"
-                        } disabled:cursor-not-allowed disabled:opacity-40`}
-                      >
-                        {formatMoney(value)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Phone */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Smartphone size={13} className="text-[#3d5a73]" />
-                  <p className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
-                    M-Pesa Number
-                  </p>
-                </div>
+              <div className="flex overflow-hidden rounded-2xl border border-[#1a2f45] bg-[#0f1d2e] transition-colors focus-within:border-[#f5c518]">
+                <span className="flex items-center border-r border-[#1a2f45] px-4 text-xs font-bold text-[#3d5a73]">
+                  KES
+                </span>
                 <input
-                  className={`h-12 w-full rounded-2xl border bg-[#0f1d2e] px-4 text-sm text-white outline-none placeholder:text-[#2e4a63] transition-colors ${
-                    phoneError
-                      ? "border-red-500/60 focus:border-red-500"
-                      : "border-[#1a2f45] focus:border-[#f5c518]"
-                  }`}
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="2547XXXXXXXX"
+                  className="h-14 w-full bg-transparent px-4 text-lg font-semibold text-white outline-none placeholder:text-[#2e4a63]"
+                  type="number"
+                  min={MIN_WITHDRAWAL}
+                  max={MAX_WITHDRAWAL}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder={`Min ${MIN_WITHDRAWAL}`}
                 />
-                {phoneError && (
-                  <p className="text-xs text-red-400">
-                    Use format: 2547XXXXXXXX
-                  </p>
-                )}
               </div>
 
-              {/* Fee breakdown */}
-              {numAmount > 0 && (
-                <div className="grid grid-cols-3 divide-x divide-[#1a2f45] overflow-hidden rounded-2xl border border-[#1a2f45] bg-[#0d1829]">
-                  <div className="px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400">
-                      Withdraw
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-white">
-                      {formatMoney(numAmount)}
-                    </p>
-                  </div>
-                  <div className="px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400">
-                      Fee ({WITHDRAWAL_FEE_PERCENTAGE}%)
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-[#f5c518]">
-                      −{formatMoney(feeAmount)}
-                    </p>
-                  </div>
-                  <div className="px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400]">
-                      You Receive
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-emerald-500">
-                      {formatMoney(netAmount)}
-                    </p>
-                  </div>
-                </div>
-              )}
+              {/* Quick amounts */}
+              <div className="grid grid-cols-4 gap-2">
+                {quickAmounts.map((value) => {
+                  const fee = Math.ceil(
+                    (value * WITHDRAWAL_FEE_PERCENTAGE) / 100,
+                  );
+                  const insufficient = value + fee > balance;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      disabled={insufficient}
+                      onClick={() => setAmount(String(value))}
+                      className={`rounded-xl border py-2.5 text-xs font-semibold transition-all duration-150 ${
+                        numAmount === value
+                          ? "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518]"
+                          : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#f5c518]/30 hover:text-white"
+                      } disabled:cursor-not-allowed disabled:opacity-40`}
+                    >
+                      {formatMoney(value)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-              <Button
-                type="submit"
-                disabled={!canWithdraw || busy}
-                className="h-14 w-full rounded-2xl bg-[#f5c518] text-base font-bold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {busy ? (
-                  <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
-                ) : (
-                  <ArrowUpRight className="mr-2 h-5 w-5" />
-                )}
-                {busy ? "Processing..." : "Request Withdrawal"}
-              </Button>
-            </form>
-          )}
+            {/* Phone */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Smartphone size={13} className="text-[#3d5a73]" />
+                <p className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
+                  M-Pesa Number
+                </p>
+              </div>
+              <input
+                className={`h-12 w-full rounded-2xl border bg-[#0f1d2e] px-4 text-sm text-white outline-none placeholder:text-[#2e4a63] transition-colors ${
+                  phoneError
+                    ? "border-red-500/60 focus:border-red-500"
+                    : "border-[#1a2f45] focus:border-[#f5c518]"
+                }`}
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="2547XXXXXXXX"
+              />
+              {phoneError && (
+                <p className="text-xs text-red-400">Use format: 2547XXXXXXXX</p>
+              )}
+            </div>
+
+            {/* Fee breakdown */}
+            {numAmount > 0 && (
+              <div className="grid grid-cols-3 divide-x divide-[#1a2f45] overflow-hidden rounded-2xl border border-[#1a2f45] bg-[#0d1829]">
+                <div className="px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400">
+                    Withdraw
+                  </p>
+                  <p className="mt-0.5 text-sm font-bold text-white">
+                    {formatMoney(numAmount)}
+                  </p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400">
+                    Fee ({WITHDRAWAL_FEE_PERCENTAGE}%)
+                  </p>
+                  <p className="mt-0.5 text-sm font-bold text-[#f5c518]">
+                    −{formatMoney(feeAmount)}
+                  </p>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400]">
+                    You Receive
+                  </p>
+                  <p className="mt-0.5 text-sm font-bold text-emerald-500">
+                    {formatMoney(netAmount)}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={!canWithdraw || busy}
+              className="h-14 w-full rounded-2xl bg-[#f5c518] text-base font-bold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy ? (
+                <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <ArrowUpRight className="mr-2 h-5 w-5" />
+              )}
+              {busy ? "Processing..." : "Request Withdrawal"}
+            </Button>
+          </form>
         </div>
       </article>
 

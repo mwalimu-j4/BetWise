@@ -26,15 +26,12 @@ import {
   Smartphone,
   Sparkles,
   UserCog,
-  Zap
+  Zap,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-  AdminCard,
-  AdminSectionHeader,
-} from "../../components/ui";
+import { AdminCard, AdminSectionHeader } from "../../components/ui";
 import {
   type AdminSettingsConfig,
   useAdminSettings,
@@ -71,8 +68,6 @@ type SectionDefinition = {
   fields: FieldDefinition[];
 };
 
-
-
 type ChangePasswordResponse = {
   message: string;
   mustChangePassword: boolean;
@@ -92,7 +87,6 @@ const inputClassName =
 const textareaClassName =
   "w-full rounded-xl border border-[#3d6ba3]/40 bg-[#0d2137]/60 px-4 py-3 text-sm text-white placeholder-[#a8c4e0] outline-none transition-all duration-200 hover:border-[#3d6ba3]/60 focus:border-[#f5c518]/70 focus:bg-[#1a3a6b]/40 focus:ring-4 focus:ring-[#f5c518]/10";
 
-
 function cloneSettings(settings: AdminSettingsConfig) {
   return JSON.parse(JSON.stringify(settings)) as AdminSettingsConfig;
 }
@@ -108,8 +102,6 @@ function toNumber(value: string, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
-
-
 
 function getByPath(obj: unknown, path: string): unknown {
   return path.split(".").reduce<unknown>((acc, part) => {
@@ -188,11 +180,6 @@ const sectionDefinitions: SectionDefinition[] = [
     group: "Financial Operations",
     icon: <Smartphone size={16} />,
     fields: [
-      {
-        path: "paymentsConfig.methods.mpesa",
-        label: "Enable M-Pesa Deposits",
-        type: "switch",
-      },
       { type: "header", label: "Api Configuration" },
       {
         path: "paymentsConfig.mpesa.shortcode",
@@ -244,7 +231,6 @@ const sectionDefinitions: SectionDefinition[] = [
     group: "Financial Operations",
     icon: <CreditCard size={16} />,
     fields: [
-                      
       { type: "header", label: "API Credentials" },
       {
         path: "paymentsConfig.paystack.secretKey",
@@ -340,14 +326,16 @@ export default function Settings() {
     null,
   );
 
-
   useEffect(() => {
     if (data?.config) {
       setDraft(cloneSettings(data.config));
     }
   }, [data?.config]);
 
-  const isGatewayValidated = (config: AdminSettingsConfig, gatewayId: string) => {
+  const isGatewayValidated = (
+    config: AdminSettingsConfig,
+    gatewayId: string,
+  ) => {
     if (gatewayId === "mpesa") {
       const { shortcode, consumerKey, consumerSecret, passkey, callbackUrl } =
         config.paymentsConfig.mpesa;
@@ -371,7 +359,6 @@ export default function Settings() {
       null,
     [activeSectionId],
   );
-
 
   const grouped = useMemo(() => {
     return {
@@ -397,8 +384,6 @@ export default function Settings() {
 
     return JSON.stringify(draft) !== JSON.stringify(modalDraft);
   }, [draft, modalDraft]);
-
-
 
   const openSectionModal = (sectionId: string) => {
     if (!draft) {
@@ -758,8 +743,6 @@ export default function Settings() {
         subtitle="Centralized configuration for your betting platform operations"
       />
 
-
-
       <AdminCard className="border-admin-border/50 bg-[#0b1426]/60 p-5 shadow-lg shadow-black/20">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -806,9 +789,16 @@ export default function Settings() {
             </h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {sections.map((section) => {
-                const isGateway = section.id === "mpesa" || section.id === "paystack";
-                const gatewayPath = isGateway ? (section.id === "mpesa" ? "paymentsConfig.methods.mpesa" : "paymentsConfig.methods.paystack") : null;
-                const isEnabled = gatewayPath ? Boolean(getByPath(draft, gatewayPath)) : false;
+                const isGateway =
+                  section.id === "mpesa" || section.id === "paystack";
+                const gatewayPath = isGateway
+                  ? section.id === "mpesa"
+                    ? "paymentsConfig.methods.mpesa"
+                    : "paymentsConfig.methods.paystack"
+                  : null;
+                const isEnabled = gatewayPath
+                  ? Boolean(getByPath(draft, gatewayPath))
+                  : false;
 
                 return (
                   <div
@@ -827,7 +817,7 @@ export default function Settings() {
                           {section.subtitle}
                         </p>
                       </div>
-                      
+
                       {isGateway && (
                         <div className="flex flex-col items-end gap-2">
                           <Switch
@@ -875,9 +865,22 @@ export default function Settings() {
 
                     <div className="mt-10 flex items-center justify-between border-t border-[#3d6ba3]/20 pt-5">
                       <div className="flex items-center gap-2">
-                        <div className={cn("h-1.5 w-1.5 rounded-full", isGateway ? (isEnabled ? "bg-emerald-400" : "bg-red-400") : "bg-[#f5c518]")} />
+                        <div
+                          className={cn(
+                            "h-1.5 w-1.5 rounded-full",
+                            isGateway
+                              ? isEnabled
+                                ? "bg-emerald-400"
+                                : "bg-red-400"
+                              : "bg-[#f5c518]",
+                          )}
+                        />
                         <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#a8c4e0]">
-                          {section.fields.filter(f => f.type !== 'header').length} CONFIG FIELDS
+                          {
+                            section.fields.filter((f) => f.type !== "header")
+                              .length
+                          }{" "}
+                          CONFIG FIELDS
                         </span>
                       </div>
                       <Button
@@ -901,7 +904,7 @@ export default function Settings() {
       >
         <DialogContent className="border-[#3d6ba3]/40 bg-[#0b1426] p-0 sm:max-w-5xl h-[90vh] max-h-[90vh] overflow-hidden rounded-[3rem] shadow-[0_0_120px_rgba(0,0,0,0.85)]">
           {selectedSection && modalDraft ? (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full min-h-0">
               {/* Header */}
               <div className="px-10 py-8 border-b border-[#3d6ba3]/20 bg-black/20 backdrop-blur-md">
                 <div className="flex items-center justify-between gap-6">
@@ -918,14 +921,20 @@ export default function Settings() {
                       </DialogDescription>
                     </div>
                   </div>
-                  
-                  <div className={cn(
-                    "flex items-center gap-2 rounded-full border px-4 py-2 transition-all duration-500",
-                    modalHasChanges 
-                      ? "border-[#f5c518]/30 bg-[#f5c518]/5 text-[#f5c518]" 
-                      : "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
-                  )}>
-                    {modalHasChanges ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
+
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 rounded-full border px-4 py-2 transition-all duration-500",
+                      modalHasChanges
+                        ? "border-[#f5c518]/30 bg-[#f5c518]/5 text-[#f5c518]"
+                        : "border-emerald-500/30 bg-emerald-500/5 text-emerald-400",
+                    )}
+                  >
+                    {modalHasChanges ? (
+                      <AlertTriangle size={14} />
+                    ) : (
+                      <CheckCircle2 size={14} />
+                    )}
                     <span className="text-[10px] font-bold uppercase tracking-widest">
                       {modalHasChanges ? "Unsaved Progress" : "System Synced"}
                     </span>
@@ -961,15 +970,29 @@ export default function Settings() {
 
                     // Field Icons Mapping
                     let FieldIcon = Sparkles;
-                    if (field.label.toLowerCase().includes("key") || field.label.toLowerCase().includes("secret") || field.label.toLowerCase().includes("passkey")) FieldIcon = Lock;
-                    else if (field.label.toLowerCase().includes("url")) FieldIcon = Globe;
-                    else if (field.label.toLowerCase().includes("fee") || field.label.toLowerCase().includes("tax")) FieldIcon = Percent;
-                    else if (field.label.toLowerCase().includes("shortcode")) FieldIcon = Zap;
+                    if (
+                      field.label.toLowerCase().includes("key") ||
+                      field.label.toLowerCase().includes("secret") ||
+                      field.label.toLowerCase().includes("passkey")
+                    )
+                      FieldIcon = Lock;
+                    else if (field.label.toLowerCase().includes("url"))
+                      FieldIcon = Globe;
+                    else if (
+                      field.label.toLowerCase().includes("fee") ||
+                      field.label.toLowerCase().includes("tax")
+                    )
+                      FieldIcon = Percent;
+                    else if (field.label.toLowerCase().includes("shortcode"))
+                      FieldIcon = Zap;
 
                     return (
                       <div
                         key={field.path ?? `field-${index}`}
-                        className={cn("space-y-2.5", fullWidth ? "md:col-span-2" : "")}
+                        className={cn(
+                          "space-y-2.5",
+                          fullWidth ? "md:col-span-2" : "",
+                        )}
                       >
                         <div className="flex items-center gap-2 ml-1">
                           <FieldIcon size={12} className="text-[#a8c4e0]/60" />
@@ -1014,7 +1037,8 @@ export default function Settings() {
                           {field.type === "select" && (
                             <div className="grid grid-cols-2 gap-3">
                               {(field.options ?? []).map((option) => {
-                                const checked = String(value ?? "") === option.value;
+                                const checked =
+                                  String(value ?? "") === option.value;
                                 return (
                                   <label
                                     key={option.value}
@@ -1022,7 +1046,7 @@ export default function Settings() {
                                       "cursor-pointer rounded-xl border px-4 py-3 text-sm font-bold transition-all duration-300 flex items-center justify-center gap-3",
                                       checked
                                         ? "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518] shadow-[0_0_15px_rgba(245,197,24,0.1)]"
-                                        : "border-[#3d6ba3]/30 bg-[#0d2137]/40 text-[#a8c4e0] hover:border-[#3d6ba3]/60 hover:bg-[#1a3a6b]/20"
+                                        : "border-[#3d6ba3]/30 bg-[#0d2137]/40 text-[#a8c4e0] hover:border-[#3d6ba3]/60 hover:bg-[#1a3a6b]/20",
                                     )}
                                   >
                                     <input
@@ -1031,7 +1055,10 @@ export default function Settings() {
                                       value={option.value}
                                       checked={checked}
                                       onChange={(event) =>
-                                        updateModalField(field, event.target.value)
+                                        updateModalField(
+                                          field,
+                                          event.target.value,
+                                        )
                                       }
                                       className="sr-only"
                                     />
@@ -1045,7 +1072,9 @@ export default function Settings() {
                           {field.type === "switch" && (
                             <div className="flex h-[3.2rem] items-center justify-between rounded-xl border border-[#3d6ba3]/30 bg-[#0d2137]/40 px-5">
                               <span className="text-sm font-medium text-[#a8c4e0]">
-                                {Boolean(value) ? "Active Status" : "Inactive Status"}
+                                {Boolean(value)
+                                  ? "Active Status"
+                                  : "Inactive Status"}
                               </span>
                               <Switch
                                 checked={Boolean(value)}
@@ -1061,7 +1090,9 @@ export default function Settings() {
                             <textarea
                               className={textareaClassName}
                               rows={3}
-                              value={Array.isArray(value) ? value.join("\n") : ""}
+                              value={
+                                Array.isArray(value) ? value.join("\n") : ""
+                              }
                               onChange={(event) =>
                                 updateModalField(field, event.target.value)
                               }
@@ -1081,7 +1112,7 @@ export default function Settings() {
               </div>
 
               {/* Footer */}
-              <div className="px-10 py-8 border-t border-[#3d6ba3]/20 bg-black/30 flex justify-end gap-4">
+              <div className="sticky bottom-0 z-10 px-10 py-8 border-t border-[#3d6ba3]/20 bg-[#0b1426] flex justify-end gap-4">
                 <Button
                   variant="outline"
                   onClick={closeModal}
