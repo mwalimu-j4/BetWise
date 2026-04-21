@@ -189,11 +189,6 @@ const sectionDefinitions: SectionDefinition[] = [
     group: "Financial Operations",
     icon: <Smartphone size={16} />,
     fields: [
-      {
-        path: "paymentsConfig.methods.mpesa",
-        label: "Enable M-Pesa Gateway",
-        type: "switch",
-      },
       { type: "header", label: "Api Configuration" },
       {
         path: "paymentsConfig.mpesa.shortcode",
@@ -245,11 +240,6 @@ const sectionDefinitions: SectionDefinition[] = [
     group: "Financial Operations",
     icon: <CreditCard size={16} />,
     fields: [
-      {
-        path: "paymentsConfig.methods.paystack",
-        label: "Enable Paystack Gateway",
-        type: "switch",
-      },
       { type: "header", label: "API Credentials" },
       {
         path: "paymentsConfig.paystack.secretKey",
@@ -352,6 +342,24 @@ export default function Settings() {
       setDraft(cloneSettings(data.config));
     }
   }, [data?.config]);
+
+  const isGatewayValidated = (config: AdminSettingsConfig, gatewayId: string) => {
+    if (gatewayId === "mpesa") {
+      const { shortcode, consumerKey, consumerSecret, passkey, callbackUrl } =
+        config.paymentsConfig.mpesa;
+      return Boolean(
+        shortcode && consumerKey && consumerSecret && passkey && callbackUrl,
+      );
+    }
+    if (gatewayId === "paystack") {
+      const { secretKey, publicKey, webhookSecret, callbackUrl, webhookUrl } =
+        config.paymentsConfig.paystack;
+      return Boolean(
+        secretKey && publicKey && webhookSecret && callbackUrl && webhookUrl,
+      );
+    }
+    return true;
+  };
 
   const selectedSection = useMemo(
     () =>
@@ -838,7 +846,7 @@ export default function Settings() {
                 return (
                   <div
                     key={section.id}
-                    className="group relative overflow-hidden rounded-[2rem] border border-[#3d6ba3]/30 bg-linear-to-br from-[#0d2137] via-[#1a3a6b]/40 to-[#0d2137] p-7 transition-all duration-500 hover:border-[#f5c518]/40 hover:shadow-[0_20px_50px_-12px_rgba(245,197,24,0.15)]"
+                    className="group relative overflow-hidden rounded-[2rem] border border-[#3d6ba3]/30 bg-[#0d2137] p-7 transition-all duration-500 hover:border-[#f5c518]/40 hover:shadow-[0_20px_50px_-12px_rgba(245,197,24,0.15)]"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-3">
@@ -854,17 +862,47 @@ export default function Settings() {
                       </div>
                       
                       {isGateway && (
-                        <Switch
-                          checked={isEnabled}
-                          onCheckedChange={(checked) => {
-                            if (gatewayPath) {
-                              const updated = setByPath(draft, gatewayPath, checked);
-                              setDraft(updated);
-                              void updateSettings.mutateAsync(updated);
-                            }
-                          }}
-                          className="data-[state=checked]:bg-[#f5c518]"
-                        />
+                        <div className="flex flex-col items-end gap-2">
+                          <Switch
+                            checked={isEnabled}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                const isValidated = isGatewayValidated(
+                                  draft,
+                                  section.id,
+                                );
+                                if (!isValidated) {
+                                  toast.error(
+                                    `Please complete ${section.title} configuration before activating.`,
+                                  );
+                                  return;
+                                }
+                              }
+                              if (gatewayPath) {
+                                const updated = setByPath(
+                                  draft,
+                                  gatewayPath,
+                                  checked,
+                                );
+                                setDraft(updated);
+                                void updateSettings.mutateAsync(updated);
+                              }
+                            }}
+                            className="data-[state=checked]:bg-[#f5c518]"
+                          />
+                          <span
+                            className={cn(
+                              "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border",
+                              isGatewayValidated(draft, section.id)
+                                ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/5"
+                                : "text-amber-400 border-amber-400/20 bg-amber-400/5",
+                            )}
+                          >
+                            {isGatewayValidated(draft, section.id)
+                              ? "Ready"
+                              : "Pending Details"}
+                          </span>
+                        </div>
                       )}
                     </div>
 
@@ -894,14 +932,14 @@ export default function Settings() {
         open={Boolean(selectedSection)}
         onOpenChange={(open) => (!open ? closeModal() : null)}
       >
-        <DialogContent className="border-[#3d6ba3]/40 bg-linear-to-br from-[#0d2137] via-[#1a3a6b] to-[#0d2137] p-0 sm:max-w-4xl max-h-[85vh] overflow-hidden rounded-[2.5rem] shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+        <DialogContent className="border-[#3d6ba3]/40 bg-[#0d2137] p-0 sm:max-w-4xl max-h-[85vh] overflow-hidden rounded-[2.5rem] shadow-[0_0_100px_rgba(0,0,0,0.8)]">
           {selectedSection && modalDraft ? (
             <div className="flex flex-col h-full">
               {/* Header */}
               <div className="px-10 py-8 border-b border-[#3d6ba3]/20 bg-black/20 backdrop-blur-md">
                 <div className="flex items-center justify-between gap-6">
                   <div className="flex items-center gap-5">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-[#f5c518] to-[#e6b800] shadow-lg shadow-[#f5c518]/20">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f5c518] text-[#0d2137] shadow-lg shadow-[#f5c518]/20">
                       {selectedSection.icon}
                     </div>
                     <div>
@@ -1088,7 +1126,7 @@ export default function Settings() {
                 <Button
                   onClick={() => void saveSection()}
                   disabled={updateSettings.isPending || !modalHasChanges}
-                  className="h-12 px-10 rounded-2xl bg-linear-to-r from-[#f5c518] to-[#e6b800] text-[#0d2137] font-black shadow-xl shadow-[#f5c518]/10 hover:shadow-[#f5c518]/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="h-12 px-10 rounded-2xl bg-[#f5c518] text-[#0d2137] font-black shadow-xl shadow-[#f5c518]/10 hover:shadow-[#f5c518]/30 transition-all hover:scale-[1.02] active:scale-[0.98] hover:bg-[#e6b800]"
                 >
                   {updateSettings.isPending ? (
                     <Loader2 size={18} className="animate-spin" />
