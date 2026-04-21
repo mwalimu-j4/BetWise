@@ -332,7 +332,6 @@ export default function Dashboard() {
                     label={metric.label}
                     value={metric.value}
                     tone={metric.tone}
-                    helper={metric.helper}
                     className={hideOnMobile ? "hidden sm:block" : undefined}
                   />
                 );

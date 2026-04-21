@@ -262,7 +262,6 @@ export default function Bets() {
             label={metric.label}
             value={metric.value}
             tone={metric.tone}
-            helper="Stake and settlement totals across the active bet list"
           />
         ))}
       </div>

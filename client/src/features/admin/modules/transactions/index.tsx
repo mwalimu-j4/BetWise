@@ -173,7 +173,6 @@ export default function Transactions() {
             label={metric.label}
             value={metric.value}
             tone={metric.tone}
-            helper="Live totals across wallet inflows and payout activity"
           />
         ))}
       </div>

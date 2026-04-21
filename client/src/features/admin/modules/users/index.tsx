@@ -359,19 +359,16 @@ export default function Users() {
           label="Total Users"
           value={totalUsers.toLocaleString()}
           tone="blue"
-          helper="All registered accounts"
         />
         <AdminStatCard
           label="Active Users"
           value={activeUsers.toLocaleString()}
           tone="accent"
-          helper="Currently active accounts"
         />
         <AdminStatCard
           label="Banned Users"
           value={bannedUsers.toLocaleString()}
           tone="red"
-          helper="Restricted accounts"
         />
       </div>
 

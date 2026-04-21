@@ -182,7 +182,6 @@ export default function Risk() {
               label={metric.label}
               value={metric.value}
               tone={metric.tone}
-              helper="Severity and queue state synced from the compliance monitor"
             />
           ))
         )}

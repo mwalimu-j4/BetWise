@@ -302,7 +302,6 @@ export default function WithdrawalsAdmin() {
             label={metric.label}
             value={metric.value}
             tone={metric.tone}
-            helper="Queues and processed requests synced from the payouts pipeline"
           />
         ))}
       </div>
