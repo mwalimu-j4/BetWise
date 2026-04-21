@@ -16,9 +16,15 @@ export default function BanAppealsOverviewPage() {
   const navigate = useNavigate();
   const { appeals, loading, error } = useAdminBanAppeals(1, 20, "all");
 
-  const pendingCount = appeals.filter((a: BanAppeal) => a.status === "PENDING").length;
-  const approvedCount = appeals.filter((a: BanAppeal) => a.status === "APPROVED").length;
-  const rejectedCount = appeals.filter((a: BanAppeal) => a.status === "REJECTED").length;
+  const pendingCount = appeals.filter(
+    (a: BanAppeal) => a.status === "PENDING",
+  ).length;
+  const approvedCount = appeals.filter(
+    (a: BanAppeal) => a.status === "APPROVED",
+  ).length;
+  const rejectedCount = appeals.filter(
+    (a: BanAppeal) => a.status === "REJECTED",
+  ).length;
   const totalCount = appeals.length;
 
   return (
@@ -62,7 +68,9 @@ export default function BanAppealsOverviewPage() {
           {loading ? (
             <div className="py-20 text-center">
               <Loader className="mx-auto h-6 w-6 animate-spin text-admin-accent" />
-              <p className="mt-2 text-sm text-admin-text-muted">Loading appeals...</p>
+              <p className="mt-2 text-sm text-admin-text-muted">
+                Loading appeals...
+              </p>
             </div>
           ) : appeals.length === 0 ? (
             <div className="py-20 text-center text-admin-text-muted">
@@ -83,13 +91,22 @@ export default function BanAppealsOverviewPage() {
                   <tr
                     key={appeal.id}
                     className="group hover:bg-admin-surface/20 transition-colors cursor-pointer"
-                    onClick={() => navigate({ to: "/admin/appeals/$appealId", params: { appealId: appeal.id } })}
+                    onClick={() =>
+                      navigate({
+                        to: "/admin/appeals/$appealId",
+                        params: { appealId: appeal.id },
+                      })
+                    }
                   >
                     <td className={adminTableCellClassName}>
                       <p className="font-semibold text-admin-text-primary">
-                        {appeal.user?.fullName || appeal.user?.email || "Unknown"}
+                        {appeal.user?.fullName ||
+                          appeal.user?.email ||
+                          "Unknown"}
                       </p>
-                      <p className="text-[10px] text-admin-text-muted font-mono">{appeal.userId}</p>
+                      <p className="text-[10px] text-admin-text-muted font-mono">
+                        {appeal.userId}
+                      </p>
                     </td>
                     <td className={adminTableCellClassName}>
                       <StatusBadge

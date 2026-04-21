@@ -467,10 +467,7 @@ export default function Users() {
                     "Created",
                     "",
                   ].map((heading, i) => (
-                    <th
-                      key={i}
-                      className={adminTableHeadCellClassName}
-                    >
+                    <th key={i} className={adminTableHeadCellClassName}>
                       {heading}
                     </th>
                   ))}
@@ -486,9 +483,7 @@ export default function Users() {
                     <td className={adminTableCellClassName}>
                       {(page - 1) * 50 + index + 1}
                     </td>
-                    <td className={adminTableCellClassName}>
-                      {user.phone}
-                    </td>
+                    <td className={adminTableCellClassName}>{user.phone}</td>
                     <td className={adminTableCellClassName}>
                       <span
                         className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${

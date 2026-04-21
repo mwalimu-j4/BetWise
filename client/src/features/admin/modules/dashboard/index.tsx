@@ -41,6 +41,7 @@ import {
   adminDropdownItemClassName,
   adminTableCellClassName,
   adminTableClassName,
+  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 type DashboardMetric = {

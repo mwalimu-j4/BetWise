@@ -972,7 +972,12 @@ function FeedEvents() {
             <table className={adminTableClassName}>
               <thead>
                 <tr>
-                  <th className={cn(adminTableHeadCellClassName, "w-10 text-center")}>
+                  <th
+                    className={cn(
+                      adminTableHeadCellClassName,
+                      "w-10 text-center",
+                    )}
+                  >
                     <input
                       checked={allVisibleSelected}
                       className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
@@ -981,9 +986,30 @@ function FeedEvents() {
                     />
                   </th>
                   <th className={adminTableHeadCellClassName}>Event</th>
-                  <th className={cn(adminTableHeadCellClassName, "w-20 text-center")}>Active</th>
-                  <th className={cn(adminTableHeadCellClassName, "w-20 text-center")}>Featured</th>
-                  <th className={cn(adminTableHeadCellClassName, "w-24 text-right")}>Actions</th>
+                  <th
+                    className={cn(
+                      adminTableHeadCellClassName,
+                      "w-20 text-center",
+                    )}
+                  >
+                    Active
+                  </th>
+                  <th
+                    className={cn(
+                      adminTableHeadCellClassName,
+                      "w-20 text-center",
+                    )}
+                  >
+                    Featured
+                  </th>
+                  <th
+                    className={cn(
+                      adminTableHeadCellClassName,
+                      "w-24 text-right",
+                    )}
+                  >
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -1020,10 +1046,15 @@ function FeedEvents() {
                       key={event.eventId}
                       className={cn(
                         "group transition-all duration-300 hover:bg-white/[0.03]",
-                        isSelected && "bg-admin-accent/[0.04]"
+                        isSelected && "bg-admin-accent/[0.04]",
                       )}
                     >
-                      <td className={cn(adminTableCellClassName, "w-10 text-center")}>
+                      <td
+                        className={cn(
+                          adminTableCellClassName,
+                          "w-10 text-center",
+                        )}
+                      >
                         <div className="flex shrink-0 items-center justify-center">
                           <input
                             checked={isSelected}
@@ -1044,12 +1075,16 @@ function FeedEvents() {
                             </span>
                             <StatusBadge status={toBadgeStatus(event.status)} />
                             {event.isFeatured && (
-                              <Badge className="bg-admin-accent/10 text-admin-accent border-admin-accent/20 text-[10px] font-bold">FEAT</Badge>
+                              <Badge className="bg-admin-accent/10 text-admin-accent border-admin-accent/20 text-[10px] font-bold">
+                                FEAT
+                              </Badge>
                             )}
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-admin-text-muted/60">
                             <span className="flex items-center gap-1">
-                              <span className="font-bold text-admin-text-muted/80">{formatSportLabel(event.sportKey || "")}</span>
+                              <span className="font-bold text-admin-text-muted/80">
+                                {formatSportLabel(event.sportKey || "")}
+                              </span>
                               <span className="opacity-40">·</span>
                               <span>{event.leagueName}</span>
                             </span>
@@ -1058,7 +1093,12 @@ function FeedEvents() {
                               {formatEventTime(event.commenceTime)}
                               {event.status === "UPCOMING" && (
                                 <span className="text-admin-accent/70 font-semibold">
-                                  ({formatUpcomingCountdown(event.commenceTime, currentTimeMs)})
+                                  (
+                                  {formatUpcomingCountdown(
+                                    event.commenceTime,
+                                    currentTimeMs,
+                                  )}
+                                  )
                                 </span>
                               )}
                             </span>
@@ -1066,7 +1106,9 @@ function FeedEvents() {
                         </div>
                       </td>
 
-                      <td className={cn(adminTableCellClassName, "text-center")}>
+                      <td
+                        className={cn(adminTableCellClassName, "text-center")}
+                      >
                         <div className="flex items-center justify-center">
                           <Switch
                             checked={event.isActive}
@@ -1076,18 +1118,30 @@ function FeedEvents() {
                         </div>
                       </td>
 
-                      <td className={cn(adminTableCellClassName, "text-center")}>
+                      <td
+                        className={cn(adminTableCellClassName, "text-center")}
+                      >
                         <div className="flex items-center justify-center">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => void handleToggleFeatured(event.eventId, event.isFeatured)}
+                            onClick={() =>
+                              void handleToggleFeatured(
+                                event.eventId,
+                                event.isFeatured,
+                              )
+                            }
                             className={cn(
                               "size-8 rounded-full",
-                              event.isFeatured ? "text-admin-accent" : "text-admin-text-muted/40"
+                              event.isFeatured
+                                ? "text-admin-accent"
+                                : "text-admin-text-muted/40",
                             )}
                           >
-                            <Star size={16} fill={event.isFeatured ? "currentColor" : "none"} />
+                            <Star
+                              size={16}
+                              fill={event.isFeatured ? "currentColor" : "none"}
+                            />
                           </Button>
                         </div>
                       </td>
@@ -1103,24 +1157,31 @@ function FeedEvents() {
                               <MoreHorizontal size={16} />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-52 border-white/10 bg-[#0b1426] backdrop-blur-xl">
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-52 border-white/10 bg-[#0b1426] backdrop-blur-xl"
+                          >
                             <DropdownMenuItem
                               className="gap-2 focus:bg-white/5"
                               onSelect={() => openDetailDialog(event)}
                             >
-                              <Eye size={14} className="opacity-60" /> View Details
+                              <Eye size={14} className="opacity-60" /> View
+                              Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="gap-2 focus:bg-white/5"
                               onSelect={() => openConfigDialog(event)}
                             >
-                              <Settings2 size={14} className="opacity-60" /> Configure Odds
+                              <Settings2 size={14} className="opacity-60" />{" "}
+                              Configure Odds
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-white/5" />
                             <DropdownMenuItem
                               className={cn(
                                 "gap-2",
-                                event.isActive ? "text-red-400 focus:bg-red-400/10 focus:text-red-400" : "text-emerald-400 focus:bg-emerald-400/10 focus:text-emerald-400"
+                                event.isActive
+                                  ? "text-red-400 focus:bg-red-400/10 focus:text-red-400"
+                                  : "text-emerald-400 focus:bg-emerald-400/10 focus:text-emerald-400",
                               )}
                               onSelect={() => void handleToggle(event)}
                             >
@@ -1172,7 +1233,9 @@ function FeedEvents() {
       <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
         <DialogContent className="max-w-[calc(100%-1rem)] border-white/10 bg-[#0b1426] p-6 text-admin-text-primary backdrop-blur-2xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Bulk Update Events</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">
+              Bulk Update Events
+            </DialogTitle>
             <DialogDescription className="text-admin-text-muted/70">
               Apply margin and markets to a league, sport, or selection.
             </DialogDescription>
@@ -1630,7 +1693,6 @@ function FeedEvents() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </>
   );
 }
@@ -1740,4 +1802,3 @@ export default function Events() {
     </div>
   );
 }
-

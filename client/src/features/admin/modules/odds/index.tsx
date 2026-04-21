@@ -1,10 +1,10 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { 
-  CalendarClock, 
-  Loader2, 
-  RefreshCw, 
-  Search, 
-  Trophy
+import {
+  CalendarClock,
+  Loader2,
+  RefreshCw,
+  Search,
+  Trophy,
 } from "lucide-react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -791,12 +791,21 @@ export default function Odds() {
               <table className={adminTableClassName}>
                 <thead>
                   <tr>
-                    <th className={cn(adminTableHeadCellClassName, "w-10 text-center")}>
+                    <th
+                      className={cn(
+                        adminTableHeadCellClassName,
+                        "w-10 text-center",
+                      )}
+                    >
                       <input
-                        checked={selectedEventIds.length === events.length && events.length > 0}
+                        checked={
+                          selectedEventIds.length === events.length &&
+                          events.length > 0
+                        }
                         className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
                         onChange={(e) => {
-                          if (e.target.checked) setSelectedEventIds(events.map(ev => ev.eventId));
+                          if (e.target.checked)
+                            setSelectedEventIds(events.map((ev) => ev.eventId));
                           else setSelectedEventIds([]);
                         }}
                         type="checkbox"
@@ -804,29 +813,57 @@ export default function Odds() {
                     </th>
                     <th className={adminTableHeadCellClassName}>Status</th>
                     <th className={adminTableHeadCellClassName}>Event</th>
-                    <th className={cn(adminTableHeadCellClassName, "text-center w-24")}>Odds</th>
-                    <th className={cn(adminTableHeadCellClassName, "text-right w-40")}>Actions</th>
+                    <th
+                      className={cn(
+                        adminTableHeadCellClassName,
+                        "text-center w-24",
+                      )}
+                    >
+                      Odds
+                    </th>
+                    <th
+                      className={cn(
+                        adminTableHeadCellClassName,
+                        "text-right w-40",
+                      )}
+                    >
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {events.map((event) => {
                     const expanded = expandedEventId === event.eventId;
                     const oddsDetails = oddsDetailsByEventId[event.eventId];
-                    const oddsLoading = Boolean(oddsLoadingByEventId[event.eventId]);
+                    const oddsLoading = Boolean(
+                      oddsLoadingByEventId[event.eventId],
+                    );
                     const oddsError = oddsErrorByEventId[event.eventId];
 
                     return (
                       <Fragment key={event.eventId}>
-                        <tr className={cn(
-                          "group transition-colors duration-200",
-                          expanded ? "bg-white/[0.04]" : "hover:bg-white/[0.02]"
-                        )}>
-                          <td className={cn(adminTableCellClassName, "w-10 text-center")}>
+                        <tr
+                          className={cn(
+                            "group transition-colors duration-200",
+                            expanded
+                              ? "bg-white/[0.04]"
+                              : "hover:bg-white/[0.02]",
+                          )}
+                        >
+                          <td
+                            className={cn(
+                              adminTableCellClassName,
+                              "w-10 text-center",
+                            )}
+                          >
                             <input
                               checked={selectedEventIds.includes(event.eventId)}
                               className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
                               onChange={(e) =>
-                                toggleEventSelection(event.eventId, e.target.checked)
+                                toggleEventSelection(
+                                  event.eventId,
+                                  e.target.checked,
+                                )
                               }
                               type="checkbox"
                             />
@@ -840,38 +877,64 @@ export default function Odds() {
                                 {event.homeTeam} vs {event.awayTeam}
                               </p>
                               <div className="flex items-center gap-2 mt-0.5 text-[10px] text-admin-text-muted">
-                                <span>{event.leagueName ?? "Unknown league"}</span>
+                                <span>
+                                  {event.leagueName ?? "Unknown league"}
+                                </span>
                                 <span>•</span>
-                                <span>{new Date(event.commenceTime).toLocaleString()}</span>
+                                <span>
+                                  {new Date(
+                                    event.commenceTime,
+                                  ).toLocaleString()}
+                                </span>
                               </div>
                             </div>
                           </td>
-                          <td className={cn(adminTableCellClassName, "text-center")}>
+                          <td
+                            className={cn(
+                              adminTableCellClassName,
+                              "text-center",
+                            )}
+                          >
                             <span className="rounded bg-admin-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-admin-accent border border-admin-accent/20">
                               {event._count.odds}
                             </span>
                           </td>
-                          <td className={cn(adminTableCellClassName, "text-right")}>
+                          <td
+                            className={cn(
+                              adminTableCellClassName,
+                              "text-right",
+                            )}
+                          >
                             <div className="flex items-center justify-end gap-1.5">
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 className="h-7 px-2 text-[11px] text-admin-text-primary hover:bg-white/5"
-                                onClick={() => void handleViewOdds(event.eventId)}
+                                onClick={() =>
+                                  void handleViewOdds(event.eventId)
+                                }
                               >
                                 {expanded ? "Hide" : "View"}
                               </Button>
                               <Button
                                 size="sm"
-                                variant={bookmarkedEventIds[event.eventId] ? "ghost" : "outline"}
+                                variant={
+                                  bookmarkedEventIds[event.eventId]
+                                    ? "ghost"
+                                    : "outline"
+                                }
                                 className={cn(
                                   "h-7 px-2 text-[11px] transition-all",
-                                  bookmarkedEventIds[event.eventId] 
-                                    ? "text-admin-accent bg-admin-accent/5 hover:bg-admin-accent/10" 
-                                    : "border-admin-border text-admin-text-primary hover:bg-white/5"
+                                  bookmarkedEventIds[event.eventId]
+                                    ? "text-admin-accent bg-admin-accent/5 hover:bg-admin-accent/10"
+                                    : "border-admin-border text-admin-text-primary hover:bg-white/5",
                                 )}
-                                onClick={() => void handleBookmarkSingle(event.eventId)}
-                                disabled={Boolean(bookmarkingEventIds[event.eventId])}
+                                onClick={() =>
+                                  void handleBookmarkSingle(event.eventId)
+                                }
+                                disabled={Boolean(
+                                  bookmarkingEventIds[event.eventId],
+                                )}
                               >
                                 {bookmarkingEventIds[event.eventId] ? (
                                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -887,7 +950,10 @@ export default function Odds() {
 
                         {expanded && (
                           <tr className="bg-white/[0.04]">
-                            <td colSpan={5} className="px-3 py-3 border-t border-white/5">
+                            <td
+                              colSpan={5}
+                              className="px-3 py-3 border-t border-white/5"
+                            >
                               <div className="rounded-lg border border-white/5 bg-[#0b1426]/50 p-3 shadow-inner">
                                 {oddsLoading ? (
                                   <div className="flex items-center justify-center py-6">
@@ -895,7 +961,9 @@ export default function Odds() {
                                   </div>
                                 ) : oddsError ? (
                                   <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-                                    <p className="text-xs text-red-400 text-center">{oddsError}</p>
+                                    <p className="text-xs text-red-400 text-center">
+                                      {oddsError}
+                                    </p>
                                   </div>
                                 ) : !oddsDetails ? (
                                   <p className="text-xs text-admin-text-muted text-center py-4">
@@ -903,30 +971,106 @@ export default function Odds() {
                                   </p>
                                 ) : (
                                   <TableShell>
-                                    <table className={cn(adminTableClassName, "text-[11px]")}>
+                                    <table
+                                      className={cn(
+                                        adminTableClassName,
+                                        "text-[11px]",
+                                      )}
+                                    >
                                       <thead>
                                         <tr>
-                                          <th className={adminTableHeadCellClassName}>Bookmaker</th>
-                                          <th className={adminTableHeadCellClassName}>Market</th>
-                                          <th className={adminTableHeadCellClassName}>Selection</th>
-                                          <th className={cn(adminTableHeadCellClassName, "w-16")}>Odds</th>
-                                          <th className={adminTableHeadCellClassName}>Updated</th>
+                                          <th
+                                            className={
+                                              adminTableHeadCellClassName
+                                            }
+                                          >
+                                            Bookmaker
+                                          </th>
+                                          <th
+                                            className={
+                                              adminTableHeadCellClassName
+                                            }
+                                          >
+                                            Market
+                                          </th>
+                                          <th
+                                            className={
+                                              adminTableHeadCellClassName
+                                            }
+                                          >
+                                            Selection
+                                          </th>
+                                          <th
+                                            className={cn(
+                                              adminTableHeadCellClassName,
+                                              "w-16",
+                                            )}
+                                          >
+                                            Odds
+                                          </th>
+                                          <th
+                                            className={
+                                              adminTableHeadCellClassName
+                                            }
+                                          >
+                                            Updated
+                                          </th>
                                         </tr>
                                       </thead>
                                       <tbody className="divide-y divide-white/5">
                                         {oddsDetails.markets.flatMap((market) =>
                                           market.odds.map((row, index) => (
-                                            <tr key={`${market.marketType}-${row.bookmakerId}-${row.selection}-${index}`}>
-                                              <td className={adminTableCellClassName}>{row.bookmakerName}</td>
-                                              <td className={adminTableCellClassName}>{market.marketType}</td>
-                                              <td className={adminTableCellClassName}>{row.selection}</td>
-                                              <td className={adminTableCellClassName}>
-                                                <span className={row.isBest ? "font-bold text-admin-accent" : ""}>
+                                            <tr
+                                              key={`${market.marketType}-${row.bookmakerId}-${row.selection}-${index}`}
+                                            >
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                {row.bookmakerName}
+                                              </td>
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                {market.marketType}
+                                              </td>
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                {row.selection}
+                                              </td>
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                <span
+                                                  className={
+                                                    row.isBest
+                                                      ? "font-bold text-admin-accent"
+                                                      : ""
+                                                  }
+                                                >
                                                   {row.odds.toFixed(2)}
                                                 </span>
                                               </td>
-                                              <td className={adminTableCellClassName}>
-                                                {new Date(row.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                {new Date(
+                                                  row.updatedAt,
+                                                ).toLocaleTimeString([], {
+                                                  hour: "2-digit",
+                                                  minute: "2-digit",
+                                                  second: "2-digit",
+                                                })}
                                               </td>
                                             </tr>
                                           )),

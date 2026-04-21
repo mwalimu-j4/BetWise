@@ -100,31 +100,28 @@ export default function SportCategoriesManager() {
     [],
   );
 
-  const handleToggle = useCallback(
-    async (category: SportCategory) => {
-      setToggling(category.id);
-      try {
-        const { data } = await api.patch<SportCategory>(
-          `/admin/sport-categories/${category.id}/toggle`,
-        );
-        setCategories((prev) =>
-          prev.map((c) =>
-            c.id === data.id ? { ...c, isActive: data.isActive } : c,
-          ),
-        );
-        toast.success(
-          data.isActive
-            ? `${category.displayName} activated`
-            : `${category.displayName} deactivated`,
-        );
-      } catch {
-        toast.error("Failed to toggle category");
-      } finally {
-        setToggling(null);
-      }
-    },
-    [],
-  );
+  const handleToggle = useCallback(async (category: SportCategory) => {
+    setToggling(category.id);
+    try {
+      const { data } = await api.patch<SportCategory>(
+        `/admin/sport-categories/${category.id}/toggle`,
+      );
+      setCategories((prev) =>
+        prev.map((c) =>
+          c.id === data.id ? { ...c, isActive: data.isActive } : c,
+        ),
+      );
+      toast.success(
+        data.isActive
+          ? `${category.displayName} activated`
+          : `${category.displayName} deactivated`,
+      );
+    } catch {
+      toast.error("Failed to toggle category");
+    } finally {
+      setToggling(null);
+    }
+  }, []);
 
   const handleSelectAll = useCallback(() => {
     setSelectedKeys(new Set(categories.map((c) => c.sportKey)));
@@ -248,16 +245,26 @@ export default function SportCategoriesManager() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2">
-        <AdminStatCard label="Total" value={String(categories.length)} tone="blue" />
+        <AdminStatCard
+          label="Total"
+          value={String(categories.length)}
+          tone="blue"
+        />
         <AdminStatCard label="Active" value={String(totalActive)} tone="live" />
-        <AdminStatCard label="Inactive" value={String(totalInactive)} tone="red" />
+        <AdminStatCard
+          label="Inactive"
+          value={String(totalInactive)}
+          tone="red"
+        />
       </div>
 
       {/* Toolbar */}
       <AdminCard className="px-3 py-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] text-admin-text-muted/70">
-            <span className="font-bold text-admin-text-primary">{categories.length}</span>{" "}
+            <span className="font-bold text-admin-text-primary">
+              {categories.length}
+            </span>{" "}
             sports ·{" "}
             <span className="font-bold text-admin-accent">{totalActive}</span>{" "}
             active
@@ -330,7 +337,12 @@ export default function SportCategoriesManager() {
           <table className={adminTableClassName}>
             <thead>
               <tr>
-                <th className={cn(adminTableHeadCellClassName, "w-10 text-center")}>
+                <th
+                  className={cn(
+                    adminTableHeadCellClassName,
+                    "w-10 text-center",
+                  )}
+                >
                   <input
                     type="checkbox"
                     checked={
@@ -345,9 +357,20 @@ export default function SportCategoriesManager() {
                   />
                 </th>
                 <th className={adminTableHeadCellClassName}>Sport</th>
-                <th className={cn(adminTableHeadCellClassName, "w-24 text-center")}>Events</th>
+                <th
+                  className={cn(
+                    adminTableHeadCellClassName,
+                    "w-24 text-center",
+                  )}
+                >
+                  Events
+                </th>
                 <th className={adminTableHeadCellClassName}>Last Synced</th>
-                <th className={cn(adminTableHeadCellClassName, "w-32 text-right")}>Status</th>
+                <th
+                  className={cn(adminTableHeadCellClassName, "w-32 text-right")}
+                >
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -363,7 +386,12 @@ export default function SportCategoriesManager() {
                     )}
                     onClick={() => toggleSelect(category.sportKey)}
                   >
-                    <td className={cn(adminTableCellClassName, "w-10 text-center")}>
+                    <td
+                      className={cn(
+                        adminTableCellClassName,
+                        "w-10 text-center",
+                      )}
+                    >
                       <input
                         type="checkbox"
                         checked={isSelected}
