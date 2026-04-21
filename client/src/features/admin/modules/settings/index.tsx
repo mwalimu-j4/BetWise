@@ -1,37 +1,36 @@
-import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
-import {
-  AlertTriangle,
-  ChevronRight,
-  CreditCard,
-  Loader2,
-  Eye,
-  EyeOff,
-  Percent,
-  Sparkles,
-  Search,
-  Shield,
-  Smartphone,
-  UserCog,
-  CheckCircle2,
-  Globe,
-  Lock,
-  Zap,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { api } from "@/api/axiosConfig";
-import { useAuth } from "@/context/AuthContext";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronRight,
+  CreditCard,
+  Eye,
+  EyeOff,
+  Globe,
+  Loader2,
+  Lock,
+  Percent,
+  Shield,
+  Smartphone,
+  Sparkles,
+  UserCog,
+  Zap
+} from "lucide-react";
+import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   AdminCard,
   AdminSectionHeader,
@@ -330,7 +329,6 @@ export default function Settings() {
   const queryClient = useQueryClient();
 
   const [draft, setDraft] = useState<AdminSettingsConfig | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [modalDraft, setModalDraft] = useState<AdminSettingsConfig | null>(
     null,
@@ -368,41 +366,23 @@ export default function Settings() {
     [activeSectionId],
   );
 
-  const filteredSections = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    if (!query) {
-      return sectionDefinitions;
-    }
-
-    return sectionDefinitions.filter((section) => {
-      const haystack = [
-        section.title,
-        section.subtitle,
-        ...section.fields.map((field) => field.label),
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return haystack.includes(query);
-    });
-  }, [searchTerm]);
 
   const grouped = useMemo(() => {
     return {
-      "Platform & Security": filteredSections.filter(
+      "Platform & Security": sectionDefinitions.filter(
         (section) => section.group === "Platform & Security",
       ),
-      "Financial Operations": filteredSections.filter(
+      "Financial Operations": sectionDefinitions.filter(
         (section) => section.group === "Financial Operations",
       ),
-      "Gambling Engine": filteredSections.filter(
+      "Gambling Engine": sectionDefinitions.filter(
         (section) => section.group === "Gambling Engine",
       ),
-      "Growth & Legal": filteredSections.filter(
+      "Growth & Legal": sectionDefinitions.filter(
         (section) => section.group === "Growth & Legal",
       ),
     };
-  }, [filteredSections]);
+  }, []);
 
   const modalHasChanges = useMemo(() => {
     if (!draft || !modalDraft) {
