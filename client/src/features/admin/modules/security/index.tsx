@@ -55,7 +55,6 @@ export default function SecurityWizard() {
   const [setupToken, setSetupToken] = useState<string | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [manualEntryKey, setManualEntryKey] = useState<string | null>(null);
-  const [stepOneCompleted, setStepOneCompleted] = useState(false);
 
   const statusQuery = useQuery({
     queryKey: ["admin-2fa-status"],
@@ -96,7 +95,6 @@ export default function SecurityWizard() {
     },
     onSuccess: (payload) => {
       toast.success(payload.message);
-      setStepOneCompleted(true);
       setSetupStep(2);
     },
     onError: (error: any) => {
@@ -155,7 +153,6 @@ export default function SecurityWizard() {
       : MICROSOFT_AUTHENTICATOR_FALLBACK_URL;
     window.open(url, "_blank");
     setSetupStep(2);
-    setStepOneCompleted(true);
   };
 
   if (statusQuery.isLoading) {

@@ -2,12 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
-  ArrowLeft,
   Banknote,
   ChevronRight,
   CreditCard,
   Loader2,
-  Mail,
   Eye,
   EyeOff,
   Percent,
@@ -17,10 +15,9 @@ import {
   Smartphone,
   UserCog,
   CheckCircle2,
-  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
