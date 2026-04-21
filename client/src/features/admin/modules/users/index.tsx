@@ -41,6 +41,10 @@ import {
   AdminDialogContent,
   AdminSectionHeader,
   AdminStatCard,
+  TableShell,
+  adminTableClassName,
+  adminTableHeadCellClassName,
+  adminTableCellClassName,
   adminDropdownContentClassName,
   adminDropdownItemClassName,
   adminInputClassName,
@@ -359,19 +363,16 @@ export default function Users() {
           label="Total Users"
           value={totalUsers.toLocaleString()}
           tone="blue"
-          helper="All registered accounts"
         />
         <AdminStatCard
           label="Active Users"
           value={activeUsers.toLocaleString()}
           tone="accent"
-          helper="Currently active accounts"
         />
         <AdminStatCard
           label="Banned Users"
           value={bannedUsers.toLocaleString()}
           tone="red"
-          helper="Restricted accounts"
         />
       </div>
 
@@ -453,9 +454,9 @@ export default function Users() {
         </AdminCard>
       ) : (
         <AdminCard className="overflow-hidden p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-admin-surface/30 border-b border-white/10">
+          <TableShell>
+            <table className={adminTableClassName}>
+              <thead>
                 <tr>
                   {[
                     "#",
@@ -466,10 +467,7 @@ export default function Users() {
                     "Created",
                     "",
                   ].map((heading, i) => (
-                    <th
-                      key={i}
-                      className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
-                    >
+                    <th key={i} className={adminTableHeadCellClassName}>
                       {heading}
                     </th>
                   ))}
@@ -482,13 +480,11 @@ export default function Users() {
                     className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                     onClick={() => handleUserClick(user.id)}
                   >
-                    <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                    <td className={adminTableCellClassName}>
                       {(page - 1) * 50 + index + 1}
                     </td>
-                    <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
-                      {user.phone}
-                    </td>
-                    <td className="px-3 py-3">
+                    <td className={adminTableCellClassName}>{user.phone}</td>
+                    <td className={adminTableCellClassName}>
                       <span
                         className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${
                           user.status === "active"
@@ -499,10 +495,10 @@ export default function Users() {
                         {user.status === "active" ? "Active" : "Banned"}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-sm font-semibold text-admin-accent">
+                    <td className={adminTableCellClassName}>
                       KES {user.balance.toLocaleString()}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className={adminTableCellClassName}>
                       {user.isVerified ? (
                         <span className="text-xs font-semibold text-admin-accent">
                           ✓ Yes
@@ -513,10 +509,10 @@ export default function Users() {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-xs text-admin-text-muted">
+                    <td className={adminTableCellClassName}>
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className={adminTableCellClassName}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button className="p-1 rounded hover:bg-white/10 transition-colors">
@@ -564,7 +560,7 @@ export default function Users() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableShell>
         </AdminCard>
       )}
 

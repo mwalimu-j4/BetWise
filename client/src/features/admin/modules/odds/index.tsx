@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw, Search } from "lucide-react";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import {
+  CalendarClock,
+  Loader2,
+  RefreshCw,
+  Search,
+  Trophy,
+  Zap,
+} from "lucide-react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
@@ -8,12 +15,15 @@ import {
   AdminButton,
   AdminCard,
   AdminSectionHeader,
+  AdminStatCard,
   StatusBadge,
   TableShell,
   adminTableCellClassName,
   adminTableClassName,
   adminTableHeadCellClassName,
 } from "../../components/ui";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type OddsFilter = "configured" | "configured-with-odds" | "all-with-odds";
 
@@ -188,7 +198,6 @@ export default function Odds() {
   const [configuredDropdownSearch, setConfiguredDropdownSearch] = useState("");
 
   const [stats, setStats] = useState<OddsStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(false);
 
   const [events, setEvents] = useState<OddsEvent[]>([]);
   const [listLoading, setListLoading] = useState(true);
@@ -285,14 +294,11 @@ export default function Odds() {
   }, [debouncedSearch]);
 
   async function loadStats() {
-    setStatsLoading(true);
     try {
       const response = await api.get<OddsStats>("/admin/odds/stats");
       setStats(response.data);
     } catch (error) {
       toast.error(getErrorMessage(error, "Unable to load odds stats."));
-    } finally {
-      setStatsLoading(false);
     }
   }
 
@@ -568,105 +574,58 @@ export default function Odds() {
       />
 
       {/* ── Stat cards ── */}
-      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
-        {[
-          {
-            filter: "configured" as OddsFilter,
-            label: "Configured",
-            value: stats?.totalConfigured ?? 0,
-            tone: "blue" as const,
-          },
-          {
-            filter: "configured-with-odds" as OddsFilter,
-            label: "With Odds",
-            value: stats?.withOdds ?? 0,
-            tone: "accent" as const,
-          },
-          {
-            filter: "all-with-odds" as OddsFilter,
-            label: "All w/ Odds",
-            value: stats?.withOdds ?? 0,
-            tone: "gold" as const,
-          },
-          {
-            filter: null,
-            label: "Bookmakers",
-            value: stats?.bookmakers ?? 0,
-            tone: "gold" as const,
-          },
-        ].map((metric: any) => {
-          const colorMap: Record<
-            string,
-            { bg: string; text: string; icon: string; border: string }
-          > = {
-            accent: {
-              bg: "bg-admin-accent/5",
-              text: "text-admin-accent",
-              icon: "bg-admin-accent/15 text-admin-accent",
-              border: "border-admin-accent/20",
-            },
-            blue: {
-              bg: "bg-admin-blue/5",
-              text: "text-admin-blue",
-              icon: "bg-admin-blue/15 text-admin-blue",
-              border: "border-admin-blue/20",
-            },
-            gold: {
-              bg: "bg-admin-gold/5",
-              text: "text-admin-gold",
-              icon: "bg-admin-gold/15 text-admin-gold",
-              border: "border-admin-gold/20",
-            },
-            red: {
-              bg: "bg-red-500/5",
-              text: "text-red-500",
-              icon: "bg-red-500/15 text-red-500",
-              border: "border-red-500/20",
-            },
-          };
-
-          const colors = colorMap[metric.tone] || colorMap.accent;
-          const isClickable = metric.filter !== null;
-
-          const card = (
-            <AdminCard
-              className={`border ${colors.border} p-2.5 transition hover:border-opacity-50 sm:p-3 ${
-                isClickable && activeFilter === metric.filter
-                  ? "ring-1 ring-offset-0"
-                  : ""
-              }`}
-              interactive={isClickable}
-            >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted sm:text-[9px]">
-                    {metric.label}
-                  </p>
-                  <div className={`rounded p-1 shrink-0 ${colors.icon}`}>
-                    <div className="h-3 w-3" />
-                  </div>
-                </div>
-                <p className={`text-base font-bold sm:text-lg ${colors.text}`}>
-                  {statsLoading ? "—" : metric.value}
-                </p>
-              </div>
-            </AdminCard>
-          );
-
-          return isClickable ? (
-            <button
-              key={metric.label}
-              className="h-full w-full text-left"
-              type="button"
-              onClick={() => setFilter(metric.filter!)}
-            >
-              {card}
-            </button>
-          ) : (
-            <div key={metric.label}>{card}</div>
-          );
-        })}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <AdminStatCard
+          label="Configured Events"
+          value={(stats?.totalConfigured ?? 0).toLocaleString()}
+          icon={CalendarClock}
+          tone="blue"
+        />
+        <AdminStatCard
+          label="Events with Odds"
+          value={(stats?.withOdds ?? 0).toLocaleString()}
+          icon={Zap}
+          tone="accent"
+        />
+        <AdminStatCard
+          label="Missing Odds"
+          value={(stats?.noOdds ?? 0).toLocaleString()}
+          icon={Trophy}
+          tone="red"
+        />
+        <AdminStatCard
+          label="Active Bookies"
+          value={(stats?.bookmakers ?? 0).toLocaleString()}
+          icon={RefreshCw}
+          tone="purple"
+        />
       </div>
+
+      {/* ── Filters ── */}
+      <AdminCard className="p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5">
+            {[
+              { id: "configured", label: "Configured Only" },
+              { id: "configured-with-odds", label: "Configured w/ Odds" },
+              { id: "all-with-odds", label: "All w/ Odds" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id as OddsFilter)}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold tracking-tight transition-all",
+                  activeFilter === f.id
+                    ? "border-admin-accent/30 bg-admin-accent text-black shadow-[0_0_20px_rgba(245,197,24,0.15)]"
+                    : "border-white/5 bg-white/[0.03] text-admin-text-muted hover:border-white/10 hover:bg-white/[0.06] hover:text-admin-text-primary",
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </AdminCard>
 
       {/* ── Event selectors: stacked compact panels ── */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -789,10 +748,17 @@ export default function Odds() {
               className="shrink-0 text-xs"
             >
               {bulkBookmarking ? (
-                <>
-                  <Loader2 className="animate-spin" size={12} />
+                <div className="flex items-center gap-2">
+                  <div className="h-1 w-16 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full animate-pulse bg-admin-accent"
+                      style={{
+                        width: `${(bulkProgress.current / bulkProgress.total) * 100}%`,
+                      }}
+                    />
+                  </div>
                   {`${bulkProgress.current}/${bulkProgress.total}`}
-                </>
+                </div>
               ) : (
                 <>
                   <span className="hidden sm:inline">
@@ -809,167 +775,323 @@ export default function Odds() {
           <p className="text-sm text-admin-red">{listError}</p>
         ) : null}
 
-        {listLoading ? (
-          <div className="space-y-2">
-            <div className="h-16 animate-pulse rounded bg-admin-surface" />
-            <div className="h-16 animate-pulse rounded bg-admin-surface" />
-            <div className="h-16 animate-pulse rounded bg-admin-surface" />
-          </div>
-        ) : !events.length ? (
-          <p className="text-sm text-admin-text-muted">
-            No events match the current filter.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {events.map((event) => {
-              const expanded = expandedEventId === event.eventId;
-              const oddsDetails = oddsDetailsByEventId[event.eventId];
-              const oddsLoading = Boolean(oddsLoadingByEventId[event.eventId]);
-              const oddsError = oddsErrorByEventId[event.eventId];
-
-              return (
-                <AdminCard
-                  key={event.eventId}
-                  className="space-y-2 border-admin-border bg-admin-surface p-2.5 sm:p-3"
-                >
-                  <div className="flex items-start gap-2.5">
-                    {/* checkbox */}
-                    <input
-                      checked={selectedEventIds.includes(event.eventId)}
-                      className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border-admin-border bg-admin-surface"
-                      onChange={(e) =>
-                        toggleEventSelection(event.eventId, e.target.checked)
-                      }
-                      type="checkbox"
-                    />
-
-                    {/* main info */}
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex flex-wrap items-center gap-1.5">
-                        <StatusBadge status={toBadgeStatus(event.status)} />
-                        <span className="rounded bg-admin-accent-dim px-1.5 py-0.5 text-[10px] font-semibold text-admin-accent">
-                          {event._count.odds} odds
-                        </span>
-                        <span className="text-[10px] text-admin-text-muted">
-                          {event.leagueName ?? "Unknown league"}
-                        </span>
-                      </div>
-                      <p className="text-sm font-semibold leading-snug text-admin-text-primary">
-                        {event.homeTeam}{" "}
-                        <span className="text-admin-text-muted">vs</span>{" "}
-                        {event.awayTeam}
-                      </p>
-                      <p className="mt-0.5 text-[10px] text-admin-text-muted">
-                        {new Date(event.commenceTime).toLocaleString()}
-                      </p>
-                    </div>
-
-                    {/* action buttons — stacked on mobile, row on sm+ */}
-                    <div className="flex shrink-0 flex-col gap-1.5 sm:flex-row sm:items-center">
-                      <AdminButton
-                        size="sm"
-                        className="px-2.5 text-xs"
-                        variant="ghost"
-                        onClick={() => void handleViewOdds(event.eventId)}
-                      >
-                        {expanded ? "Hide" : "Odds"}
-                      </AdminButton>
-                      <AdminButton
-                        size="sm"
-                        className="px-2.5 text-xs"
-                        onClick={() => void handleBookmarkSingle(event.eventId)}
-                        disabled={Boolean(bookmarkingEventIds[event.eventId])}
-                      >
-                        {bookmarkingEventIds[event.eventId] ? (
-                          <Loader2 className="animate-spin" size={12} />
-                        ) : bookmarkedEventIds[event.eventId] ? (
-                          "Saved ✓"
-                        ) : (
-                          "Bookmark"
-                        )}
-                      </AdminButton>
-                    </div>
-                  </div>
-
-                  {expanded ? (
-                    <div className="rounded-lg border border-admin-border bg-admin-card p-2.5">
-                      {oddsLoading ? (
-                        <div className="space-y-2">
-                          <div className="h-7 animate-pulse rounded bg-admin-surface" />
-                          <div className="h-7 animate-pulse rounded bg-admin-surface" />
-                        </div>
-                      ) : oddsError ? (
-                        <p className="text-xs text-admin-red">{oddsError}</p>
-                      ) : !oddsDetails ? (
-                        <p className="text-xs text-admin-text-muted">
-                          No odds data available.
-                        </p>
-                      ) : (
-                        <TableShell>
-                          <table className={`${adminTableClassName} min-w-170`}>
-                            <thead>
-                              <tr>
-                                {[
-                                  "Bookmaker",
-                                  "Market",
-                                  "Selection",
-                                  "Odds",
-                                  "Updated",
-                                ].map((heading) => (
-                                  <th
-                                    key={heading}
-                                    className={adminTableHeadCellClassName}
-                                  >
-                                    {heading}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {oddsDetails.markets.flatMap((market) =>
-                                market.odds.map((row, index) => (
-                                  <tr
-                                    key={`${market.marketType}-${row.bookmakerId}-${row.selection}-${index}`}
-                                  >
-                                    <td
-                                      className={`${adminTableCellClassName} text-admin-text-primary`}
-                                    >
-                                      {row.bookmakerName}
-                                    </td>
-                                    <td className={adminTableCellClassName}>
-                                      {market.marketType}
-                                    </td>
-                                    <td className={adminTableCellClassName}>
-                                      {row.selection}
-                                    </td>
-                                    <td className={adminTableCellClassName}>
-                                      <span
-                                        className={
-                                          row.isBest
-                                            ? "rounded bg-yellow-300 px-2 py-0.5 font-bold text-black"
-                                            : "text-admin-text-secondary"
-                                        }
-                                      >
-                                        {row.odds.toFixed(2)}
-                                      </span>
-                                    </td>
-                                    <td className={adminTableCellClassName}>
-                                      {new Date(row.updatedAt).toLocaleString()}
-                                    </td>
-                                  </tr>
-                                )),
-                              )}
-                            </tbody>
-                          </table>
-                        </TableShell>
+        <AdminCard className="overflow-hidden p-0">
+          {listLoading && !events.length ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-6 w-6 animate-spin text-admin-accent" />
+            </div>
+          ) : !events.length ? (
+            <div className="py-20 text-center">
+              <Trophy className="mx-auto h-8 w-8 mb-3 text-admin-text-muted opacity-50" />
+              <p className="text-sm text-admin-text-muted">
+                No events match the current filter.
+              </p>
+            </div>
+          ) : (
+            <TableShell>
+              <table className={adminTableClassName}>
+                <thead>
+                  <tr>
+                    <th
+                      className={cn(
+                        adminTableHeadCellClassName,
+                        "w-10 text-center",
                       )}
-                    </div>
-                  ) : null}
-                </AdminCard>
-              );
-            })}
-          </div>
-        )}
+                    >
+                      <input
+                        checked={
+                          selectedEventIds.length === events.length &&
+                          events.length > 0
+                        }
+                        className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
+                        onChange={(e) => {
+                          if (e.target.checked)
+                            setSelectedEventIds(events.map((ev) => ev.eventId));
+                          else setSelectedEventIds([]);
+                        }}
+                        type="checkbox"
+                      />
+                    </th>
+                    <th className={adminTableHeadCellClassName}>Status</th>
+                    <th className={adminTableHeadCellClassName}>Event</th>
+                    <th
+                      className={cn(
+                        adminTableHeadCellClassName,
+                        "text-center w-24",
+                      )}
+                    >
+                      Odds
+                    </th>
+                    <th
+                      className={cn(
+                        adminTableHeadCellClassName,
+                        "text-right w-40",
+                      )}
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {events.map((event) => {
+                    const expanded = expandedEventId === event.eventId;
+                    const oddsDetails = oddsDetailsByEventId[event.eventId];
+                    const oddsLoading = Boolean(
+                      oddsLoadingByEventId[event.eventId],
+                    );
+                    const oddsError = oddsErrorByEventId[event.eventId];
+
+                    return (
+                      <Fragment key={event.eventId}>
+                        <tr
+                          className={cn(
+                            "group transition-colors duration-200",
+                            expanded
+                              ? "bg-white/[0.04]"
+                              : "hover:bg-white/[0.02]",
+                          )}
+                        >
+                          <td
+                            className={cn(
+                              adminTableCellClassName,
+                              "w-10 text-center",
+                            )}
+                          >
+                            <input
+                              checked={selectedEventIds.includes(event.eventId)}
+                              className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
+                              onChange={(e) =>
+                                toggleEventSelection(
+                                  event.eventId,
+                                  e.target.checked,
+                                )
+                              }
+                              type="checkbox"
+                            />
+                          </td>
+                          <td className={cn(adminTableCellClassName, "w-24")}>
+                            <StatusBadge status={toBadgeStatus(event.status)} />
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-admin-text-primary leading-tight">
+                                {event.homeTeam} vs {event.awayTeam}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5 text-[10px] text-admin-text-muted">
+                                <span>
+                                  {event.leagueName ?? "Unknown league"}
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  {new Date(
+                                    event.commenceTime,
+                                  ).toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td
+                            className={cn(
+                              adminTableCellClassName,
+                              "text-center",
+                            )}
+                          >
+                            <span className="rounded bg-admin-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-admin-accent border border-admin-accent/20">
+                              {event._count.odds}
+                            </span>
+                          </td>
+                          <td
+                            className={cn(
+                              adminTableCellClassName,
+                              "text-right",
+                            )}
+                          >
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 text-[11px] text-admin-text-primary hover:bg-white/5"
+                                onClick={() =>
+                                  void handleViewOdds(event.eventId)
+                                }
+                              >
+                                {expanded ? "Hide" : "View"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={
+                                  bookmarkedEventIds[event.eventId]
+                                    ? "ghost"
+                                    : "outline"
+                                }
+                                className={cn(
+                                  "h-7 px-2 text-[11px] transition-all",
+                                  bookmarkedEventIds[event.eventId]
+                                    ? "text-admin-accent bg-admin-accent/5 hover:bg-admin-accent/10"
+                                    : "border-admin-border text-admin-text-primary hover:bg-white/5",
+                                )}
+                                onClick={() =>
+                                  void handleBookmarkSingle(event.eventId)
+                                }
+                                disabled={Boolean(
+                                  bookmarkingEventIds[event.eventId],
+                                )}
+                              >
+                                {bookmarkingEventIds[event.eventId] ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : bookmarkedEventIds[event.eventId] ? (
+                                  "Saved ✓"
+                                ) : (
+                                  "Bookmark"
+                                )}
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+
+                        {expanded && (
+                          <tr className="bg-white/[0.04]">
+                            <td
+                              colSpan={5}
+                              className="px-3 py-3 border-t border-white/5"
+                            >
+                              <div className="rounded-lg border border-white/5 bg-[#0b1426]/50 p-3 shadow-inner">
+                                {oddsLoading ? (
+                                  <div className="flex items-center justify-center py-6">
+                                    <Loader2 className="h-4 w-4 animate-spin text-admin-accent" />
+                                  </div>
+                                ) : oddsError ? (
+                                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
+                                    <p className="text-xs text-red-400 text-center">
+                                      {oddsError}
+                                    </p>
+                                  </div>
+                                ) : !oddsDetails ? (
+                                  <p className="text-xs text-admin-text-muted text-center py-4">
+                                    No odds data available.
+                                  </p>
+                                ) : (
+                                  <TableShell>
+                                    <table
+                                      className={cn(
+                                        adminTableClassName,
+                                        "text-[11px]",
+                                      )}
+                                    >
+                                      <thead>
+                                        <tr>
+                                          <th
+                                            className={
+                                              adminTableHeadCellClassName
+                                            }
+                                          >
+                                            Bookmaker
+                                          </th>
+                                          <th
+                                            className={
+                                              adminTableHeadCellClassName
+                                            }
+                                          >
+                                            Market
+                                          </th>
+                                          <th
+                                            className={
+                                              adminTableHeadCellClassName
+                                            }
+                                          >
+                                            Selection
+                                          </th>
+                                          <th
+                                            className={cn(
+                                              adminTableHeadCellClassName,
+                                              "w-16",
+                                            )}
+                                          >
+                                            Odds
+                                          </th>
+                                          <th
+                                            className={
+                                              adminTableHeadCellClassName
+                                            }
+                                          >
+                                            Updated
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-white/5">
+                                        {oddsDetails.markets.flatMap((market) =>
+                                          market.odds.map((row, index) => (
+                                            <tr
+                                              key={`${market.marketType}-${row.bookmakerId}-${row.selection}-${index}`}
+                                            >
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                {row.bookmakerName}
+                                              </td>
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                {market.marketType}
+                                              </td>
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                {row.selection}
+                                              </td>
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                <span
+                                                  className={
+                                                    row.isBest
+                                                      ? "font-bold text-admin-accent"
+                                                      : ""
+                                                  }
+                                                >
+                                                  {row.odds.toFixed(2)}
+                                                </span>
+                                              </td>
+                                              <td
+                                                className={
+                                                  adminTableCellClassName
+                                                }
+                                              >
+                                                {new Date(
+                                                  row.updatedAt,
+                                                ).toLocaleTimeString([], {
+                                                  hour: "2-digit",
+                                                  minute: "2-digit",
+                                                  second: "2-digit",
+                                                })}
+                                              </td>
+                                            </tr>
+                                          )),
+                                        )}
+                                      </tbody>
+                                    </table>
+                                  </TableShell>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </TableShell>
+          )}
+        </AdminCard>
 
         {/* Pagination */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -999,7 +1121,7 @@ export default function Odds() {
                     type="button"
                     className={`h-7 min-w-7 rounded px-1.5 text-xs font-semibold ${
                       item === currentPage
-                        ? "bg-yellow-300 text-black"
+                        ? "bg-admin-accent text-black"
                         : "border border-admin-border text-admin-text-secondary"
                     }`}
                   >
