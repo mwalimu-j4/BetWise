@@ -67,7 +67,11 @@ type SectionDefinition = {
   id: string;
   title: string;
   subtitle: string;
-  group: "System" | "Operations" | "Risk & Compliance" | "Commercial";
+  group:
+    | "Platform & Security"
+    | "Financial Operations"
+    | "Gambling Engine"
+    | "Growth & Legal";
   icon: ReactNode;
   fields: FieldDefinition[];
 };
@@ -181,45 +185,6 @@ function setByPath<T extends object>(obj: T, path: string, value: unknown): T {
 
 const sectionDefinitions: SectionDefinition[] = [
   {
-    id: "general",
-    title: "General System Config",
-    subtitle: "Platform identity, environment, and access controls",
-    group: "Platform & Security",
-    icon: <Building2 size={16} />,
-    fields: [
-      {
-        path: "generalSystemConfig.platformName",
-        label: "Platform name",
-        type: "text",
-      },
-      {
-        path: "generalSystemConfig.environment",
-        label: "Environment",
-        type: "select",
-        options: [
-          { label: "Sandbox", value: "sandbox" },
-          { label: "Live", value: "live" },
-        ],
-      },
-      {
-        path: "generalSystemConfig.defaultCurrency",
-        label: "Default currency",
-        type: "text",
-      },
-      { path: "generalSystemConfig.timezone", label: "Timezone", type: "text" },
-      {
-        path: "generalSystemConfig.maintenanceMode",
-        label: "Maintenance mode",
-        type: "switch",
-      },
-      {
-        path: "generalSystemConfig.registrationEnabled",
-        label: "Registration enabled",
-        type: "switch",
-      },
-    ],
-  },
-  {
     id: "user-defaults",
     title: "User Defaults & Restrictions",
     subtitle: "Wallet defaults, limits, and account verification rules",
@@ -255,51 +220,6 @@ const sectionDefinitions: SectionDefinition[] = [
         path: "userDefaultsAndRestrictions.maxActiveBetsPerUser",
         label: "Max active bets per user",
         type: "number",
-      },
-    ],
-  },
-  {
-    id: "kyc",
-    title: "KYC / Compliance Config",
-    subtitle: "Identity checks, age gate, and geo restrictions",
-    group: "Gambling Engine",
-    icon: <Shield size={16} />,
-    fields: [
-      {
-        path: "kycAndComplianceConfig.kycRequired",
-        label: "KYC required",
-        type: "switch",
-      },
-      {
-        path: "kycAndComplianceConfig.requiredFields.id",
-        label: "Require ID",
-        type: "switch",
-      },
-      {
-        path: "kycAndComplianceConfig.requiredFields.phone",
-        label: "Require phone",
-        type: "switch",
-      },
-      {
-        path: "kycAndComplianceConfig.requiredFields.email",
-        label: "Require email",
-        type: "switch",
-      },
-      {
-        path: "kycAndComplianceConfig.withdrawalRequiresKyc",
-        label: "Withdrawal requires KYC",
-        type: "switch",
-      },
-      {
-        path: "kycAndComplianceConfig.minimumAge",
-        label: "Age restriction",
-        type: "number",
-      },
-      {
-        path: "kycAndComplianceConfig.allowedCountries",
-        label: "Allowed countries",
-        type: "list",
-        hint: "Use comma or newline separated ISO country codes, for example KE, UG, TZ",
       },
     ],
   },
@@ -395,287 +315,6 @@ const sectionDefinitions: SectionDefinition[] = [
     ],
   },
   {
-    id: "betting-engine",
-    title: "Betting Engine Config",
-    subtitle: "Staking boundaries, odds behavior, and live controls",
-    group: "Gambling Engine",
-    icon: <Wrench size={16} />,
-    fields: [
-      {
-        path: "bettingEngineConfig.minBetAmount",
-        label: "Minimum bet amount",
-        type: "number",
-      },
-      {
-        path: "bettingEngineConfig.maxBetAmount",
-        label: "Maximum bet amount",
-        type: "number",
-      },
-      {
-        path: "bettingEngineConfig.maxWinPerBet",
-        label: "Max win per bet",
-        type: "number",
-      },
-      {
-        path: "bettingEngineConfig.oddsMarginPercent",
-        label: "Odds margin (%)",
-        type: "number",
-      },
-      {
-        path: "bettingEngineConfig.betDelayMs",
-        label: "Bet delay (ms)",
-        type: "number",
-      },
-      {
-        path: "bettingEngineConfig.cashoutEnabled",
-        label: "Cashout enabled",
-        type: "switch",
-      },
-      {
-        path: "bettingEngineConfig.cashoutMarginPercent",
-        label: "Cashout margin (%)",
-        type: "number",
-      },
-      {
-        path: "bettingEngineConfig.allowLiveBetting",
-        label: "Allow live betting",
-        type: "switch",
-      },
-    ],
-  },
-  {
-    id: "risk",
-    title: "Risk Management Config",
-    subtitle:
-      "Exposure controls, payout risk, and suspicious activity handling",
-    group: "Gambling Engine",
-    icon: <Shield size={16} />,
-    fields: [
-      {
-        path: "riskManagementConfig.maxExposurePerEvent",
-        label: "Max exposure per event",
-        type: "number",
-      },
-      {
-        path: "riskManagementConfig.maxExposurePerMarket",
-        label: "Max exposure per market",
-        type: "number",
-      },
-      {
-        path: "riskManagementConfig.maxPayoutPerDay",
-        label: "Max payout per day",
-        type: "number",
-      },
-      {
-        path: "riskManagementConfig.highRiskBetThreshold",
-        label: "High-risk bet threshold",
-        type: "number",
-      },
-      {
-        path: "riskManagementConfig.autoBlockSuspiciousUsers",
-        label: "Auto-block suspicious users",
-        type: "switch",
-      },
-    ],
-  },
-  {
-    id: "bonus",
-    title: "Bonuses & Promotions Config",
-    subtitle: "Welcome rewards, wagering rules, and cashback policies",
-    group: "Growth & Legal",
-    icon: <TicketPercent size={16} />,
-    fields: [
-      {
-        path: "bonusesAndPromotionsConfig.welcomeBonusEnabled",
-        label: "Welcome bonus enabled",
-        type: "switch",
-      },
-      {
-        path: "bonusesAndPromotionsConfig.bonusMode",
-        label: "Bonus mode",
-        type: "select",
-        options: [
-          { label: "Fixed amount", value: "fixed_amount" },
-          { label: "Percentage", value: "percentage" },
-        ],
-      },
-      {
-        path: "bonusesAndPromotionsConfig.bonusAmount",
-        label: "Bonus amount",
-        type: "number",
-      },
-      {
-        path: "bonusesAndPromotionsConfig.bonusPercent",
-        label: "Bonus percentage",
-        type: "number",
-      },
-      {
-        path: "bonusesAndPromotionsConfig.wageringRequirementMultiplier",
-        label: "Wagering requirement (x)",
-        type: "number",
-      },
-      {
-        path: "bonusesAndPromotionsConfig.bonusExpiryHours",
-        label: "Bonus expiry (hours)",
-        type: "number",
-      },
-      {
-        path: "bonusesAndPromotionsConfig.maxBonusPerUser",
-        label: "Max bonus per user",
-        type: "number",
-      },
-      {
-        path: "bonusesAndPromotionsConfig.cashbackRule",
-        label: "Cashback rules",
-        type: "textarea",
-      },
-    ],
-  },
-  {
-    id: "notifications",
-    title: "Notifications Config",
-    subtitle: "Event messaging channels for users and admins",
-    group: "Platform & Security",
-    icon: <Bell size={16} />,
-    fields: [
-      {
-        path: "notificationsConfig.smsEnabled",
-        label: "SMS enabled",
-        type: "switch",
-      },
-      {
-        path: "notificationsConfig.emailEnabled",
-        label: "Email enabled",
-        type: "switch",
-      },
-      {
-        path: "notificationsConfig.events.depositSuccess",
-        label: "Deposit success",
-        type: "switch",
-      },
-      {
-        path: "notificationsConfig.events.withdrawalSuccess",
-        label: "Withdrawal success",
-        type: "switch",
-      },
-      {
-        path: "notificationsConfig.events.betPlaced",
-        label: "Bet placed",
-        type: "switch",
-      },
-      {
-        path: "notificationsConfig.events.betResult",
-        label: "Bet won/lost",
-        type: "switch",
-      },
-      {
-        path: "notificationsConfig.events.adminAlerts",
-        label: "Admin alerts",
-        type: "switch",
-      },
-    ],
-  },
-  {
-    id: "api",
-    title: "API & Integrations",
-    subtitle: "Provider connectivity, webhook delivery, and retry strategy",
-    group: "Platform & Security",
-    icon: <Globe2 size={16} />,
-    fields: [
-      {
-        path: "apiAndIntegrationsConfig.sportsApiKey",
-        label: "Sports API key",
-        type: "text",
-      },
-      {
-        path: "apiAndIntegrationsConfig.oddsProviderName",
-        label: "Odds provider",
-        type: "text",
-      },
-      {
-        path: "apiAndIntegrationsConfig.primaryWebhookUrl",
-        label: "Primary webhook URL",
-        type: "text",
-      },
-      {
-        path: "apiAndIntegrationsConfig.fallbackWebhookUrl",
-        label: "Fallback webhook URL",
-        type: "text",
-      },
-      {
-        path: "apiAndIntegrationsConfig.retryAttempts",
-        label: "Retry attempts",
-        type: "number",
-      },
-      {
-        path: "apiAndIntegrationsConfig.retryBackoffMs",
-        label: "Retry backoff (ms)",
-        type: "number",
-      },
-      {
-        path: "apiAndIntegrationsConfig.requestsPerMinute",
-        label: "Rate limit (requests/min)",
-        type: "number",
-      },
-    ],
-  },
-  {
-    id: "security",
-    title: "Security Config",
-    subtitle: "Authentication, password policy, and session controls",
-    group: "Platform & Security",
-    icon: <Lock size={16} />,
-    fields: [
-      {
-        path: "securityConfig.adminTwoFactorRequired",
-        label: "Admin 2FA required",
-        type: "switch",
-      },
-      {
-        path: "securityConfig.passwordMinLength",
-        label: "Password minimum length",
-        type: "number",
-      },
-      {
-        path: "securityConfig.requireUppercase",
-        label: "Require uppercase",
-        type: "switch",
-      },
-      {
-        path: "securityConfig.requireNumber",
-        label: "Require number",
-        type: "switch",
-      },
-      {
-        path: "securityConfig.requireSpecialChar",
-        label: "Require special character",
-        type: "switch",
-      },
-      {
-        path: "securityConfig.sessionTimeoutMinutes",
-        label: "Session timeout (minutes)",
-        type: "number",
-      },
-      {
-        path: "securityConfig.maxLoginAttempts",
-        label: "Login attempt limits",
-        type: "number",
-      },
-      {
-        path: "securityConfig.ipWhitelist",
-        label: "IP whitelist",
-        type: "list",
-        hint: "Use comma or newline separated IPs",
-      },
-      {
-        path: "securityConfig.ipBlacklist",
-        label: "IP blacklist",
-        type: "list",
-        hint: "Use comma or newline separated IPs",
-      },
-    ],
-  },
-  {
     id: "tax",
     title: "Tax & Financial Rules",
     subtitle: "Taxation, commissions, and rounding policy",
@@ -737,35 +376,6 @@ const sectionDefinitions: SectionDefinition[] = [
         path: "affiliateAndAgentConfig.withdrawalRule",
         label: "Affiliate withdrawal rules",
         type: "textarea",
-      },
-    ],
-  },
-  {
-    id: "legal",
-    title: "Content & Legal",
-    subtitle: "Legal copy and player-facing support information",
-    group: "Growth & Legal",
-    icon: <FileText size={16} />,
-    fields: [
-      {
-        path: "contentAndLegal.termsAndConditions",
-        label: "Terms & Conditions",
-        type: "textarea",
-      },
-      {
-        path: "contentAndLegal.privacyPolicy",
-        label: "Privacy Policy",
-        type: "textarea",
-      },
-      {
-        path: "contentAndLegal.responsibleGamblingMessage",
-        label: "Responsible gambling message",
-        type: "textarea",
-      },
-      {
-        path: "contentAndLegal.supportContactInfo",
-        label: "Support contact info",
-        type: "text",
       },
     ],
   },
@@ -1379,7 +989,7 @@ export default function Settings() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-admin-border bg-admin-surface px-3 py-1.5 text-xs text-admin-text-secondary">
             <Sparkles size={12} className="text-admin-accent" />
-            <span>13 configuration modules</span>
+            <span>4 configuration modules</span>
           </div>
           <div className="relative w-full max-w-70">
             <Search
