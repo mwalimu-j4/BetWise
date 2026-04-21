@@ -117,10 +117,13 @@ function FinancialReportsTab() {
             <YAxis tick={{ fill: "#999", fontSize: 12 }} />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#1e1e1e",
-                border: "1px solid #444",
-                borderRadius: "8px",
+                backgroundColor: "rgba(11,20,38,0.95)",
+                border: "1px solid rgba(59,130,246,0.15)",
+                borderRadius: "16px",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                backdropFilter: "blur(10px)",
               }}
+              labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
             />
             <Bar dataKey="value" fill="#3b82f6" name="Amount (KES 000s)" />
           </BarChart>
@@ -225,10 +228,13 @@ function BettingReportsTab() {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#1e1e1e",
-                  border: "1px solid #444",
-                  borderRadius: "8px",
+                  backgroundColor: "rgba(11,20,38,0.95)",
+                  border: "1px solid rgba(245,197,24,0.15)",
+                  borderRadius: "16px",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                  backdropFilter: "blur(10px)",
                 }}
+                labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -312,12 +318,11 @@ function UsersReportsTab() {
         ))}
       </div>
 
-      <AdminCard className="space-y-4">
-        <h3 className="font-semibold text-admin-text-primary">Top Bettors</h3>
+      <AdminCard className="overflow-hidden p-0">
         <TableShell>
           <table className={adminTableClassName}>
             <thead>
-              <tr className="border-b border-admin-border">
+              <tr>
                 <th className={adminTableHeadCellClassName}>Email</th>
                 <th className={adminTableHeadCellClassName}>Name</th>
                 <th className={`${adminTableHeadCellClassName} text-right`}>
@@ -327,10 +332,7 @@ function UsersReportsTab() {
             </thead>
             <tbody>
               {data.topBettors.map((bettor) => (
-                <tr
-                  key={bettor.id}
-                  className="border-b border-admin-border/50 hover:bg-admin-surface/50"
-                >
+                <tr key={bettor.id}>
                   <td className={adminTableCellClassName} title={bettor.email}>
                     {truncateEmailForTable(bettor.email)}
                   </td>
@@ -434,10 +436,13 @@ function RiskReportsTab() {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#1e1e1e",
-                  border: "1px solid #444",
-                  borderRadius: "8px",
+                  backgroundColor: "rgba(11,20,38,0.95)",
+                  border: "1px solid rgba(245,197,24,0.15)",
+                  borderRadius: "16px",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                  backdropFilter: "blur(10px)",
                 }}
+                labelStyle={{ color: "#ffffff", fontWeight: 700, marginBottom: "4px" }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -492,10 +497,10 @@ function RiskReportsTab() {
                     </td>
                     <td className={adminTableCellClassName}>
                       <span
-                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                        className={`rounded-xl px-2.5 py-1 text-[10px] font-bold tracking-wider ${
                           alert.severity === "CRITICAL"
-                            ? "bg-red-500/20 text-red-400"
-                            : "bg-orange-500/20 text-orange-400"
+                            ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                            : "bg-orange-500/10 text-orange-400 border border-orange-500/20"
                         }`}
                       >
                         {alert.severity}

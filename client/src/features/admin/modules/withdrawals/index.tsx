@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
+import { cn } from "@/lib/utils";
 import {
   AdminButton,
   AdminCard,
@@ -21,6 +22,9 @@ import {
   adminDropdownContentClassName,
   adminDropdownItemClassName,
   adminInputClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
+  adminTableCellClassName,
 } from "../../components/ui";
 import {
   Dialog,
@@ -280,12 +284,12 @@ export default function WithdrawalsAdmin() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as FilterStatus)}
-              className="rounded-2xl border border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] bg-admin-surface/55 px-3.5 py-2.5 text-sm text-admin-text-primary outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition hover:border-admin-accent/50"
+              className="rounded-xl border border-white/5 bg-black/40 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-admin-text-primary transition-all hover:border-admin-accent/40 focus:border-admin-accent/60 focus:outline-none focus:ring-4 focus:ring-admin-accent/5"
             >
-              <option value="PENDING">Pending</option>
-              <option value="PROCESSING">Processing</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="FAILED">Failed</option>
+              <option value="PENDING" className="bg-[#0b1426]">Pending</option>
+              <option value="PROCESSING" className="bg-[#0b1426]">Processing</option>
+              <option value="COMPLETED" className="bg-[#0b1426]">Completed</option>
+              <option value="FAILED" className="bg-[#0b1426]">Failed</option>
             </select>
             <AdminButton variant="ghost" onClick={handleExportCSV}>
               <Download size={13} className="mr-2" />
@@ -302,12 +306,11 @@ export default function WithdrawalsAdmin() {
             label={metric.label}
             value={metric.value}
             tone={metric.tone}
-            helper="Queues and processed requests synced from the payouts pipeline"
           />
         ))}
       </div>
 
-      <AdminCard>
+      <AdminCard className="overflow-hidden p-0">
         <TableShell>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
@@ -318,8 +321,8 @@ export default function WithdrawalsAdmin() {
               No {statusFilter.toLowerCase()} withdrawals found.
             </div>
           ) : (
-            <table className="w-full">
-              <thead className="bg-admin-surface/30 border-b border-white/10">
+            <table className={adminTableClassName}>
+              <thead>
                 <tr>
                   {[
                     "#",
@@ -333,7 +336,7 @@ export default function WithdrawalsAdmin() {
                   ].map((heading, i) => (
                     <th
                       key={i}
-                      className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
+                      className={adminTableHeadCellClassName}
                     >
                       {heading}
                     </th>
@@ -347,29 +350,29 @@ export default function WithdrawalsAdmin() {
                     className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
                     onClick={() => openDetails(withdrawal)}
                   >
-                    <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                    <td className={cn(adminTableCellClassName, "font-mono")}>
                       {index + 1}
                     </td>
-                    <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                    <td className={cn(adminTableCellClassName, "font-mono")}>
                       {withdrawal.userPhone}
                     </td>
-                    <td className="px-3 py-3 text-sm text-admin-accent">
+                    <td className={cn(adminTableCellClassName, "text-admin-accent")}>
                       {formatCurrency(withdrawal.amount)}
                     </td>
-                    <td className="px-3 py-3 text-sm text-admin-text-primary">
+                    <td className={adminTableCellClassName}>
                       {formatCurrency(withdrawal.fee)}
                     </td>
-                    <td className="px-3 py-3 text-sm text-admin-text-primary">
+                    <td className={adminTableCellClassName}>
                       {formatCurrency(withdrawal.totalDebit)}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className={adminTableCellClassName}>
                       <StatusBadge status={withdrawal.status} />
                     </td>
-                    <td className="px-3 py-3 text-xs text-admin-text-muted">
+                    <td className={cn(adminTableCellClassName, "text-xs text-admin-text-muted")}>
                       {formatDateTime(withdrawal.createdAt)}
                     </td>
                     <td
-                      className="px-3 py-3"
+                      className={adminTableCellClassName}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <DropdownMenu>
