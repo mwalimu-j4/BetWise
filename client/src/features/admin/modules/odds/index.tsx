@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, RefreshCw, Search } from "lucide-react";
+import { 
+  CalendarClock, 
+  Loader2, 
+  RefreshCw, 
+  Search, 
+  Trophy, 
+  Zap 
+} from "lucide-react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
@@ -8,12 +15,14 @@ import {
   AdminButton,
   AdminCard,
   AdminSectionHeader,
+  AdminStatCard,
   StatusBadge,
   TableShell,
   adminTableCellClassName,
   adminTableClassName,
   adminTableHeadCellClassName,
 } from "../../components/ui";
+import { cn } from "@/lib/utils";
 
 type OddsFilter = "configured" | "configured-with-odds" | "all-with-odds";
 

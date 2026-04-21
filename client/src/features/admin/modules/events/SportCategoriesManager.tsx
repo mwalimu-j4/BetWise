@@ -1,7 +1,6 @@
 import { api } from "@/api/axiosConfig";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
@@ -15,6 +14,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
+  AdminCard,
   AdminSectionHeader,
   AdminStatCard,
 } from "../../components/ui";
