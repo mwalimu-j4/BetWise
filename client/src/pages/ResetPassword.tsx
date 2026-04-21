@@ -1,14 +1,16 @@
 import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { api } from "@/api/axiosConfig";
 import AuthCard from "@/components/auth/AuthCard";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 
+const STRONG_PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,128}$/;
+
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as { token?: string };
-  const token = typeof search.token === "string" ? search.token : "";
+  const token = new URLSearchParams(window.location.search).get("token") ?? "";
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -16,11 +18,51 @@ export default function ResetPasswordPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  useEffect(() => {
+    if (!token) {
+      void navigate({ to: "/forgot-password" });
+    }
+  }, [navigate, token]);
+
+  const passwordValidationError = useMemo(() => {
+    if (!newPassword) {
+      return "";
+    }
+
+    if (!STRONG_PASSWORD_REGEX.test(newPassword)) {
+      return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+    }
+
+    return "";
+  }, [newPassword]);
+
+  const confirmValidationError = useMemo(() => {
+    if (!confirmPassword) {
+      return "";
+    }
+
+    if (newPassword !== confirmPassword) {
+      return "Passwords do not match.";
+    }
+
+    return "";
+  }, [confirmPassword, newPassword]);
+
   const canSubmit = useMemo(() => {
     return (
-      token.length > 0 && newPassword.length > 0 && confirmPassword.length > 0
+      token.length > 0 &&
+      newPassword.length > 0 &&
+      confirmPassword.length > 0 &&
+      !passwordValidationError &&
+      !confirmValidationError
     );
-  }, [confirmPassword.length, newPassword.length, token.length]);
+  }, [
+    confirmPassword.length,
+    confirmValidationError,
+    newPassword.length,
+    passwordValidationError,
+    token.length,
+  ]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,18 +78,23 @@ export default function ResetPasswordPage() {
         {
           token,
           newPassword,
-          confirmPassword,
         },
       );
       setSuccessMessage(data.message);
       setTimeout(() => {
         void navigate({ to: "/" });
-      }, 1200);
+      }, 2000);
     } catch (error: unknown) {
       const apiMessage = (
-        error as { response?: { data?: { message?: string } } }
+        error as { response?: { data?: { error?: string; message?: string } } }
+      )?.response?.data?.error;
+      const fallbackMessage = (
+        error as { response?: { data?: { error?: string; message?: string } } }
       )?.response?.data?.message;
       setErrorMessage(apiMessage ?? "Unable to reset password.");
+      if (!apiMessage && fallbackMessage) {
+        setErrorMessage(fallbackMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -56,30 +103,26 @@ export default function ResetPasswordPage() {
   return (
     <AuthCard
       title="Reset password"
-      subtitle="Set your new password."
-      backTo="/"
-      backLabel="Back to home"
+      subtitle="Set your new password securely."
+      backTo="/forgot-password"
+      backLabel="Back"
       footer={
         <p className="text-center text-xs text-admin-text-muted">
           Back to{" "}
           <Link className="font-semibold text-admin-accent" to="/">
-            home
+            login
           </Link>
         </p>
       }
     >
-      {!token ? (
-        <p className="mt-2 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] p-2.5 text-xs text-admin-text-muted">
-          Missing reset token. Open the reset link from your email.
-        </p>
-      ) : (
+      {!token ? null : (
         <form className="mt-1 grid gap-2.5" onSubmit={handleSubmit}>
           <div className="grid gap-1">
             <label
               className="text-xs font-medium text-admin-text-primary"
               htmlFor="new-password"
             >
-              New password
+              New Password
             </label>
             <input
               id="new-password"
@@ -90,6 +133,9 @@ export default function ResetPasswordPage() {
               className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
             />
             <PasswordStrengthIndicator password={newPassword} />
+            {passwordValidationError ? (
+              <p className="text-xs text-red-400">{passwordValidationError}</p>
+            ) : null}
           </div>
 
           <div className="grid gap-1">
@@ -97,7 +143,7 @@ export default function ResetPasswordPage() {
               className="text-xs font-medium text-admin-text-primary"
               htmlFor="confirm-password"
             >
-              Confirm new password
+              Confirm Password
             </label>
             <input
               id="confirm-password"
@@ -107,6 +153,9 @@ export default function ResetPasswordPage() {
               onChange={(event) => setConfirmPassword(event.target.value)}
               className="h-9 rounded-lg border border-admin-border bg-[var(--color-bg-elevated)] px-2.5 text-xs text-admin-text-primary outline-none"
             />
+            {confirmValidationError ? (
+              <p className="text-xs text-red-400">{confirmValidationError}</p>
+            ) : null}
           </div>
 
           <button
@@ -114,7 +163,7 @@ export default function ResetPasswordPage() {
             disabled={!canSubmit || loading}
             className="h-9 rounded-lg bg-admin-accent text-xs font-semibold text-[var(--color-text-dark)] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Resetting..." : "Reset password"}
+            {loading ? "Resetting..." : "Reset Password"}
           </button>
         </form>
       )}
