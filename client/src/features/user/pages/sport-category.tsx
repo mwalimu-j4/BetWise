@@ -485,69 +485,41 @@ export default function SportCategoryPage() {
                   </div>
                 ) : (
                   <div className="space-y-3 sm:space-y-4">
-<<<<<<< HEAD
                     {Object.entries(groupedEvents).map(
                       ([leagueName, leagueEvents]) => (
-                        <section
-                          key={leagueName}
-                          className="overflow-hidden rounded-xl border border-[#1e3350]/40 bg-[#0c1625] sm:rounded-2xl"
-                        >
-                          <div className="flex items-center justify-between gap-2 border-b border-[#1e3350]/30 bg-gradient-to-r from-[#101d30] to-[#0f1a2d] px-2.5 py-2 sm:px-3.5 sm:py-2.5">
-                            <div className="flex min-w-0 items-center gap-1.5">
-                              {(() => {
-                                const leagueVisual =
-                                  getLeagueVisual(leagueName);
-                                const LeagueIcon = leagueVisual.icon;
-                                return (
-                                  <span
-                                    className="grid h-5 w-5 place-items-center rounded-md bg-[#15243a]"
-                                    aria-hidden="true"
-                                  >
-                                    <LeagueIcon
-                                      size={12}
-                                      style={{ color: leagueVisual.color }}
-                                    />
-                                  </span>
-                                );
-                              })()}
-                              <h3 className="truncate text-[8px] font-bold uppercase tracking-[0.16em] text-[#7a94b8] sm:text-[10px]">
-                                {leagueName}
-                              </h3>
-                              <span className="shrink-0 rounded-md bg-[#ffd500]/[0.06] px-1.5 py-[1px] text-[8px] font-bold tabular-nums text-[#546e8f] sm:text-[9px]">
-                                {leagueEvents.length}
-                              </span>
-                            </div>
-                            {leagueEvents[0] ? (
-                              <p className="shrink-0 text-[8px] font-semibold uppercase tracking-[0.12em] text-[#4a6a8f] sm:text-[9px]">
-                                {formatKickoffTime(
-                                  leagueEvents[0].commenceTime,
-                                )}
-                              </p>
-                            ) : null}
-=======
-                    {Object.entries(groupedEvents).map(([leagueName, leagueEvents]) => (
                       <section
                         key={leagueName}
                         className="overflow-hidden rounded-xl border border-[#1e3350]/40 bg-[#0c1625] sm:rounded-2xl"
                       >
                         <div className="flex items-center justify-between gap-2 border-b border-[#1e3350]/30 bg-gradient-to-r from-[#101d30] to-[#0f1a2d] px-2.5 py-2 sm:px-3.5 sm:py-2.5">
                           <div className="flex min-w-0 items-center gap-1.5">
-                              {(() => {
-                                const leagueVisual = getLeagueVisual(leagueName);
-                                const LeagueIcon = leagueVisual.icon;
-                                return (
-                                  <span className="grid h-5 w-5 place-items-center rounded-md bg-[#15243a]" aria-hidden="true">
-                                    <LeagueIcon size={12} style={{ color: leagueVisual.color }} />
-                                  </span>
-                                );
-                              })()}
+                            {(() => {
+                              const leagueVisual = getLeagueVisual(leagueName);
+                              const LeagueIcon = leagueVisual.icon;
+                              return (
+                                <span
+                                  className="grid h-5 w-5 place-items-center rounded-md bg-[#15243a]"
+                                  aria-hidden="true"
+                                >
+                                  <LeagueIcon
+                                    size={12}
+                                    style={{ color: leagueVisual.color }}
+                                  />
+                                </span>
+                              );
+                            })()}
                             <h3 className="truncate text-[8px] font-bold uppercase tracking-[0.16em] text-[#7a94b8] sm:text-[10px]">
                               {leagueName}
                             </h3>
                             <span className="shrink-0 rounded-md bg-[#ffd500]/[0.06] px-1.5 py-[1px] text-[8px] font-bold tabular-nums text-[#546e8f] sm:text-[9px]">
                               {leagueEvents.length}
                             </span>
->>>>>>> origin/main
+                          </div>
+                          {leagueEvents[0] ? (
+                            <p className="shrink-0 text-[8px] font-semibold uppercase tracking-[0.12em] text-[#4a6a8f] sm:text-[9px]">
+                              {formatKickoffTime(leagueEvents[0].commenceTime)}
+                            </p>
+                          ) : null}
                           </div>
                           <div className="grid gap-1.5 p-1.5 sm:grid-cols-2 sm:gap-3 sm:p-3">
                             {leagueEvents.map((event) => (
