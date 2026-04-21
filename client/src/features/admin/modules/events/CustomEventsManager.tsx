@@ -19,7 +19,7 @@ import {
   Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -45,9 +45,15 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
+  AdminButton,
+  AdminCard,
   AdminSectionHeader,
   AdminStatCard,
   StatusBadge,
+  TableShell,
+  adminTableCellClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
 } from "../../components/ui";
 import {
   useAdminCustomEvents,

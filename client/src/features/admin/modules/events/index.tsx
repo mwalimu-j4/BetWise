@@ -3,7 +3,6 @@ import { api } from "@/api/axiosConfig";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -40,18 +39,19 @@ import {
   Eye,
   Loader2,
   MoreHorizontal,
-  PencilLine,
   Plus,
   Power,
   RefreshCw,
   Search,
   Settings2,
+  Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
 import {
+  AdminCard,
   AdminSectionHeader,
   AdminStatCard,
   StatusBadge,
@@ -235,8 +235,6 @@ function FeedEvents() {
   const [configEvent, setConfigEvent] = useState<ApiEvent | null>(null);
   const [houseMargin, setHouseMargin] = useState("0");
   const [marketsEnabled, setMarketsEnabled] = useState<string[]>(["h2h"]);
-  const [actionEvent, setActionEvent] = useState<ApiEvent | null>(null);
-  const [confirmDeactivateOpen, setConfirmDeactivateOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createFormData, setCreateFormData] = useState({
     homeTeam: "",
@@ -1624,41 +1622,6 @@ function FeedEvents() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Confirm deactivate dialog ── */}
-      <Dialog
-        open={confirmDeactivateOpen}
-        onOpenChange={setConfirmDeactivateOpen}
-      >
-        <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-md sm:p-6">
-          <DialogHeader>
-            <DialogTitle>Deactivate event</DialogTitle>
-            <DialogDescription className="text-admin-text-muted">
-              {actionEvent
-                ? `${actionEvent.homeTeam} vs ${actionEvent.awayTeam} will be hidden from bettors until reactivated.`
-                : "This event will be hidden until it is reactivated."}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDeactivateOpen(false)}
-              className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (!actionEvent) return;
-                setConfirmDeactivateOpen(false);
-                void handleToggle(actionEvent, false);
-              }}
-              className="w-full bg-admin-red text-white hover:bg-admin-red/90 sm:w-auto"
-            >
-              Deactivate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

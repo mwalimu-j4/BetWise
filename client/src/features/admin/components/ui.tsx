@@ -178,13 +178,16 @@ export function AdminCard({
   children,
   className,
   interactive = false,
+  onClick,
 }: {
   children: ReactNode;
   className?: string;
   interactive?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <section
+      onClick={onClick}
       className={cn(
         "relative rounded-2xl border border-admin-border/50 bg-[#0b1426]/60 p-5 text-admin-text-primary shadow-[0_12px_40px_-15px_rgba(0,0,0,0.35)] backdrop-blur-xl",
         interactive &&
@@ -343,11 +346,14 @@ export function AdminStatCard({
   label,
   value,
   tone,
+  icon: Icon,
+  helper,
   className,
 }: {
   label: string;
   value: string;
   tone: AdminTone;
+  icon?: LucideIcon;
   helper?: string;
   className?: string;
 }) {
@@ -359,10 +365,12 @@ export function AdminStatCard({
       <div
         aria-hidden="true"
         className={cn(
-          "absolute right-4 top-4 h-6 w-6 rounded-lg opacity-40 transition-transform duration-500 group-hover:scale-125 group-hover:opacity-80",
+          "absolute right-4 top-4 h-8 w-8 rounded-xl opacity-40 transition-all duration-500 group-hover:scale-110 group-hover:opacity-80 grid place-items-center",
           toneSoftClasses[tone],
         )}
-      />
+      >
+        {Icon && <Icon size={16} />}
+      </div>
       <div className="space-y-4">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-admin-text-muted/60">
           {label}
@@ -375,6 +383,11 @@ export function AdminStatCard({
         >
           {value}
         </p>
+        {helper && (
+          <p className="mt-1 text-[10px] font-medium text-admin-text-muted/60">
+            {helper}
+          </p>
+        )}
       </div>
     </AdminCard>
   );

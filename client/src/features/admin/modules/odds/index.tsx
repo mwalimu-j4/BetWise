@@ -197,7 +197,6 @@ export default function Odds() {
   const [configuredDropdownSearch, setConfiguredDropdownSearch] = useState("");
 
   const [stats, setStats] = useState<OddsStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(false);
 
   const [events, setEvents] = useState<OddsEvent[]>([]);
   const [listLoading, setListLoading] = useState(true);
@@ -294,14 +293,11 @@ export default function Odds() {
   }, [debouncedSearch]);
 
   async function loadStats() {
-    setStatsLoading(true);
     try {
       const response = await api.get<OddsStats>("/admin/odds/stats");
       setStats(response.data);
     } catch (error) {
       toast.error(getErrorMessage(error, "Unable to load odds stats."));
-    } finally {
-      setStatsLoading(false);
     }
   }
 
@@ -580,31 +576,27 @@ export default function Odds() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <AdminStatCard
           label="Configured Events"
-          value={stats?.totalConfigured ?? 0}
+          value={(stats?.totalConfigured ?? 0).toLocaleString()}
           icon={CalendarClock}
-          trend={12}
-          isLoading={statsLoading}
+          tone="blue"
         />
         <AdminStatCard
           label="Events with Odds"
-          value={stats?.withOdds ?? 0}
+          value={(stats?.withOdds ?? 0).toLocaleString()}
           icon={Zap}
           tone="accent"
-          isLoading={statsLoading}
         />
         <AdminStatCard
           label="Missing Odds"
-          value={stats?.noOdds ?? 0}
+          value={(stats?.noOdds ?? 0).toLocaleString()}
           icon={Trophy}
           tone="red"
-          isLoading={statsLoading}
         />
         <AdminStatCard
           label="Active Bookies"
-          value={stats?.bookmakers ?? 0}
+          value={(stats?.bookmakers ?? 0).toLocaleString()}
           icon={RefreshCw}
-          tone="gold"
-          isLoading={statsLoading}
+          tone="purple"
         />
       </div>
 
