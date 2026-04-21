@@ -5,6 +5,7 @@ import {
   RefreshCw,
   Search,
   Trophy,
+  Zap,
 } from "lucide-react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
