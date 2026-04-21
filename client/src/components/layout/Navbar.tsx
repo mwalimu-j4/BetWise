@@ -203,12 +203,17 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
     type === "DEPOSIT_SUCCESS" || type === "WITHDRAWAL_SUCCESS";
 
   const isFailedNotification = (type: string) =>
-    type === "DEPOSIT_FAILED" || type === "WITHDRAWAL_FAILED" || type === "ERROR";
+    type === "DEPOSIT_FAILED" ||
+    type === "WITHDRAWAL_FAILED" ||
+    type === "ERROR";
 
   const isWarningNotification = (type: string) =>
     type === "BET_LOST" || type === "BET_CANCELLED" || type === "MATCH_ENDED";
 
-  const isInfoNotification = (type: string) => !isSuccessNotification(type) && !isFailedNotification(type) && !isWarningNotification(type);
+  const isInfoNotification = (type: string) =>
+    !isSuccessNotification(type) &&
+    !isFailedNotification(type) &&
+    !isWarningNotification(type);
 
   return (
     <header className="bc-navbar" role="banner">
