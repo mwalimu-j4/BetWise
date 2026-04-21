@@ -138,17 +138,17 @@ export const adminTableCellClassName =
 export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
 export const adminDialogContentClassName =
-  "overflow-hidden rounded-[2.5rem] border border-admin-border/50 bg-[#0b1426]/90 text-admin-text-primary shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-300";
+  "overflow-hidden rounded-2xl border border-admin-border/50 bg-[#0b1426]/90 text-admin-text-primary shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-300";
 export const adminInputClassName =
-  "h-12 rounded-2xl border border-white/5 bg-black/20 px-4 text-admin-text-primary placeholder:text-admin-text-muted/60 transition-all focus-visible:border-admin-accent/40 focus-visible:bg-black/40 focus-visible:ring-4 focus-visible:ring-admin-accent/5";
+  "h-12 rounded-xl border border-white/5 bg-black/20 px-4 text-admin-text-primary placeholder:text-admin-text-muted/60 transition-all focus-visible:border-admin-accent/40 focus-visible:bg-black/40 focus-visible:ring-4 focus-visible:ring-admin-accent/5";
 export const adminSelectTriggerClassName =
-  "h-12 w-full rounded-2xl border border-white/5 bg-black/20 px-4 text-admin-text-primary shadow-none data-[placeholder]:text-admin-text-muted/60 focus-visible:border-admin-accent/40 focus-visible:bg-black/40 focus-visible:ring-4 focus-visible:ring-admin-accent/5";
+  "h-12 w-full rounded-xl border border-white/5 bg-black/20 px-4 text-admin-text-primary shadow-none data-[placeholder]:text-admin-text-muted/60 focus-visible:border-admin-accent/40 focus-visible:bg-black/40 focus-visible:ring-4 focus-visible:ring-admin-accent/5";
 export const adminSelectContentClassName =
-  "rounded-[2rem] border border-admin-border/50 bg-[#0b1426]/95 text-admin-text-primary shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl";
+  "rounded-xl border border-admin-border/50 bg-[#0b1426]/95 text-admin-text-primary shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl";
 export const adminDropdownContentClassName =
-  "rounded-[1.5rem] border border-admin-border/50 bg-[#0b1426]/95 p-1.5 text-admin-text-primary shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl";
+  "rounded-xl border border-admin-border/50 bg-[#0b1426]/95 p-1.5 text-admin-text-primary shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl";
 export const adminDropdownItemClassName =
-  "rounded-xl px-4 py-2.5 text-sm text-admin-text-secondary transition-all focus:bg-white/5 focus:text-admin-text-primary";
+  "rounded-lg px-4 py-2.5 text-sm text-admin-text-secondary transition-all focus:bg-white/5 focus:text-admin-text-primary";
 
 export function AdminDialogContent({
   className,
@@ -186,7 +186,7 @@ export function AdminCard({
   return (
     <section
       className={cn(
-        "relative rounded-[2rem] border border-admin-border/50 bg-[#0b1426]/60 p-5 text-admin-text-primary shadow-[0_12px_40px_-15px_rgba(0,0,0,0.35)] backdrop-blur-xl",
+        "relative rounded-2xl border border-admin-border/50 bg-[#0b1426]/60 p-5 text-admin-text-primary shadow-[0_12px_40px_-15px_rgba(0,0,0,0.35)] backdrop-blur-xl",
         interactive &&
           "transition duration-400 hover:border-admin-accent/30 hover:bg-[#0b1426]/80 hover:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]",
         className,
@@ -364,12 +364,12 @@ export function AdminStatCard({
         )}
       />
       <div className="space-y-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-admin-text-muted/60">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-admin-text-muted/60">
           {label}
         </p>
         <p
           className={cn(
-            "text-2xl font-black tracking-tight sm:text-3xl",
+            "text-xl font-bold tracking-tight sm:text-2xl",
             toneTextClasses[tone],
           )}
         >
@@ -451,7 +451,7 @@ export function TableShell({
   return (
     <div
       className={cn(
-        "w-full overflow-x-auto overscroll-x-contain rounded-[2rem] border border-admin-border/40 bg-[#0b1426]/40 p-1 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.3)] backdrop-blur-md [scrollbar-width:thin]",
+        "w-full overflow-x-auto overscroll-x-contain rounded-2xl border border-admin-border/40 bg-[#0b1426]/40 p-1 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.3)] backdrop-blur-md [scrollbar-width:thin]",
         className,
       )}
     >

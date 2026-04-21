@@ -501,7 +501,7 @@ function RiskReportsTab() {
                     </td>
                     <td className={adminTableCellClassName}>
                       <span
-                        className={`rounded-xl px-2.5 py-1 text-[10px] font-black tracking-wider ${
+                        className={`rounded-xl px-2.5 py-1 text-[10px] font-bold tracking-wider ${
                           alert.severity === "CRITICAL"
                             ? "bg-red-500/10 text-red-400 border border-red-500/20"
                             : "bg-orange-500/10 text-orange-400 border border-orange-500/20"

@@ -250,13 +250,13 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="space-y-6">
         {pendingCount > 0 ? (
-          <div className="overflow-hidden rounded-[1.5rem] border border-amber-400/20 bg-amber-400/[0.03] p-4 shadow-[0_10px_25px_-10px_rgba(251,191,36,0.15)] backdrop-blur-md">
+          <div className="overflow-hidden rounded-xl border border-amber-400/20 bg-amber-400/[0.03] p-4 shadow-[0_10px_25px_-10px_rgba(251,191,36,0.15)] backdrop-blur-md">
             <div className="flex items-center gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/10 text-amber-300">
                 <TriangleAlert className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-black uppercase tracking-widest text-amber-200">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-amber-200">
                   Pending Withdrawal Requests
                 </h4>
                 <p className="mt-0.5 text-xs text-amber-100/70">
@@ -265,14 +265,14 @@ export default function Dashboard() {
               </div>
               <Link
                 to="/admin/withdrawals"
-                className="hidden sm:inline-flex items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
+                className="hidden sm:inline-flex items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
               >
                 Review Requests
               </Link>
             </div>
             <Link
                 to="/admin/withdrawals"
-                className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
+                className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
               >
                 Review Requests
             </Link>
@@ -280,13 +280,13 @@ export default function Dashboard() {
         ) : null}
 
         {finishedEventsCount > 0 ? (
-          <div className="overflow-hidden rounded-[1.5rem] border border-emerald-400/20 bg-emerald-400/[0.03] p-4 shadow-[0_10px_25px_-10px_rgba(16,185,129,0.15)] backdrop-blur-md">
+          <div className="overflow-hidden rounded-xl border border-emerald-400/20 bg-emerald-400/[0.03] p-4 shadow-[0_10px_25px_-10px_rgba(16,185,129,0.15)] backdrop-blur-md">
             <div className="flex items-center gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-300">
                 <Trophy className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-black uppercase tracking-widest text-emerald-200">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-emerald-200">
                   Events Finished — Settlement Required
                 </h4>
                 <p className="mt-0.5 text-xs text-emerald-100/70">
@@ -296,7 +296,7 @@ export default function Dashboard() {
               <Link
                 to="/admin/events"
                 search={{ tab: "custom" }}
-                className="hidden sm:inline-flex items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
+                className="hidden sm:inline-flex items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
               >
                 Settle Events
               </Link>
@@ -304,7 +304,7 @@ export default function Dashboard() {
             <Link
                 to="/admin/events"
                 search={{ tab: "custom" }}
-                className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
+                className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
               >
                 Settle Events
             </Link>
@@ -524,7 +524,7 @@ export default function Dashboard() {
                       ].map((heading) => (
                         <th
                           key={heading}
-                          className="text-left px-4 py-4 text-[10px] font-black text-admin-text-muted/60 uppercase tracking-[0.2em]"
+                          className="text-left px-4 py-4 text-[10px] font-bold text-admin-text-muted/60 uppercase tracking-[0.2em]"
                         >
                           {heading}
                         </th>

@@ -333,7 +333,7 @@ export default function WithdrawalsAdmin() {
                   ].map((heading, i) => (
                     <th
                       key={i}
-                      className="text-left px-4 py-4 text-[10px] font-black text-admin-text-muted/60 uppercase tracking-[0.2em]"
+                      className="text-left px-4 py-4 text-[10px] font-bold text-admin-text-muted/60 uppercase tracking-[0.2em]"
                     >
                       {heading}
                     </th>

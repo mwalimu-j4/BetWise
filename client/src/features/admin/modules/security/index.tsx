@@ -206,10 +206,10 @@ export default function SecurityWizard() {
                     <ShieldAlert size={28} className="shrink-0" />
                   )}
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">
                       System Status
                     </p>
-                    <p className="text-sm font-black uppercase tracking-widest">
+                    <p className="text-sm font-bold uppercase tracking-widest">
                       {isEnabled ? "Protected" : "Vulnerable"}
                     </p>
                   </div>
@@ -314,7 +314,7 @@ export default function SecurityWizard() {
                           <div className="mb-5 rounded-[1.25rem] bg-black/40 p-3 text-admin-text-muted group-hover:text-admin-accent group-hover:scale-110 transition-all duration-500">
                             <ArrowRight size={24} />
                           </div>
-                          <span className="text-lg font-black tracking-tight text-admin-text-primary">
+                          <span className="text-lg font-bold tracking-tight text-admin-text-primary">
                             Manual Install
                           </span>
                           <span className="text-xs text-admin-text-muted mt-2 leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
@@ -335,7 +335,7 @@ export default function SecurityWizard() {
                               <Mail size={24} />
                             )}
                           </div>
-                          <span className="text-lg font-black tracking-tight text-admin-text-primary">
+                          <span className="text-lg font-bold tracking-tight text-admin-text-primary">
                             Email Me Links
                           </span>
                           <span className="text-xs text-admin-text-muted mt-2 leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
@@ -365,7 +365,7 @@ export default function SecurityWizard() {
                           <QrCode size={48} />
                         </div>
                       </div>
-                      <h4 className="text-2xl font-black tracking-tight text-admin-text-primary text-center">
+                      <h4 className="text-xl font-bold tracking-tight text-admin-text-primary text-center">
                         Generate Configuration
                       </h4>
                       <p className="mt-4 text-sm text-admin-text-muted text-center max-w-md leading-relaxed">
@@ -384,7 +384,7 @@ export default function SecurityWizard() {
                         <Button
                           onClick={() => void startSetup.mutateAsync()}
                           disabled={startSetup.isPending}
-                          className="h-14 px-12 rounded-2xl bg-[#f5c518] text-[#0d2137] font-black shadow-xl shadow-[#f5c518]/20 hover:bg-[#e6b800] active:scale-95 transition-all"
+                          className="h-14 px-12 rounded-xl bg-[#f5c518] text-[#0d2137] font-bold shadow-xl shadow-[#f5c518]/20 hover:bg-[#e6b800] active:scale-95 transition-all"
                         >
                           {startSetup.isPending ? (
                             <Loader2 size={18} className="animate-spin mr-3" />
@@ -402,7 +402,7 @@ export default function SecurityWizard() {
                       <div className="grid gap-12 md:grid-cols-2">
                         <div className="space-y-8">
                           <div>
-                            <h4 className="text-xl font-black tracking-tight text-admin-text-primary">
+                            <h4 className="text-lg font-bold tracking-tight text-admin-text-primary">
                               Final Activation
                             </h4>
                             <p className="mt-2 text-sm text-admin-text-muted leading-relaxed opacity-70">
@@ -458,7 +458,7 @@ export default function SecurityWizard() {
                                 setTwoFactorCode(e.target.value.replace(/\D/g, ""))
                               }
                               placeholder="000 000"
-                              className="h-16 w-full rounded-2xl border border-white/10 bg-black/40 px-6 text-center text-3xl font-black tracking-[0.4em] text-[#f5c518] outline-none focus:border-[#f5c518]/40 focus:ring-4 focus:ring-[#f5c518]/5 transition-all"
+                              className="h-16 w-full rounded-xl border border-white/10 bg-black/40 px-6 text-center text-3xl font-bold tracking-[0.4em] text-[#f5c518] outline-none focus:border-[#f5c518]/40 focus:ring-4 focus:ring-[#f5c518]/5 transition-all"
                             />
                             <p className="mt-4 text-[11px] text-admin-text-muted/60 text-center italic tracking-wide">
                               Identity tokens refresh every 30 seconds
@@ -477,7 +477,7 @@ export default function SecurityWizard() {
                             <Button
                               onClick={() => void enable2FA.mutateAsync()}
                               disabled={enable2FA.isPending || twoFactorCode.length !== 6}
-                              className="h-14 flex-1 rounded-2xl bg-[#f5c518] text-[#0d2137] font-black shadow-xl shadow-[#f5c518]/20 hover:bg-[#e6b800] active:scale-95 transition-all"
+                              className="h-14 flex-1 rounded-xl bg-[#f5c518] text-[#0d2137] font-bold shadow-xl shadow-[#f5c518]/20 hover:bg-[#e6b800] active:scale-95 transition-all"
                             >
                               {enable2FA.isPending ? (
                                 <Loader2 size={18} className="animate-spin" />
@@ -502,18 +502,18 @@ export default function SecurityWizard() {
                   <CheckCircle2 size={64} className="animate-in zoom-in-50 duration-700" />
                 </div>
               </div>
-              <h3 className="text-4xl font-black tracking-tighter text-white">
+              <h3 className="text-3xl font-bold tracking-tighter text-white">
                 Enterprise Shield Active
               </h3>
               <p className="mt-6 max-w-lg text-emerald-100/60 leading-relaxed text-sm">
                 Your administrative gateway is now hardened with military-grade TOTP protection. All authentication requests require primary device verification.
               </p>
               <div className="mt-12 flex items-center gap-6">
-                 <div className="flex items-center gap-2.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-6 py-2.5 text-[10px] font-black tracking-[0.2em] text-emerald-400">
+                 <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-6 py-2.5 text-[10px] font-bold tracking-[0.2em] text-emerald-400">
                    <Lock size={14} aria-hidden="true" />
                    E2EE ESTABLISHED
                  </div>
-                 <div className="flex items-center gap-2.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-6 py-2.5 text-[10px] font-black tracking-[0.2em] text-emerald-400">
+                 <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-6 py-2.5 text-[10px] font-bold tracking-[0.2em] text-emerald-400">
                    <ShieldCheck size={14} aria-hidden="true" />
                    SECURE SESSION
                  </div>

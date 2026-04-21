@@ -246,26 +246,26 @@ export default function Analytics() {
               </h4>
               <div className="space-y-3">
                 <div className="rounded-2xl bg-black/20 border border-admin-accent/20 p-3 transition-colors hover:bg-black/30">
-                  <p className="text-[9px] font-black uppercase tracking-[0.15em] text-admin-text-muted/60">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-admin-text-muted/60">
                     Handle
                   </p>
-                  <p className="mt-1 text-lg font-black text-admin-accent">
+                  <p className="mt-1 text-lg font-bold text-admin-accent">
                     {formatCurrency(data?.financialSummary.handle ?? 0)}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-black/20 border border-admin-blue/20 p-3 transition-colors hover:bg-black/30">
-                  <p className="text-[9px] font-black uppercase tracking-[0.15em] text-admin-text-muted/60">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-admin-text-muted/60">
                     GGR
                   </p>
-                  <p className="mt-1 text-lg font-black text-admin-blue">
+                  <p className="mt-1 text-lg font-bold text-admin-blue">
                     {formatCurrency(data?.financialSummary.ggr ?? 0)}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-black/20 border border-admin-gold/20 p-3 transition-colors hover:bg-black/30">
-                  <p className="text-[9px] font-black uppercase tracking-[0.15em] text-admin-text-muted/60">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-admin-text-muted/60">
                     NGR
                   </p>
-                  <p className="mt-1 text-lg font-black text-admin-gold">
+                  <p className="mt-1 text-lg font-bold text-admin-gold">
                     {formatCurrency(data?.financialSummary.ngr ?? 0)}
                   </p>
                 </div>
@@ -274,7 +274,7 @@ export default function Analytics() {
                     <p className="text-[8px] font-bold uppercase tracking-widest text-admin-text-muted/50">
                       GGR Δ
                     </p>
-                    <p className="mt-1 text-sm font-black text-admin-text-primary">
+                    <p className="mt-1 text-sm font-bold text-admin-text-primary">
                       {formatPercent(data?.growth.ggrChangePct ?? 0)}
                     </p>
                   </div>
@@ -282,7 +282,7 @@ export default function Analytics() {
                     <p className="text-[8px] font-bold uppercase tracking-widest text-admin-text-muted/50">
                       Active Δ
                     </p>
-                    <p className="mt-1 text-sm font-black text-admin-text-primary">
+                    <p className="mt-1 text-sm font-bold text-admin-text-primary">
                       {formatPercent(data?.growth.activeBettorsChangePct ?? 0)}
                     </p>
                   </div>
