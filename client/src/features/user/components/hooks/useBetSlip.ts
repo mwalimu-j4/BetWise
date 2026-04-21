@@ -460,16 +460,14 @@ export function useBetSlip() {
       window.localStorage.getItem(activeSlipStorageKey),
     );
 
-    if (hasActiveSlip) {
-      return;
-    }
+    if (!hasActiveSlip) {
+      const hadPendingSlip = hydrateFromStorage(
+        window.sessionStorage.getItem(pendingSlipStorageKey),
+      );
 
-    const hadPendingSlip = hydrateFromStorage(
-      window.sessionStorage.getItem(pendingSlipStorageKey),
-    );
-
-    if (hadPendingSlip) {
-      clearPendingSlip();
+      if (hadPendingSlip) {
+        clearPendingSlip();
+      }
     }
 
     setHasHydratedSlip(true);

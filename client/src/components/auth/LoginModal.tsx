@@ -502,7 +502,8 @@ export default function LoginModal() {
                   <button
                     type="button"
                     onClick={() => {
-                      openAuthModal("forgot-password");
+                      closeAuthModal();
+                      void navigate({ to: "/forgot-password" });
                     }}
                     className="text-xs text-[#f5c518] hover:text-[#e6b800] transition-colors font-semibold hover:underline"
                   >

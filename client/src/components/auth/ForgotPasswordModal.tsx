@@ -1,73 +1,30 @@
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
 import {
-  AlertCircle,
   ArrowLeft,
-  CheckCircle2,
-  CircleAlert,
   Loader2,
   Mail,
-  ShieldAlert,
 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
-type Step = "email" | "success" | "instructions";
-
-type FeedbackTone = "info" | "success" | "error";
-
-type FeedbackState = {
-  tone: FeedbackTone;
-  message: string;
-};
+const GENERIC_SUCCESS_MESSAGE =
+  "If an account with that email exists, a reset link has been sent.";
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ForgotPasswordModal() {
   const { authModal, closeAuthModal, openAuthModal } = useAuth();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
-  const [step, setStep] = useState<Step>("email");
-  const [sentEmail, setSentEmail] = useState("");
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   if (authModal !== "forgot-password") return null;
 
-  const isValid =
-    email.length > 0 && email.includes("@") && email.includes(".");
+  const isValid = EMAIL_REGEX.test(email.trim());
 
   function setBackToLogin() {
     closeAuthModal();
     openAuthModal("login");
-  }
-
-  function handleReset() {
-    setEmail("");
-    setFeedback(null);
-    setStep("email");
-    setSentEmail("");
-  }
-
-  function handleEmailChange(value: string) {
-    const nextValue = value.trim();
-    setEmail(nextValue);
-
-    if (loading) return;
-
-    if (!nextValue) {
-      setFeedback(null);
-      return;
-    }
-
-    if (nextValue.length > 4) {
-      setFeedback({
-        tone: "success",
-        message: "Email looks good.",
-      });
-      return;
-    }
-
-    setFeedback({
-      tone: "error",
-      message: "Enter a valid email address.",
-    });
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -75,232 +32,18 @@ export default function ForgotPasswordModal() {
     if (!isValid) return;
 
     setLoading(true);
+    setError("");
+    setSuccessMessage("");
 
     try {
-      // Step 1: Check if email exists in database
-      setFeedback({
-        tone: "info",
-        message: "Validating email...",
-      });
-
-      const { data } = await api.post<{ message: string }>(
-        "/auth/forgot-password",
-        { email },
-      );
-
-      // Step 2: Check response message for validation
-      const messageText = data.message || "";
-      const isNotFound =
-        messageText.toLowerCase().includes("no account found") ||
-        messageText.toLowerCase().includes("not found") ||
-        messageText.toLowerCase().includes("email does not exist");
-
-      if (isNotFound) {
-        setFeedback({
-          tone: "error",
-          message: "Email does not exist in our system.",
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Step 3: Check for errors in response
-      if (
-        messageText.toLowerCase().includes("error") ||
-        messageText.toLowerCase().includes("failed")
-      ) {
-        setFeedback({
-          tone: "error",
-          message: "Error processing request. Please try again.",
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Step 4: Email EXISTS - show verification message
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setFeedback({
-        tone: "success",
-        message: "✓ Email verified! Reset link sent successfully.",
-      });
-
-      // Step 5: Show success state and transition
-      setSentEmail(email);
-      setStep("success");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setStep("instructions");
-      setFeedback(null);
-      setLoading(false);
-    } catch (error) {
-      setFeedback({
-        tone: "error",
-        message: "An error occurred. Please try again.",
-      });
+      await api.post("/auth/forgot-password", { email: email.trim() });
+      setSuccessMessage(GENERIC_SUCCESS_MESSAGE);
+    } catch {
+      setSuccessMessage(GENERIC_SUCCESS_MESSAGE);
+    } finally {
       setLoading(false);
     }
   }
-
-  // Step 1: Email & Phone Input
-  const renderEmailStep = () => (
-    <>
-      {feedback ? (
-        <div
-          className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
-            feedback.tone === "success"
-              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
-              : feedback.tone === "error"
-                ? "border-red-500/30 bg-red-500/10 text-red-100"
-                : "border-[#3d6ba3]/35 bg-[#1a3a6b]/35 text-[#d7e5f7]"
-          }`}
-        >
-          <div className="flex items-start gap-2">
-            {feedback.tone === "success" ? (
-              <CheckCircle2
-                size={16}
-                className="mt-0.5 shrink-0 text-emerald-300"
-              />
-            ) : feedback.tone === "error" ? (
-              <CircleAlert size={16} className="mt-0.5 shrink-0 text-red-300" />
-            ) : (
-              <ShieldAlert size={16} className="mt-0.5 shrink-0 text-sky-300" />
-            )}
-            <p className="leading-5">{feedback.message}</p>
-          </div>
-        </div>
-      ) : null}
-
-      <form className="grid gap-3.5" onSubmit={handleSubmit}>
-        <div className="grid gap-1.5">
-          <label
-            className="text-sm font-medium text-admin-text-primary"
-            htmlFor="forgot-email"
-          >
-            Email
-          </label>
-          <div className="relative">
-            <Mail
-              size={16}
-              className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none"
-            />
-            <input
-              id="forgot-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => handleEmailChange(e.target.value)}
-              disabled={loading}
-              className="h-11 w-full rounded-xl border border-admin-border bg-(--color-bg-elevated) pl-11 pr-3 text-sm text-admin-text-primary outline-none disabled:opacity-60"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={!isValid || loading}
-          className="h-10 rounded-lg bg-admin-accent text-sm font-semibold text-(--color-text-dark) disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? (
-            <span className="inline-flex items-center gap-2">
-              <Loader2 size={14} className="animate-spin" />
-              Processing...
-            </span>
-          ) : (
-            "Send reset link"
-          )}
-        </button>
-      </form>
-
-      <div className="border-t border-[#3d6ba3]/30 pt-5 mt-6 text-center">
-        <button
-          type="button"
-          onClick={setBackToLogin}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#3d6ba3]/40 px-4 py-2 text-sm font-semibold text-[#a8c4e0] transition-colors hover:border-[#f5c518]/50 hover:text-white"
-        >
-          <ArrowLeft size={15} />
-          Back to login
-        </button>
-      </div>
-    </>
-  );
-
-  // Step 2: Success Confirmation
-  const renderSuccessStep = () => (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20">
-          <CheckCircle2 size={24} className="text-emerald-300" />
-        </div>
-        <p className="text-sm font-medium text-emerald-100">✓ Email Verified</p>
-        <p className="mt-2 text-xs text-emerald-200/80">
-          Reset link sent to <strong>{sentEmail}</strong>
-        </p>
-      </div>
-
-      <p className="text-center text-xs text-[#a8c4e0]">
-        Redirecting to instructions...
-      </p>
-    </div>
-  );
-
-  // Step 3: Instructions Modal
-  const renderInstructionsStep = () => (
-    <div className="space-y-5">
-      <div className="rounded-xl border border-[#3d6ba3]/20 bg-[#1a3a6b]/40 p-5">
-        <h3 className="mb-4 text-sm font-semibold text-white">
-          What to do next:
-        </h3>
-        <ol className="space-y-3 text-xs text-[#a8c4e0]">
-          <li className="flex gap-3 items-start">
-            <span className="font-semibold text-[#f5c518] mt-0.5">1.</span>
-            <span>
-              Check your inbox at{" "}
-              <strong className="text-white">{sentEmail}</strong>
-            </span>
-          </li>
-          <li className="flex gap-3 items-start">
-            <span className="font-semibold text-[#f5c518] mt-0.5">2.</span>
-            <span>
-              Click the reset link in the email (valid for 15 minutes)
-            </span>
-          </li>
-          <li className="flex gap-3 items-start">
-            <span className="font-semibold text-[#f5c518] mt-0.5">3.</span>
-            <span>Create a new password</span>
-          </li>
-          <li className="flex gap-3 items-start">
-            <span className="font-semibold text-[#f5c518] mt-0.5">4.</span>
-            <span>Log in with your new password</span>
-          </li>
-        </ol>
-      </div>
-
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex gap-3">
-        <AlertCircle size={16} className="text-amber-300 shrink-0 mt-0.5" />
-        <p className="text-xs text-amber-100">
-          <strong>Link expires in 15 minutes.</strong> Check spam folder or
-          request a new link if needed.
-        </p>
-      </div>
-
-      <button
-        onClick={handleReset}
-        className="h-10 w-full rounded-lg border border-[#3d6ba3]/40 bg-[var(--color-bg-elevated)] text-sm font-semibold text-[#a8c4e0] hover:border-[#f5c518]/50 hover:text-white transition-colors"
-      >
-        Request another link
-      </button>
-
-      <div className="border-t border-[#3d6ba3]/30 pt-5 text-center">
-        <button
-          type="button"
-          onClick={setBackToLogin}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#3d6ba3]/40 px-4 py-2 text-sm font-semibold text-[#a8c4e0] transition-colors hover:border-[#f5c518]/50 hover:text-white"
-        >
-          <ArrowLeft size={15} />
-          Back to login
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <>
@@ -335,27 +78,73 @@ export default function ForgotPasswordModal() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">
-                  {step === "email"
-                    ? "Forgot password"
-                    : step === "success"
-                      ? "Success!"
-                      : "Check your email"}
+                  Forgot password
                 </h1>
-                {step !== "email" && (
-                  <p className="text-xs text-[#a8c4e0] mt-1">
-                    {step === "success"
-                      ? "Reset link sent"
-                      : "Password reset instructions"}
-                  </p>
-                )}
+                <p className="text-xs text-[#a8c4e0] mt-1">
+                  Request a secure password reset link
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Content based on step */}
-          {step === "email" && renderEmailStep()}
-          {step === "success" && renderSuccessStep()}
-          {step === "instructions" && renderInstructionsStep()}
+          <form className="grid gap-3.5" onSubmit={handleSubmit}>
+            <div className="grid gap-1.5">
+              <label
+                className="text-sm font-medium text-admin-text-primary"
+                htmlFor="forgot-email"
+              >
+                Email
+              </label>
+              <div className="relative">
+                <Mail
+                  size={16}
+                  className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none"
+                />
+                <input
+                  id="forgot-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    setError("");
+                  }}
+                  disabled={loading}
+                  className="h-11 w-full rounded-xl border border-admin-border bg-(--color-bg-elevated) pl-11 pr-3 text-sm text-admin-text-primary outline-none disabled:opacity-60"
+                />
+              </div>
+              {error ? <p className="text-xs text-red-300">{error}</p> : null}
+              {successMessage ? (
+                <p className="text-xs text-emerald-200">{successMessage}</p>
+              ) : null}
+            </div>
+
+            <button
+              type="submit"
+              disabled={!isValid || loading}
+              className="h-10 rounded-lg bg-admin-accent text-sm font-semibold text-(--color-text-dark) disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin" />
+                  Sending...
+                </span>
+              ) : (
+                "Send reset link"
+              )}
+            </button>
+          </form>
+
+          <div className="border-t border-[#3d6ba3]/30 pt-5 mt-6 text-center">
+            <button
+              type="button"
+              onClick={setBackToLogin}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#3d6ba3]/40 px-4 py-2 text-sm font-semibold text-[#a8c4e0] transition-colors hover:border-[#f5c518]/50 hover:text-white"
+            >
+              <ArrowLeft size={15} />
+              Back to login
+            </button>
+          </div>
         </div>
       </div>
     </>

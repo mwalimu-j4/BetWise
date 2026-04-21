@@ -1,7 +1,21 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
-import { Calendar, ChevronLeft, Flame, RefreshCw } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Calendar,
+  Cherry,
+  ChevronLeft,
+  CircleDot,
+  Dumbbell,
+  Flame,
+  Goal,
+  RefreshCw,
+  Shield,
+  Swords,
+  Trophy,
+  Volleyball,
+} from "lucide-react";
 import { api } from "@/api/axiosConfig";
 import BetSlip from "../components/BetSlip";
 import EventCard from "../components/EventCard";
@@ -73,17 +87,66 @@ function formatKickoffTime(value: string) {
   }).format(new Date(value));
 }
 
-function getLeagueIcon(value: string) {
+type VisualConfig = {
+  icon: LucideIcon;
+  color: string;
+};
+
+const CATEGORY_VISUALS: Record<string, VisualConfig> = {
+  soccer: { icon: Goal, color: "#22c55e" },
+  basketball: { icon: Volleyball, color: "#f97316" },
+  tennis: { icon: CircleDot, color: "#22c55e" },
+  americanfootball: { icon: Shield, color: "#ef4444" },
+  cricket: { icon: Dumbbell, color: "#84cc16" },
+  icehockey: { icon: Cherry, color: "#38bdf8" },
+  rugbyunion: { icon: Shield, color: "#38bdf8" },
+  boxing_mma: { icon: Swords, color: "#f97316" },
+  baseball: { icon: CircleDot, color: "#f43f5e" },
+  volleyball: { icon: Volleyball, color: "#f97316" },
+  tabletennis: { icon: CircleDot, color: "#22c55e" },
+  golf: { icon: CircleDot, color: "#22c55e" },
+  snooker: { icon: CircleDot, color: "#84cc16" },
+  darts: { icon: CircleDot, color: "#fb7185" },
+};
+
+function normalizeCategoryKey(value: string) {
+  return value.toLowerCase().replace(/[^a-z_]/g, "");
+}
+
+function getCategoryVisual(value: string): VisualConfig {
+  const normalized = normalizeCategoryKey(value);
+  return CATEGORY_VISUALS[normalized] ?? { icon: Trophy, color: "#facc15" };
+}
+
+function getLeagueVisual(value: string): VisualConfig {
   const league = value.toLowerCase();
-  if (league.includes("nba") || league.includes("basketball")) return "ðŸ€";
-  if (league.includes("nfl") || league.includes("american")) return "ðŸˆ";
-  if (league.includes("tennis")) return "ðŸŽ¾";
-  if (league.includes("cricket")) return "ðŸ";
-  if (league.includes("hockey")) return "ðŸ’";
-  if (league.includes("rugby")) return "ðŸ‰";
-  if (league.includes("baseball")) return "âš¾";
-  if (league.includes("mma") || league.includes("boxing")) return "ðŸ¥Š";
-  return "âš½";
+
+  if (league.includes("nba") || league.includes("basketball")) {
+    return { icon: Volleyball, color: "#f97316" };
+  }
+  if (league.includes("nfl") || league.includes("american")) {
+    return { icon: Shield, color: "#ef4444" };
+  }
+  if (league.includes("tennis")) {
+    return { icon: CircleDot, color: "#22c55e" };
+  }
+  if (league.includes("cricket")) {
+    return { icon: Dumbbell, color: "#84cc16" };
+  }
+  if (league.includes("hockey")) {
+    return { icon: Cherry, color: "#38bdf8" };
+  }
+  if (league.includes("rugby")) {
+    return { icon: Shield, color: "#38bdf8" };
+  }
+  if (league.includes("baseball")) {
+    return { icon: CircleDot, color: "#f43f5e" };
+  }
+  if (league.includes("mma") || league.includes("boxing")) {
+    return { icon: Swords, color: "#f97316" };
+  }
+
+  return { icon: Goal, color: "#22c55e" };
 }
 
 export default function SportCategoryPage() {
@@ -114,7 +177,7 @@ export default function SportCategoryPage() {
               .split("-")
               .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
               .join(" "),
-            icon: "ðŸ…",
+            icon: "trophy",
             sortOrder: 99,
             eventCount: 0,
             lastSyncedAt: null,
@@ -187,7 +250,8 @@ export default function SportCategoryPage() {
 
   const hasSelections = betSlip.selections.length > 0;
   const displayName = categoryInfo?.displayName ?? sportSlug.replace(/-/g, " ");
-  const icon = categoryInfo?.icon ?? "ðŸ…";
+  const categoryVisual = getCategoryVisual(categoryInfo?.sportKey ?? sportKey);
+  const CategoryIcon = categoryVisual.icon;
   const nowMs = Date.now();
   const upcomingEvents = events.filter(
     (event) => new Date(event.commenceTime).getTime() > nowMs,
@@ -227,7 +291,9 @@ export default function SportCategoryPage() {
             Back to Home
           </Link>
           <div className="flex flex-col items-center rounded-2xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] px-6 py-16 text-center shadow-lg">
-            <span className="mb-4 text-5xl">ðŸ…</span>
+            <span className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#17253a]">
+              <Trophy size={34} style={{ color: "#facc15" }} aria-hidden="true" />
+            </span>
             <h1 className="text-xl font-bold text-white">Sport Not Found</h1>
             <p className="mt-2 max-w-md text-sm text-[#637fa0]">
               The sport category &ldquo;{sportSlug}&rdquo; doesn&apos;t exist.
@@ -263,7 +329,13 @@ export default function SportCategoryPage() {
         <section className="mb-3 rounded-xl border border-[#1e3350]/60 bg-gradient-to-r from-[#0f1a2d] to-[#0b1525] p-3 shadow-lg sm:mb-4 sm:rounded-2xl sm:p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="text-2xl sm:text-3xl">{icon}</span>
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#15243a] sm:h-11 sm:w-11">
+                <CategoryIcon
+                  size={22}
+                  style={{ color: categoryVisual.color }}
+                  aria-hidden="true"
+                />
+              </span>
               <div>
                 <h1 className="text-base font-extrabold uppercase tracking-wider text-white sm:text-lg">
                   {displayName}
@@ -369,7 +441,13 @@ export default function SportCategoryPage() {
                   </div>
                 ) : upcomingEvents.length === 0 ? (
                   <div className="flex flex-col items-center rounded-xl border border-[#1e3350]/40 bg-[#0f1a2d] px-6 py-12 text-center">
-                    <span className="mb-3 text-4xl">{icon}</span>
+                    <span className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-[#15243a]">
+                      <CategoryIcon
+                        size={28}
+                        style={{ color: categoryVisual.color }}
+                        aria-hidden="true"
+                      />
+                    </span>
                     <p className="text-base font-semibold text-white">
                       No {displayName.toLowerCase()} events available
                     </p>
@@ -393,9 +471,15 @@ export default function SportCategoryPage() {
                       >
                         <div className="flex items-center justify-between gap-2 border-b border-[#1e3350]/30 bg-gradient-to-r from-[#101d30] to-[#0f1a2d] px-2.5 py-2 sm:px-3.5 sm:py-2.5">
                           <div className="flex min-w-0 items-center gap-1.5">
-                            <span className="text-xs sm:text-sm" aria-hidden="true">
-                              {getLeagueIcon(leagueName)}
-                            </span>
+                              {(() => {
+                                const leagueVisual = getLeagueVisual(leagueName);
+                                const LeagueIcon = leagueVisual.icon;
+                                return (
+                                  <span className="grid h-5 w-5 place-items-center rounded-md bg-[#15243a]" aria-hidden="true">
+                                    <LeagueIcon size={12} style={{ color: leagueVisual.color }} />
+                                  </span>
+                                );
+                              })()}
                             <h3 className="truncate text-[8px] font-bold uppercase tracking-[0.16em] text-[#7a94b8] sm:text-[10px]">
                               {leagueName}
                             </h3>

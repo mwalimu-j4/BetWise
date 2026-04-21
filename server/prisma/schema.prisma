@@ -121,6 +121,10 @@ model User {
   email         String               @unique
   phone         String               @unique
   passwordHash  String               @map("password_hash")
+  resetToken    String?              @unique @map("reset_token")
+  resetTokenExpiry DateTime?         @map("reset_token_expiry")
+  resetAttempts Int                  @default(0) @map("reset_attempts")
+  resetLastAttempt DateTime?         @map("reset_last_attempt")
   mustChangePassword Boolean         @default(true) @map("must_change_password")
   isVerified    Boolean              @default(false) @map("is_verified")
   accountStatus AccountStatus        @default(ACTIVE) @map("account_status")
@@ -134,7 +138,6 @@ model User {
   wallet        Wallet?
   bets          Bet[]
   notifications Notification[]
-  resetTokens   PasswordResetToken[]
   refreshTokens RefreshToken[]
   transactions  WalletTransaction[]
   betAuditLogs  BetAuditLog[]
@@ -263,20 +266,6 @@ model AdminLoginChallenge {
   @@index([userId])
   @@index([expiresAt])
   @@map("admin_login_challenges")
-}
-
-model PasswordResetToken {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  tokenHash String   @map("token_hash")
-  expiresAt DateTime @map("expires_at")
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([tokenHash])
-  @@map("password_reset_tokens")
 }
 
 model SportEvent {

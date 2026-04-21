@@ -96,14 +96,13 @@ export const registerRateLimiter = rateLimit({
   ),
 });
 
-export const forgotPasswordRateLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
+export const passwordResetRouteRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   keyGenerator: ipKeyGenerator,
-  skipSuccessfulRequests: true,
   ...commonLimiterOptions,
   handler: createRateLimitHandler(
-    "Too many password reset requests. Please try again in 1 hour.",
+    "Too many password reset requests. Please try again in 15 minutes.",
   ),
 });
 
