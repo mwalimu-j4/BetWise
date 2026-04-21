@@ -130,11 +130,11 @@ interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const adminTableClassName =
-  "w-full border-separate border-spacing-0 text-[10px] sm:text-xs lg:text-sm";
+  "w-full border-separate border-spacing-0";
 export const adminTableHeadCellClassName =
-  "border-b border-admin-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] px-2 py-2 text-left text-[9px] font-semibold uppercase tracking-[0.08em] text-admin-text-muted break-words sm:px-3 sm:py-2.5 sm:text-[10px] lg:px-4 lg:py-3 lg:text-[11px]";
+  "border-b border-white/5 bg-black/40 px-3 py-3.5 text-left text-[10px] font-bold uppercase tracking-[0.2em] text-admin-text-muted/60";
 export const adminTableCellClassName =
-  "border-b border-admin-border/65 px-2 py-2.5 align-top text-[10px] text-admin-text-secondary break-words sm:px-3 sm:py-3 sm:text-xs lg:px-4 lg:py-3.5 lg:text-sm";
+  "border-b border-white/5 px-3 py-4 text-sm text-admin-text-secondary";
 export const adminCompactActionsClassName = "flex flex-wrap items-center gap-1";
 export const adminFilterRowClassName = "flex flex-wrap gap-3";
 export const adminDialogContentClassName =

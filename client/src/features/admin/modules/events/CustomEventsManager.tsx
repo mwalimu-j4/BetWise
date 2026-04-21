@@ -294,13 +294,13 @@ function CreateEventModal({
         onOpenChange(v);
       }}
     >
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-admin-border bg-admin-card text-admin-text-primary">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-[#0b1426] text-admin-text-primary backdrop-blur-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <Plus size={18} className="text-admin-accent" />
+          <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
+            <Plus size={20} className="text-admin-accent" />
             Create Custom Event
           </DialogTitle>
-          <DialogDescription className="text-admin-text-muted">
+          <DialogDescription className="text-admin-text-muted/70">
             Create a new custom event with markets and odds
           </DialogDescription>
         </DialogHeader>
@@ -613,13 +613,13 @@ function SettleMarketDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg border-admin-border bg-admin-card text-admin-text-primary">
+      <DialogContent className="max-w-lg border-white/10 bg-[#0b1426] text-admin-text-primary backdrop-blur-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Trophy size={18} className="text-admin-accent" />
+          <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
+            <Trophy size={20} className="text-admin-accent" />
             Enter Results
           </DialogTitle>
-          <DialogDescription className="text-admin-text-muted">
+          <DialogDescription className="text-admin-text-muted/70">
             Select the winning outcome for this match
           </DialogDescription>
         </DialogHeader>
@@ -750,13 +750,13 @@ function EventDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto border-admin-border bg-admin-card text-admin-text-primary">
+      <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto border-white/10 bg-[#0b1426] text-admin-text-primary backdrop-blur-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Eye size={18} className="text-admin-accent" />
+          <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
+            <Eye size={20} className="text-admin-accent" />
             {event.title}
           </DialogTitle>
-          <DialogDescription className="text-admin-text-muted">
+          <DialogDescription className="text-admin-text-muted/70">
             {event.teamHome} vs {event.teamAway} · {event.league}
           </DialogDescription>
         </DialogHeader>
@@ -1187,169 +1187,166 @@ export default function CustomEventsManager() {
             <Input
               placeholder="Search by event, team, or league…"
               value={searchQuery}
-              onChange={(e) => {
-                setCurrentPage(1);
-                setSearchQuery(e.target.value);
-              }}
-              className="h-8 border-admin-border bg-admin-surface pl-8 text-xs text-admin-text-primary placeholder:text-admin-text-muted"
-            />
+      {/* Search and Filters */}
+      <div className="space-y-2">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-admin-text-muted" />
+          <Input
+            placeholder="Search by event, team, or league…"
+            value={searchQuery}
+            onChange={(e) => {
+              setCurrentPage(1);
+              setSearchQuery(e.target.value);
+            }}
+            className="h-8 border-admin-border bg-admin-surface pl-8 text-xs text-admin-text-primary placeholder:text-admin-text-muted"
+          />
+        </div>
+        <AdminCard className="p-3 sm:p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex items-center gap-1.5">
+              {filterTabs.map((tab) => (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => {
+                    setActiveFilter(tab.value);
+                    setCurrentPage(1);
+                  }}
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold tracking-tight transition-all",
+                    activeFilter === tab.value
+                      ? "border-admin-accent/30 bg-admin-accent text-black shadow-[0_0_20px_rgba(245,197,24,0.15)]"
+                      : "border-white/5 bg-white/[0.03] text-admin-text-muted hover:border-white/10 hover:bg-white/[0.06] hover:text-admin-text-primary",
+                  )}
+                >
+                  {tab.label}
+                  {tab.count !== undefined && (
+                    <span className={cn(
+                      "rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none",
+                      activeFilter === tab.value
+                        ? "bg-black/20 text-black/80"
+                        : "bg-white/5 text-admin-text-muted/60"
+                    )}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-
-          {/* Filter tabs */}
-          <div className="flex flex-wrap gap-1">
-            {filterTabs.map((tab) => (
-              <button
-                key={tab.value}
-                type="button"
-                onClick={() => {
-                  setActiveFilter(tab.value);
-                  setCurrentPage(1);
-                }}
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition",
-                  activeFilter === tab.value
-                    ? "bg-admin-accent/15 text-admin-accent"
-                    : "text-admin-text-muted hover:bg-admin-surface hover:text-admin-text-secondary",
-                )}
-              >
-                {tab.label}
-                {tab.count !== undefined && (
-                  <span className="rounded-md bg-admin-surface/60 px-1.5 py-0.5 text-[10px]">
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+        </AdminCard>
+      </div>
 
       {/* Events Table */}
-      <Card className="border-admin-border bg-admin-card shadow-sm">
-        <CardContent className="p-0">
+      <AdminCard>
+        <TableShell>
           {loading ? (
-            <div className="space-y-0">
-              {Array.from({ length: 5 }).map((_, i) => (
+            <div className="divide-y divide-white/5">
+              {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={`sk-${i}`}
-                  className="flex items-center gap-3 border-b border-admin-border/50 px-3 py-3 last:border-0"
+                  className="flex items-center gap-4 px-4 py-4"
                 >
-                  <div className="size-4 shrink-0 animate-pulse rounded bg-admin-surface" />
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    <div className="h-3.5 w-48 animate-pulse rounded bg-admin-surface" />
-                    <div className="h-3 w-28 animate-pulse rounded bg-admin-surface" />
+                  <div className="size-4 shrink-0 animate-pulse rounded bg-white/5" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="h-4 w-48 animate-pulse rounded bg-white/5" />
+                    <div className="h-3 w-32 animate-pulse rounded bg-white/5" />
                   </div>
-                  <div className="h-5 w-16 animate-pulse rounded-full bg-admin-surface" />
+                  <div className="h-6 w-16 animate-pulse rounded-full bg-white/5" />
                 </div>
               ))}
             </div>
           ) : filteredEvents.length === 0 ? (
-            <div className="flex flex-col items-center py-12 text-center">
-              <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-admin-surface/50">
-                <CalendarClock size={24} className="text-admin-text-muted" />
+            <div className="flex flex-col items-center py-16 text-center">
+              <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-white/5 border border-white/5 shadow-xl">
+                <CalendarClock size={28} className="text-admin-text-muted/40" />
               </div>
-              <p className="text-sm font-medium text-admin-text-primary">
+              <p className="text-base font-bold text-admin-text-primary">
                 No custom events found
               </p>
-              <p className="mt-1 text-xs text-admin-text-muted">
+              <p className="mt-1 text-sm text-admin-text-muted/60">
                 Create your first custom event to get started
               </p>
-              <Button
+              <AdminButton
                 size="sm"
                 onClick={() => setCreateOpen(true)}
-                className="mt-4 bg-admin-accent text-black hover:bg-admin-accent/90"
+                className="mt-6 font-bold"
               >
-                <Plus className="size-3.5" />
+                <Plus className="mr-2 size-4" />
                 Create Event
-              </Button>
+              </AdminButton>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px]">
+            <div className="overflow-x-auto overflow-y-hidden">
+              <table className={adminTableClassName}>
                 <thead>
-                  <tr className="border-b border-admin-border/70">
-                    <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                      Event
-                    </th>
-                    <th className="hidden px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted sm:table-cell">
-                      Category
-                    </th>
-                    <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                      Start
-                    </th>
-                    <th className="hidden px-3 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted md:table-cell">
-                      Markets
-                    </th>
-                    <th className="hidden px-3 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted md:table-cell">
-                      Bets
-                    </th>
-                    <th className="px-3 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                      Status
-                    </th>
-                    <th className="px-3 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-admin-text-muted">
-                      Actions
-                    </th>
+                  <tr>
+                    <th className={adminTableHeadCellClassName}>Event</th>
+                    <th className={cn(adminTableHeadCellClassName, "hidden sm:table-cell")}>Category</th>
+                    <th className={adminTableHeadCellClassName}>Start</th>
+                    <th className={cn(adminTableHeadCellClassName, "hidden text-center md:table-cell")}>Markets</th>
+                    <th className={cn(adminTableHeadCellClassName, "hidden text-center md:table-cell")}>Bets</th>
+                    <th className={cn(adminTableHeadCellClassName, "text-center")}>Status</th>
+                    <th className={cn(adminTableHeadCellClassName, "text-right")}>Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/5">
                   {filteredEvents.map((event) => (
                     <tr
                       key={event.id}
-                      className="border-b border-admin-border/40 transition hover:bg-admin-surface/20 last:border-0"
+                      className="group transition-all duration-300 hover:bg-white/[0.03]"
                     >
                       {/* Event */}
-                      <td className="px-3 py-2.5">
+                      <td className={adminTableCellClassName}>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-admin-text-primary">
+                          <p className="truncate text-sm font-bold text-admin-text-primary">
                             {event.teamHome}{" "}
-                            <span className="font-normal text-admin-text-muted">
+                            <span className="text-xs font-normal text-admin-text-muted/40">
                               vs
                             </span>{" "}
                             {event.teamAway}
                           </p>
-                          <p className="truncate text-[11px] text-admin-text-muted">
+                          <p className="mt-0.5 truncate text-[11px] font-medium text-admin-text-muted/60">
                             {event.league}
                           </p>
                         </div>
                       </td>
 
                       {/* Category */}
-                      <td className="hidden px-3 py-2.5 sm:table-cell">
-                        <span className="rounded-md bg-admin-surface/40 px-2 py-0.5 text-[11px] font-medium text-admin-text-secondary">
+                      <td className={cn(adminTableCellClassName, "hidden sm:table-cell")}>
+                        <Badge className="bg-white/5 text-[10px] font-bold text-admin-text-muted border-transparent group-hover:border-white/10 transition-colors">
                           {event.category}
-                        </span>
+                        </Badge>
                       </td>
 
                       {/* Start Time */}
-                      <td className="px-3 py-2.5">
-                        <div className="text-xs text-admin-text-secondary">
-                          {formatDateTime(event.startTime)}
+                      <td className={adminTableCellClassName}>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-mono text-[11px] text-admin-text-muted/80">
+                            {formatDateTime(event.startTime)}
+                          </span>
+                          {event.status !== "FINISHED" &&
+                            event.status !== "CANCELLED" && (
+                              <span className="text-[10px] font-bold text-admin-accent/80">
+                                {formatCountdown(event.startTime)}
+                              </span>
+                            )}
                         </div>
-                        {event.status !== "FINISHED" &&
-                          event.status !== "CANCELLED" && (
-                            <span className="text-[10px] font-medium text-admin-accent">
-                              {formatCountdown(event.startTime)}
-                            </span>
-                          )}
                       </td>
 
                       {/* Markets */}
-                      <td className="hidden px-3 py-2.5 text-center md:table-cell">
-                        <span className="text-xs font-medium text-admin-text-secondary">
-                          {event.marketsCount ?? event.markets?.length ?? 0}
-                        </span>
+                      <td className={cn(adminTableCellClassName, "hidden text-center md:table-cell font-mono")}>
+                        {event.marketsCount ?? event.markets?.length ?? 0}
                       </td>
 
                       {/* Bets */}
-                      <td className="hidden px-3 py-2.5 text-center md:table-cell">
-                        <span className="text-xs font-medium text-admin-text-secondary">
-                          {event.totalBets ?? event._count?.bets ?? 0}
-                        </span>
+                      <td className={cn(adminTableCellClassName, "hidden text-center md:table-cell font-mono")}>
+                        {event.totalBets ?? event._count?.bets ?? 0}
                       </td>
 
                       {/* Status */}
-                      <td className="px-3 py-2.5 text-center">
-                        <div className="flex flex-col items-center gap-1">
+                      <td className={cn(adminTableCellClassName, "text-center")}>
+                        <div className="flex flex-col items-center gap-1.5">
                           <StatusBadge status={toBadgeStatus(event.status)} />
                           {event.status === "FINISHED" && (
                             <span
@@ -1357,7 +1354,7 @@ export default function CustomEventsManager() {
                                 "text-[9px] font-bold uppercase tracking-wider",
                                 event.markets && event.markets.length > 0 && event.markets.every((m) => m.status === "SETTLED")
                                   ? "text-emerald-400"
-                                  : "text-amber-400"
+                                  : "text-admin-accent/80 font-black shadow-[0_0_10px_rgba(245,197,24,0.1)]"
                               )}
                             >
                               {event.markets && event.markets.length > 0 && event.markets.every((m) => m.status === "SETTLED")

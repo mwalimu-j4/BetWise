@@ -58,12 +58,12 @@
 
 :root {
   /* Backgrounds */
-  --color-bg-deepest: #0d2137;
-  --color-bg-primary: #1a3a6b;
-  --color-bg-secondary: #1e4080;
-  --color-bg-surface: #2a5298;
-  --color-bg-elevated: #1c3d7a;
-  --color-bg-hover: rgba(255, 255, 255, 0.06);
+  --color-bg-primary: #0b1426;
+  --color-bg-secondary: #0f1a2d;
+  --color-bg-surface: #15243d;
+  --color-bg-elevated: #1e2c45;
+  --color-bg-deepest: #010811;
+  --color-bg-hover: rgba(255, 255, 255, 0.04);
 
   /* Accent (CTA + active states ONLY) */
   --color-accent: #f5c518;
