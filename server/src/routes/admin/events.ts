@@ -25,7 +25,7 @@ type EventsConfiguredResponse = {
     leagueName: string | null;
     sportKey: string | null;
     commenceTime: Date;
-    status: "UPCOMING" | "LIVE" | "FINISHED" | "CANCELLED";
+    status: "UPCOMING" | "LIVE" | "FINISHED" | "CANCELLED" | "SUSPENDED";
     houseMargin: number;
     marketsEnabled: string[];
     _count: {

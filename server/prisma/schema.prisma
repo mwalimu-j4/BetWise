@@ -57,6 +57,7 @@ enum EventStatus {
   LIVE
   FINISHED
   CANCELLED
+  SUSPENDED
 }
 
 enum BetStatus {
@@ -269,33 +270,40 @@ model AdminLoginChallenge {
 }
 
 model SportEvent {
-  id             String        @id @default(uuid()) @db.Uuid
-  eventId        String        @unique @map("event_id")
-  leagueId       String?       @map("league_id")
-  leagueName     String?       @map("league_name")
-  sportKey       String?       @map("sport_key")
-  homeTeam       String        @map("home_team")
-  awayTeam       String        @map("away_team")
-  commenceTime   DateTime      @map("commence_time")
-  status         EventStatus   @default(UPCOMING)
-  homeScore      Int?          @map("home_score")
-  awayScore      Int?          @map("away_score")
-  rawData        Json?         @map("raw_data")
-  isActive       Boolean       @default(false) @map("is_active")
-  isFeatured     Boolean       @default(false) @map("is_featured")
-  featuredPriority Int         @default(0) @map("featured_priority")
-  houseMargin    Float         @default(0) @map("house_margin")
-  marketsEnabled String[]      @default(["h2h"]) @map("markets_enabled")
-  fetchedAt      DateTime      @default(now()) @map("fetched_at")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
-  odds           EventOdds[]
-  displayedOdds  DisplayedOdds[]
-  bets           Bet[]
+  id               String        @id @default(uuid()) @db.Uuid
+  eventId          String        @unique @map("event_id")
+  leagueId         String?       @map("league_id")
+  leagueName       String?       @map("league_name")
+  sportKey         String?       @map("sport_key")
+  homeTeam         String        @map("home_team")
+  awayTeam         String        @map("away_team")
+  commenceTime     DateTime      @map("commence_time")
+  status           EventStatus   @default(UPCOMING)
+  homeScore        Int?          @map("home_score")
+  awayScore        Int?          @map("away_score")
+  rawData          Json?         @map("raw_data")
+  isActive         Boolean       @default(false) @map("is_active")
+  isFeatured       Boolean       @default(false) @map("is_featured")
+  featuredPriority Int           @default(0) @map("featured_priority")
+  houseMargin      Float         @default(0) @map("house_margin")
+  marketsEnabled   String[]      @default(["h2h"]) @map("markets_enabled")
+  fetchedAt        DateTime      @default(now()) @map("fetched_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  // ── Automated event management fields ──
+  oddsVerified     Boolean       @default(false) @map("odds_verified")
+  bookmakerKey     String?       @map("bookmaker_key")
+  bookmakerMargin  Float         @default(0) @map("bookmaker_margin")
+  autoConfigured   Boolean       @default(false) @map("auto_configured")
+  syncedAt         DateTime?     @map("synced_at")
+  odds             EventOdds[]
+  displayedOdds    DisplayedOdds[]
+  bets             Bet[]
 
   @@index([status])
   @@index([commenceTime])
   @@index([sportKey])
   @@index([isActive])
+  @@index([oddsVerified])
   @@map("sport_events")
 }
 
@@ -707,4 +715,41 @@ model CategoryConfigLog {
   @@index([adminId])
   @@index([createdAt])
   @@map("category_config_logs")
+}
+
+// ── Automated Event Management: Admin Alerts ──
+
+model AdminAlert {
+  id        String   @id @default(uuid()) @db.Uuid
+  type      String   // NO_EVENTS, API_DOWN, LOW_CREDITS, SYNC_SUCCESS, SYNC_FAILED, EVENT_NO_ODDS, CREDITS_EXHAUSTED
+  message   String
+  sportKey  String?  @map("sport_key")
+  severity  String   @default("info") // info, warning, critical
+  isRead    Boolean  @default(false) @map("is_read")
+  metadata  Json?    // extra data (credits remaining, error details, etc.)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([severity])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("admin_alerts")
+}
+
+// ── Automated Event Management: API Sync Logs ──
+
+model ApiSyncLog {
+  id               String   @id @default(uuid()) @db.Uuid
+  jobName          String   @map("job_name")
+  status           String   // success, partial, failed
+  sportsProcessed  Int      @default(0) @map("sports_processed")
+  eventsLoaded     Int      @default(0) @map("events_loaded")
+  creditsUsed      Int?     @map("credits_used")
+  creditsRemaining Int?     @map("credits_remaining")
+  errorMessage     String?  @map("error_message")
+  durationMs       Int?     @map("duration_ms")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([jobName])
+  @@index([createdAt])
+  @@map("api_sync_logs")
 }

@@ -46,11 +46,268 @@ import {
   RefreshCw,
   Search,
   Settings2,
+  Zap,
+  Shield,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Activity,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
+
+// ── System Status Types ──
+interface SystemStatus {
+  health: "healthy" | "warning" | "critical";
+  api: {
+    isOnline: boolean;
+    isApiKeyValid: boolean;
+    creditsRemaining: number | null;
+    creditsPercent: number | null;
+    monthlyBudget: number;
+    dailyCallsUsed: number;
+    dailyBudget: number;
+    lastError: string | null;
+    isRateLimited: boolean;
+  };
+  sync: {
+    lastSyncTime: string | null;
+    nextSyncTime: string | null;
+  };
+  events: {
+    totalIn7Days: number;
+    eventsWithoutOdds: number;
+    liveCount: number;
+  };
+  sports: {
+    totalActive: number;
+    withNoEvents: string[];
+    withNoEventsCount: number;
+  };
+}
+
+interface AutoConfigureStatus {
+  running: boolean;
+  progress: number;
+  currentStep: string;
+  done: boolean;
+  lastRunAt: string | null;
+  cooldownMs: number;
+}
+
+// ── System Status Panel Component ──
+function SystemStatusPanel() {
+  const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [autoConfiguring, setAutoConfiguring] = useState(false);
+  const [autoConfigStatus, setAutoConfigStatus] = useState<AutoConfigureStatus | null>(null);
+  const [cooldownMs, setCooldownMs] = useState(0);
+
+  async function loadStatus() {
+    try {
+      const res = await api.get<SystemStatus>("/admin/system/status");
+      setStatus(res.data);
+    } catch {
+      // Silent fail — panel will show loading state
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleAutoConfigure() {
+    if (autoConfiguring || cooldownMs > 0) return;
+    setAutoConfiguring(true);
+    try {
+      const res = await api.post<{ status: AutoConfigureStatus }>("/admin/system/auto-configure");
+      setAutoConfigStatus(res.data.status);
+      toast.success("Auto-configure started!");
+
+      // Poll for progress
+      const pollInterval = window.setInterval(async () => {
+        try {
+          const { data } = await api.get<AutoConfigureStatus>("/admin/system/auto-configure/status");
+          setAutoConfigStatus(data);
+          if (data.done) {
+            window.clearInterval(pollInterval);
+            setAutoConfiguring(false);
+            setCooldownMs(data.cooldownMs);
+            toast.success("Auto-configure completed!");
+            void loadStatus();
+          }
+        } catch {
+          window.clearInterval(pollInterval);
+          setAutoConfiguring(false);
+        }
+      }, 2000);
+    } catch (e) {
+      setAutoConfiguring(false);
+      const msg = typeof e === "object" && e !== null && "response" in e
+        ? (e as { response?: { data?: { error?: string } } }).response?.data?.error ?? "Failed"
+        : "Failed to start auto-configure";
+      toast.error(msg);
+    }
+  }
+
+  useEffect(() => {
+    void loadStatus();
+    const si = window.setInterval(() => void loadStatus(), 30000);
+    return () => window.clearInterval(si);
+  }, []);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldownMs <= 0) return;
+    const ti = window.setInterval(() => {
+      setCooldownMs((prev) => Math.max(0, prev - 1000));
+    }, 1000);
+    return () => window.clearInterval(ti);
+  }, [cooldownMs]);
+
+  function formatRelativeTime(iso: string | null): string {
+    if (!iso) return "Never";
+    const diffMs = Date.now() - new Date(iso).getTime();
+    if (diffMs < 0) {
+      const futureSec = Math.abs(diffMs) / 1000;
+      if (futureSec < 60) return `in ${Math.ceil(futureSec)}s`;
+      return `in ${Math.ceil(futureSec / 60)}m`;
+    }
+    const sec = diffMs / 1000;
+    if (sec < 60) return `${Math.floor(sec)}s ago`;
+    if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+    return `${Math.floor(sec / 3600)}h ago`;
+  }
+
+  if (loading || !status) {
+    return (
+      <div className="h-16 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card" />
+    );
+  }
+
+  const healthColor = status.health === "healthy" ? "text-emerald-400" : status.health === "warning" ? "text-amber-400" : "text-red-400";
+  const healthBg = status.health === "healthy" ? "bg-emerald-500/10 border-emerald-500/20" : status.health === "warning" ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
+  const creditColor = (status.api.creditsPercent ?? 100) > 50 ? "text-emerald-400" : (status.api.creditsPercent ?? 100) > 20 ? "text-amber-400" : "text-red-400";
+
+  return (
+    <div className="space-y-2">
+      {/* Status bar */}
+      <Card className={cn("border shadow-sm", healthBg)}>
+        <CardContent className="p-2 sm:p-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px]">
+            {/* API Status */}
+            <div className="flex items-center gap-1.5">
+              {status.api.isOnline ? (
+                <CheckCircle2 size={12} className="text-emerald-400" />
+              ) : (
+                <XCircle size={12} className="text-red-400" />
+              )}
+              <span className={cn("font-semibold", status.api.isOnline ? "text-emerald-400" : "text-red-400")}>
+                API: {status.api.isOnline ? "Online" : "Offline"}
+              </span>
+            </div>
+
+            <div className="hidden h-3 w-px bg-admin-border/50 sm:block" />
+
+            {/* Credits */}
+            <div className="flex items-center gap-1.5">
+              <Shield size={12} className={creditColor} />
+              <span className="text-admin-text-muted">Credits:</span>
+              <span className={cn("font-bold tabular-nums", creditColor)}>
+                {status.api.creditsRemaining ?? "?"}
+              </span>
+              <span className="text-admin-text-muted">
+                ({status.api.creditsPercent ?? "?"}%)
+              </span>
+            </div>
+
+            <div className="hidden h-3 w-px bg-admin-border/50 sm:block" />
+
+            {/* Last Sync */}
+            <div className="flex items-center gap-1.5">
+              <Clock size={12} className="text-admin-text-muted" />
+              <span className="text-admin-text-muted">Last sync:</span>
+              <span className="font-semibold text-admin-text-primary">
+                {formatRelativeTime(status.sync.lastSyncTime)}
+              </span>
+            </div>
+
+            <div className="hidden h-3 w-px bg-admin-border/50 md:block" />
+
+            {/* Next Sync */}
+            <div className="hidden items-center gap-1.5 md:flex">
+              <Activity size={12} className="text-admin-text-muted" />
+              <span className="text-admin-text-muted">Next:</span>
+              <span className="font-semibold text-admin-text-primary">
+                {formatRelativeTime(status.sync.nextSyncTime)}
+              </span>
+            </div>
+
+            <div className="hidden h-3 w-px bg-admin-border/50 lg:block" />
+
+            {/* Events */}
+            <div className="hidden items-center gap-1.5 lg:flex">
+              <Zap size={12} className="text-admin-accent" />
+              <span className="text-admin-text-muted">7-day events:</span>
+              <span className="font-bold text-admin-text-primary">
+                {status.events.totalIn7Days}
+              </span>
+            </div>
+
+            {/* Sports Warning */}
+            {status.sports.withNoEventsCount > 0 && (
+              <>
+                <div className="hidden h-3 w-px bg-admin-border/50 lg:block" />
+                <div className="hidden items-center gap-1.5 lg:flex">
+                  <AlertTriangle size={12} className="text-amber-400" />
+                  <span className="text-amber-400">
+                    {status.sports.withNoEventsCount} sport{status.sports.withNoEventsCount !== 1 ? "s" : ""} empty
+                  </span>
+                </div>
+              </>
+            )}
+
+            {/* Events without odds — should always be 0 */}
+            {status.events.eventsWithoutOdds > 0 && (
+              <>
+                <div className="hidden h-3 w-px bg-admin-border/50 sm:block" />
+                <div className="flex items-center gap-1.5">
+                  <XCircle size={12} className="text-red-400" />
+                  <span className="font-semibold text-red-400">
+                    {status.events.eventsWithoutOdds} without odds
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Auto-Configure Progress */}
+      {autoConfiguring && autoConfigStatus && (
+        <Card className="border-admin-accent/30 bg-admin-card shadow-sm">
+          <CardContent className="p-3">
+            <div className="mb-2 flex items-center justify-between text-xs">
+              <span className="font-semibold text-admin-accent">
+                {autoConfigStatus.currentStep || "Processing..."}
+              </span>
+              <span className="tabular-nums text-admin-text-muted">
+                {autoConfigStatus.progress}%
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-admin-surface">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-admin-accent to-amber-400 transition-all duration-500"
+                style={{ width: `${autoConfigStatus.progress}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
 import {
   AdminSectionHeader,
   AdminStatCard,
@@ -750,8 +1007,9 @@ function FeedEvents() {
   return (
     <>
       <div className="space-y-2">
-        {/* ── Tab Selector ── */}
-        {/* Note: tab state is managed by the wrapper */}
+        {/* ── System Status Panel ── */}
+        <SystemStatusPanel />
+
         {/* ── Header ── */}
         <AdminSectionHeader
           title="Events"

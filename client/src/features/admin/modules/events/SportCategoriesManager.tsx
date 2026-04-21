@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
+  AlertTriangle,
   CheckCircle2,
   CheckSquare,
   Loader2,
   RefreshCw,
   Settings2,
+  Shield,
   Square,
   Zap,
 } from "lucide-react";
@@ -53,12 +55,27 @@ interface SyncStatus {
 
 function formatSyncTime(timestamp: string | null) {
   if (!timestamp) return "Never synced";
+  const diffMs = Date.now() - new Date(timestamp).getTime();
+  const sec = diffMs / 1000;
+  if (sec < 60) return `${Math.floor(sec)}s ago`;
+  if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+  if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
   return new Date(timestamp).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function getEventCountHealth(count: number): {
+  color: string;
+  bg: string;
+  label: string;
+} {
+  if (count === 0) return { color: "text-red-400", bg: "bg-red-500/10", label: "No events" };
+  if (count < 5) return { color: "text-amber-400", bg: "bg-amber-500/10", label: "Low" };
+  return { color: "text-emerald-400", bg: "bg-emerald-500/10", label: "Healthy" };
 }
 
 export default function SportCategoriesManager() {
@@ -76,6 +93,14 @@ export default function SportCategoriesManager() {
   );
   const totalInactive = useMemo(
     () => categories.filter((c) => !c.isActive).length,
+    [categories],
+  );
+  const totalEvents = useMemo(
+    () => categories.reduce((sum, c) => sum + (c.liveEventCount ?? c.eventCount), 0),
+    [categories],
+  );
+  const sportsWithNoEvents = useMemo(
+    () => categories.filter((c) => c.isActive && c.eventCount === 0).length,
     [categories],
   );
 
@@ -256,7 +281,7 @@ export default function SportCategoriesManager() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <AdminStatCard
           label="Total Sports"
           value={String(categories.length)}
@@ -268,9 +293,14 @@ export default function SportCategoriesManager() {
           tone="live"
         />
         <AdminStatCard
-          label="Inactive"
-          value={String(totalInactive)}
+          label="Total Events"
+          value={totalEvents.toLocaleString()}
           tone="accent"
+        />
+        <AdminStatCard
+          label="Sports Empty"
+          value={String(sportsWithNoEvents)}
+          tone={sportsWithNoEvents > 0 ? "gold" : "blue"}
         />
       </div>
 
@@ -290,6 +320,14 @@ export default function SportCategoriesManager() {
               {totalInactive}
             </span>{" "}
             inactive
+            {sportsWithNoEvents > 0 && (
+              <>
+                {" · "}
+                <span className="font-bold text-amber-400">
+                  ⚠ {sportsWithNoEvents} with no events
+                </span>
+              </>
+            )}
           </p>
           <div className="flex flex-wrap gap-1.5">
             <Button
@@ -358,6 +396,8 @@ export default function SportCategoriesManager() {
         {categories.map((category) => {
           const isSelected = selectedKeys.has(category.sportKey);
           const isTogglingThis = toggling === category.id;
+          const eventCount = category.liveEventCount ?? category.eventCount;
+          const health = getEventCountHealth(eventCount);
 
           return (
             <Card
@@ -432,18 +472,49 @@ export default function SportCategoriesManager() {
 
                 {/* Stats row */}
                 <div className="mt-2.5 flex items-center gap-3 border-t border-admin-border/50 pt-2">
+                  {/* Event count with health indicator */}
                   <div className="flex items-center gap-1 text-[10px] text-admin-text-muted">
                     <Zap size={10} className="text-admin-accent" />
                     <span>
-                      <span className="font-bold text-admin-text-primary">
-                        {(category.liveEventCount ?? category.eventCount).toLocaleString()}
+                      <span className={cn("font-bold", health.color)}>
+                        {eventCount.toLocaleString()}
                       </span>{" "}
                       events
                     </span>
                   </div>
-                  <div className="text-[10px] text-admin-text-muted">
-                    Synced: {formatSyncTime(category.lastSyncedAt)}
+
+                  {/* Health indicator */}
+                  {category.isActive && (
+                    <div className="flex items-center gap-1 text-[10px]">
+                      {eventCount === 0 ? (
+                        <AlertTriangle size={10} className="text-amber-400" />
+                      ) : (
+                        <Shield size={10} className={health.color} />
+                      )}
+                      <span className={health.color}>{health.label}</span>
+                    </div>
+                  )}
+
+                  <div className="ml-auto text-[10px] text-admin-text-muted">
+                    {formatSyncTime(category.lastSyncedAt)}
                   </div>
+                </div>
+
+                {/* Event count health bar */}
+                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-admin-surface/60">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      eventCount === 0
+                        ? "bg-red-500/60"
+                        : eventCount < 5
+                          ? "bg-amber-500/60"
+                          : "bg-emerald-500/60",
+                    )}
+                    style={{
+                      width: `${Math.min(100, (eventCount / 50) * 100)}%`,
+                    }}
+                  />
                 </div>
               </CardContent>
             </Card>

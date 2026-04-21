@@ -138,6 +138,7 @@ function sortEvents(events: EventWithDisplayedOdds[]) {
     UPCOMING: 1,
     FINISHED: 2,
     CANCELLED: 3,
+    SUSPENDED: 4,
   };
 
   return [...events].sort((left, right) => {
