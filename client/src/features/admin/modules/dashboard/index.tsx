@@ -640,7 +640,7 @@ export default function Dashboard() {
                     )}
                   </tbody>
                 </table>
-              </div>
+              </TableShell>
 
               {/* Pagination Controls */}
               {recentTransactions.length > itemsPerPage && (
