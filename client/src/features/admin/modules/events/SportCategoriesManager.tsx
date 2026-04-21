@@ -34,6 +34,10 @@ interface SportCategory {
   lastSyncedAt: string | null;
   configuredBy: string | null;
   liveEventCount?: number;
+  oddsAvailable?: boolean;
+  marginQuality?: "good" | "fair" | "poor" | "none";
+  averageBookmakerMargin?: number;
+  warning?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +80,13 @@ function getEventCountHealth(count: number): {
   if (count === 0) return { color: "text-red-400", bg: "bg-red-500/10", label: "No events" };
   if (count < 5) return { color: "text-amber-400", bg: "bg-amber-500/10", label: "Low" };
   return { color: "text-emerald-400", bg: "bg-emerald-500/10", label: "Healthy" };
+}
+
+function getMarginIndicator(quality: SportCategory["marginQuality"]) {
+  if (quality === "good") return { color: "text-emerald-400", label: "Good margin" };
+  if (quality === "fair") return { color: "text-amber-400", label: "Fair margin" };
+  if (quality === "poor") return { color: "text-red-400", label: "Poor margin" };
+  return { color: "text-admin-text-muted", label: "No margin" };
 }
 
 export default function SportCategoriesManager() {
@@ -398,6 +409,7 @@ export default function SportCategoriesManager() {
           const isTogglingThis = toggling === category.id;
           const eventCount = category.liveEventCount ?? category.eventCount;
           const health = getEventCountHealth(eventCount);
+          const margin = getMarginIndicator(category.marginQuality);
 
           return (
             <Card
@@ -498,6 +510,30 @@ export default function SportCategoriesManager() {
                   <div className="ml-auto text-[10px] text-admin-text-muted">
                     {formatSyncTime(category.lastSyncedAt)}
                   </div>
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
+                  <Badge
+                    className={cn(
+                      "border px-2 py-0.5",
+                      category.oddsAvailable
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                        : "border-red-500/30 bg-red-500/10 text-red-400",
+                    )}
+                  >
+                    {category.oddsAvailable ? "Odds available" : "No odds"}
+                  </Badge>
+                  <span className={margin.color}>{margin.label}</span>
+                  {typeof category.averageBookmakerMargin === "number" && category.averageBookmakerMargin > 0 ? (
+                    <span className="text-admin-text-muted">
+                      Margin {(category.averageBookmakerMargin * 100).toFixed(1)}%
+                    </span>
+                  ) : null}
+                  {category.warning ? (
+                    <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-400">
+                      WARNING
+                    </Badge>
+                  ) : null}
                 </div>
 
                 {/* Event count health bar */}

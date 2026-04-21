@@ -272,6 +272,7 @@ model AdminLoginChallenge {
 model SportEvent {
   id               String        @id @default(uuid()) @db.Uuid
   eventId          String        @unique @map("event_id")
+  externalEventId  String?       @unique @map("external_event_id")
   leagueId         String?       @map("league_id")
   leagueName       String?       @map("league_name")
   sportKey         String?       @map("sport_key")
@@ -295,6 +296,7 @@ model SportEvent {
   bookmakerMargin  Float         @default(0) @map("bookmaker_margin")
   autoConfigured   Boolean       @default(false) @map("auto_configured")
   syncedAt         DateTime?     @map("synced_at")
+  archivedAt       DateTime?     @map("archived_at")
   odds             EventOdds[]
   displayedOdds    DisplayedOdds[]
   bets             Bet[]
@@ -304,6 +306,8 @@ model SportEvent {
   @@index([sportKey])
   @@index([isActive])
   @@index([oddsVerified])
+  @@index([syncedAt])
+  @@index([bookmakerMargin])
   @@map("sport_events")
 }
 
@@ -752,4 +756,23 @@ model ApiSyncLog {
   @@index([jobName])
   @@index([createdAt])
   @@map("api_sync_logs")
+}
+
+model OddsApiCallLog {
+  id               String   @id @default(uuid()) @db.Uuid
+  endpoint         String
+  sportKey         String?  @map("sport_key")
+  requestType      String   @map("request_type")
+  responseStatus   Int      @map("response_status")
+  creditsUsed      Int?     @map("credits_used")
+  creditsRemaining Int?     @map("credits_remaining")
+  durationMs       Int?     @map("duration_ms")
+  errorMessage     String?  @map("error_message")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([sportKey])
+  @@index([requestType])
+  @@index([responseStatus])
+  @@index([createdAt])
+  @@map("odds_api_call_logs")
 }

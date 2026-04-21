@@ -387,6 +387,7 @@ async function queryLiveEvents(args: z.infer<typeof liveQuerySchema>) {
   const events = await prisma.sportEvent.findMany({
     where: {
       isActive: true,
+      oddsVerified: true,
       status: "LIVE",
       sportKey: args.sport || undefined,
       leagueName: args.league
@@ -546,6 +547,7 @@ liveRouter.get("/live/scores", liveOddsRateLimiter, async (req, res, next) => {
     const rows = await prisma.sportEvent.findMany({
       where: {
         isActive: true,
+        oddsVerified: true,
         status: { in: ["LIVE", "FINISHED"] },
         eventId: ids.length > 0 ? { in: ids } : undefined,
       },

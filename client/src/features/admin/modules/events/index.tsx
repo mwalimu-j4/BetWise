@@ -68,8 +68,8 @@ interface SystemStatus {
     creditsRemaining: number | null;
     creditsPercent: number | null;
     monthlyBudget: number;
-    dailyCallsUsed: number;
-    dailyBudget: number;
+    dailyCallsUsed: number | null;
+    dailyBudget: number | null;
     lastError: string | null;
     isRateLimited: boolean;
   };
@@ -96,15 +96,13 @@ interface AutoConfigureStatus {
   done: boolean;
   lastRunAt: string | null;
   cooldownMs: number;
+  results?: Record<string, number | string> | null;
 }
 
 // ── System Status Panel Component ──
 function SystemStatusPanel() {
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [autoConfiguring, setAutoConfiguring] = useState(false);
-  const [autoConfigStatus, setAutoConfigStatus] = useState<AutoConfigureStatus | null>(null);
-  const [cooldownMs, setCooldownMs] = useState(0);
 
   async function loadStatus() {
     try {
@@ -117,54 +115,11 @@ function SystemStatusPanel() {
     }
   }
 
-  async function handleAutoConfigure() {
-    if (autoConfiguring || cooldownMs > 0) return;
-    setAutoConfiguring(true);
-    try {
-      const res = await api.post<{ status: AutoConfigureStatus }>("/admin/system/auto-configure");
-      setAutoConfigStatus(res.data.status);
-      toast.success("Auto-configure started!");
-
-      // Poll for progress
-      const pollInterval = window.setInterval(async () => {
-        try {
-          const { data } = await api.get<AutoConfigureStatus>("/admin/system/auto-configure/status");
-          setAutoConfigStatus(data);
-          if (data.done) {
-            window.clearInterval(pollInterval);
-            setAutoConfiguring(false);
-            setCooldownMs(data.cooldownMs);
-            toast.success("Auto-configure completed!");
-            void loadStatus();
-          }
-        } catch {
-          window.clearInterval(pollInterval);
-          setAutoConfiguring(false);
-        }
-      }, 2000);
-    } catch (e) {
-      setAutoConfiguring(false);
-      const msg = typeof e === "object" && e !== null && "response" in e
-        ? (e as { response?: { data?: { error?: string } } }).response?.data?.error ?? "Failed"
-        : "Failed to start auto-configure";
-      toast.error(msg);
-    }
-  }
-
   useEffect(() => {
     void loadStatus();
     const si = window.setInterval(() => void loadStatus(), 30000);
     return () => window.clearInterval(si);
   }, []);
-
-  // Cooldown timer
-  useEffect(() => {
-    if (cooldownMs <= 0) return;
-    const ti = window.setInterval(() => {
-      setCooldownMs((prev) => Math.max(0, prev - 1000));
-    }, 1000);
-    return () => window.clearInterval(ti);
-  }, [cooldownMs]);
 
   function formatRelativeTime(iso: string | null): string {
     if (!iso) return "Never";
@@ -186,7 +141,6 @@ function SystemStatusPanel() {
     );
   }
 
-  const healthColor = status.health === "healthy" ? "text-emerald-400" : status.health === "warning" ? "text-amber-400" : "text-red-400";
   const healthBg = status.health === "healthy" ? "bg-emerald-500/10 border-emerald-500/20" : status.health === "warning" ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
   const creditColor = (status.api.creditsPercent ?? 100) > 50 ? "text-emerald-400" : (status.api.creditsPercent ?? 100) > 20 ? "text-amber-400" : "text-red-400";
 
@@ -268,43 +222,25 @@ function SystemStatusPanel() {
               </>
             )}
 
-            {/* Events without odds — should always be 0 */}
-            {status.events.eventsWithoutOdds > 0 && (
-              <>
-                <div className="hidden h-3 w-px bg-admin-border/50 sm:block" />
-                <div className="flex items-center gap-1.5">
-                  <XCircle size={12} className="text-red-400" />
-                  <span className="font-semibold text-red-400">
-                    {status.events.eventsWithoutOdds} without odds
-                  </span>
-                </div>
-              </>
-            )}
+            <div className="hidden h-3 w-px bg-admin-border/50 sm:block" />
+            <div className="flex items-center gap-1.5">
+              {status.events.eventsWithoutOdds > 0 ? (
+                <XCircle size={12} className="text-red-400" />
+              ) : (
+                <Check size={12} className="text-emerald-400" />
+              )}
+              <span
+                className={cn(
+                  "font-semibold",
+                  status.events.eventsWithoutOdds > 0 ? "text-red-400" : "text-emerald-400",
+                )}
+              >
+                No-odds events: {status.events.eventsWithoutOdds}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Auto-Configure Progress */}
-      {autoConfiguring && autoConfigStatus && (
-        <Card className="border-admin-accent/30 bg-admin-card shadow-sm">
-          <CardContent className="p-3">
-            <div className="mb-2 flex items-center justify-between text-xs">
-              <span className="font-semibold text-admin-accent">
-                {autoConfigStatus.currentStep || "Processing..."}
-              </span>
-              <span className="tabular-nums text-admin-text-muted">
-                {autoConfigStatus.progress}%
-              </span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-admin-surface">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-admin-accent to-amber-400 transition-all duration-500"
-                style={{ width: `${autoConfigStatus.progress}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
@@ -417,6 +353,18 @@ function formatUpdatedTime(timestamp: string) {
     minute: "2-digit",
   });
 }
+function formatRelativeTimeLabel(iso: string | null) {
+  if (!iso) return "Never";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 0) {
+    const futureMinutes = Math.ceil(Math.abs(diffMs) / 60000);
+    return `in ${futureMinutes} min`;
+  }
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  return `${Math.floor(minutes / 60)} hr ago`;
+}
 function formatUpcomingCountdown(commenceTime: string, nowMs: number) {
   const diffMs = new Date(commenceTime).getTime() - nowMs;
   if (diffMs <= 0) return "Now";
@@ -467,6 +415,9 @@ function FeedEvents() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+  const [autoConfigureLoading, setAutoConfigureLoading] = useState(false);
+  const [autoConfigureStatus, setAutoConfigureStatus] = useState<AutoConfigureStatus | null>(null);
   const [error, setError] = useState("");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -677,6 +628,54 @@ function FeedEvents() {
     }
   }
 
+  async function loadSystemStatus() {
+    try {
+      const res = await api.get<SystemStatus>("/admin/system/status");
+      setSystemStatus(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleAutoConfigureNow() {
+    if (autoConfigureLoading) return;
+    setAutoConfigureLoading(true);
+
+    try {
+      await api.post("/admin/system/auto-configure");
+      toast.success("Automation started.");
+
+      const poller = window.setInterval(async () => {
+        try {
+          const { data } = await api.get<AutoConfigureStatus>("/admin/system/auto-configure/status");
+          setAutoConfigureStatus(data);
+
+          if (data.done) {
+            window.clearInterval(poller);
+            setAutoConfigureLoading(false);
+            await Promise.all([
+              loadEvents({ background: true }),
+              loadStats(),
+              loadSystemStatus(),
+            ]);
+            if (data.currentStep.toLowerCase().startsWith("failed")) {
+              toast.error(data.currentStep);
+            } else {
+              toast.success("Automation completed successfully.");
+            }
+          }
+        } catch (error) {
+          window.clearInterval(poller);
+          setAutoConfigureLoading(false);
+          toast.error(getErrorMessage(error, "Failed to monitor automation."));
+        }
+      }, 2000);
+    } catch (error) {
+      setAutoConfigureLoading(false);
+      toast.error(getErrorMessage(error, "Failed to start automation."));
+    }
+  }
+
   async function loadEventDetail(eventId: string) {
     setDetailLoading(true);
     try {
@@ -691,7 +690,7 @@ function FeedEvents() {
   }
 
   async function handleRefresh() {
-    await Promise.all([loadEvents({ background: true }), loadStats()]);
+    await Promise.all([loadEvents({ background: true }), loadStats(), loadSystemStatus()]);
   }
 
   async function handleToggle(event: ApiEvent, nextIsActive?: boolean) {
@@ -991,6 +990,12 @@ function FeedEvents() {
   }, []);
 
   useEffect(() => {
+    void loadSystemStatus();
+    const timer = window.setInterval(() => void loadSystemStatus(), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     const si = window.setInterval(() => void loadStats(), 60000);
     const ei = window.setInterval(
       () => void loadEvents({ background: true }),
@@ -1038,6 +1043,24 @@ function FeedEvents() {
                 <Settings2 className="size-3.5" />
                 Bulk update
               </Button>
+              <div className="grid gap-1">
+                <Button
+                  size="sm"
+                  onClick={() => void handleAutoConfigureNow()}
+                  disabled={autoConfigureLoading || (autoConfigureStatus?.cooldownMs ?? 0) > 0}
+                  className="w-full bg-emerald-500 text-black hover:bg-emerald-400 sm:w-auto"
+                >
+                  {autoConfigureLoading ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-3.5" />
+                  )}
+                  Auto Configure
+                </Button>
+                <p className="text-[10px] text-admin-text-muted sm:text-right">
+                  Last synced: {formatRelativeTimeLabel(systemStatus?.sync.lastSyncTime ?? null)}
+                </p>
+              </div>
               <Button
                 size="sm"
                 onClick={() => setCreateDialogOpen(true)}

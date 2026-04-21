@@ -1,5 +1,8 @@
 import "./bootstrap/env";
-console.log("[Env Check] ODDS_API_KEY loaded:", !!process.env.ODDS_API_KEY);
+console.log(
+  "[Env Check] THE_ODDS_API_KEY loaded:",
+  !!(process.env.THE_ODDS_API_KEY || process.env.ODDS_API_KEY),
+);
 import { app } from "./app";
 import { prisma } from "./lib/prisma";
 import { createHttpServerWithSockets } from "./lib/socket";

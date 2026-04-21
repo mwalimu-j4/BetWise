@@ -15,6 +15,7 @@
 
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import sgMail from "@sendgrid/mail";
 
 // ── Types ──
 
@@ -29,6 +30,40 @@ export type AlertType =
   | "API_DOWN"
   | "API_KEY_INVALID"
   | "EVENT_NO_ODDS";
+
+function canSendAdminEmail() {
+  return Boolean(process.env.SENDGRID_API_KEY && process.env.FROM_EMAIL);
+}
+
+async function sendAdminAlertEmail(type: AlertType, message: string, severity: AlertSeverity) {
+  if (!canSendAdminEmail() || severity === "info") {
+    return;
+  }
+
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: { email: true },
+      take: 10,
+    });
+    const recipients = admins.map((admin) => admin.email).filter(Boolean);
+    if (!recipients.length) return;
+
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY!.trim());
+    await sgMail.sendMultiple({
+      to: recipients,
+      from: {
+        email: process.env.FROM_EMAIL!.trim(),
+        name: "Betixpro Alerts",
+      },
+      subject: `[Betixpro Admin Alert] ${type.replace(/_/g, " ")}`,
+      text: message,
+      html: `<p><strong>${type.replace(/_/g, " ")}</strong></p><p>${message}</p>`,
+    });
+  } catch (error) {
+    console.error("[AdminAlert] Failed to send alert email:", error);
+  }
+}
 
 // Deduplicate: don't create duplicate alerts within this time window
 const DEDUP_WINDOW_MS: Record<string, number> = {
@@ -72,15 +107,19 @@ export async function createAlert(
       return; // Skip duplicate
     }
 
-    await prisma.adminAlert.create({
-      data: {
-        type,
-        message,
-        severity,
-        sportKey: sportKey ?? null,
-        metadata: metadata ? (metadata as Prisma.InputJsonValue) : undefined,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.adminAlert.create({
+        data: {
+          type,
+          message,
+          severity,
+          sportKey: sportKey ?? null,
+          metadata: metadata ? (metadata as Prisma.InputJsonValue) : undefined,
+        },
+      });
     });
+
+    await sendAdminAlertEmail(type, message, severity);
 
     // Log critical alerts
     if (severity === "critical") {

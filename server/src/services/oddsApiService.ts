@@ -1,27 +1,15 @@
-/**
- * ── OddsApiService ──
- * Centralized, credit-aware service for all The Odds API interactions.
- * Designed for Starter plan: 2000 API calls/month, 5 leagues.
- *
- * Budget strategy (2000 calls/month ÷ 30 days = ~66/day):
- *  • Event sync every 6 hours: 4 cycles × 5 leagues = 20 calls/day
- *  • Live scores every 30 min (only when live events exist): ~10/day
- *  • Manual auto-configure reserve: 5/day
- *  • Safety margin: ~30 calls/day headroom
- */
-
 import { prisma } from "../lib/prisma";
+import { getOddsApiKey, MONTHLY_API_BUDGET } from "./oddsAutomationConfig";
 
-// ── Types ──
+export interface OddsApiOutcome {
+  name: string;
+  price: number;
+  point?: number;
+}
 
-export interface OddsApiEvent {
-  id: string;
-  sport_title: string;
-  sport_key: string;
-  home_team: string;
-  away_team: string;
-  commence_time: string;
-  bookmakers?: OddsApiBookmaker[];
+export interface OddsApiMarket {
+  key: string;
+  outcomes?: OddsApiOutcome[];
 }
 
 export interface OddsApiBookmaker {
@@ -30,15 +18,14 @@ export interface OddsApiBookmaker {
   markets?: OddsApiMarket[];
 }
 
-export interface OddsApiMarket {
-  key: string;
-  outcomes?: OddsApiOutcome[];
-}
-
-export interface OddsApiOutcome {
-  name: string;
-  price: number;
-  point?: number;
+export interface OddsApiEvent {
+  id: string;
+  sport_key: string;
+  sport_title: string;
+  commence_time: string;
+  home_team: string;
+  away_team: string;
+  bookmakers?: OddsApiBookmaker[];
 }
 
 export interface OddsApiScoreEvent {
@@ -62,319 +49,436 @@ export interface OddsApiSport {
   has_outrights: boolean;
 }
 
-// ── Credit tracker (in-memory, persisted to ApiSyncLog) ──
-
-interface CreditTracker {
-  remaining: number | null;
-  used: number | null;
-  lastChecked: Date | null;
-  dailyCallsToday: number;
-  dailyResetDate: string; // YYYY-MM-DD
-  monthlyCallsUsed: number;
-  monthlyResetDate: string; // YYYY-MM
-  isApiDown: boolean;
-  isApiKeyInvalid: boolean;
-  lastError: string | null;
-  lastSuccessfulSync: Date | null;
-}
-
-// Monthly budget constants
-const MONTHLY_BUDGET = 2000;
-const DAILY_BUDGET = Math.floor(MONTHLY_BUDGET / 30); // ~66
-const SAFETY_RESERVE_PERCENT = 0.15; // Keep 15% reserve
-const DAILY_SAFE_LIMIT = Math.floor(DAILY_BUDGET * (1 - SAFETY_RESERVE_PERCENT)); // ~56
-const CRITICAL_CREDITS_THRESHOLD = Math.floor(MONTHLY_BUDGET * 0.10); // 10% = 200
-
-// Exponential backoff state
-let backoffUntil: number = 0;
-let consecutiveFailures = 0;
-const MAX_BACKOFF_MS = 30 * 60 * 1000; // 30 minutes max
-
-export const creditTracker: CreditTracker = {
-  remaining: null,
-  used: null,
-  lastChecked: null,
-  dailyCallsToday: 0,
-  dailyResetDate: new Date().toISOString().split("T")[0],
-  monthlyCallsUsed: 0,
-  monthlyResetDate: new Date().toISOString().slice(0, 7),
-  isApiDown: false,
-  isApiKeyInvalid: false,
-  lastError: null,
-  lastSuccessfulSync: null,
+type OddsRequestOptions = {
+  dateFrom?: string;
+  dateTo?: string;
+  markets?: string[];
 };
 
-// ── Helpers ──
+type ApiHealthState = {
+  creditsRemaining: number | null;
+  creditsUsed: number | null;
+  lastCheckedAt: Date | null;
+  lastSuccessfulSync: Date | null;
+  lastError: string | null;
+  isApiDown: boolean;
+  isApiKeyInvalid: boolean;
+  isRateLimited: boolean;
+  backoffUntil: number | null;
+};
 
-function getOddsApiKey(): string {
-  return process.env.ODDS_API_KEY?.trim() ?? "";
+const BASE_URL = "https://api.the-odds-api.com/v4";
+const DEFAULT_MARKETS = ["h2h"];
+const MAX_BACKOFF_MS = 30 * 60 * 1000;
+
+let consecutiveFailures = 0;
+
+const apiState: ApiHealthState = {
+  creditsRemaining: null,
+  creditsUsed: null,
+  lastCheckedAt: null,
+  lastSuccessfulSync: null,
+  lastError: null,
+  isApiDown: false,
+  isApiKeyInvalid: false,
+  isRateLimited: false,
+  backoffUntil: null,
+};
+
+function parsePositiveInt(value: string | null): number | null {
+  if (!value) return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
-function resetDailyCounterIfNeeded(): void {
-  const today = new Date().toISOString().split("T")[0];
-  if (creditTracker.dailyResetDate !== today) {
-    creditTracker.dailyCallsToday = 0;
-    creditTracker.dailyResetDate = today;
+function sanitizeText(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function sanitizeOutcome(outcome: unknown): OddsApiOutcome | null {
+  if (!outcome || typeof outcome !== "object") return null;
+  const row = outcome as Record<string, unknown>;
+  if (typeof row.name !== "string" || typeof row.price !== "number" || row.price <= 1) {
+    return null;
+  }
+
+  return {
+    name: sanitizeText(row.name),
+    price: row.price,
+    point: typeof row.point === "number" ? row.point : undefined,
+  };
+}
+
+function sanitizeEvent(event: unknown): OddsApiEvent | null {
+  if (!event || typeof event !== "object") return null;
+  const row = event as Record<string, unknown>;
+  const id = sanitizeText(row.id);
+  const sportKey = sanitizeText(row.sport_key);
+  const homeTeam = sanitizeText(row.home_team);
+  const awayTeam = sanitizeText(row.away_team);
+  const commenceTime = sanitizeText(row.commence_time);
+
+  if (!id || !sportKey || !homeTeam || !awayTeam || !commenceTime) {
+    return null;
+  }
+
+  const bookmakers = Array.isArray(row.bookmakers)
+    ? row.bookmakers.flatMap((bookmaker) => {
+        if (!bookmaker || typeof bookmaker !== "object") return [];
+        const bm = bookmaker as Record<string, unknown>;
+        if (typeof bm.key !== "string" || typeof bm.title !== "string") return [];
+
+        const markets: OddsApiMarket[] = Array.isArray(bm.markets)
+          ? bm.markets.flatMap((market) => {
+              if (!market || typeof market !== "object") return [];
+              const m = market as Record<string, unknown>;
+              if (typeof m.key !== "string") return [];
+
+              const outcomes = Array.isArray(m.outcomes)
+                ? m.outcomes
+                    .map(sanitizeOutcome)
+                    .filter((item): item is OddsApiOutcome => item !== null)
+                : [];
+
+              return [{ key: sanitizeText(m.key), outcomes }];
+            })
+          : [];
+
+        return [
+          {
+            key: sanitizeText(bm.key),
+            title: sanitizeText(bm.title),
+            markets,
+          },
+        ];
+      })
+    : [];
+
+  return {
+    id,
+    sport_key: sportKey,
+    sport_title: sanitizeText(row.sport_title) || sportKey,
+    commence_time: commenceTime,
+    home_team: homeTeam,
+    away_team: awayTeam,
+    bookmakers,
+  };
+}
+
+function sanitizeScoreEvent(event: unknown): OddsApiScoreEvent | null {
+  if (!event || typeof event !== "object") return null;
+  const row = event as Record<string, unknown>;
+  const id = sanitizeText(row.id);
+  if (!id) return null;
+
+  return {
+    id,
+    sport_key: sanitizeText(row.sport_key),
+    sport_title: sanitizeText(row.sport_title),
+    commence_time: sanitizeText(row.commence_time),
+    completed: Boolean(row.completed),
+    home_team: sanitizeText(row.home_team),
+    away_team: sanitizeText(row.away_team),
+    scores: Array.isArray(row.scores)
+      ? row.scores
+          .filter((score): score is { name: string; score: string } => {
+            if (!score || typeof score !== "object") return false;
+            const item = score as Record<string, unknown>;
+            return typeof item.name === "string" && typeof item.score === "string";
+          })
+          .map((score) => ({
+            name: sanitizeText(score.name),
+            score: sanitizeText(score.score),
+          }))
+      : null,
+    last_update: typeof row.last_update === "string" ? row.last_update : null,
+  };
+}
+
+function normalizeCommenceTimeParam(value?: string): string | null {
+  if (!value) return null;
+
+  const asDate = new Date(value);
+  if (Number.isNaN(asDate.getTime())) return null;
+
+  // The Odds API rejects milliseconds; required format is YYYY-MM-DDTHH:MM:SSZ.
+  return asDate.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+function getDefaultMarketsForSport(sportKey: string): string[] {
+  // Outright futures endpoints typically reject h2h/spreads/totals combinations.
+  if (/(winner|championship|outright)/i.test(sportKey)) {
+    return ["outrights"];
+  }
+  return DEFAULT_MARKETS;
+}
+
+async function logApiCall(data: {
+  endpoint: string;
+  sportKey?: string;
+  requestType: string;
+  responseStatus: number;
+  durationMs?: number;
+  errorMessage?: string;
+}) {
+  try {
+    await prisma.oddsApiCallLog.create({
+      data: {
+        endpoint: data.endpoint,
+        sportKey: data.sportKey ?? null,
+        requestType: data.requestType,
+        responseStatus: data.responseStatus,
+        durationMs: data.durationMs ?? null,
+        creditsRemaining: apiState.creditsRemaining,
+        creditsUsed: apiState.creditsUsed,
+        errorMessage: data.errorMessage ?? null,
+      },
+    });
+  } catch (error) {
+    console.error("[OddsApi] Failed to write API call log:", error);
   }
 }
 
-function resetMonthlyCounterIfNeeded(): void {
-  const thisMonth = new Date().toISOString().slice(0, 7);
-  if (creditTracker.monthlyResetDate !== thisMonth) {
-    creditTracker.monthlyCallsUsed = 0;
-    creditTracker.monthlyResetDate = thisMonth;
-  }
+function updateCredits(headers: Headers) {
+  apiState.creditsRemaining = parsePositiveInt(headers.get("x-requests-remaining"));
+  apiState.creditsUsed = parsePositiveInt(headers.get("x-requests-used"));
+  apiState.lastCheckedAt = new Date();
 }
 
-function canMakeApiCall(): { allowed: boolean; reason?: string } {
-  if (creditTracker.isApiKeyInvalid) {
-    return { allowed: false, reason: "API key is invalid (401). All calls halted." };
+function noteSuccess() {
+  apiState.isApiDown = false;
+  apiState.isRateLimited = false;
+  apiState.lastError = null;
+  apiState.backoffUntil = null;
+  consecutiveFailures = 0;
+}
+
+function noteFailure(status: number, message: string) {
+  apiState.lastError = message;
+
+  if (status === 401) {
+    const normalized = message.toLowerCase();
+    const usageExhausted = normalized.includes("out_of_usage_credits") || normalized.includes("usage quota");
+
+    if (usageExhausted) {
+      apiState.creditsRemaining = 0;
+      apiState.isApiKeyInvalid = false;
+    } else {
+      apiState.isApiKeyInvalid = true;
+    }
+
+    apiState.isApiDown = false;
+    return;
   }
 
-  if (Date.now() < backoffUntil) {
-    const waitSec = Math.ceil((backoffUntil - Date.now()) / 1000);
-    return { allowed: false, reason: `Rate-limited. Retry in ${waitSec}s.` };
+  if (status === 429) {
+    consecutiveFailures += 1;
+    const delayMs = Math.min(60_000 * 2 ** (consecutiveFailures - 1), MAX_BACKOFF_MS);
+    apiState.isRateLimited = true;
+    apiState.backoffUntil = Date.now() + delayMs;
+    return;
   }
 
-  resetDailyCounterIfNeeded();
-  resetMonthlyCounterIfNeeded();
+  apiState.isApiDown = status === 0 || status >= 500;
+}
 
-  if (creditTracker.dailyCallsToday >= DAILY_SAFE_LIMIT) {
-    return { allowed: false, reason: `Daily API budget exhausted (${creditTracker.dailyCallsToday}/${DAILY_SAFE_LIMIT}).` };
-  }
+function isBackoffActive() {
+  return Boolean(apiState.backoffUntil && apiState.backoffUntil > Date.now());
+}
 
-  if (creditTracker.remaining !== null && creditTracker.remaining <= 0) {
-    return { allowed: false, reason: "API credits exhausted (0 remaining)." };
-  }
-
-  if (creditTracker.monthlyCallsUsed >= MONTHLY_BUDGET) {
-    return { allowed: false, reason: `Monthly budget exhausted (${creditTracker.monthlyCallsUsed}/${MONTHLY_BUDGET}).` };
+function canCallApi() {
+  if (!getOddsApiKey()) return { allowed: false, reason: "Missing THE_ODDS_API_KEY." };
+  if (apiState.isApiKeyInvalid) return { allowed: false, reason: "The Odds API key is invalid." };
+  if (isBackoffActive()) return { allowed: false, reason: "The Odds API backoff is active." };
+  if (apiState.creditsRemaining !== null && apiState.creditsRemaining <= 0) {
+    return { allowed: false, reason: "The Odds API credits are exhausted." };
   }
 
   return { allowed: true };
 }
 
-function parseCreditsFromHeaders(headers: Headers): void {
-  const remaining = headers.get("x-requests-remaining");
-  const used = headers.get("x-requests-used");
+class OddsApiService {
+  private async request<T>(args: {
+    endpoint: string;
+    requestType: string;
+    sportKey?: string;
+    query?: URLSearchParams;
+    sanitize: (payload: unknown) => T;
+  }): Promise<T | null> {
+    const precheck = canCallApi();
+    if (!precheck.allowed) {
+      return null;
+    }
 
-  if (remaining !== null) {
-    creditTracker.remaining = parseInt(remaining, 10);
-  }
-  if (used !== null) {
-    creditTracker.used = parseInt(used, 10);
-  }
-  creditTracker.lastChecked = new Date();
-}
+    const url = `${BASE_URL}${args.endpoint}${args.query ? `?${args.query.toString()}` : ""}`;
+    const startedAt = Date.now();
 
-function handleSuccessfulCall(): void {
-  resetDailyCounterIfNeeded();
-  resetMonthlyCounterIfNeeded();
-  creditTracker.dailyCallsToday += 1;
-  creditTracker.monthlyCallsUsed += 1;
-  creditTracker.isApiDown = false;
-  creditTracker.lastError = null;
-  consecutiveFailures = 0;
-}
+    try {
+      const response = await fetch(url);
+      updateCredits(response.headers);
 
-function handleFailedCall(status: number, errorMessage: string): void {
-  consecutiveFailures += 1;
-
-  if (status === 401) {
-    creditTracker.isApiKeyInvalid = true;
-    creditTracker.lastError = "API key invalid (401). All automated calls halted.";
-    console.error("[OddsApi] ❌ API key invalid (401). Halting all automated calls.");
-    return;
-  }
-
-  if (status === 429) {
-    // Exponential backoff: 1min, 2min, 4min, 8min, ... up to 30min
-    const backoffMs = Math.min(
-      60_000 * Math.pow(2, consecutiveFailures - 1),
-      MAX_BACKOFF_MS,
-    );
-    backoffUntil = Date.now() + backoffMs;
-    creditTracker.lastError = `Rate limited (429). Backing off for ${Math.ceil(backoffMs / 1000)}s.`;
-    console.warn(`[OddsApi] ⚠️ Rate limited. Backoff ${Math.ceil(backoffMs / 1000)}s.`);
-    return;
-  }
-
-  creditTracker.isApiDown = status === 0 || status >= 500;
-  creditTracker.lastError = errorMessage;
-}
-
-// ── Core API Methods ──
-
-/**
- * Fetch odds for a specific sport with date filtering.
- * Returns null if API call is blocked or fails.
- */
-export async function fetchSportOdds(
-  apiSportKey: string,
-  options?: { dateFrom?: string; dateTo?: string },
-): Promise<OddsApiEvent[] | null> {
-  const apiKey = getOddsApiKey();
-  if (!apiKey) {
-    console.warn("[OddsApi] ODDS_API_KEY not configured.");
-    return null;
-  }
-
-  const check = canMakeApiCall();
-  if (!check.allowed) {
-    console.warn(`[OddsApi] Blocked: ${check.reason}`);
-    return null;
-  }
-
-  const params = new URLSearchParams({
-    apiKey,
-    regions: "eu",
-    markets: "h2h,spreads,totals",
-    oddsFormat: "decimal",
-  });
-
-  if (options?.dateFrom) params.set("commenceTimeFrom", options.dateFrom);
-  if (options?.dateTo) params.set("commenceTimeTo", options.dateTo);
-
-  const url = `https://api.the-odds-api.com/v4/sports/${apiSportKey}/odds?${params.toString()}`;
-
-  try {
-    const response = await fetch(url);
-
-    if (response.ok) {
-      parseCreditsFromHeaders(response.headers);
-      handleSuccessfulCall();
-
-      const payload = await response.json() as unknown;
-      if (!Array.isArray(payload)) {
-        console.warn(`[OddsApi] Unexpected payload for ${apiSportKey}`);
-        return [];
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "");
+        noteFailure(response.status, `${response.status}: ${errorText.slice(0, 200)}`);
+        await logApiCall({
+          endpoint: args.endpoint,
+          sportKey: args.sportKey,
+          requestType: args.requestType,
+          responseStatus: response.status,
+          durationMs: Date.now() - startedAt,
+          errorMessage: errorText.slice(0, 200),
+        });
+        return null;
       }
 
-      console.log(
-        `[OddsApi] ✅ ${apiSportKey}: ${(payload as unknown[]).length} events | Credits: ${creditTracker.remaining ?? "?"}`,
-      );
-      return payload as OddsApiEvent[];
+      const json = (await response.json()) as unknown;
+      const sanitized = args.sanitize(json);
+      noteSuccess();
+      await logApiCall({
+        endpoint: args.endpoint,
+        sportKey: args.sportKey,
+        requestType: args.requestType,
+        responseStatus: response.status,
+        durationMs: Date.now() - startedAt,
+      });
+      return sanitized;
+    } catch (error) {
+      noteFailure(0, String(error));
+      await logApiCall({
+        endpoint: args.endpoint,
+        sportKey: args.sportKey,
+        requestType: args.requestType,
+        responseStatus: 0,
+        durationMs: Date.now() - startedAt,
+        errorMessage: String(error).slice(0, 200),
+      });
+      return null;
     }
+  }
 
-    // Handle error responses
-    const errorText = await response.text().catch(() => "");
-    handleFailedCall(response.status, `${response.status}: ${errorText.slice(0, 200)}`);
-    console.warn(`[OddsApi] ❌ ${apiSportKey}: ${response.status} ${errorText.slice(0, 120)}`);
-    return null;
-  } catch (error) {
-    handleFailedCall(0, String(error));
-    creditTracker.isApiDown = true;
-    console.error(`[OddsApi] ❌ ${apiSportKey}: Network error`, error);
-    return null;
+  async fetchAvailableSports(): Promise<OddsApiSport[] | null> {
+    const apiKey = getOddsApiKey();
+    const query = new URLSearchParams({ apiKey });
+
+    return this.request({
+      endpoint: "/sports",
+      requestType: "sports",
+      query,
+      sanitize: (payload) =>
+        Array.isArray(payload)
+          ? payload.filter((item): item is OddsApiSport => {
+              if (!item || typeof item !== "object") return false;
+              const row = item as Record<string, unknown>;
+              return typeof row.key === "string" && typeof row.title === "string";
+            }) as OddsApiSport[]
+          : [],
+    });
+  }
+
+  async fetchSportOdds(sportKey: string, options?: OddsRequestOptions): Promise<OddsApiEvent[] | null> {
+    const apiKey = getOddsApiKey();
+    const query = new URLSearchParams({
+      apiKey,
+      regions: "eu",
+      markets: (options?.markets?.length ? options.markets : getDefaultMarketsForSport(sportKey)).join(","),
+      oddsFormat: "decimal",
+    });
+
+    const commenceTimeFrom = normalizeCommenceTimeParam(options?.dateFrom);
+    const commenceTimeTo = normalizeCommenceTimeParam(options?.dateTo);
+
+    if (commenceTimeFrom) query.set("commenceTimeFrom", commenceTimeFrom);
+    if (commenceTimeTo) query.set("commenceTimeTo", commenceTimeTo);
+
+    return this.request({
+      endpoint: `/sports/${sportKey}/odds`,
+      requestType: "odds",
+      sportKey,
+      query,
+      sanitize: (payload) =>
+        Array.isArray(payload)
+          ? payload.map(sanitizeEvent).filter((item): item is OddsApiEvent => item !== null)
+          : [],
+    });
+  }
+
+  async fetchSportScores(sportKey: string): Promise<OddsApiScoreEvent[] | null> {
+    const apiKey = getOddsApiKey();
+    const query = new URLSearchParams({ apiKey, daysFrom: "1" });
+
+    return this.request({
+      endpoint: `/sports/${sportKey}/scores`,
+      requestType: "scores",
+      sportKey,
+      query,
+      sanitize: (payload) =>
+        Array.isArray(payload)
+          ? payload.map(sanitizeScoreEvent).filter((item): item is OddsApiScoreEvent => item !== null)
+          : [],
+    });
+  }
+
+  getStatus() {
+    const backoffRemainingMs =
+      apiState.backoffUntil && apiState.backoffUntil > Date.now()
+        ? apiState.backoffUntil - Date.now()
+        : null;
+    const creditsPercent =
+      apiState.creditsRemaining === null
+        ? null
+        : Math.max(0, Math.round((apiState.creditsRemaining / MONTHLY_API_BUDGET) * 100));
+
+    return {
+      isOnline: !apiState.isApiDown && !apiState.isApiKeyInvalid,
+      isApiKeyValid: !apiState.isApiKeyInvalid,
+      isApiDown: apiState.isApiDown,
+      isRateLimited: apiState.isRateLimited && Boolean(backoffRemainingMs),
+      backoffRemainingMs,
+      creditsRemaining: apiState.creditsRemaining,
+      creditsUsed: apiState.creditsUsed,
+      creditsPercent,
+      monthlyBudget: MONTHLY_API_BUDGET,
+      lastCheckedAt: apiState.lastCheckedAt?.toISOString() ?? null,
+      lastSuccessfulSync: apiState.lastSuccessfulSync?.toISOString() ?? null,
+      lastError: apiState.lastError,
+    };
+  }
+
+  setLastSuccessfulSync() {
+    apiState.lastSuccessfulSync = new Date();
+  }
+
+  hasCriticalCredits() {
+    return apiState.creditsRemaining !== null && apiState.creditsRemaining <= MONTHLY_API_BUDGET * 0.1;
   }
 }
 
-/**
- * Fetch live scores for a sport.
- */
-export async function fetchSportScores(
-  apiSportKey: string,
-): Promise<OddsApiScoreEvent[] | null> {
-  const apiKey = getOddsApiKey();
-  if (!apiKey) return null;
+export const oddsApiService = new OddsApiService();
 
-  const check = canMakeApiCall();
-  if (!check.allowed) {
-    console.warn(`[OddsApi] Scores blocked: ${check.reason}`);
-    return null;
-  }
-
-  const url = `https://api.the-odds-api.com/v4/sports/${apiSportKey}/scores?apiKey=${apiKey}&daysFrom=1`;
-
-  try {
-    const response = await fetch(url);
-
-    if (response.ok) {
-      parseCreditsFromHeaders(response.headers);
-      handleSuccessfulCall();
-      const payload = await response.json() as unknown;
-      return Array.isArray(payload) ? payload as OddsApiScoreEvent[] : [];
-    }
-
-    const errorText = await response.text().catch(() => "");
-    handleFailedCall(response.status, `Scores ${response.status}: ${errorText.slice(0, 200)}`);
-    return null;
-  } catch (error) {
-    handleFailedCall(0, String(error));
-    return null;
-  }
+export async function fetchAvailableSports() {
+  return oddsApiService.fetchAvailableSports();
 }
 
-/**
- * Fetch list of available sports.
- */
-export async function fetchAvailableSports(): Promise<OddsApiSport[] | null> {
-  const apiKey = getOddsApiKey();
-  if (!apiKey) return null;
-
-  const check = canMakeApiCall();
-  if (!check.allowed) return null;
-
-  try {
-    const response = await fetch(
-      `https://api.the-odds-api.com/v4/sports?apiKey=${apiKey}`,
-    );
-
-    if (response.ok) {
-      parseCreditsFromHeaders(response.headers);
-      handleSuccessfulCall();
-      return (await response.json()) as OddsApiSport[];
-    }
-
-    const errorText = await response.text().catch(() => "");
-    handleFailedCall(response.status, errorText.slice(0, 200));
-    return null;
-  } catch (error) {
-    handleFailedCall(0, String(error));
-    return null;
-  }
+export async function fetchSportOdds(sportKey: string, options?: OddsRequestOptions) {
+  return oddsApiService.fetchSportOdds(sportKey, options);
 }
 
-// ── Status Getters ──
+export async function fetchSportScores(sportKey: string) {
+  return oddsApiService.fetchSportScores(sportKey);
+}
 
 export function getApiStatus() {
-  resetDailyCounterIfNeeded();
-  resetMonthlyCounterIfNeeded();
-
-  return {
-    isOnline: !creditTracker.isApiDown && !creditTracker.isApiKeyInvalid,
-    isApiKeyValid: !creditTracker.isApiKeyInvalid,
-    creditsRemaining: creditTracker.remaining,
-    creditsUsed: creditTracker.used,
-    dailyCallsUsed: creditTracker.dailyCallsToday,
-    dailyBudget: DAILY_SAFE_LIMIT,
-    monthlyCallsUsed: creditTracker.monthlyCallsUsed,
-    monthlyBudget: MONTHLY_BUDGET,
-    lastChecked: creditTracker.lastChecked?.toISOString() ?? null,
-    lastError: creditTracker.lastError,
-    lastSuccessfulSync: creditTracker.lastSuccessfulSync?.toISOString() ?? null,
-    isRateLimited: Date.now() < backoffUntil,
-    backoffUntilMs: backoffUntil > Date.now() ? backoffUntil : null,
-  };
+  return oddsApiService.getStatus();
 }
 
-export function setLastSuccessfulSync(): void {
-  creditTracker.lastSuccessfulSync = new Date();
+export function setLastSuccessfulSync() {
+  oddsApiService.setLastSuccessfulSync();
 }
 
-/**
- * Check if credits are critically low.
- */
-export function isCreditsCritical(): boolean {
-  return (
-    creditTracker.remaining !== null &&
-    creditTracker.remaining <= CRITICAL_CREDITS_THRESHOLD
-  );
+export function isCreditsCritical() {
+  return oddsApiService.hasCriticalCredits();
 }
 
-/**
- * Log a sync to the database for audit and history.
- */
 export async function logApiSync(data: {
   jobName: string;
   status: string;
@@ -382,21 +486,22 @@ export async function logApiSync(data: {
   eventsLoaded: number;
   errorMessage?: string;
   durationMs?: number;
-}): Promise<void> {
+}) {
   try {
+    const status = getApiStatus();
     await prisma.apiSyncLog.create({
       data: {
         jobName: data.jobName,
         status: data.status,
         sportsProcessed: data.sportsProcessed,
         eventsLoaded: data.eventsLoaded,
-        creditsUsed: creditTracker.used,
-        creditsRemaining: creditTracker.remaining,
+        creditsRemaining: status.creditsRemaining,
+        creditsUsed: status.creditsUsed,
         errorMessage: data.errorMessage ?? null,
         durationMs: data.durationMs ?? null,
       },
     });
-  } catch (err) {
-    console.error("[OddsApi] Failed to log sync:", err);
+  } catch (error) {
+    console.error("[OddsApi] Failed to write sync log:", error);
   }
 }

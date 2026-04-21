@@ -1,8 +1,5 @@
 import { prisma } from "../lib/prisma";
-
-function getOddsApiKey(): string {
-  return process.env.ODDS_API_KEY?.trim() ?? "";
-}
+import { getOddsApiKey } from "./oddsAutomationConfig";
 
 const SPORTS = [
   "soccer_epl",
@@ -16,7 +13,7 @@ const SPORTS = [
 export async function fetchAndSaveOdds(): Promise<void> {
   const oddsApiKey = getOddsApiKey();
   if (!oddsApiKey) {
-    console.warn("[Odds] ODDS_API_KEY is not configured.");
+    console.warn("[Odds] THE_ODDS_API_KEY is not configured.");
     return;
   }
 

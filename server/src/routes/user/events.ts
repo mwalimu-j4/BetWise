@@ -162,10 +162,13 @@ async function getEvents(args: {
   limit: number;
   featuredOnly?: boolean;
 }) {
-  const upcomingSafetyThreshold = new Date(Date.now() - 150 * 60 * 1000);
+  const now = new Date();
+  const windowEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
   const where: Prisma.SportEventWhereInput = {
     isActive: true,
+    oddsVerified: true,
+    displayedOdds: { some: { isVisible: true } },
     ...(args.featuredOnly ? { isFeatured: true } : {}),
     ...(args.status
       ? { status: args.status }
@@ -174,7 +177,7 @@ async function getEvents(args: {
             { status: "LIVE" },
             {
               status: "UPCOMING",
-              commenceTime: { gt: upcomingSafetyThreshold },
+              commenceTime: { gt: now, lte: windowEnd },
             },
           ],
         }),
@@ -267,16 +270,18 @@ userEventsRouter.get("/user/events/live", async (req, res, next) => {
 
 userEventsRouter.get("/user/events/sports", async (_req, res, next) => {
   try {
-    const upcomingSafetyThreshold = new Date(Date.now() - 150 * 60 * 1000);
+    const now = new Date();
+    const windowEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
     const rows = await prisma.sportEvent.findMany({
       where: {
         isActive: true,
+        oddsVerified: true,
         OR: [
           { status: "LIVE" },
           {
             status: "UPCOMING",
-            commenceTime: { gt: upcomingSafetyThreshold },
+            commenceTime: { gt: now, lte: windowEnd },
           },
         ],
       },
