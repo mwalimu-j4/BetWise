@@ -932,7 +932,7 @@ export default function Settings() {
         open={Boolean(selectedSection)}
         onOpenChange={(open) => (!open ? closeModal() : null)}
       >
-        <DialogContent className="border-[#3d6ba3]/40 bg-[#0d2137] p-0 sm:max-w-4xl max-h-[85vh] overflow-hidden rounded-[2.5rem] shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+        <DialogContent className="border-[#3d6ba3]/40 bg-[#0b1426] p-0 sm:max-w-5xl h-[90vh] max-h-[90vh] overflow-hidden rounded-[3rem] shadow-[0_0_120px_rgba(0,0,0,0.85)]">
           {selectedSection && modalDraft ? (
             <div className="flex flex-col h-full">
               {/* Header */}
@@ -967,8 +967,8 @@ export default function Settings() {
               </div>
 
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto px-10 py-8 scrollbar-hide">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="flex-1 overflow-y-auto px-10 py-10 app-scrollbar pr-6">
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                   {selectedSection.fields.map((field, index) => {
                     const value = field.path
                       ? getByPath(modalDraft, field.path)
