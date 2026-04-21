@@ -78,7 +78,9 @@ export default function ForgotPasswordPage() {
         </button>
       </form>
 
-      {message ? <p className="mt-2 text-xs text-emerald-400">{message}</p> : null}
+      {message ? (
+        <p className="mt-2 text-xs text-emerald-400">{message}</p>
+      ) : null}
     </AuthCard>
   );
 }

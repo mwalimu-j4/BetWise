@@ -289,7 +289,8 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
         callbackUrl: record.mpesaCallbackUrl,
         transactionFeePercent: record.mpesaTransactionFeePercent,
         autoWithdrawEnabled: record.mpesaAutoWithdrawEnabled,
-        mpesaWithdrawalApprovalThreshold: record.mpesaWithdrawalApprovalThreshold,
+        mpesaWithdrawalApprovalThreshold:
+          record.mpesaWithdrawalApprovalThreshold,
       },
       paystack: {
         ...defaultAdminSettings.paymentsConfig.paystack,

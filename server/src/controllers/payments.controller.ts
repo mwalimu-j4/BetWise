@@ -618,7 +618,9 @@ async function initiateWithdrawalDisbursement(args: {
       payoutResponse.data.status,
     );
 
-    if (["success", "successful", "completed"].includes(initialTransferStatus)) {
+    if (
+      ["success", "successful", "completed"].includes(initialTransferStatus)
+    ) {
       await finalizeSuccessfulWithdrawal({
         transactionId: updatedTransaction.id,
         providerResponseDescription:
@@ -1264,7 +1266,8 @@ export async function listAdminWithdrawals(
     );
 
     const filteredWithdrawals = syncedWithdrawals.filter(
-      (transaction) => transaction.status === (status as typeof transaction.status),
+      (transaction) =>
+        transaction.status === (status as typeof transaction.status),
     );
 
     return res.status(200).json({

@@ -1,4 +1,4 @@
-CREATE TABLE "sport_categories" (
+CREATE TABLE IF NOT EXISTS "sport_categories" (
   "id" UUID NOT NULL,
   "sport_key" TEXT NOT NULL,
   "display_name" TEXT NOT NULL,
@@ -15,11 +15,11 @@ CREATE TABLE "sport_categories" (
   CONSTRAINT "sport_categories_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "sport_categories_sport_key_key" ON "sport_categories"("sport_key");
-CREATE INDEX "sport_categories_is_active_idx" ON "sport_categories"("is_active");
-CREATE INDEX "sport_categories_sort_order_idx" ON "sport_categories"("sort_order");
+CREATE UNIQUE INDEX IF NOT EXISTS "sport_categories_sport_key_key" ON "sport_categories"("sport_key");
+CREATE INDEX IF NOT EXISTS "sport_categories_is_active_idx" ON "sport_categories"("is_active");
+CREATE INDEX IF NOT EXISTS "sport_categories_sort_order_idx" ON "sport_categories"("sort_order");
 
-CREATE TABLE "category_config_logs" (
+CREATE TABLE IF NOT EXISTS "category_config_logs" (
   "id" UUID NOT NULL,
   "sport_key" TEXT NOT NULL,
   "admin_id" UUID NOT NULL,
@@ -30,6 +30,6 @@ CREATE TABLE "category_config_logs" (
   CONSTRAINT "category_config_logs_sport_key_fkey" FOREIGN KEY ("sport_key") REFERENCES "sport_categories"("sport_key") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
-CREATE INDEX "category_config_logs_sport_key_idx" ON "category_config_logs"("sport_key");
-CREATE INDEX "category_config_logs_admin_id_idx" ON "category_config_logs"("admin_id");
-CREATE INDEX "category_config_logs_created_at_idx" ON "category_config_logs"("created_at");
+CREATE INDEX IF NOT EXISTS "category_config_logs_sport_key_idx" ON "category_config_logs"("sport_key");
+CREATE INDEX IF NOT EXISTS "category_config_logs_admin_id_idx" ON "category_config_logs"("admin_id");
+CREATE INDEX IF NOT EXISTS "category_config_logs_created_at_idx" ON "category_config_logs"("created_at");
