@@ -5,8 +5,6 @@ import {
   CreditCard,
   LoaderCircle,
   ShieldCheck,
-  Smartphone,
-  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -306,7 +304,7 @@ export default function DepositPage() {
         setPendingMpesaTransactionId(response.transactionId);
         setPaymentReference(response.transactionId);
         toast.success(response.customerMessage ?? "STK push sent to your phone.", {
-          description: `Approve KES ${formatMoney(amountValue)} on ${normalizedPhone}.`,
+          description: `Approve KES ${formatMoney(amountValue)} on your phone.`,
         });
       } catch (error: any) {
         setIsProcessing(false);
@@ -436,21 +434,19 @@ export default function DepositPage() {
       <article className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
         <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-base font-bold text-white">Deposit</span>
-            {activeMethod && (
+            <div className="flex items-center gap-3">
+              {activeMethod === "mpesa" && (
+                <img
+                  src={mpesaLogoUrl}
+                  alt="M-Pesa"
+                  className="h-8 w-auto object-contain"
+                />
+              )}
+            </div>
+            {activeMethod === "paystack" && (
               <span className="flex items-center gap-1.5 rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1 text-[11px] font-semibold text-[#f5c518]">
-                {activeMethod === "mpesa" ? (
-                  <img
-                    src={mpesaLogoUrl}
-                    alt="M-Pesa"
-                    className="h-3.5 w-auto object-contain"
-                  />
-                ) : (
-                  <ShieldCheck className="h-3 w-3" />
-                )}
-                {activeMethod === "mpesa"
-                  ? "Powered by M-Pesa"
-                  : "Powered by Paystack"}
+                <ShieldCheck className="h-3 w-3" />
+                Powered by Paystack
               </span>
             )}
           </div>
@@ -572,26 +568,6 @@ export default function DepositPage() {
                   </p>
                 </label>
 
-                {activeMethod === "mpesa" && (
-                  <div className="rounded-2xl border border-[#1a2f45] bg-[#0f1d2e] px-4 py-3">
-                    <p className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
-                      M-Pesa Number
-                    </p>
-                    <p className="mt-2 text-sm font-semibold text-white">
-                      {normalizedPhone || "No phone number found"}
-                    </p>
-                    <p
-                      className={`mt-1 text-xs ${
-                        hasValidMpesaPhone ? "text-[#7a94ad]" : "text-red-400"
-                      }`}
-                    >
-                      {hasValidMpesaPhone
-                        ? "This number is taken from your account details."
-                        : "Update your account phone number to use M-Pesa deposits."}
-                    </p>
-                  </div>
-                )}
-
                 <Button
                   type="submit"
                   disabled={
@@ -603,12 +579,8 @@ export default function DepositPage() {
                   }
                   className="h-14 w-full rounded-2xl bg-[#f5c518] text-base font-bold text-black transition-colors hover:bg-[#e6b800] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isProcessing ? (
+                  {isProcessing && (
                     <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
-                  ) : activeMethod === "mpesa" ? (
-                    <Smartphone className="mr-2 h-5 w-5" />
-                  ) : (
-                    <Wallet className="mr-2 h-5 w-5" />
                   )}
                   {isProcessing
                     ? "Processing..."
