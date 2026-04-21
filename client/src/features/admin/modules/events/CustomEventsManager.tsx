@@ -1179,29 +1179,20 @@ export default function CustomEventsManager() {
       </div>
 
       {/* Filters */}
-      <Card className="border-admin-border bg-admin-card shadow-sm">
-        <CardContent className="space-y-2 p-2 sm:p-3">
-          {/* Search */}
+      <AdminCard className="p-3 sm:p-4">
+        <div className="space-y-4">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-admin-text-muted" />
             <Input
               placeholder="Search by event, team, or league…"
               value={searchQuery}
-      {/* Search and Filters */}
-      <div className="space-y-2">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-admin-text-muted" />
-          <Input
-            placeholder="Search by event, team, or league…"
-            value={searchQuery}
-            onChange={(e) => {
-              setCurrentPage(1);
-              setSearchQuery(e.target.value);
-            }}
-            className="h-8 border-admin-border bg-admin-surface pl-8 text-xs text-admin-text-primary placeholder:text-admin-text-muted"
-          />
-        </div>
-        <AdminCard className="p-3 sm:p-4">
+              onChange={(e) => {
+                setCurrentPage(1);
+                setSearchQuery(e.target.value);
+              }}
+              className="h-8 border-admin-border bg-admin-surface pl-8 text-xs text-admin-text-primary placeholder:text-admin-text-muted"
+            />
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-3 overflow-x-auto pb-1 scrollbar-hide">
             <div className="flex items-center gap-1.5">
               {filterTabs.map((tab) => (
@@ -1234,8 +1225,8 @@ export default function CustomEventsManager() {
               ))}
             </div>
           </div>
-        </AdminCard>
-      </div>
+        </div>
+      </AdminCard>
 
       {/* Events Table */}
       <AdminCard>
@@ -1517,8 +1508,8 @@ export default function CustomEventsManager() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </TableShell>
+      </AdminCard>
 
       {/* Modals */}
       <CreateEventModal

@@ -907,8 +907,8 @@ function FeedEvents() {
                 </span>
               ) : null}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </AdminCard>
 
         {/* ── Selection toolbar ── */}
         {hasSelection ? (
@@ -965,7 +965,7 @@ function FeedEvents() {
         ) : null}
 
         {/* ── Event list ── */}
-        <Card className="border-admin-border bg-admin-card shadow-sm">
+        <AdminCard>
           {/* List header row */}
           <div className="flex items-center justify-between border-b border-admin-border/70 px-3 py-1.5 sm:px-4">
             <p className="text-[10px] font-medium uppercase tracking-wider text-admin-text-muted">
@@ -1001,7 +1001,6 @@ function FeedEvents() {
             </div>
           ) : null}
 
-          {/* Empty state */}
           {!loading && events.length === 0 ? (
             <div className="px-4 py-10 text-center">
               <p className="text-sm font-medium text-admin-text-primary">
@@ -1010,128 +1009,127 @@ function FeedEvents() {
               <p className="mt-1 text-xs text-admin-text-muted">
                 Try clearing a filter or refreshing the feed.
               </p>
-                <div className="divide-y divide-white/5">
-            {events.map((event) => {
-              const isSelected = selectedEventIds.includes(event.eventId);
+            </div>
+          ) : null}
 
-              return (
-                <div
-                  key={event.eventId}
-                  className={cn(
-                    "group flex items-center gap-4 px-4 py-4 transition-all duration-300 hover:bg-white/[0.03]",
-                    isSelected && "bg-admin-accent/[0.04]"
-                  )}
-                >
-                  <div className="flex shrink-0 items-center justify-center">
-                    <input
-                      checked={isSelected}
-                      className="size-4 rounded border-white/10 bg-white/5 transition checked:bg-admin-accent accent-admin-accent"
-                      onChange={(e) =>
-                        toggleSelection(event.eventId, e.target.checked)
-                      }
-                      type="checkbox"
-                    />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate text-sm font-bold text-admin-text-primary">
-                        {event.homeTeam} vs {event.awayTeam}
-                      </span>
-                      <StatusBadge status={toBadgeStatus(event.status)} />
-                      {event.isFeatured && (
-                        <Badge className="bg-admin-accent/10 text-admin-accent border-admin-accent/20 text-[10px] font-bold">FEAT</Badge>
-                      )}
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-admin-text-muted/60">
-                      <span className="flex items-center gap-1">
-                        <span className="font-bold text-admin-text-muted/80">{formatSportLabel(event.sportKey || "")}</span>
-                        <span className="opacity-40">·</span>
-                        <span>{event.leagueName}</span>
-                      </span>
-                      <span className="flex items-center gap-1.5 font-mono">
-                        <CalendarClock size={12} className="opacity-60" />
-                        {formatEventTime(event.commenceTime)}
-                        {event.status === "UPCOMING" && (
-                          <span className="text-admin-accent/70 font-semibold">
-                            ({formatUpcomingCountdown(event.commenceTime, currentTimeMs)})
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="hidden shrink-0 items-center gap-4 sm:flex">
-                    <div className="flex flex-col items-end gap-1 text-right">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-admin-text-muted/30">House Margin</span>
-                      <span className="text-[11px] font-mono font-medium text-admin-text-primary">{event.houseMargin}%</span>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-admin-text-muted/30">Active</span>
-                      <Switch
-                        checked={event.isActive}
-                        onCheckedChange={() => void handleToggle(event)}
-                        className="scale-90 data-[state=checked]:bg-admin-accent"
+          {!loading && events.length > 0 ? (
+            <div className="divide-y divide-white/5">
+              {events.map((event) => {
+                const isSelected = selectedEventIds.includes(event.eventId);
+                return (
+                  <div
+                    key={event.eventId}
+                    className={cn(
+                      "group flex items-center gap-4 px-4 py-4 transition-all duration-300 hover:bg-white/[0.03]",
+                      isSelected && "bg-admin-accent/[0.04]"
+                    )}
+                  >
+                    <div className="flex shrink-0 items-center justify-center">
+                      <input
+                        checked={isSelected}
+                        className="size-4 rounded border-white/10 bg-white/5 transition checked:bg-admin-accent accent-admin-accent"
+                        onChange={(e) =>
+                          toggleSelection(event.eventId, e.target.checked)
+                        }
+                        type="checkbox"
                       />
                     </div>
-                  </div>
 
-                  <div className="shrink-0 pl-1">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="size-8 rounded-lg text-admin-text-muted/60 hover:bg-white/5 hover:text-admin-text-primary transition-colors"
-                        >
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-52 border-white/10 bg-[#0b1426] backdrop-blur-xl">
-                        <DropdownMenuItem
-                          className="gap-2 focus:bg-white/5"
-                          onSelect={() => openDetailDialog(event)}
-                        >
-                          <Eye size={14} className="opacity-60" /> View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="gap-2 focus:bg-white/5"
-                          onSelect={() => openConfigDialog(event)}
-                        >
-                          <Settings2 size={14} className="opacity-60" /> Configure Odds
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-white/5" />
-                        <DropdownMenuItem
-                          className="gap-2 focus:bg-white/5"
-                          onSelect={() => handleToggleFeatured(event.eventId, event.isFeatured)}
-                        >
-                          <Zap className={cn("size-3.5", event.isFeatured ? "text-admin-accent" : "opacity-60")} />
-                          {event.isFeatured ? "Remove Featured" : "Mark as Featured"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className={cn(
-                            "gap-2",
-                            event.isActive ? "text-red-400 focus:bg-red-400/10 focus:text-red-400" : "text-emerald-400 focus:bg-emerald-400/10 focus:text-emerald-400"
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-sm font-bold text-admin-text-primary">
+                          {event.homeTeam} vs {event.awayTeam}
+                        </span>
+                        <StatusBadge status={toBadgeStatus(event.status)} />
+                        {event.isFeatured && (
+                          <Badge className="bg-admin-accent/10 text-admin-accent border-admin-accent/20 text-[10px] font-bold">FEAT</Badge>
+                        )}
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-admin-text-muted/60">
+                        <span className="flex items-center gap-1">
+                          <span className="font-bold text-admin-text-muted/80">{formatSportLabel(event.sportKey || "")}</span>
+                          <span className="opacity-40">·</span>
+                          <span>{event.leagueName}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5 font-mono">
+                          <CalendarClock size={12} className="opacity-60" />
+                          {formatEventTime(event.commenceTime)}
+                          {event.status === "UPCOMING" && (
+                            <span className="text-admin-accent/70 font-semibold">
+                              ({formatUpcomingCountdown(event.commenceTime, currentTimeMs)})
+                            </span>
                           )}
-                          onSelect={() => void handleToggle(event)}
-                        >
-                          <Power size={14} />
-                          {event.isActive ? "Deactivate" : "Activate"}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="hidden shrink-0 items-center gap-4 sm:flex">
+                      <div className="flex flex-col items-end gap-1 text-right">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-admin-text-muted/30">House Margin</span>
+                        <span className="text-[11px] font-mono font-medium text-admin-text-primary">{event.houseMargin}%</span>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-admin-text-muted/30">Active</span>
+                        <Switch
+                          checked={event.isActive}
+                          onCheckedChange={() => void handleToggle(event)}
+                          className="scale-90 data-[state=checked]:bg-admin-accent"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 pl-1">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="size-8 rounded-lg text-admin-text-muted/60 hover:bg-white/5 hover:text-admin-text-primary transition-colors"
+                          >
+                            <MoreHorizontal size={16} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52 border-white/10 bg-[#0b1426] backdrop-blur-xl">
+                          <DropdownMenuItem
+                            className="gap-2 focus:bg-white/5"
+                            onSelect={() => openDetailDialog(event)}
+                          >
+                            <Eye size={14} className="opacity-60" /> View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="gap-2 focus:bg-white/5"
+                            onSelect={() => openConfigDialog(event)}
+                          >
+                            <Settings2 size={14} className="opacity-60" /> Configure Odds
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-white/5" />
+                          <DropdownMenuItem
+                            className="gap-2 focus:bg-white/5"
+                            onSelect={() => handleToggleFeatured(event.eventId, event.isFeatured)}
+                          >
+                            <Zap className={cn("size-3.5", event.isFeatured ? "text-admin-accent" : "opacity-60")} />
+                            {event.isFeatured ? "Remove Featured" : "Mark as Featured"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className={cn(
+                              "gap-2",
+                              event.isActive ? "text-red-400 focus:bg-red-400/10 focus:text-red-400" : "text-emerald-400 focus:bg-emerald-400/10 focus:text-emerald-400"
+                            )}
+                            onSelect={() => void handleToggle(event)}
+                          >
+                            <Power size={14} />
+                            {event.isActive ? "Deactivate" : "Activate"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-</div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
+                );
+              })}
+            </div>
+          ) : null}
+        </AdminCard>
 
         {/* ── Pagination ── */}
         {total > 20 ? (

@@ -324,8 +324,8 @@ export default function SportCategoriesManager() {
               Configure Selected ({selectedKeys.size})
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </AdminCard>
 
       {/* Progress bar during configure */}
       {configuring && syncStatus && (
@@ -446,8 +446,8 @@ export default function SportCategoriesManager() {
                     Synced: {formatSyncTime(category.lastSyncedAt)}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </AdminCard>
           );
         })}
       </div>
