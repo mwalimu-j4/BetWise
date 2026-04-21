@@ -2,13 +2,97 @@ import sgMail from "@sendgrid/mail";
 
 const RESET_SUBJECT = "Reset your Betixpro password";
 
-function getRequiredEnv(name: "SENDGRID_API_KEY" | "FROM_EMAIL" | "FRONTEND_URL") {
-  const value = process.env[name]?.trim();
+type SendGridErrorShape = {
+  code?: number;
+  response?: {
+    body?: {
+      errors?: Array<{
+        message?: string;
+        field?: string;
+        help?: string;
+      }>;
+    };
+  };
+};
+
+function normalizeEnvValue(value: string) {
+  const trimmed = value.trim();
+  return trimmed.replace(/^['\"]|['\"]$/g, "");
+}
+
+function getSendGridApiKey() {
+  const rawValue = process.env.SENDGRID_API_KEY;
+  if (!rawValue) {
+    throw new Error("SENDGRID_API_KEY is required.");
+  }
+
+  return normalizeEnvValue(rawValue);
+}
+
+function getRequiredEnv(
+  name: "SENDGRID_API_KEY" | "FROM_EMAIL" | "FRONTEND_URL",
+) {
+  if (name === "SENDGRID_API_KEY") {
+    return getSendGridApiKey();
+  }
+
+  const rawValue = process.env[name];
+  if (!rawValue) {
+    throw new Error(`${name} is required.`);
+  }
+
+  const value = normalizeEnvValue(rawValue);
   if (!value) {
     throw new Error(`${name} is required.`);
   }
 
   return value;
+}
+
+export function logSendGridConfigurationHealth() {
+  const rawApiKey = process.env.SENDGRID_API_KEY;
+  const normalizedApiKey = rawApiKey ? normalizeEnvValue(rawApiKey) : "";
+  const fromEmail = process.env.FROM_EMAIL ? normalizeEnvValue(process.env.FROM_EMAIL) : "";
+  const frontendUrl = process.env.FRONTEND_URL ? normalizeEnvValue(process.env.FRONTEND_URL) : "";
+
+  const apiKeyLoaded = normalizedApiKey.length > 0;
+  const hasSendGridPrefix = normalizedApiKey.startsWith("SG.");
+  const hadWrappingQuotes =
+    typeof rawApiKey === "string" && rawApiKey.trim() !== normalizedApiKey;
+
+  console.info("[SendGrid] Configuration health", {
+    apiKeyLoaded,
+    hasSendGridPrefix,
+    apiKeyLength: normalizedApiKey.length,
+    apiKeyHadWrappingQuotes: hadWrappingQuotes,
+    fromEmailLoaded: Boolean(fromEmail),
+    frontendUrlLoaded: Boolean(frontendUrl),
+  });
+
+  if (!apiKeyLoaded) {
+    console.error("[SendGrid] SENDGRID_API_KEY is missing. Password reset emails cannot be sent.");
+  } else if (!hasSendGridPrefix) {
+    console.warn("[SendGrid] SENDGRID_API_KEY does not start with 'SG.'. Verify the key in Render environment variables.");
+  }
+}
+
+function logSendGridSendError(error: unknown, recipient: string) {
+  const sendGridError = error as SendGridErrorShape;
+  const firstError = sendGridError.response?.body?.errors?.[0];
+
+  console.error("[SendGrid] Failed to send password reset email", {
+    recipient,
+    code: sendGridError.code,
+    providerMessage: firstError?.message,
+    providerField: firstError?.field,
+    providerHelp: firstError?.help,
+  });
+
+  if (sendGridError.code === 401) {
+    console.error(
+      "[SendGrid] Unauthorized (401). Check SENDGRID_API_KEY in Render: it must be a valid active API key with Mail Send permission.",
+    );
+  }
 }
 
 function buildResetUrl(token: string) {
@@ -54,28 +138,33 @@ function buildResetEmailHtml(resetUrl: string) {
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-  sgMail.setApiKey(getRequiredEnv("SENDGRID_API_KEY"));
+  sgMail.setApiKey(getSendGridApiKey());
 
   const resetUrl = buildResetUrl(token);
 
-  await sgMail.send({
-    to: email,
-    from: {
-      email: getRequiredEnv("FROM_EMAIL"),
-      name: "Betixpro Support",
-    },
-    subject: RESET_SUBJECT,
-    text: `We received a request to reset your Betixpro password. This link expires in 1 hour: ${resetUrl}`,
-    html: buildResetEmailHtml(resetUrl),
-    mailSettings: {
-      sandboxMode: {
-        enable: false,
+  try {
+    await sgMail.send({
+      to: email,
+      from: {
+        email: getRequiredEnv("FROM_EMAIL"),
+        name: "Betixpro Support",
       },
-    },
-    headers: {
-      "X-Priority": "3",
-      "X-Mailer": "Betixpro Mailer",
-      "List-Unsubscribe": "<mailto:support@betixpro.com>",
-    },
-  });
+      subject: RESET_SUBJECT,
+      text: `We received a request to reset your Betixpro password. This link expires in 1 hour: ${resetUrl}`,
+      html: buildResetEmailHtml(resetUrl),
+      mailSettings: {
+        sandboxMode: {
+          enable: false,
+        },
+      },
+      headers: {
+        "X-Priority": "3",
+        "X-Mailer": "Betixpro Mailer",
+        "List-Unsubscribe": "<mailto:support@betixpro.com>",
+      },
+    });
+  } catch (error) {
+    logSendGridSendError(error, email);
+    throw error;
+  }
 }
