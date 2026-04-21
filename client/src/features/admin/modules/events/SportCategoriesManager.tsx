@@ -1,6 +1,7 @@
 import { api } from "@/api/axiosConfig";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
@@ -11,6 +12,7 @@ import {
   Settings2,
   Shield,
   Square,
+  Zap,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -18,10 +20,6 @@ import {
   AdminCard,
   AdminSectionHeader,
   AdminStatCard,
-  TableShell,
-  adminTableCellClassName,
-  adminTableClassName,
-  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 interface SportCategory {
@@ -421,51 +419,27 @@ export default function SportCategoriesManager() {
                         toggleSelect(category.sportKey);
                       }}
                       className={cn(
-                        adminTableCellClassName,
-                        "w-10 text-center",
+                        "flex size-5 shrink-0 items-center justify-center rounded border transition",
+                        isSelected
+                          ? "border-admin-accent bg-admin-accent text-black"
+                          : "border-admin-border bg-admin-surface",
                       )}
                     >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          toggleSelect(category.sportKey);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
-                      />
-                    </td>
-                    <td className={adminTableCellClassName}>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl" aria-hidden="true">
+                      {isSelected && <CheckCircle2 size={12} />}
+                    </button>
+
+                    {/* Icon + name */}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-lg" aria-hidden="true">
                           {category.icon}
                         </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-bold text-admin-text-primary">
-                            {category.displayName}
-                          </p>
-                          <p className="text-[10px] text-admin-text-muted">
-                            Key: {category.sportKey}
-                          </p>
-                        </div>
+                        <h3 className="truncate text-sm font-bold text-admin-text-primary">
+                          {category.displayName}
+                        </h3>
                       </div>
-                    </td>
-                    <td className={cn(adminTableCellClassName, "text-center")}>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span className="font-mono text-xs font-bold text-admin-text-primary">
-                          {(
-                            category.liveEventCount ?? category.eventCount
-                          ).toLocaleString()}
-                        </span>
-                        <span className="text-[9px] uppercase tracking-tighter text-admin-text-muted">
-                          Events
-                        </span>
-                      </div>
-                    </td>
-                    <td className={adminTableCellClassName}>
-                      <p className="text-xs text-admin-text-muted">
-                        {formatSyncTime(category.lastSyncedAt)}
+                      <p className="mt-0.5 text-[10px] text-admin-text-muted">
+                        Key: {category.sportKey}
                       </p>
                     </div>
                   </div>

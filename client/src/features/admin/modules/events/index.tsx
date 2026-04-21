@@ -3,6 +3,7 @@ import { api } from "@/api/axiosConfig";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ import {
   RefreshCw,
   Search,
   Settings2,
+  Star,
   Zap,
   Shield,
   Clock,
@@ -54,6 +56,19 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import {
+  AdminCard,
+  AdminSectionHeader,
+  AdminStatCard,
+  StatusBadge,
+  TableShell,
+  adminTableCellClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
+  adminInputClassName,
+  adminSelectContentClassName,
+  adminSelectTriggerClassName,
+} from "../../components/ui";
 
 const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
 
@@ -242,21 +257,6 @@ function SystemStatusPanel() {
     </div>
   );
 }
-import {
-  AdminCard,
-  AdminSectionHeader,
-  AdminStatCard,
-  StatusBadge,
-  TableShell,
-  adminTableCellClassName,
-  adminTableClassName,
-  adminTableHeadCellClassName,
-  adminInputClassName,
-  adminSelectContentClassName,
-  adminSelectTriggerClassName,
-} from "../../components/ui";
-
-const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
 
 interface ApiEvent {
   id: string;
