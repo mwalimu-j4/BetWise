@@ -110,7 +110,9 @@ export default function SportCategoriesManager() {
           `/admin/sport-categories/${category.id}/toggle`,
         );
         setCategories((prev) =>
-          prev.map((c) => (c.id === data.id ? { ...c, isActive: data.isActive } : c)),
+          prev.map((c) =>
+            c.id === data.id ? { ...c, isActive: data.isActive } : c,
+          ),
         );
         toast.success(
           data.isActive
@@ -151,7 +153,6 @@ export default function SportCategoriesManager() {
       toast.error("Select at least one sport to configure");
       return;
     }
-
     setConfiguring(true);
     setSyncStatus({
       progress: 0,
@@ -161,21 +162,17 @@ export default function SportCategoriesManager() {
       totalSports: selectedKeys.size,
       completedSports: 0,
     });
-
     try {
       await api.post("/admin/sport-categories/bulk-configure", {
         sportKeys: Array.from(selectedKeys),
         houseMargin: 5,
       });
-
-      // Poll for progress
       const pollInterval = window.setInterval(async () => {
         try {
           const { data } = await api.get<SyncStatus>(
             "/admin/sport-categories/sync-status",
           );
           setSyncStatus(data);
-
           if (data.done) {
             window.clearInterval(pollInterval);
             setConfiguring(false);
@@ -201,7 +198,6 @@ export default function SportCategoriesManager() {
     void loadCategories();
   }, [loadCategories]);
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
     const timer = window.setInterval(() => {
       void loadCategories({ background: true });
@@ -254,34 +250,18 @@ export default function SportCategoriesManager() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2">
-        <AdminStatCard
-          label="Total"
-          value={String(categories.length)}
-          tone="blue"
-        />
-        <AdminStatCard
-          label="Active"
-          value={String(totalActive)}
-          tone="live"
-        />
-        <AdminStatCard
-          label="Inactive"
-          value={String(totalInactive)}
-          tone="red"
-        />
+        <AdminStatCard label="Total" value={String(categories.length)} tone="blue" />
+        <AdminStatCard label="Active" value={String(totalActive)} tone="live" />
+        <AdminStatCard label="Inactive" value={String(totalInactive)} tone="red" />
       </div>
 
-      {/* Summary bar */}
+      {/* Toolbar */}
       <AdminCard className="px-3 py-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] text-admin-text-muted/70">
-            <span className="font-bold text-admin-text-primary">
-              {categories.length}
-            </span>{" "}
+            <span className="font-bold text-admin-text-primary">{categories.length}</span>{" "}
             sports ·{" "}
-            <span className="font-bold text-admin-accent">
-              {totalActive}
-            </span>{" "}
+            <span className="font-bold text-admin-accent">{totalActive}</span>{" "}
             active
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -320,12 +300,12 @@ export default function SportCategoriesManager() {
         </div>
       </AdminCard>
 
-      {/* Progress bar during configure */}
+      {/* Progress bar */}
       {configuring && syncStatus && (
         <AdminCard className="border-admin-accent/30 p-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-admin-accent uppercase tracking-wider">
+              <span className="font-bold uppercase tracking-wider text-admin-accent">
                 Configuring: {syncStatus.currentSport || "Starting..."}
               </span>
               <span className="tabular-nums text-admin-text-muted/80">
@@ -333,13 +313,13 @@ export default function SportCategoriesManager() {
                 {syncStatus.totalConfigured.toLocaleString()} events
               </span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-white/5 border border-white/5">
+            <div className="h-2.5 overflow-hidden rounded-full border border-white/5 bg-white/5">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-admin-accent via-amber-400 to-admin-accent bg-[length:200%_auto] animate-[shimmer_2s_linear_infinite] transition-all duration-700 shadow-[0_0_10px_rgba(245,197,24,0.3)]"
+                className="h-full animate-[shimmer_2s_linear_infinite] rounded-full bg-gradient-to-r from-admin-accent via-amber-400 to-admin-accent bg-[length:200%_auto] shadow-[0_0_10px_rgba(245,197,24,0.3)] transition-all duration-700"
                 style={{ width: `${syncStatus.progress}%` }}
               />
             </div>
-            <p className="text-[10px] text-admin-text-muted/60 text-right font-mono">
+            <p className="text-right font-mono text-[10px] text-admin-text-muted/60">
               {syncStatus.progress}% COMPLETE
             </p>
           </div>
@@ -347,104 +327,110 @@ export default function SportCategoriesManager() {
       )}
 
       {/* Sport Categories Table */}
-      <AdminCard className=\"overflow-hidden p-0\">
+      <AdminCard className="overflow-hidden p-0">
         <TableShell>
           <table className={adminTableClassName}>
             <thead>
               <tr>
-                <th className={cn(adminTableHeadCellClassName, \"w-10 text-center\")}>
+                <th className={cn(adminTableHeadCellClassName, "w-10 text-center")}>
                   <input
-                    checked={selectedKeys.size === categories.length && categories.length > 0}
-                    className=\"size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent\"
+                    type="checkbox"
+                    checked={
+                      selectedKeys.size === categories.length &&
+                      categories.length > 0
+                    }
                     onChange={(e) => {
                       if (e.target.checked) handleSelectAll();
                       else handleDeselectAll();
                     }}
-                    type=\"checkbox\"
+                    className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
                   />
                 </th>
                 <th className={adminTableHeadCellClassName}>Sport</th>
-                <th className={cn(adminTableHeadCellClassName, \"text-center w-24\")}>Events</th>
+                <th className={cn(adminTableHeadCellClassName, "w-24 text-center")}>Events</th>
                 <th className={adminTableHeadCellClassName}>Last Synced</th>
-                <th className={cn(adminTableHeadCellClassName, \"text-right w-32\")}>Status</th>
+                <th className={cn(adminTableHeadCellClassName, "w-32 text-right")}>Status</th>
               </tr>
             </thead>
-            <tbody className=\"divide-y divide-white/5\">
+            <tbody className="divide-y divide-white/5">
               {categories.map((category) => {
                 const isSelected = selectedKeys.has(category.sportKey);
                 const isTogglingThis = toggling === category.id;
-
                 return (
                   <tr
                     key={category.id}
                     className={cn(
-                      \"group transition-colors duration-200 hover:bg-white/[0.02]\",
-                      isSelected && \"bg-admin-accent/[0.03]\"
+                      "group cursor-pointer transition-colors duration-200 hover:bg-white/[0.02]",
+                      isSelected && "bg-admin-accent/[0.03]",
                     )}
                     onClick={() => toggleSelect(category.sportKey)}
                   >
-                    <td className={cn(adminTableCellClassName, \"w-10 text-center\")}>
+                    <td className={cn(adminTableCellClassName, "w-10 text-center")}>
                       <input
+                        type="checkbox"
                         checked={isSelected}
-                        className=\"size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent\"
                         onChange={(e) => {
                           e.stopPropagation();
                           toggleSelect(category.sportKey);
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        type=\"checkbox\"
+                        className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
                       />
                     </td>
                     <td className={adminTableCellClassName}>
-                      <div className=\"flex items-center gap-3\">
-                        <span className=\"text-xl\" aria-hidden=\"true\">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl" aria-hidden="true">
                           {category.icon}
                         </span>
-                        <div className=\"min-w-0\">
-                          <p className=\"truncate text-sm font-bold text-admin-text-primary\">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-admin-text-primary">
                             {category.displayName}
                           </p>
-                          <p className=\"text-[10px] text-admin-text-muted\">
+                          <p className="text-[10px] text-admin-text-muted">
                             Key: {category.sportKey}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className={cn(adminTableCellClassName, \"text-center\")}>
-                      <div className=\"flex flex-col items-center gap-0.5\">
-                        <span className=\"text-xs font-bold text-admin-text-primary font-mono\">
-                          {(category.liveEventCount ?? category.eventCount).toLocaleString()}
+                    <td className={cn(adminTableCellClassName, "text-center")}>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className="font-mono text-xs font-bold text-admin-text-primary">
+                          {(
+                            category.liveEventCount ?? category.eventCount
+                          ).toLocaleString()}
                         </span>
-                        <span className=\"text-[9px] text-admin-text-muted uppercase tracking-tighter\">Events</span>
+                        <span className="text-[9px] uppercase tracking-tighter text-admin-text-muted">
+                          Events
+                        </span>
                       </div>
                     </td>
                     <td className={adminTableCellClassName}>
-                      <p className=\"text-xs text-admin-text-muted\">
+                      <p className="text-xs text-admin-text-muted">
                         {formatSyncTime(category.lastSyncedAt)}
                       </p>
                     </td>
-                    <td className={cn(adminTableCellClassName, \"text-right\")}>
+                    <td className={cn(adminTableCellClassName, "text-right")}>
                       <button
-                        type=\"button\"
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           void handleToggle(category);
                         }}
                         disabled={isTogglingThis}
-                        className=\"shrink-0\"
+                        className="shrink-0"
                       >
                         <Badge
                           className={cn(
-                            \"cursor-pointer text-[9px] font-bold uppercase tracking-wide transition border-transparent\",
+                            "cursor-pointer border-transparent text-[9px] font-bold uppercase tracking-wide transition",
                             category.isActive
-                              ? \"bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20\"
-                              : \"bg-red-500/10 text-red-400 hover:bg-red-500/20\",
+                              ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                              : "bg-red-500/10 text-red-400 hover:bg-red-500/20",
                           )}
                         >
                           {isTogglingThis ? (
-                            <Loader2 className=\"mr-0.5 size-2.5 animate-spin\" />
+                            <Loader2 className="mr-0.5 size-2.5 animate-spin" />
                           ) : null}
-                          {category.isActive ? \"Active\" : \"Inactive\"}
+                          {category.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </button>
                     </td>

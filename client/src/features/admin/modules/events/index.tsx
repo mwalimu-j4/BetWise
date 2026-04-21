@@ -49,9 +49,6 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-
-const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
-
 import {
   AdminCard,
   AdminSectionHeader,
@@ -65,6 +62,9 @@ import {
   adminSelectContentClassName,
   adminSelectTriggerClassName,
 } from "../../components/ui";
+
+const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
+
 interface ApiEvent {
   id: string;
   eventId: string;
@@ -963,7 +963,11 @@ function FeedEvents() {
             className="border-admin-red/30 bg-admin-red/10 text-admin-red"
           >
             <AlertTitle>Error loading events</AlertTitle>
-            <AlertDescription>{error}</AlertDe        {/* ── Event list ── */}
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {/* ── Event list ── */}
         <AdminCard className="overflow-hidden p-0">
           <TableShell>
             <table className={adminTableClassName}>

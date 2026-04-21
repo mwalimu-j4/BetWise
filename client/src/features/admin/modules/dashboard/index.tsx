@@ -712,7 +712,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
-            </TableShell>
           </AdminCard>
         </div>
       </div>
