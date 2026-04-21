@@ -996,7 +996,11 @@
   padding: 0 14px;
   height: 40px;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.6),
+    rgba(15, 23, 42, 0.8)
+  );
   border: 1px solid rgba(255, 213, 0, 0.15);
   backdrop-filter: blur(8px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1006,9 +1010,15 @@
 
 .bc-balance-card:hover {
   border-color: var(--nav-accent);
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95));
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.8),
+    rgba(15, 23, 42, 0.95)
+  );
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), 0 0 15px rgba(255, 213, 0, 0.1);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.2),
+    0 0 15px rgba(255, 213, 0, 0.1);
 }
 
 .bc-balance-icon-wrap {
@@ -1106,9 +1116,16 @@
   width: min(360px, calc(100vw - 20px));
   border: 1.5px solid rgba(80, 120, 200, 0.15);
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(18, 28, 48, 0.99) 0%, rgba(25, 35, 50, 0.99) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(18, 28, 48, 0.99) 0%,
+    rgba(25, 35, 50, 0.99) 100%
+  );
   backdrop-filter: blur(28px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 2px 12px rgba(80, 120, 200, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 2px 12px rgba(80, 120, 200, 0.12),
+    inset 0 1px 1px rgba(255, 255, 255, 0.08);
   overflow: hidden;
   z-index: 1200;
   white-space: normal;
@@ -1130,7 +1147,11 @@
 }
 
 .bc-notify-dropdown::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(100, 140, 255, 0.6) 0%, rgba(80, 120, 200, 0.5) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(100, 140, 255, 0.6) 0%,
+    rgba(80, 120, 200, 0.5) 100%
+  );
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -1138,7 +1159,11 @@
 }
 
 .bc-notify-dropdown::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(120, 160, 255, 0.8) 0%, rgba(100, 140, 220, 0.7) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(120, 160, 255, 0.8) 0%,
+    rgba(100, 140, 220, 0.7) 100%
+  );
   background-clip: padding-box;
 }
 
@@ -1149,7 +1174,11 @@
   gap: 10px;
   padding: 16px 18px 12px 18px;
   border-bottom: 1px solid rgba(80, 120, 200, 0.1);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
   position: sticky;
   top: 0;
   z-index: 10;
@@ -1187,7 +1216,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(80, 120, 200, 0.15) 0%, rgba(100, 140, 220, 0.08) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(80, 120, 200, 0.15) 0%,
+    rgba(100, 140, 220, 0.08) 100%
+  );
 }
 
 .bc-notify-item {
@@ -1207,7 +1240,11 @@
 }
 
 .bc-notify-item:hover {
-  background: linear-gradient(135deg, rgba(80, 120, 200, 0.12) 0%, rgba(100, 140, 220, 0.08) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(80, 120, 200, 0.12) 0%,
+    rgba(100, 140, 220, 0.08) 100%
+  );
   transform: translateX(2px);
 }
 
@@ -1221,32 +1258,77 @@
 }
 
 .bc-notify-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(80, 120, 200, 0.2) 0%, rgba(100, 140, 220, 0.1) 100%);
-  color: rgba(200, 220, 255, 0.6);
+  background: linear-gradient(
+    135deg,
+    rgba(80, 120, 200, 0.25) 0%,
+    rgba(100, 140, 220, 0.12) 100%
+  );
+  color: rgba(150, 190, 255, 0.85);
   flex-shrink: 0;
   margin-top: 2px;
-  border: 1px solid rgba(100, 140, 220, 0.15);
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.15);
+  border: 1.2px solid rgba(120, 160, 220, 0.3);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
 }
 
 .bc-notify-icon.is-success {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(74, 222, 128, 0.1) 100%);
-  color: #4ade80;
-  border-color: rgba(74, 222, 128, 0.25);
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.08), 0 2px 8px rgba(34, 197, 94, 0.15);
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.28) 0%,
+    rgba(74, 222, 128, 0.14) 100%
+  );
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.4);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.12),
+    0 1px 4px rgba(34, 197, 94, 0.25);
 }
 
 .bc-notify-icon.is-failed {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(248, 113, 113, 0.1) 100%);
-  color: #f87171;
-  border-color: rgba(248, 113, 113, 0.25);
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.08), 0 2px 8px rgba(239, 68, 68, 0.15);
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.28) 0%,
+    rgba(248, 113, 113, 0.14) 100%
+  );
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.12),
+    0 1px 4px rgba(239, 68, 68, 0.25);
+}
+
+.bc-notify-icon.is-warning {
+  background: linear-gradient(
+    135deg,
+    rgba(251, 146, 60, 0.28) 0%,
+    rgba(253, 186, 116, 0.14) 100%
+  );
+  color: #fb923c;
+  border-color: rgba(251, 146, 60, 0.4);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.12),
+    0 1px 4px rgba(251, 146, 60, 0.25);
+}
+
+.bc-notify-icon.is-info {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.28) 0%,
+    rgba(96, 165, 250, 0.14) 100%
+  );
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.12),
+    0 1px 4px rgba(59, 130, 246, 0.25);
 }
 
 .bc-notify-body {
@@ -1255,6 +1337,7 @@
   gap: 4px;
   min-width: 0;
   flex: 1;
+  text-align: left;
 }
 
 .bc-notify-item-title {
@@ -1266,12 +1349,13 @@
 }
 
 .bc-notify-item-copy {
-  font-size: 12px;
-  color: rgba(168, 196, 224, 0.9);
+  font-size: 12.5px;
+  color: rgba(168, 196, 224, 0.85);
   line-height: 1.5;
   white-space: normal;
   word-break: break-word;
   overflow-wrap: anywhere;
+  text-align: left;
 }
 
 .bc-notify-item-time {
@@ -1287,7 +1371,11 @@
   color: rgba(168, 196, 224, 0.7);
   font-size: 14px;
   text-align: center;
-  background: linear-gradient(135deg, rgba(80, 120, 200, 0.06) 0%, transparent 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(80, 120, 200, 0.06) 0%,
+    transparent 100%
+  );
   border-radius: 12px;
   margin: 12px 8px;
 }
@@ -1299,7 +1387,11 @@
 .bc-account-trigger {
   height: 40px;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95));
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.8),
+    rgba(15, 23, 42, 0.95)
+  );
   border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(12px);
   color: #ffffff;
@@ -1315,11 +1407,17 @@
 }
 
 .bc-account-trigger:hover {
-  background: linear-gradient(135deg, rgba(45, 60, 90, 0.9), rgba(25, 35, 55, 1));
+  background: linear-gradient(
+    135deg,
+    rgba(45, 60, 90, 0.9),
+    rgba(25, 35, 55, 1)
+  );
   border-color: var(--nav-accent);
   color: #ffffff;
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 10px rgba(255, 213, 0, 0.1);
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.4),
+    0 0 10px rgba(255, 213, 0, 0.1);
 }
 
 .bc-account-trigger.is-open {
@@ -1808,9 +1906,18 @@
 }
 
 @keyframes bcLivePulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 .bc-league-sep {

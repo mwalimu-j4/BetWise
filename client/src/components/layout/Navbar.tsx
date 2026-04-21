@@ -203,7 +203,12 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
     type === "DEPOSIT_SUCCESS" || type === "WITHDRAWAL_SUCCESS";
 
   const isFailedNotification = (type: string) =>
-    type === "DEPOSIT_FAILED" || type === "WITHDRAWAL_FAILED";
+    type === "DEPOSIT_FAILED" || type === "WITHDRAWAL_FAILED" || type === "ERROR";
+
+  const isWarningNotification = (type: string) =>
+    type === "BET_LOST" || type === "BET_CANCELLED" || type === "MATCH_ENDED";
+
+  const isInfoNotification = (type: string) => !isSuccessNotification(type) && !isFailedNotification(type) && !isWarningNotification(type);
 
   return (
     <header className="bc-navbar" role="banner">
@@ -356,15 +361,17 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                           onClick={() => setNotificationsOpen(false)}
                         >
                           <span
-                            className={`bc-notify-icon ${isSuccessNotification(notification.type) ? "is-success" : isFailedNotification(notification.type) ? "is-failed" : ""}`}
+                            className={`bc-notify-icon ${isSuccessNotification(notification.type) ? "is-success" : isFailedNotification(notification.type) ? "is-failed" : isWarningNotification(notification.type) ? "is-warning" : "is-info"}`}
                             aria-hidden="true"
                           >
                             {isSuccessNotification(notification.type) ? (
-                              <CircleCheck size={14} />
+                              <CircleCheck size={16} />
                             ) : isFailedNotification(notification.type) ? (
-                              <CircleX size={14} />
+                              <CircleX size={16} />
+                            ) : isWarningNotification(notification.type) ? (
+                              <Zap size={16} />
                             ) : (
-                              <Bell size={14} />
+                              <Bell size={16} />
                             )}
                           </span>
                           <span className="bc-notify-body">
