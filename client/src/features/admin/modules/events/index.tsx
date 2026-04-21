@@ -3,7 +3,6 @@ import { api } from "@/api/axiosConfig";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +39,6 @@ import {
   Eye,
   Loader2,
   MoreHorizontal,
-  PencilLine,
   Plus,
   Power,
   RefreshCw,
@@ -245,13 +243,20 @@ function SystemStatusPanel() {
   );
 }
 import {
+  AdminCard,
   AdminSectionHeader,
   AdminStatCard,
   StatusBadge,
+  TableShell,
+  adminTableCellClassName,
+  adminTableClassName,
+  adminTableHeadCellClassName,
   adminInputClassName,
   adminSelectContentClassName,
   adminSelectTriggerClassName,
 } from "../../components/ui";
+
+const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
 
 interface ApiEvent {
   id: string;
@@ -443,8 +448,6 @@ function FeedEvents() {
   const [configEvent, setConfigEvent] = useState<ApiEvent | null>(null);
   const [houseMargin, setHouseMargin] = useState("0");
   const [marketsEnabled, setMarketsEnabled] = useState<string[]>(["h2h"]);
-  const [actionEvent, setActionEvent] = useState<ApiEvent | null>(null);
-  const [confirmDeactivateOpen, setConfirmDeactivateOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createFormData, setCreateFormData] = useState({
     homeTeam: "",
@@ -538,21 +541,21 @@ function FeedEvents() {
       Array.from({ length: 6 }, (_, i) => (
         <div
           key={`sk-${i}`}
-          className="flex items-center gap-3 border-b border-admin-border/50 px-3 py-2.5 last:border-0"
+          className="flex items-center gap-3 border-b border-white/5 px-4 py-4 last:border-0"
         >
-          <div className="size-3.5 shrink-0 animate-pulse rounded bg-admin-surface" />
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <div className="h-3.5 w-44 animate-pulse rounded bg-admin-surface" />
-            <div className="h-3 w-28 animate-pulse rounded bg-admin-surface" />
+          <div className="size-4 shrink-0 animate-pulse rounded bg-white/5" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="h-4 w-48 animate-pulse rounded bg-white/5" />
+            <div className="h-3 w-32 animate-pulse rounded bg-white/5" />
           </div>
-          <div className="hidden shrink-0 gap-1.5 sm:flex">
-            <div className="h-5 w-12 animate-pulse rounded-full bg-admin-surface" />
-            <div className="h-5 w-16 animate-pulse rounded-full bg-admin-surface" />
+          <div className="hidden shrink-0 gap-2 sm:flex">
+            <div className="h-6 w-14 animate-pulse rounded-full bg-white/5" />
+            <div className="h-6 w-20 animate-pulse rounded-full bg-white/5" />
           </div>
           <div className="hidden sm:block">
-            <div className="h-6 w-10 animate-pulse rounded-full bg-admin-surface" />
+            <div className="h-7 w-12 animate-pulse rounded-full bg-white/5" />
           </div>
-          <div className="size-6 animate-pulse rounded bg-admin-surface" />
+          <div className="size-8 animate-pulse rounded-lg bg-white/5" />
         </div>
       )),
     [],
@@ -1086,8 +1089,8 @@ function FeedEvents() {
         </div>
 
         {/* ── Filters ── */}
-        <Card className="border-admin-border bg-admin-card shadow-sm">
-          <CardContent className="space-y-2 p-2 sm:p-3">
+        <AdminCard className="p-3 sm:p-4">
+          <div className="space-y-4">
             {/* Search + league */}
             <div className="grid gap-1.5 sm:grid-cols-[minmax(0,1fr)_200px]">
               <div className="relative">
@@ -1142,7 +1145,7 @@ function FeedEvents() {
             </div>
 
             {/* Filter pills */}
-            <div className="-mx-0.5 flex gap-1 overflow-x-auto px-0.5 pb-px sm:flex-wrap sm:overflow-visible sm:px-0">
+            <div className="-mx-0.5 flex gap-1.5 overflow-x-auto px-0.5 pb-1 sm:flex-wrap sm:overflow-visible sm:px-0">
               {filterOptions.map((filter) => {
                 const isActive = activeFilter === filter.value;
                 return (
@@ -1153,19 +1156,19 @@ function FeedEvents() {
                       setActiveFilter(filter.value);
                     }}
                     className={cn(
-                      "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors",
+                      "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold tracking-tight transition-all",
                       isActive
-                        ? "border-admin-accent bg-admin-accent text-black"
-                        : "border-admin-border bg-admin-surface/40 text-admin-text-secondary hover:bg-admin-surface hover:text-admin-text-primary",
+                        ? "border-admin-accent/30 bg-admin-accent text-black shadow-[0_0_20px_rgba(245,197,24,0.15)]"
+                        : "border-white/5 bg-white/[0.03] text-admin-text-muted hover:border-white/10 hover:bg-white/[0.06] hover:text-admin-text-primary",
                     )}
                   >
                     {filter.label}
                     <span
                       className={cn(
-                        "rounded-full px-1 py-px text-[9px] font-medium leading-none",
+                        "rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none",
                         isActive
-                          ? "bg-black/15 text-black"
-                          : "bg-admin-card text-admin-text-muted",
+                          ? "bg-black/20 text-black/80"
+                          : "bg-white/5 text-admin-text-muted/60",
                       )}
                     >
                       {statsLoading ? "·" : filter.count}
@@ -1188,8 +1191,8 @@ function FeedEvents() {
                 </span>
               ) : null}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </AdminCard>
 
         {/* ── Selection toolbar ── */}
         {hasSelection ? (
@@ -1246,270 +1249,262 @@ function FeedEvents() {
         ) : null}
 
         {/* ── Event list ── */}
-        <Card className="border-admin-border bg-admin-card shadow-sm">
-          {/* List header row */}
-          <div className="flex items-center justify-between border-b border-admin-border/70 px-3 py-1.5 sm:px-4">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-admin-text-muted">
-              Event list
-            </p>
-            {!loading && events.length > 0 ? (
-              <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-admin-text-secondary">
-                <input
-                  checked={allVisibleSelected}
-                  className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
-                  onChange={(e) => toggleSelectAllVisible(e.target.checked)}
-                  type="checkbox"
-                />
-                Select page
-              </label>
-            ) : null}
-          </div>
-
-          {!loading && events.length > 0 ? (
-            <div className="hidden items-center gap-2 border-b border-admin-border/40 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.12em] text-admin-text-muted sm:flex">
-              <div className="w-4" />
-              <div className="min-w-0 flex-1">Event</div>
-              <div className="w-16 text-center">Active</div>
-              <div className="w-20 text-center">Featured</div>
-              <div className="w-[118px] text-right">Actions</div>
-            </div>
-          ) : null}
-
-          {/* Skeleton */}
-          {loading && events.length === 0 ? (
-            <div className="divide-y divide-admin-border/40">
-              {skeletonRows}
-            </div>
-          ) : null}
-
-          {/* Empty state */}
-          {!loading && events.length === 0 ? (
-            <div className="px-4 py-10 text-center">
-              <p className="text-sm font-medium text-admin-text-primary">
-                No events found
-              </p>
-              <p className="mt-1 text-xs text-admin-text-muted">
-                Try clearing a filter or refreshing the feed.
-              </p>
-            </div>
-          ) : null}
-
-          {/* Rows */}
-          <div className="divide-y divide-admin-border/40">
-            {events.map((event) => {
-              const hasOdds = event._count.odds > 0;
-              const hasScore =
-                event.homeScore !== null && event.awayScore !== null;
-              const isSelected = selectedEventIds.includes(event.eventId);
-
-              return (
-                <div
-                  key={event.eventId}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 transition-colors hover:bg-admin-surface/20 sm:px-4",
-                    isSelected && "bg-admin-accent/5",
-                  )}
-                >
-                  {/* Checkbox */}
-                  <input
-                    checked={isSelected}
-                    className="size-3.5 shrink-0 rounded border-admin-border bg-admin-surface accent-admin-accent"
-                    onChange={(e) =>
-                      toggleSelection(event.eventId, e.target.checked)
-                    }
-                    type="checkbox"
-                  />
-
-                  {/* Content */}
-                  <div className="min-w-0 flex-1">
-                    {/* Matchup + badges */}
-                    <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                      <p className="truncate text-sm font-semibold text-admin-text-primary">
-                        {event.homeTeam}{" "}
-                        <span className="font-normal text-admin-text-muted">
-                          vs
-                        </span>{" "}
-                        {event.awayTeam}
-                      </p>
-                      <div className="flex shrink-0 flex-wrap items-center gap-0.5">
-                        <StatusBadge status={toBadgeStatus(event.status)} />
-                        {hasScore && (
-                          <span className="rounded border border-admin-border bg-admin-card px-1 py-px text-[10px] font-medium text-admin-text-primary">
-                            {event.homeScore}–{event.awayScore}
-                          </span>
-                        )}
-                        {event.status === "UPCOMING" && (
-                          <span className="rounded border border-admin-blue/30 bg-admin-blue/10 px-1 py-px text-[10px] font-medium text-admin-blue">
-                            {formatUpcomingCountdown(
-                              event.commenceTime,
-                              currentTimeMs,
-                            )}
-                          </span>
-                        )}
-                        {!hasOdds && (
-                          <span className="rounded border border-admin-red/30 bg-admin-red/10 px-1 py-px text-[10px] font-medium text-admin-red">
-                            No odds
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Meta row */}
-                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0 text-xs text-admin-text-muted">
-                      <span className="truncate max-w-35">
-                        {event.leagueName ?? "Unknown league"}
-                      </span>
-                      <span className="hidden sm:inline text-[11px]">
-                        {formatEventTime(event.commenceTime)}
-                      </span>
-                      <span className="hidden lg:inline text-[11px]">
-                        {event._count.odds} odds · {event._count.bets} bets ·{" "}
-                        {event.houseMargin}% margin ·{" "}
-                        {event.marketsEnabled.join(", ")}
-                      </span>
-                      <span className="sm:hidden text-[11px]">
-                        {event.houseMargin}% · {event._count.bets} bets
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Right: toggle + icon actions + overflow */}
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <Switch
-                      checked={event.isActive}
-                      onCheckedChange={(checked) =>
-                        void handleToggle(event, checked)
-                      }
-                      className="scale-[0.85]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        void handleToggleFeatured(
-                          event.eventId,
-                          event.isFeatured,
-                        )
-                      }
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none ${
-                        event.isFeatured ? "bg-[#f5c518]" : "bg-[#1e3350]"
-                      }`}
-                      title={
-                        event.isFeatured
-                          ? "Remove from featured events"
-                          : "Add to featured events"
-                      }
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                          event.isFeatured ? "translate-x-4" : "translate-x-0.5"
-                        }`}
-                      />
-                    </button>
-                    {event.isFeatured ? (
-                      <span className="hidden min-w-8 text-[10px] font-semibold text-[#f5c518] sm:inline">
-                        On
-                      </span>
-                    ) : (
-                      <span className="hidden min-w-8 text-[10px] font-semibold text-admin-text-muted sm:inline">
-                        Off
-                      </span>
+        <AdminCard className="overflow-hidden p-0">
+          <TableShell>
+            <table className={adminTableClassName}>
+              <thead>
+                <tr>
+                  <th
+                    className={cn(
+                      adminTableHeadCellClassName,
+                      "w-10 text-center",
                     )}
-                    <div className="hidden items-center sm:flex">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openDetailDialog(event)}
-                        className="size-7 text-admin-text-muted hover:bg-admin-surface hover:text-admin-text-primary"
-                        title="View details"
-                      >
-                        <Eye className="size-3.5" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openConfigDialog(event)}
-                        className="size-7 text-admin-text-muted hover:bg-admin-surface hover:text-admin-text-primary"
-                        title="Edit markets"
-                      >
-                        <PencilLine className="size-3.5" />
-                      </Button>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-7 text-admin-text-muted hover:bg-admin-surface hover:text-admin-text-primary"
-                        >
-                          <MoreHorizontal className="size-3.5" />
-                          <span className="sr-only">Event actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="border-admin-border bg-admin-card text-admin-text-primary"
-                      >
-                        <DropdownMenuItem
-                          onSelect={() => openDetailDialog(event)}
-                        >
-                          <Eye className="size-3.5" /> View details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={() => openConfigDialog(event)}
-                        >
-                          <PencilLine className="size-3.5" /> Edit markets
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {event.isActive ? (
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onSelect={() => {
-                              setActionEvent(event);
-                              setConfirmDeactivateOpen(true);
-                            }}
-                          >
-                            <Power className="size-3.5" /> Deactivate
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem
-                            onSelect={() => void handleToggle(event, true)}
-                          >
-                            <Power className="size-3.5" /> Activate
-                          </DropdownMenuItem>
+                  >
+                    <input
+                      checked={allVisibleSelected}
+                      className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
+                      onChange={(e) => toggleSelectAllVisible(e.target.checked)}
+                      type="checkbox"
+                    />
+                  </th>
+                  <th className={adminTableHeadCellClassName}>Event</th>
+                  <th
+                    className={cn(
+                      adminTableHeadCellClassName,
+                      "w-20 text-center",
+                    )}
+                  >
+                    Active
+                  </th>
+                  <th
+                    className={cn(
+                      adminTableHeadCellClassName,
+                      "w-20 text-center",
+                    )}
+                  >
+                    Featured
+                  </th>
+                  <th
+                    className={cn(
+                      adminTableHeadCellClassName,
+                      "w-24 text-right",
+                    )}
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {/* Skeleton */}
+                {loading && events.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-0">
+                      <div className="divide-y divide-admin-border/40">
+                        {skeletonRows}
+                      </div>
+                    </td>
+                  </tr>
+                ) : null}
+
+                {/* Empty State */}
+                {!loading && events.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-20 text-center">
+                      <p className="text-sm font-medium text-admin-text-primary">
+                        No events found
+                      </p>
+                      <p className="mt-1 text-xs text-admin-text-muted">
+                        Try clearing a filter or refreshing the feed.
+                      </p>
+                    </td>
+                  </tr>
+                ) : null}
+
+                {/* Data Rows */}
+                {events.map((event) => {
+                  const isSelected = selectedEventIds.includes(event.eventId);
+                  return (
+                    <tr
+                      key={event.eventId}
+                      className={cn(
+                        "group transition-all duration-300 hover:bg-white/[0.03]",
+                        isSelected && "bg-admin-accent/[0.04]",
+                      )}
+                    >
+                      <td
+                        className={cn(
+                          adminTableCellClassName,
+                          "w-10 text-center",
                         )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
+                      >
+                        <div className="flex shrink-0 items-center justify-center">
+                          <input
+                            checked={isSelected}
+                            className="size-4 rounded border-white/10 bg-white/5 transition checked:bg-admin-accent accent-admin-accent"
+                            onChange={(e) =>
+                              toggleSelection(event.eventId, e.target.checked)
+                            }
+                            type="checkbox"
+                          />
+                        </div>
+                      </td>
+
+                      <td className={adminTableCellClassName}>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-sm font-bold text-admin-text-primary">
+                              {event.homeTeam} vs {event.awayTeam}
+                            </span>
+                            <StatusBadge status={toBadgeStatus(event.status)} />
+                            {event.isFeatured && (
+                              <Badge className="bg-admin-accent/10 text-admin-accent border-admin-accent/20 text-[10px] font-bold">
+                                FEAT
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-admin-text-muted/60">
+                            <span className="flex items-center gap-1">
+                              <span className="font-bold text-admin-text-muted/80">
+                                {formatSportLabel(event.sportKey || "")}
+                              </span>
+                              <span className="opacity-40">·</span>
+                              <span>{event.leagueName}</span>
+                            </span>
+                            <span className="flex items-center gap-1.5 font-mono">
+                              <CalendarClock size={12} className="opacity-60" />
+                              {formatEventTime(event.commenceTime)}
+                              {event.status === "UPCOMING" && (
+                                <span className="text-admin-accent/70 font-semibold">
+                                  (
+                                  {formatUpcomingCountdown(
+                                    event.commenceTime,
+                                    currentTimeMs,
+                                  )}
+                                  )
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td
+                        className={cn(adminTableCellClassName, "text-center")}
+                      >
+                        <div className="flex items-center justify-center">
+                          <Switch
+                            checked={event.isActive}
+                            onCheckedChange={() => void handleToggle(event)}
+                            className="scale-90 data-[state=checked]:bg-admin-accent"
+                          />
+                        </div>
+                      </td>
+
+                      <td
+                        className={cn(adminTableCellClassName, "text-center")}
+                      >
+                        <div className="flex items-center justify-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              void handleToggleFeatured(
+                                event.eventId,
+                                event.isFeatured,
+                              )
+                            }
+                            className={cn(
+                              "size-8 rounded-full",
+                              event.isFeatured
+                                ? "text-admin-accent"
+                                : "text-admin-text-muted/40",
+                            )}
+                          >
+                            <Star
+                              size={16}
+                              fill={event.isFeatured ? "currentColor" : "none"}
+                            />
+                          </Button>
+                        </div>
+                      </td>
+
+                      <td className={cn(adminTableCellClassName, "text-right")}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="size-8 rounded-lg text-admin-text-muted/60 hover:bg-white/5 hover:text-admin-text-primary transition-colors"
+                            >
+                              <MoreHorizontal size={16} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-52 border-white/10 bg-[#0b1426] backdrop-blur-xl"
+                          >
+                            <DropdownMenuItem
+                              className="gap-2 focus:bg-white/5"
+                              onSelect={() => openDetailDialog(event)}
+                            >
+                              <Eye size={14} className="opacity-60" /> View
+                              Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="gap-2 focus:bg-white/5"
+                              onSelect={() => openConfigDialog(event)}
+                            >
+                              <Settings2 size={14} className="opacity-60" />{" "}
+                              Configure Odds
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/5" />
+                            <DropdownMenuItem
+                              className={cn(
+                                "gap-2",
+                                event.isActive
+                                  ? "text-red-400 focus:bg-red-400/10 focus:text-red-400"
+                                  : "text-emerald-400 focus:bg-emerald-400/10 focus:text-emerald-400",
+                              )}
+                              onSelect={() => void handleToggle(event)}
+                            >
+                              <Power size={14} />
+                              {event.isActive ? "Deactivate" : "Activate"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </TableShell>
+        </AdminCard>
 
         {/* ── Pagination ── */}
         {total > 20 ? (
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-admin-text-muted">
-              Page {page} of {totalPages}
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-[11px] font-medium text-admin-text-muted/50">
+              Showing {events.length} of {total} events
             </p>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="h-7 border-admin-border bg-admin-card px-2.5 text-xs text-admin-text-primary hover:bg-admin-surface"
+                className="h-8 border border-white/5 bg-white/5 px-4 text-xs text-admin-text-primary hover:bg-white/10 disabled:opacity-30"
               >
-                <ChevronLeft className="size-3.5" /> Prev
+                <ChevronLeft className="mr-1 size-3.5" /> Previous
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="h-7 border-admin-border bg-admin-card px-2.5 text-xs text-admin-text-primary hover:bg-admin-surface"
+                className="h-8 border border-white/5 bg-white/5 px-4 text-xs text-admin-text-primary hover:bg-white/10 disabled:opacity-30"
               >
-                Next <ChevronRight className="size-3.5" />
+                Next <ChevronRight className="ml-1 size-3.5" />
               </Button>
             </div>
           </div>
@@ -1518,10 +1513,12 @@ function FeedEvents() {
 
       {/* ── Bulk update dialog ── */}
       <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
-        <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-xl sm:p-6">
+        <DialogContent className="max-w-[calc(100%-1rem)] border-white/10 bg-[#0b1426] p-6 text-admin-text-primary backdrop-blur-2xl sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Bulk update events</DialogTitle>
-            <DialogDescription className="text-admin-text-muted">
+            <DialogTitle className="text-2xl font-bold">
+              Bulk Update Events
+            </DialogTitle>
+            <DialogDescription className="text-admin-text-muted/70">
               Apply margin and markets to a league, sport, or selection.
             </DialogDescription>
           </DialogHeader>
@@ -1978,42 +1975,6 @@ function FeedEvents() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* ── Confirm deactivate dialog ── */}
-      <Dialog
-        open={confirmDeactivateOpen}
-        onOpenChange={setConfirmDeactivateOpen}
-      >
-        <DialogContent className="max-w-[calc(100%-1rem)] border-admin-border bg-admin-card p-4 text-admin-text-primary sm:max-w-md sm:p-6">
-          <DialogHeader>
-            <DialogTitle>Deactivate event</DialogTitle>
-            <DialogDescription className="text-admin-text-muted">
-              {actionEvent
-                ? `${actionEvent.homeTeam} vs ${actionEvent.awayTeam} will be hidden from bettors until reactivated.`
-                : "This event will be hidden until it is reactivated."}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDeactivateOpen(false)}
-              className="w-full border-admin-border bg-admin-card text-admin-text-primary hover:bg-admin-surface sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (!actionEvent) return;
-                setConfirmDeactivateOpen(false);
-                void handleToggle(actionEvent, false);
-              }}
-              className="w-full bg-admin-red text-white hover:bg-admin-red/90 sm:w-auto"
-            >
-              Deactivate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
@@ -2123,4 +2084,3 @@ export default function Events() {
     </div>
   );
 }
-

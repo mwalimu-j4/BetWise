@@ -1,5 +1,4 @@
 import { api } from "@/api/axiosConfig";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Dialog,
   DialogDescription,
@@ -42,6 +41,7 @@ import {
   adminDropdownItemClassName,
   adminTableCellClassName,
   adminTableClassName,
+  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 type DashboardMetric = {
@@ -250,47 +250,68 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="space-y-6">
         {pendingCount > 0 ? (
-          <Alert className="border-amber-400/30 bg-amber-400/10">
-            <TriangleAlert className="h-4 w-4 text-amber-300" />
-            <AlertTitle className="text-amber-200">
-              Pending Withdrawal Requests
-            </AlertTitle>
-            <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-amber-100/90">
-              <span>
-                You have {pendingCount} withdrawal request
-                {pendingCount === 1 ? "" : "s"} waiting for review.
-              </span>
+          <div className="overflow-hidden rounded-xl border border-amber-400/20 bg-amber-400/[0.03] p-4 shadow-[0_10px_25px_-10px_rgba(251,191,36,0.15)] backdrop-blur-md">
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/10 text-amber-300">
+                <TriangleAlert className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-amber-200">
+                  Pending Withdrawal Requests
+                </h4>
+                <p className="mt-0.5 text-xs text-amber-100/70">
+                  You have {pendingCount} withdrawal request
+                  {pendingCount === 1 ? "" : "s"} waiting for review.
+                </p>
+              </div>
               <Link
                 to="/admin/withdrawals"
-                className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-amber-100 transition hover:bg-amber-300/20 whitespace-nowrap"
+                className="hidden sm:inline-flex items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
               >
                 Review Requests
               </Link>
-            </AlertDescription>
-          </Alert>
+            </div>
+            <Link
+              to="/admin/withdrawals"
+              className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-amber-100 transition hover:bg-amber-300/20"
+            >
+              Review Requests
+            </Link>
+          </div>
         ) : null}
 
         {finishedEventsCount > 0 ? (
-          <Alert className="border-emerald-400/30 bg-emerald-400/10">
-            <Trophy className="h-4 w-4 text-emerald-300" />
-            <AlertTitle className="text-emerald-200">
-              🏁 Events Finished — Settlement Required
-            </AlertTitle>
-            <AlertDescription className="flex flex-wrap items-center justify-between gap-3 text-emerald-100/90">
-              <span>
-                {finishedEventsCount} custom event
-                {finishedEventsCount === 1 ? " has" : "s have"} ended and{" "}
-                {finishedEventsCount === 1 ? "needs" : "need"} market
-                settlement. Enter results to process payouts.
-              </span>
-              <a
-                href="/admin/events?tab=custom"
-                className="rounded-lg border border-emerald-300/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-emerald-100 transition hover:bg-emerald-300/20 whitespace-nowrap"
+          <div className="overflow-hidden rounded-xl border border-emerald-400/20 bg-emerald-400/[0.03] p-4 shadow-[0_10px_25px_-10px_rgba(16,185,129,0.15)] backdrop-blur-md">
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-300">
+                <Trophy className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-emerald-200">
+                  Events Finished — Settlement Required
+                </h4>
+                <p className="mt-0.5 text-xs text-emerald-100/70">
+                  {finishedEventsCount} custom event
+                  {finishedEventsCount === 1 ? "s has" : "s have"} ended and
+                  need market settlement.
+                </p>
+              </div>
+              <Link
+                to="/admin/events"
+                search={{ tab: "custom" }}
+                className="hidden sm:inline-flex items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
               >
                 Settle Events
-              </a>
-            </AlertDescription>
-          </Alert>
+              </Link>
+            </div>
+            <Link
+              to="/admin/events"
+              search={{ tab: "custom" }}
+              className="mt-3 flex sm:hidden w-full items-center justify-center rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 transition hover:bg-emerald-300/20"
+            >
+              Settle Events
+            </Link>
+          </div>
         ) : null}
 
         {/* Stat Cards */}
@@ -315,7 +336,6 @@ export default function Dashboard() {
                     label={metric.label}
                     value={metric.value}
                     tone={metric.tone}
-                    helper={metric.helper}
                     className={hideOnMobile ? "hidden sm:block" : undefined}
                   />
                 );
@@ -463,7 +483,7 @@ export default function Dashboard() {
           <AdminCard className="overflow-hidden max-w-full w-full">
             <AdminCardHeader
               title="Recent Activity"
-               actions={
+              actions={
                 <>
                   <AdminButton
                     variant="ghost"
@@ -490,214 +510,202 @@ export default function Dashboard() {
               }
             />
 
-            <TableShell className="mt-2 w-full border-t border-admin-border/40">
-              <div className="w-full overflow-x-auto pb-2 -webkit-overflow-scrolling-touch">
-                <table className={`${adminTableClassName} w-full min-w-175`}>
-                  <thead className="bg-admin-surface/30 border-b border-white/10">
-                    <tr>
-                      {[
-                        "#",
-                        "Phone",
-                        "Type",
-                        "Amount",
-                        "Status",
-                        "Time",
-                        "",
-                      ].map((heading) => (
+            <TableShell className="w-full">
+              <table className={`${adminTableClassName} w-full min-w-175`}>
+                <thead>
+                  <tr>
+                    {["#", "Phone", "Type", "Amount", "Status", "Time", ""].map(
+                      (heading) => (
                         <th
                           key={heading}
-                          className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
+                          className={adminTableHeadCellClassName}
                         >
                           {heading}
                         </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {isLoading ? (
-                      <tr>
-                        <td className={adminTableCellClassName} colSpan={7}>
-                          <div className="flex items-center justify-center py-8">
-                            <Loader className="animate-spin" size={24} />
-                          </div>
-                        </td>
-                      </tr>
-                    ) : recentTransactions.length === 0 ? (
-                      <tr>
-                        <td className={adminTableCellClassName} colSpan={7}>
-                          <div className="flex items-center justify-center py-8 text-admin-text-muted">
-                            No recent activity yet.
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      // Paginate transactions - 5 per page
-                      recentTransactions
-                        .slice(
-                          (currentPage - 1) * itemsPerPage,
-                          currentPage * itemsPerPage,
-                        )
-                        .map((transaction, index) => (
-                          <tr
-                            key={transaction.id}
-                            className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
-                            onClick={() => handleViewDetails(transaction)}
-                          >
-                            <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
-                              {(currentPage - 1) * itemsPerPage + index + 1}
-                            </td>
-                            <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
-                              {transaction.userPhone}
-                            </td>
-                            <td className="px-3 py-3">
-                              <InlinePill
-                                label={transaction.type}
-                                tone={
-                                  transaction.type === "deposit"
-                                    ? "live"
-                                    : "gold"
-                                }
-                              />
-                            </td>
-                            <td className="px-3 py-3 text-sm text-admin-text-primary">
-                              {formatCurrency(transaction.amount)}
-                            </td>
-                            <td className="px-3 py-3">
-                              <StatusBadge status={transaction.status} />
-                            </td>
-                            <td className="px-3 py-3 text-xs text-admin-text-muted">
-                              {new Date(transaction.createdAt).toLocaleString(
-                                "en-KE",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                },
-                              )}
-                            </td>
-                            <td
-                              className="px-3 py-3"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <button className="p-1 rounded hover:bg-white/10 transition-colors">
-                                    <MoreHorizontal
-                                      size={16}
-                                      className="text-admin-text-muted"
-                                    />
-                                  </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                  align="end"
-                                  className={`${adminDropdownContentClassName} w-56`}
-                                >
-                                  <DropdownMenuItem
-                                    className={adminDropdownItemClassName}
-                                    onClick={() =>
-                                      handleViewDetails(transaction)
-                                    }
-                                  >
-                                    View full details
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className={adminDropdownItemClassName}
-                                    onClick={() => handleOpenUser(transaction)}
-                                  >
-                                    Open user profile
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className={adminDropdownItemClassName}
-                                    onClick={() =>
-                                      handleReviewTransaction(transaction)
-                                    }
-                                  >
-                                    {transaction.type === "withdrawal"
-                                      ? "Review & manage payout"
-                                      : "Review & manage deposit"}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </td>
-                          </tr>
-                        ))
+                      ),
                     )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination Controls */}
-              {recentTransactions.length > itemsPerPage && (
-                <div className="flex items-center justify-between border-t border-admin-border/40 px-4 py-2.5">
-                  <div className="text-xs text-admin-text-muted">
-                    Showing{" "}
-                    {Math.min(
-                      (currentPage - 1) * itemsPerPage + 1,
-                      recentTransactions.length,
-                    )}{" "}
-                    to{" "}
-                    {Math.min(
-                      currentPage * itemsPerPage,
-                      recentTransactions.length,
-                    )}{" "}
-                    of {recentTransactions.length} transactions
-                  </div>
-                  <div className="flex gap-2">
-                    <AdminButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(1, prev - 1))
-                      }
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft size={16} />
-                    </AdminButton>
-                    <div className="flex items-center gap-1">
-                      {Array.from(
-                        {
-                          length: Math.ceil(
-                            recentTransactions.length / itemsPerPage,
-                          ),
-                        },
-                        (_, i) => i + 1,
-                      ).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`h-7 w-7 rounded text-xs font-medium transition ${
-                            currentPage === page
-                              ? "bg-admin-accent text-admin-bg"
-                              : "border border-admin-border/50 bg-admin-surface/50 text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-surface/80"
-                          }`}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {isLoading ? (
+                    <tr>
+                      <td className={adminTableCellClassName} colSpan={7}>
+                        <div className="flex items-center justify-center py-8">
+                          <Loader className="animate-spin" size={24} />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : recentTransactions.length === 0 ? (
+                    <tr>
+                      <td className={adminTableCellClassName} colSpan={7}>
+                        <div className="flex items-center justify-center py-8 text-admin-text-muted">
+                          No recent activity yet.
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    // Paginate transactions - 5 per page
+                    recentTransactions
+                      .slice(
+                        (currentPage - 1) * itemsPerPage,
+                        currentPage * itemsPerPage,
+                      )
+                      .map((transaction, index) => (
+                        <tr
+                          key={transaction.id}
+                          className="hover:bg-admin-surface/20 transition-colors cursor-pointer"
+                          onClick={() => handleViewDetails(transaction)}
                         >
-                          {page}
-                        </button>
-                      ))}
-                    </div>
-                    <AdminButton
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(
-                            Math.ceil(recentTransactions.length / itemsPerPage),
-                            prev + 1,
-                          ),
-                        )
-                      }
-                      disabled={
-                        currentPage ===
-                        Math.ceil(recentTransactions.length / itemsPerPage)
-                      }
-                    >
-                      <ChevronRight size={16} />
-                    </AdminButton>
-                  </div>
-                </div>
-              )}
+                          <td className={adminTableCellClassName}>
+                            {(currentPage - 1) * itemsPerPage + index + 1}
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            {transaction.userPhone}
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            <InlinePill
+                              label={transaction.type}
+                              tone={
+                                transaction.type === "deposit" ? "live" : "gold"
+                              }
+                            />
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            {formatCurrency(transaction.amount)}
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            <StatusBadge status={transaction.status} />
+                          </td>
+                          <td className={adminTableCellClassName}>
+                            {new Date(transaction.createdAt).toLocaleString(
+                              "en-KE",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
+                          </td>
+                          <td
+                            className={adminTableCellClassName}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="p-1 rounded hover:bg-white/10 transition-colors">
+                                  <MoreHorizontal
+                                    size={16}
+                                    className="text-admin-text-muted"
+                                  />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className={`${adminDropdownContentClassName} w-56`}
+                              >
+                                <DropdownMenuItem
+                                  className={adminDropdownItemClassName}
+                                  onClick={() => handleViewDetails(transaction)}
+                                >
+                                  View full details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className={adminDropdownItemClassName}
+                                  onClick={() => handleOpenUser(transaction)}
+                                >
+                                  Open user profile
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className={adminDropdownItemClassName}
+                                  onClick={() =>
+                                    handleReviewTransaction(transaction)
+                                  }
+                                >
+                                  {transaction.type === "withdrawal"
+                                    ? "Review & manage payout"
+                                    : "Review & manage deposit"}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
             </TableShell>
+
+            {/* Pagination Controls */}
+            {recentTransactions.length > itemsPerPage && (
+              <div className="flex items-center justify-between border-t border-admin-border/40 px-4 py-2.5">
+                <div className="text-xs text-admin-text-muted">
+                  Showing{" "}
+                  {Math.min(
+                    (currentPage - 1) * itemsPerPage + 1,
+                    recentTransactions.length,
+                  )}{" "}
+                  to{" "}
+                  {Math.min(
+                    currentPage * itemsPerPage,
+                    recentTransactions.length,
+                  )}{" "}
+                  of {recentTransactions.length} transactions
+                </div>
+                <div className="flex gap-2">
+                  <AdminButton
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft size={16} />
+                  </AdminButton>
+                  <div className="flex items-center gap-1">
+                    {Array.from(
+                      {
+                        length: Math.ceil(
+                          recentTransactions.length / itemsPerPage,
+                        ),
+                      },
+                      (_, i) => i + 1,
+                    ).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-7 w-7 rounded text-xs font-medium transition ${
+                          currentPage === page
+                            ? "bg-admin-accent text-admin-bg"
+                            : "border border-admin-border/50 bg-admin-surface/50 text-admin-text-primary hover:border-admin-accent/50 hover:bg-admin-surface/80"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <AdminButton
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(
+                          Math.ceil(recentTransactions.length / itemsPerPage),
+                          prev + 1,
+                        ),
+                      )
+                    }
+                    disabled={
+                      currentPage ===
+                      Math.ceil(recentTransactions.length / itemsPerPage)
+                    }
+                  >
+                    <ChevronRight size={16} />
+                  </AdminButton>
+                </div>
+              </div>
+            )}
           </AdminCard>
         </div>
       </div>

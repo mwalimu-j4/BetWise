@@ -223,12 +223,12 @@ export default function Bets() {
     () =>
       Array.from({ length: 5 }, (_, rowIndex) => (
         <tr
-          className="even:bg-[var(--color-bg-elevated)]"
+          className="even:bg-white/[0.01]"
           key={`bet-skeleton-${rowIndex}`}
         >
-          {Array.from({ length: 9 }, (_, cellIndex) => (
+          {Array.from({ length: 10 }, (_, cellIndex) => (
             <td className={adminTableCellClassName} key={cellIndex}>
-              <div className="h-4 w-full rounded bg-admin-surface animate-pulse" />
+              <div className="h-4 w-full rounded bg-white/5 animate-pulse" />
             </td>
           ))}
         </tr>
@@ -262,7 +262,6 @@ export default function Bets() {
             label={metric.label}
             value={metric.value}
             tone={metric.tone}
-            helper="Stake and settlement totals across the active bet list"
           />
         ))}
       </div>
@@ -299,7 +298,7 @@ export default function Bets() {
         </AdminCard>
       )}
 
-      <AdminCard>
+      <AdminCard className="overflow-hidden p-0">
         <TableShell>
           <table className={`${adminTableClassName} w-full`}>
             <thead>
@@ -348,11 +347,11 @@ export default function Bets() {
 
                     return (
                       <tr
-                        className="even:bg-[var(--color-bg-elevated)] hover:bg-admin-surface transition-colors"
+                        className="even:bg-white/[0.01] hover:bg-white/[0.04] transition-colors group"
                         key={`${bet.id}-management`}
                       >
                         <td
-                          className={`${adminTableCellClassName} text-xs font-mono font-medium text-admin-text-muted`}
+                          className={`${adminTableCellClassName} text-xs font-mono font-medium text-admin-text-muted/60`}
                         >
                           {bet.id.slice(0, 8)}
                         </td>
@@ -452,12 +451,11 @@ export default function Bets() {
                                         Settle bet
                                       </DropdownMenuItem>
                                     </DialogTrigger>
-                                    <DialogContent className="border-admin-border bg-admin-card">
+                                    <DialogContent className="border-white/10 bg-[#0b1426] backdrop-blur-2xl">
                                       <DialogHeader>
-                                        <DialogTitle>Settle Bet</DialogTitle>
-                                        <DialogDescription>
-                                          Choose the winning side for this
-                                          event.
+                                        <DialogTitle className="text-xl font-bold text-admin-text-primary">Settle Bet</DialogTitle>
+                                        <DialogDescription className="text-admin-text-muted/70">
+                                          Choose the winning side for this event.
                                         </DialogDescription>
                                       </DialogHeader>
                                       <div className="space-y-3 py-4">
@@ -528,12 +526,11 @@ export default function Bets() {
                                         Void bet
                                       </DropdownMenuItem>
                                     </DialogTrigger>
-                                    <DialogContent className="border-admin-border bg-admin-card">
+                                    <DialogContent className="border-white/10 bg-[#0b1426] backdrop-blur-2xl">
                                       <DialogHeader>
-                                        <DialogTitle>Void Bet</DialogTitle>
-                                        <DialogDescription>
-                                          This action will refund the stake and
-                                          mark the bet as void.
+                                        <DialogTitle className="text-xl font-bold text-admin-red">Void Bet</DialogTitle>
+                                        <DialogDescription className="text-admin-text-muted/70">
+                                          This action will refund the stake and mark the bet as void.
                                         </DialogDescription>
                                       </DialogHeader>
                                       <div className="py-4">
@@ -592,10 +589,10 @@ export default function Bets() {
           if (!open) setSelectedBet(null);
         }}
       >
-        <DialogContent className="border-admin-border bg-admin-card max-w-lg">
+        <DialogContent className="border-white/10 bg-[#0b1426] backdrop-blur-2xl max-w-xl">
           <DialogHeader>
-            <DialogTitle>Bet Details</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-2xl font-bold text-admin-text-primary">Bet Details</DialogTitle>
+            <DialogDescription className="text-admin-text-muted/70">
               Complete information for this wager
             </DialogDescription>
           </DialogHeader>

@@ -25,7 +25,11 @@ import {
   InlinePill,
   StatusBadge,
   TableShell,
+  adminTableClassName,
+  adminTableHeadCellClassName,
+  adminTableCellClassName,
 } from "../../components/ui";
+import { cn } from "@/lib/utils";
 import {
   useAdminPayments,
   useAdminPaymentStats,
@@ -173,14 +177,13 @@ export default function Transactions() {
             label={metric.label}
             value={metric.value}
             tone={metric.tone}
-            helper="Live totals across wallet inflows and payout activity"
           />
         ))}
       </div>
 
       {/* Filters */}
-      <AdminCard>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-3">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-4 bg-admin-card/40 rounded-2xl border border-admin-border/50">
           <div className="flex gap-2">
             <select
               value={statusFilter}
@@ -224,10 +227,10 @@ export default function Transactions() {
             Showing {transactions.length} of {pagination.total} transactions
           </div>
         </div>
-      </AdminCard>
+      </div>
 
       {/* Transactions Table */}
-      <AdminCard>
+      <AdminCard className="overflow-hidden p-0">
         {isPaymentsLoading || isStatsLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader className="h-6 w-6 animate-spin text-admin-accent" />
@@ -238,14 +241,14 @@ export default function Transactions() {
           </div>
         ) : (
           <TableShell>
-            <table className="w-full">
-              <thead className="bg-admin-surface/30 border-b border-white/10">
+            <table className={adminTableClassName}>
+              <thead>
                 <tr>
                   {["#", "Phone", "Type", "Amount", "Status", "Date", ""].map(
                     (heading, i) => (
                       <th
                         key={i}
-                        className="text-left px-3 py-3 text-xs font-semibold text-admin-text-muted uppercase tracking-wider"
+                        className={adminTableHeadCellClassName}
                       >
                         {heading}
                       </th>
@@ -263,13 +266,13 @@ export default function Transactions() {
                       setDetailsOpen(true);
                     }}
                   >
-                    <td className="px-3 py-3 text-sm text-admin-text-muted font-mono">
+                    <td className={cn(adminTableCellClassName, "font-mono")}>
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="px-3 py-3 text-sm font-mono text-admin-text-primary">
+                    <td className={cn(adminTableCellClassName, "font-mono")}>
                       {transaction.userPhone}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className={adminTableCellClassName}>
                       <InlinePill
                         label={
                           transaction.type === "deposit"
@@ -279,19 +282,19 @@ export default function Transactions() {
                         tone={getToneForType(transaction.type)}
                       />
                     </td>
-                    <td className="px-3 py-3 text-sm text-admin-text-primary">
+                    <td className={adminTableCellClassName}>
                       {transaction.type === "deposit" ? "+" : "-"}KES{" "}
                       {transaction.amount.toLocaleString()}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className={adminTableCellClassName}>
                       <StatusBadge
                         status={getStatusForBadge(transaction.status)}
                       />
                     </td>
-                    <td className="px-3 py-3 text-xs text-admin-text-muted">
+                    <td className={cn(adminTableCellClassName, "text-xs text-admin-text-muted")}>
                       {new Date(transaction.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className={adminTableCellClassName}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button className="p-1 rounded hover:bg-white/10 transition-colors">

@@ -40,18 +40,17 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const SEVERITY_COLORS: Record<string, string> = {
-  CRITICAL: "bg-red-500/10 text-red-600",
-  HIGH: "bg-orange-500/10 text-orange-600",
-  MEDIUM: "bg-yellow-500/10 text-yellow-600",
-  LOW: "bg-blue-500/10 text-blue-600",
+  CRITICAL: "bg-red-500/10 text-red-400 border border-red-500/20",
+  HIGH: "bg-orange-500/10 text-orange-400 border border-orange-500/20",
+  MEDIUM: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20",
+  LOW: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
 };
-
 const STATUS_COLORS: Record<string, string> = {
-  OPEN: "bg-red-500/10 text-red-600",
-  IN_REVIEW: "bg-yellow-500/10 text-yellow-600",
-  ESCALATED: "bg-red-600/10 text-red-700",
-  RESOLVED: "bg-green-500/10 text-green-600",
-  DISMISSED: "bg-gray-500/10 text-gray-600",
+  OPEN: "bg-red-500/10 text-red-500 border border-red-500/20",
+  IN_REVIEW: "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20",
+  ESCALATED: "bg-red-500/20 text-red-600 border border-red-600/30",
+  RESOLVED: "bg-green-500/10 text-green-500 border border-green-500/20",
+  DISMISSED: "bg-white/5 text-gray-400 border border-white/10",
 };
 
 const ALERT_TYPE_LABELS: Record<string, string> = {
@@ -183,15 +182,14 @@ export default function Risk() {
               label={metric.label}
               value={metric.value}
               tone={metric.tone}
-              helper="Severity and queue state synced from the compliance monitor"
             />
           ))
         )}
       </div>
 
       {/* Filters and Actions */}
-      <AdminCard>
-        <div className="space-y-4">
+      <div className="space-y-3">
+        <div className="space-y-4 p-4 bg-admin-card/40 rounded-2xl border border-admin-border/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-admin-text-muted" />
@@ -299,7 +297,7 @@ export default function Risk() {
             </div>
           )}
         </div>
-      </AdminCard>
+      </div>
 
       {/* Alerts Table */}
       {isAlertsLoading ? (
@@ -320,12 +318,8 @@ export default function Risk() {
           </div>
         </AdminCard>
       ) : (
-        <AdminCard>
-          <div className="space-y-4">
-            <h3 className="font-medium text-admin-text">
-              Risk Alerts ({pagination.total})
-            </h3>
-            <TableShell>
+      <AdminCard className="overflow-hidden p-0">
+        <TableShell>
               <table className={adminTableClassName}>
                 <thead>
                   <tr>
@@ -672,7 +666,6 @@ export default function Risk() {
                 </div>
               </div>
             )}
-          </div>
         </AdminCard>
       )}
 

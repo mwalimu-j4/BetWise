@@ -1,18 +1,30 @@
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
   AdminCard,
   AdminStatCard,
   AdminSectionHeader,
   StatusBadge,
+  TableShell,
+  adminTableClassName,
+  adminTableHeadCellClassName,
+  adminTableCellClassName,
 } from "../../components/ui";
-import { useAdminBanAppeals } from "@/hooks/useBanAppeals";
+import { Loader } from "lucide-react";
+import { useAdminBanAppeals, type BanAppeal } from "@/hooks/useBanAppeals";
 
 export default function BanAppealsOverviewPage() {
+  const navigate = useNavigate();
   const { appeals, loading, error } = useAdminBanAppeals(1, 20, "all");
 
-  const pendingCount = appeals.filter((a) => a.status === "PENDING").length;
-  const approvedCount = appeals.filter((a) => a.status === "APPROVED").length;
-  const rejectedCount = appeals.filter((a) => a.status === "REJECTED").length;
+  const pendingCount = appeals.filter(
+    (a: BanAppeal) => a.status === "PENDING",
+  ).length;
+  const approvedCount = appeals.filter(
+    (a: BanAppeal) => a.status === "APPROVED",
+  ).length;
+  const rejectedCount = appeals.filter(
+    (a: BanAppeal) => a.status === "REJECTED",
+  ).length;
   const totalCount = appeals.length;
 
   return (
@@ -51,49 +63,52 @@ export default function BanAppealsOverviewPage() {
         </AdminCard>
       )}
 
-      <AdminCard>
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
-          <div>
-            <p className="text-sm font-semibold text-admin-text-primary">
-              Recent Appeals
-            </p>
-            <p className="text-xs text-admin-text-muted">
-              Click an appeal to open the dedicated review page.
-            </p>
-          </div>
-          <Link
-            to="/admin/users"
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-admin-border/70 bg-admin-surface/45 text-admin-text-secondary hover:border-admin-border-strong hover:bg-admin-hover hover:text-admin-text-primary h-8 px-2.5 text-[11px] font-medium transition duration-200"
-          >
-            Back to Users
-          </Link>
-        </div>
-
-        {loading ? (
-          <div className="py-10 text-center text-admin-text-muted">
-            Loading appeals...
-          </div>
-        ) : appeals.length === 0 ? (
-          <div className="py-10 text-center text-admin-text-muted">
-            No appeals found.
-          </div>
-        ) : (
-          <div className="mt-4 space-y-3">
-            {appeals.map((appeal) => (
-              <Link
-                key={appeal.id}
-                to="/admin/appeals/$appealId"
-                params={{ appealId: appeal.id }}
-                className="block rounded-2xl border border-white/10 bg-[rgba(13,33,55,0.16)] p-4 transition-colors hover:border-admin-accent/40 hover:bg-[rgba(13,33,55,0.24)]"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-admin-text-primary">
+      <AdminCard className="overflow-hidden p-0">
+        <TableShell>
+          {loading ? (
+            <div className="py-20 text-center">
+              <Loader className="mx-auto h-6 w-6 animate-spin text-admin-accent" />
+              <p className="mt-2 text-sm text-admin-text-muted">
+                Loading appeals...
+              </p>
+            </div>
+          ) : appeals.length === 0 ? (
+            <div className="py-20 text-center text-admin-text-muted">
+              No appeals found.
+            </div>
+          ) : (
+            <table className={adminTableClassName}>
+              <thead>
+                <tr>
+                  <th className={adminTableHeadCellClassName}>User</th>
+                  <th className={adminTableHeadCellClassName}>Status</th>
+                  <th className={adminTableHeadCellClassName}>Appeal Text</th>
+                  <th className={adminTableHeadCellClassName}>Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {appeals.map((appeal: BanAppeal) => (
+                  <tr
+                    key={appeal.id}
+                    className="group hover:bg-admin-surface/20 transition-colors cursor-pointer"
+                    onClick={() =>
+                      navigate({
+                        to: "/admin/appeals/$appealId",
+                        params: { appealId: appeal.id },
+                      })
+                    }
+                  >
+                    <td className={adminTableCellClassName}>
+                      <p className="font-semibold text-admin-text-primary">
                         {appeal.user?.fullName ||
                           appeal.user?.email ||
-                          appeal.userId}
+                          "Unknown"}
                       </p>
+                      <p className="text-[10px] text-admin-text-muted font-mono">
+                        {appeal.userId}
+                      </p>
+                    </td>
+                    <td className={adminTableCellClassName}>
                       <StatusBadge
                         status={
                           appeal.status === "PENDING"
@@ -103,19 +118,23 @@ export default function BanAppealsOverviewPage() {
                               : "banned"
                         }
                       />
-                    </div>
-                    <p className="line-clamp-2 text-sm text-admin-text-secondary">
-                      {appeal.appealText}
-                    </p>
-                  </div>
-                  <p className="shrink-0 text-xs text-admin-text-muted">
-                    {new Date(appeal.createdAt).toLocaleString()}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+                    </td>
+                    <td className={adminTableCellClassName}>
+                      <p className="line-clamp-1 max-w-xs text-admin-text-secondary">
+                        {appeal.appealText}
+                      </p>
+                    </td>
+                    <td className={adminTableCellClassName}>
+                      <span className="whitespace-nowrap text-xs text-admin-text-muted">
+                        {new Date(appeal.createdAt).toLocaleString()}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </TableShell>
       </AdminCard>
     </div>
   );
