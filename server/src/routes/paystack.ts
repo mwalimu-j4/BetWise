@@ -72,7 +72,7 @@ paystackRouter.get("/history", authenticate, getPaystackTransactions);
  * Only processes charge.success events.
  * Idempotent: uses reference as primary key.
  */
-paystackRouter.post("/webhook", (req, res) => {
+paystackRouter.post("/webhook", async (req, res) => {
   try {
     const signature = req.headers["x-paystack-signature"] as string;
 
@@ -91,25 +91,10 @@ paystackRouter.post("/webhook", (req, res) => {
       return;
     }
 
-    // Check if webhook secret is configured
-    if (
-      !process.env.PAYSTACK_WEBHOOK_SECRET ||
-      process.env.PAYSTACK_WEBHOOK_SECRET.includes("xxx")
-    ) {
-      console.warn(
-        "⚠️  PAYSTACK_WEBHOOK_SECRET not configured. Webhook processing is DISABLED. Configure PAYSTACK_WEBHOOK_SECRET in your environment to enable webhooks.",
-      );
-      res.status(403).json({
-        error: "Webhook secret not configured",
-        hint: "Set PAYSTACK_WEBHOOK_SECRET environment variable",
-      });
-      return;
-    }
-
-    const isValid = verifyPaystackWebhookSignature(rawBody, signature);
+    const isValid = await verifyPaystackWebhookSignature(rawBody, signature);
 
     if (!isValid) {
-      console.error("Paystack webhook: invalid signature. Webhook rejected.");
+      console.error("Paystack webhook: invalid signature or secret not configured. Webhook rejected.");
       res.status(401).json({ error: "Invalid signature" });
       return;
     }
