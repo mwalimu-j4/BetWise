@@ -4,14 +4,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   Banknote,
-  Bell,
-  Briefcase,
-  Building2,
   CreditCard,
-  FileText,
-  Globe2,
   Loader2,
-  Lock,
   Mail,
   Eye,
   EyeOff,
@@ -22,9 +16,7 @@ import {
   Shield,
   ShieldCheck,
   Smartphone,
-  TicketPercent,
   UserCog,
-  Wrench,
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -53,10 +45,17 @@ import {
   useUpdateAdminSettings,
 } from "../../hooks/useAdminSettings";
 
-type FieldType = "text" | "number" | "textarea" | "switch" | "select" | "list";
+type FieldType =
+  | "text"
+  | "number"
+  | "textarea"
+  | "switch"
+  | "select"
+  | "list"
+  | "header";
 
 type FieldDefinition = {
-  path: string;
+  path?: string;
   label: string;
   type: FieldType;
   hint?: string;
@@ -594,9 +593,10 @@ export default function Settings() {
       return { filled: 0, total: 0, percent: 0 };
     }
 
-    const total = selectedSection.fields.length;
-    const filled = selectedSection.fields.reduce((acc, field) => {
-      const value = getByPath(modalDraft, field.path);
+    const dataFields = selectedSection.fields.filter((f) => f.type !== "header");
+    const total = dataFields.length;
+    const filled = dataFields.reduce((acc, field) => {
+      const value = field.path ? getByPath(modalDraft, field.path) : undefined;
       return acc + (hasValue(value) ? 1 : 0);
     }, 0);
     const percent = total > 0 ? Math.round((filled / total) * 100) : 0;
@@ -622,12 +622,18 @@ export default function Settings() {
     field: FieldDefinition,
     rawValue: string | boolean,
   ) => {
+    if (!field.path) {
+      return;
+    }
+
+    const path = field.path;
+
     setModalDraft((current) => {
       if (!current) {
         return current;
       }
 
-      const currentValue = getByPath(current, field.path);
+      const currentValue = getByPath(current, path);
       let nextValue: unknown = rawValue;
 
       if (field.type === "number") {
@@ -641,7 +647,7 @@ export default function Settings() {
         nextValue = parseList(String(rawValue));
       }
 
-      return setByPath(current, field.path, nextValue);
+      return setByPath(current, path, nextValue);
     });
   };
 
@@ -1391,14 +1397,32 @@ export default function Settings() {
                 />
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {selectedSection.fields.map((field) => {
-                    const value = getByPath(modalDraft, field.path);
+                  {selectedSection.fields.map((field, index) => {
+                    const value = field.path
+                      ? getByPath(modalDraft, field.path)
+                      : undefined;
                     const fullWidth =
-                      field.type === "textarea" || field.type === "list";
+                      field.type === "textarea" ||
+                      field.type === "list" ||
+                      field.type === "header";
+
+                    if (field.type === "header") {
+                      return (
+                        <div
+                          key={`header-${index}`}
+                          className="md:col-span-2 pt-4 pb-2"
+                        >
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-admin-accent/80">
+                            {field.label}
+                          </h4>
+                          <div className="mt-2 h-px w-full bg-admin-border/40" />
+                        </div>
+                      );
+                    }
 
                     return (
                       <label
-                        key={field.path}
+                        key={field.path ?? `field-${index}`}
                         className={`space-y-1.5 rounded-xl border border-admin-border bg-admin-surface/40 p-3 ${
                           fullWidth ? "md:col-span-2" : ""
                         }`}
