@@ -1,16 +1,38 @@
 import { z } from "zod";
 import crypto from "crypto";
+import { prisma } from "./prisma";
 
-// Environment variables required for Paystack
-const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
-const PAYSTACK_PUBLIC_KEY = process.env.PAYSTACK_PUBLIC_KEY;
-const PAYSTACK_WEBHOOK_SECRET = process.env.PAYSTACK_WEBHOOK_SECRET;
+/**
+ * Get Paystack configuration from database or environment variables.
+ * Prioritizes database settings.
+ */
+async function getPaystackConfig() {
+  try {
+    const settings = await prisma.adminSettings.findUnique({
+      where: { key: "global" },
+      select: {
+        paystackSecretKey: true,
+        paystackPublicKey: true,
+        paystackWebhookSecret: true,
+      },
+    });
 
-if (!PAYSTACK_SECRET_KEY || !PAYSTACK_PUBLIC_KEY || !PAYSTACK_WEBHOOK_SECRET) {
-  console.warn(
-    "⚠️  Paystack environment variables missing. Initialize to enable Paystack payments.",
-  );
+    return {
+      secretKey: settings?.paystackSecretKey || process.env.PAYSTACK_SECRET_KEY,
+      publicKey: settings?.paystackPublicKey || process.env.PAYSTACK_PUBLIC_KEY,
+      webhookSecret:
+        settings?.paystackWebhookSecret || process.env.PAYSTACK_WEBHOOK_SECRET,
+    };
+  } catch (error) {
+    console.error("Error fetching Paystack config from DB:", error);
+    return {
+      secretKey: process.env.PAYSTACK_SECRET_KEY,
+      publicKey: process.env.PAYSTACK_PUBLIC_KEY,
+      webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET,
+    };
+  }
 }
+
 
 // ============================================================================
 // TYPES
@@ -109,7 +131,8 @@ export const paystackVerifySchema = z.object({
 export async function initializePaystackTransaction(
   request: PaystackInitializeRequest,
 ): Promise<PaystackInitializeResponse> {
-  if (!PAYSTACK_SECRET_KEY) {
+  const config = await getPaystackConfig();
+  if (!config.secretKey) {
     throw new Error("PAYSTACK_SECRET_KEY not configured");
   }
 
@@ -132,7 +155,7 @@ export async function initializePaystackTransaction(
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          Authorization: `Bearer ${config.secretKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -178,7 +201,8 @@ export async function verifyPaystackTransaction(
   reference: string,
   maxRetries = 3,
 ): Promise<PaystackVerifyResponse> {
-  if (!PAYSTACK_SECRET_KEY) {
+  const config = await getPaystackConfig();
+  if (!config.secretKey) {
     throw new Error("PAYSTACK_SECRET_KEY not configured");
   }
 
@@ -194,7 +218,7 @@ export async function verifyPaystackTransaction(
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+            Authorization: `Bearer ${config.secretKey}`,
           },
           signal: controller.signal,
         },
@@ -280,11 +304,12 @@ export async function verifyPaystackTransaction(
  * @param signature X-Paystack-Signature header value
  * @returns true if signature is valid
  */
-export function verifyPaystackWebhookSignature(
+export async function verifyPaystackWebhookSignature(
   payload: string | Buffer,
   signature: string,
-): boolean {
-  if (!PAYSTACK_WEBHOOK_SECRET) {
+): Promise<boolean> {
+  const config = await getPaystackConfig();
+  if (!config.webhookSecret) {
     console.error("PAYSTACK_WEBHOOK_SECRET not configured");
     return false;
   }
@@ -292,7 +317,7 @@ export function verifyPaystackWebhookSignature(
   const payloadBuffer =
     typeof payload === "string" ? Buffer.from(payload, "utf8") : payload;
   const hash = crypto
-    .createHmac("sha512", PAYSTACK_WEBHOOK_SECRET)
+    .createHmac("sha512", config.webhookSecret)
     .update(payloadBuffer)
     .digest("hex");
   const normalizedSignature = signature.trim().toLowerCase();
@@ -441,7 +466,8 @@ export async function createPaystackTransferRecipient(
   phoneNumber: string,
   name?: string,
 ): Promise<PaystackRecipientResponse> {
-  if (!PAYSTACK_SECRET_KEY) {
+  const config = await getPaystackConfig();
+  if (!config.secretKey) {
     throw new Error("PAYSTACK_SECRET_KEY not configured");
   }
 
@@ -482,7 +508,7 @@ export async function createPaystackTransferRecipient(
     const response = await fetch("https://api.paystack.co/transferrecipient", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        Authorization: `Bearer ${config.secretKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
@@ -544,10 +570,11 @@ export async function initiatePaystackWithdrawal(
       reason: "BetWise Withdrawal",
     };
 
+    const config = await getPaystackConfig();
     const response = await fetch("https://api.paystack.co/transfer", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        Authorization: `Bearer ${config.secretKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(transferPayload),
@@ -576,7 +603,8 @@ export async function initiatePaystackWithdrawal(
 export async function getPaystackTransferStatus(
   transferCode: string,
 ): Promise<PaystackTransferResponse> {
-  if (!PAYSTACK_SECRET_KEY) {
+  const config = await getPaystackConfig();
+  if (!config.secretKey) {
     throw new Error("PAYSTACK_SECRET_KEY not configured");
   }
 
@@ -586,7 +614,7 @@ export async function getPaystackTransferStatus(
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          Authorization: `Bearer ${config.secretKey}`,
         },
       },
     );

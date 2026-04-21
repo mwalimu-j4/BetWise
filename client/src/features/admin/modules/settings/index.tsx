@@ -184,7 +184,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "general",
     title: "General System Config",
     subtitle: "Platform identity, environment, and access controls",
-    group: "System",
+    group: "Platform & Security",
     icon: <Building2 size={16} />,
     fields: [
       {
@@ -223,7 +223,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "user-defaults",
     title: "User Defaults & Restrictions",
     subtitle: "Wallet defaults, limits, and account verification rules",
-    group: "System",
+    group: "Financial Operations",
     icon: <UserCog size={16} />,
     fields: [
       {
@@ -262,7 +262,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "kyc",
     title: "KYC / Compliance Config",
     subtitle: "Identity checks, age gate, and geo restrictions",
-    group: "Risk & Compliance",
+    group: "Gambling Engine",
     icon: <Shield size={16} />,
     fields: [
       {
@@ -307,7 +307,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "payments",
     title: "Payments (M-Pesa / Others)",
     subtitle: "Payment method switches and M-Pesa credentials",
-    group: "Operations",
+    group: "Financial Operations",
     icon: <CreditCard size={16} />,
     fields: [
       {
@@ -316,10 +316,16 @@ const sectionDefinitions: SectionDefinition[] = [
         type: "switch",
       },
       {
+        path: "paymentsConfig.methods.paystack",
+        label: "Enable Paystack",
+        type: "switch",
+      },
+      {
         path: "paymentsConfig.methods.bankTransfer",
         label: "Enable bank transfer",
         type: "switch",
       },
+      { type: "header", label: "M-Pesa Configuration" },
       {
         path: "paymentsConfig.mpesa.shortcode",
         label: "M-Pesa shortcode",
@@ -356,9 +362,35 @@ const sectionDefinitions: SectionDefinition[] = [
         type: "switch",
       },
       {
-        path: "paymentsConfig.mpesa.withdrawalApprovalThreshold",
+        path: "paymentsConfig.mpesa.mpesaWithdrawalApprovalThreshold",
         label: "Withdrawal approval threshold",
         type: "number",
+      },
+      { type: "header", label: "Paystack Configuration" },
+      {
+        path: "paymentsConfig.paystack.secretKey",
+        label: "Paystack secret key",
+        type: "text",
+      },
+      {
+        path: "paymentsConfig.paystack.publicKey",
+        label: "Paystack public key",
+        type: "text",
+      },
+      {
+        path: "paymentsConfig.paystack.webhookSecret",
+        label: "Paystack webhook secret",
+        type: "text",
+      },
+      {
+        path: "paymentsConfig.paystack.callbackUrl",
+        label: "Paystack callback URL",
+        type: "text",
+      },
+      {
+        path: "paymentsConfig.paystack.webhookUrl",
+        label: "Paystack webhook URL",
+        type: "text",
       },
     ],
   },
@@ -366,7 +398,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "betting-engine",
     title: "Betting Engine Config",
     subtitle: "Staking boundaries, odds behavior, and live controls",
-    group: "Operations",
+    group: "Gambling Engine",
     icon: <Wrench size={16} />,
     fields: [
       {
@@ -416,7 +448,7 @@ const sectionDefinitions: SectionDefinition[] = [
     title: "Risk Management Config",
     subtitle:
       "Exposure controls, payout risk, and suspicious activity handling",
-    group: "Risk & Compliance",
+    group: "Gambling Engine",
     icon: <Shield size={16} />,
     fields: [
       {
@@ -450,7 +482,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "bonus",
     title: "Bonuses & Promotions Config",
     subtitle: "Welcome rewards, wagering rules, and cashback policies",
-    group: "Commercial",
+    group: "Growth & Legal",
     icon: <TicketPercent size={16} />,
     fields: [
       {
@@ -503,7 +535,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "notifications",
     title: "Notifications Config",
     subtitle: "Event messaging channels for users and admins",
-    group: "Operations",
+    group: "Platform & Security",
     icon: <Bell size={16} />,
     fields: [
       {
@@ -547,7 +579,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "api",
     title: "API & Integrations",
     subtitle: "Provider connectivity, webhook delivery, and retry strategy",
-    group: "Operations",
+    group: "Platform & Security",
     icon: <Globe2 size={16} />,
     fields: [
       {
@@ -591,7 +623,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "security",
     title: "Security Config",
     subtitle: "Authentication, password policy, and session controls",
-    group: "Risk & Compliance",
+    group: "Platform & Security",
     icon: <Lock size={16} />,
     fields: [
       {
@@ -647,7 +679,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "tax",
     title: "Tax & Financial Rules",
     subtitle: "Taxation, commissions, and rounding policy",
-    group: "Commercial",
+    group: "Financial Operations",
     icon: <Percent size={16} />,
     fields: [
       {
@@ -683,7 +715,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "affiliate",
     title: "Affiliate / Agent Config",
     subtitle: "Referral economics and payout policies",
-    group: "Commercial",
+    group: "Financial Operations",
     icon: <Briefcase size={16} />,
     fields: [
       {
@@ -712,7 +744,7 @@ const sectionDefinitions: SectionDefinition[] = [
     id: "legal",
     title: "Content & Legal",
     subtitle: "Legal copy and player-facing support information",
-    group: "System",
+    group: "Growth & Legal",
     icon: <FileText size={16} />,
     fields: [
       {

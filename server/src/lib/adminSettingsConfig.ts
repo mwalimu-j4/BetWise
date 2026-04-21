@@ -45,7 +45,14 @@ export const adminSettingsSchema = z.object({
       callbackUrl: z.string().trim().url().max(500),
       transactionFeePercent: percentageField,
       autoWithdrawEnabled: z.boolean(),
-      withdrawalApprovalThreshold: nonNegativeInt,
+      mpesaWithdrawalApprovalThreshold: nonNegativeInt,
+    }),
+    paystack: z.object({
+      secretKey: z.string().trim().min(8).max(512),
+      publicKey: z.string().trim().min(8).max(512),
+      webhookSecret: z.string().trim().min(8).max(512),
+      callbackUrl: z.string().trim().url().max(500),
+      webhookUrl: z.string().trim().url().max(500),
     }),
   }),
   bettingEngineConfig: z.object({
@@ -189,7 +196,14 @@ export const defaultAdminSettings: AdminSettingsConfig = {
       callbackUrl: process.env.MPESA_CALLBACK_URL?.trim() || "",
       transactionFeePercent: 15,
       autoWithdrawEnabled: false,
-      withdrawalApprovalThreshold: 50000,
+      mpesaWithdrawalApprovalThreshold: 50000,
+    },
+    paystack: {
+      secretKey: "sk_test_replace_me",
+      publicKey: "pk_test_replace_me",
+      webhookSecret: "whsec_replace_me",
+      callbackUrl: "https://your-domain.com/api/payments/paystack/callback",
+      webhookUrl: "https://your-domain.com/api/payments/paystack/webhook",
     },
   },
   bettingEngineConfig: {
