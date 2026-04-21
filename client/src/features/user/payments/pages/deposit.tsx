@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
   AlertCircle,
+  CreditCard,
   LoaderCircle,
   ShieldCheck,
   Smartphone,
@@ -14,11 +15,11 @@ import { PaymentFeedbackModal } from "@/components/PaymentFeedbackModal";
 import { PaymentLoadingModal } from "@/components/PaymentLoadingModal";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "../data";
+import { useEnabledPaymentMethods } from "../hooks/usePaymentMethods";
 import {
   usePaystackInitialize,
   usePaystackVerification,
 } from "../hooks/usePaystackPayment";
-import { useEnabledPaymentMethods } from "../hooks/usePaymentMethods";
 import {
   useMpesaDepositStatus,
   useMpesaInitialize,
@@ -27,6 +28,10 @@ import {
 const quickAmounts = [500, 1000, 2500, 5000];
 const paystackPendingStorageKey = "betwise-paystack-pending-reference";
 const mpesaPendingStorageKey = "betwise-mpesa-pending-transaction";
+const mpesaLogoUrl =
+  "https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg";
+
+type DepositMethod = "mpesa" | "paystack";
 
 function normalizeAmount(value: string) {
   return value.replace(/[^\d]/g, "");
@@ -54,6 +59,13 @@ function isValidPhone(phone: string) {
   return /^254(7|1)\d{8}$/.test(phone);
 }
 
+function getAvailableMethods(flags: { mpesa: boolean; paystack: boolean }) {
+  const methods: DepositMethod[] = [];
+  if (flags.mpesa) methods.push("mpesa");
+  if (flags.paystack) methods.push("paystack");
+  return methods;
+}
+
 export default function DepositPage() {
   const { user } = useAuth();
   const enabledMethodsQuery = useEnabledPaymentMethods();
@@ -66,7 +78,7 @@ export default function DepositPage() {
   );
 
   const [amount, setAmount] = useState("500");
-  const [phone, setPhone] = useState(accountPhone);
+  const [selectedMethod, setSelectedMethod] = useState<DepositMethod>("mpesa");
   const [paymentStatus, setPaymentStatus] = useState<
     "success" | "failed" | null
   >(null);
@@ -82,9 +94,8 @@ export default function DepositPage() {
   >(null);
 
   const amountValue = useMemo(() => Number(amount) || 0, [amount]);
-  const normalizedPhone = useMemo(() => normalizePhone(phone), [phone]);
-  const phoneIsValid =
-    normalizedPhone.length === 0 || isValidPhone(normalizedPhone);
+  const normalizedPhone = useMemo(() => normalizePhone(accountPhone), [accountPhone]);
+  const hasValidMpesaPhone = isValidPhone(normalizedPhone);
 
   const paystackVerificationQuery = usePaystackVerification(
     shouldVerifyPaystack ? paystackReference : null,
@@ -94,17 +105,21 @@ export default function DepositPage() {
   const isPaymentMethodsLoading = enabledMethodsQuery.isLoading;
   const isMpesaEnabled = enabledMethodsQuery.data?.mpesa ?? false;
   const isPaystackEnabled = enabledMethodsQuery.data?.paystack ?? false;
-  const activeMethod = isMpesaEnabled
-    ? "mpesa"
-    : isPaystackEnabled
-      ? "paystack"
-      : null;
+  const availableMethods = getAvailableMethods({
+    mpesa: isMpesaEnabled,
+    paystack: isPaystackEnabled,
+  });
+  const activeMethod = availableMethods.includes(selectedMethod)
+    ? selectedMethod
+    : (availableMethods[0] ?? null);
 
   useEffect(() => {
-    if (accountPhone && !phone) {
-      setPhone(accountPhone);
-    }
-  }, [accountPhone, phone]);
+    if (!availableMethods.length) return;
+
+    setSelectedMethod((current) =>
+      availableMethods.includes(current) ? current : availableMethods[0],
+    );
+  }, [availableMethods]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -116,6 +131,7 @@ export default function DepositPage() {
 
       if (routeStatus === "success") {
         localStorage.removeItem(paystackPendingStorageKey);
+        setSelectedMethod("paystack");
         setIsProcessing(false);
         setPaymentReference(storedReference);
         setPaymentStatus("success");
@@ -123,12 +139,14 @@ export default function DepositPage() {
         toast.success("Payment successful! Your wallet has been credited.");
       } else if (routeStatus === "failed") {
         localStorage.removeItem(paystackPendingStorageKey);
+        setSelectedMethod("paystack");
         setIsProcessing(false);
         setPaymentReference(storedReference);
         setPaymentStatus("failed");
         setShowPaymentResult(true);
         toast.error("Payment failed. Please try again.");
       } else if (routeStatus === "pending" && storedReference) {
+        setSelectedMethod("paystack");
         setPaystackReference(storedReference);
         setPaymentReference(storedReference);
         setShouldVerifyPaystack(true);
@@ -138,6 +156,7 @@ export default function DepositPage() {
 
     const storedMpesaTransactionId = localStorage.getItem(mpesaPendingStorageKey);
     if (storedMpesaTransactionId) {
+      setSelectedMethod("mpesa");
       setPendingMpesaTransactionId(storedMpesaTransactionId);
       setPaymentReference(storedMpesaTransactionId);
       setIsProcessing(true);
@@ -266,8 +285,10 @@ export default function DepositPage() {
     }
 
     if (activeMethod === "mpesa") {
-      if (!phoneIsValid || !normalizedPhone) {
-        toast.error("Use a valid M-Pesa number in the format 2547XXXXXXXX.");
+      if (!hasValidMpesaPhone) {
+        toast.error(
+          "Your account phone number is not valid for M-Pesa. Update your profile first.",
+        );
         return;
       }
 
@@ -336,20 +357,6 @@ export default function DepositPage() {
     }
   }
 
-  const headerTitle =
-    activeMethod === "mpesa"
-      ? "M-Pesa"
-      : activeMethod === "paystack"
-        ? "Paystack"
-        : "Deposits";
-  const headerBadge =
-    activeMethod === "mpesa"
-      ? "Powered by M-Pesa"
-      : activeMethod === "paystack"
-        ? "Powered by Paystack"
-        : "Unavailable";
-  const submitLabel =
-    activeMethod === "mpesa" ? "Push to My Phone" : "Pay with Paystack";
   const processingMessage =
     activeMethod === "mpesa"
       ? "Waiting for your M-Pesa confirmation"
@@ -364,57 +371,88 @@ export default function DepositPage() {
         amount={amountValue}
         message={processingMessage}
       />
-      <PaymentFeedbackModal
-        isOpen={showPaymentResult && paymentStatus === "success"}
-        status="success"
-        title="Deposit Successful"
-        message={
-          activeMethod === "mpesa"
-            ? "Your wallet has been credited after M-Pesa confirmation."
-            : "Your wallet has been credited successfully."
-        }
-        onClose={onClose}
-      />
-      <PaymentFeedbackModal
-        isOpen={showPaymentResult && paymentStatus === "failed"}
-        status="failed"
-        title="Deposit Failed"
-        message={
-          activeMethod === "mpesa"
-            ? mpesaStatusQuery.data?.message ??
-              "Your M-Pesa payment could not be confirmed."
-            : "Your payment could not be confirmed. Please try again."
-        }
-        onClose={onClose}
-        onRetry={onRetry}
-      />
+
+      {isMpesaEnabled && (
+        <PaymentFeedbackModal
+          isOpen={
+            activeMethod === "mpesa" &&
+            showPaymentResult &&
+            paymentStatus === "success"
+          }
+          status="success"
+          title="M-Pesa Deposit Successful"
+          message="Your wallet has been credited after M-Pesa confirmation."
+          onClose={onClose}
+        />
+      )}
+
+      {isMpesaEnabled && (
+        <PaymentFeedbackModal
+          isOpen={
+            activeMethod === "mpesa" &&
+            showPaymentResult &&
+            paymentStatus === "failed"
+          }
+          status="failed"
+          title="M-Pesa Deposit Failed"
+          message={
+            mpesaStatusQuery.data?.message ??
+            "Your M-Pesa payment could not be confirmed."
+          }
+          onClose={onClose}
+          onRetry={onRetry}
+        />
+      )}
+
+      {isPaystackEnabled && (
+        <PaymentFeedbackModal
+          isOpen={
+            activeMethod === "paystack" &&
+            showPaymentResult &&
+            paymentStatus === "success"
+          }
+          status="success"
+          title="Paystack Deposit Successful"
+          message="Your wallet has been credited successfully."
+          onClose={onClose}
+        />
+      )}
+
+      {isPaystackEnabled && (
+        <PaymentFeedbackModal
+          isOpen={
+            activeMethod === "paystack" &&
+            showPaymentResult &&
+            paymentStatus === "failed"
+          }
+          status="failed"
+          title="Paystack Deposit Failed"
+          message="Your payment could not be confirmed. Please try again."
+          onClose={onClose}
+          onRetry={onRetry}
+        />
+      )}
 
       <article className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
         <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-base font-bold text-white">
-                {headerTitle}
+            <span className="text-base font-bold text-white">Deposit</span>
+            {activeMethod && (
+              <span className="flex items-center gap-1.5 rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1 text-[11px] font-semibold text-[#f5c518]">
+                {activeMethod === "mpesa" ? (
+                  <img
+                    src={mpesaLogoUrl}
+                    alt="M-Pesa"
+                    className="h-3.5 w-auto object-contain"
+                  />
+                ) : (
+                  <ShieldCheck className="h-3 w-3" />
+                )}
+                {activeMethod === "mpesa"
+                  ? "Powered by M-Pesa"
+                  : "Powered by Paystack"}
               </span>
-            </div>
-            <span
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold ${
-                activeMethod === "mpesa"
-                  ? "border-[#31c46c]/20 bg-[#31c46c]/10 text-[#7ef0a8]"
-                  : "border-[#f5c518]/20 bg-[#f5c518]/10 text-[#f5c518]"
-              }`}
-            >
-              {activeMethod === "mpesa" ? (
-                <img
-                  src="/images/mpesa/logo.png"
-                  alt="M-Pesa"
-                  className="h-3.5 w-auto object-contain"
-                />
-              ) : (
-                <ShieldCheck className="h-3 w-3" />
-              )}
-              {headerBadge}
-            </span>
+            )}
           </div>
         </div>
 
@@ -428,7 +466,7 @@ export default function DepositPage() {
                 Checking available deposit methods. Please wait a moment.
               </p>
             </div>
-          ) : !activeMethod ? (
+          ) : !availableMethods.length ? (
             <div className="rounded-3xl border border-[#7a2f36] bg-[#2a101e] p-6 text-center text-sm text-[#f2c7cb] shadow-inner">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#7a2f36]/10 text-[#f5a8ad]">
                 <AlertCircle className="h-7 w-7" />
@@ -443,6 +481,54 @@ export default function DepositPage() {
             </div>
           ) : (
             <>
+              {availableMethods.length > 1 && (
+                <div>
+                  <p className="mb-2.5 text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
+                    Payment Method
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethod("mpesa")}
+                      className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                        selectedMethod === "mpesa"
+                          ? "border-[#f5c518] bg-[#f5c518]/10 text-white"
+                          : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#f5c518]/40 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={mpesaLogoUrl}
+                          alt="M-Pesa"
+                          className="h-5 w-auto object-contain"
+                        />
+                        <span className="text-sm font-semibold">M-Pesa</span>
+                      </div>
+                      <p className="mt-1 text-xs text-[#8a9bb0]">
+                        STK push to your saved phone
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethod("paystack")}
+                      className={`rounded-xl border px-3 py-3 text-left transition-all ${
+                        selectedMethod === "paystack"
+                          ? "border-[#f5c518] bg-[#f5c518]/10 text-white"
+                          : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#f5c518]/40 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-[#f5c518]" />
+                        <span className="text-sm font-semibold">Paystack</span>
+                      </div>
+                      <p className="mt-1 text-xs text-[#8a9bb0]">
+                        Card and secure checkout
+                      </p>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <p className="mb-2.5 text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
                   Quick Select
@@ -455,10 +541,8 @@ export default function DepositPage() {
                       onClick={() => setAmount(String(value))}
                       className={`rounded-xl border py-2.5 text-xs font-semibold transition-all duration-150 ${
                         amountValue === value
-                          ? activeMethod === "mpesa"
-                            ? "border-[#31c46c] bg-[#31c46c]/10 text-[#7ef0a8]"
-                            : "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518]"
-                          : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#31c46c]/30 hover:text-white"
+                          ? "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518]"
+                          : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#f5c518]/30 hover:text-white"
                       }`}
                     >
                       {formatMoney(value)}
@@ -480,11 +564,7 @@ export default function DepositPage() {
                     inputMode="numeric"
                     type="text"
                     placeholder="Enter amount"
-                    className={`h-14 rounded-2xl border bg-[#0f1d2e] text-lg text-white placeholder:text-[#2e4a63] transition-colors ${
-                      activeMethod === "mpesa"
-                        ? "border-[#1a2f45] focus:border-[#31c46c] focus:ring-1 focus:ring-[#31c46c]"
-                        : "border-[#1a2f45] focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]"
-                    }`}
+                    className="h-14 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-lg text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]"
                     disabled={!activeMethod}
                   />
                   <p className="text-xs text-[#3d5a73]">
@@ -493,28 +573,23 @@ export default function DepositPage() {
                 </label>
 
                 {activeMethod === "mpesa" && (
-                  <label className="block space-y-2">
-                    <span className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
+                  <div className="rounded-2xl border border-[#1a2f45] bg-[#0f1d2e] px-4 py-3">
+                    <p className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
                       M-Pesa Number
-                    </span>
-                    <Input
-                      value={phone}
-                      onChange={(event) => setPhone(event.target.value)}
-                      inputMode="tel"
-                      type="tel"
-                      placeholder="2547XXXXXXXX"
-                      className="h-14 rounded-2xl border border-[#1a2f45] bg-[#0f1d2e] text-base text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#31c46c] focus:ring-1 focus:ring-[#31c46c]"
-                    />
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-white">
+                      {normalizedPhone || "No phone number found"}
+                    </p>
                     <p
-                      className={`text-xs ${
-                        phoneIsValid ? "text-[#3d5a73]" : "text-red-400"
+                      className={`mt-1 text-xs ${
+                        hasValidMpesaPhone ? "text-[#7a94ad]" : "text-red-400"
                       }`}
                     >
-                      {phoneIsValid
-                        ? "We'll send the STK push to this number."
-                        : "Use a valid M-Pesa number like 2547XXXXXXXX."}
+                      {hasValidMpesaPhone
+                        ? "This number is taken from your account details."
+                        : "Update your account phone number to use M-Pesa deposits."}
                     </p>
-                  </label>
+                  </div>
                 )}
 
                 <Button
@@ -524,13 +599,9 @@ export default function DepositPage() {
                     isProcessing ||
                     mpesaInitializeMutation.isPending ||
                     paystackInitializeMutation.isPending ||
-                    (activeMethod === "mpesa" && !phoneIsValid)
+                    (activeMethod === "mpesa" && !hasValidMpesaPhone)
                   }
-                  className={`h-14 w-full rounded-2xl text-base font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                    activeMethod === "mpesa"
-                      ? "bg-[#31c46c] text-[#06150c] hover:bg-[#28b35e]"
-                      : "bg-[#f5c518] text-black hover:bg-[#e6b800]"
-                  }`}
+                  className="h-14 w-full rounded-2xl bg-[#f5c518] text-base font-bold text-black transition-colors hover:bg-[#e6b800] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isProcessing ? (
                     <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
@@ -539,21 +610,13 @@ export default function DepositPage() {
                   ) : (
                     <Wallet className="mr-2 h-5 w-5" />
                   )}
-                  {isProcessing ? "Processing..." : submitLabel}
+                  {isProcessing
+                    ? "Processing..."
+                    : activeMethod === "mpesa"
+                      ? "Pay with M-Pesa"
+                      : "Pay with Paystack"}
                 </Button>
               </form>
-
-              {activeMethod === "mpesa" && (
-                <div className="rounded-3xl border border-[#1f6f42] bg-[#0d2015] p-4 text-sm text-[#b9efd0] shadow-inner">
-                  <p className="font-semibold text-white">
-                    Complete payment on your phone
-                  </p>
-                  <p className="mt-2 text-[#9bd9b6]">
-                    After tapping the button, an M-Pesa prompt will appear on
-                    your phone. Enter your PIN to finish the deposit.
-                  </p>
-                </div>
-              )}
             </>
           )}
         </div>
