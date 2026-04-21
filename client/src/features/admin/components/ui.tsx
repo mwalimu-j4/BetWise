@@ -347,14 +347,12 @@ export function AdminStatCard({
   value,
   tone,
   icon: Icon,
-  helper,
   className,
 }: {
   label: string;
   value: string;
   tone: AdminTone;
   icon?: LucideIcon;
-  helper?: string;
   className?: string;
 }) {
   return (
@@ -383,11 +381,6 @@ export function AdminStatCard({
         >
           {value}
         </p>
-        {helper && (
-          <p className="mt-1 text-[10px] font-medium text-admin-text-muted/60">
-            {helper}
-          </p>
-        )}
       </div>
     </AdminCard>
   );
