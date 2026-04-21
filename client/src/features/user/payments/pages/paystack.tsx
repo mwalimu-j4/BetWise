@@ -210,8 +210,8 @@ export default function MpesaDepositPage() {
         amount={amountValue}
         message={
           verificationReference
-            ? "Confirming your M-Pesa payment"
-            : "Preparing M-Pesa checkout"
+            ? "Confirming your Paystack payment"
+            : "Preparing Paystack checkout"
         }
       />
       <PaymentFeedbackModal
@@ -234,14 +234,12 @@ export default function MpesaDepositPage() {
         {/* ── Header ── */}
         <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
           <div className="flex items-center justify-between">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
-              alt="M-Pesa"
-              className="h-8 w-auto object-contain"
-            />
-            <span className="flex items-center gap-1.5 rounded-full border border-[#00A859]/20 bg-[#00A859]/10 px-3 py-1 text-[11px] font-semibold text-[#00A859]">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold text-white">Paystack</span>
+            </div>
+            <span className="flex items-center gap-1.5 rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1 text-[11px] font-semibold text-[#f5c518]">
               <ShieldCheck className="h-3 w-3" />
-              Secured by Paystack
+              Powered by Paystack
             </span>
           </div>
         </div>
@@ -283,8 +281,8 @@ export default function MpesaDepositPage() {
                       onClick={() => setAmount(String(value))}
                       className={`rounded-xl border py-2.5 text-xs font-semibold transition-all duration-150 ${
                         amountValue === value
-                          ? "border-[#00A859] bg-[#00A859]/10 text-[#00A859]"
-                          : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#00A859]/30 hover:text-white"
+                          ? "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518]"
+                          : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#f5c518]/30 hover:text-white"
                       }`}
                     >
                       {formatMoney(value)}
@@ -307,7 +305,7 @@ export default function MpesaDepositPage() {
                     inputMode="numeric"
                     type="text"
                     placeholder="Enter amount"
-                    className="h-14 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-lg text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#00A859] focus:ring-1 focus:ring-[#00A859]"
+                    className="h-14 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-lg text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]"
                     disabled={!isPaystackEnabled}
                   />
                   <p className="text-xs text-[#3d5a73]">
@@ -322,14 +320,14 @@ export default function MpesaDepositPage() {
                     initializeMutation.isPending ||
                     isProcessing
                   }
-                  className="h-14 w-full rounded-2xl bg-[#00A859] text-base font-bold text-white transition-colors hover:bg-[#009950] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-14 w-full rounded-2xl bg-[#f5c518] text-base font-bold text-black transition-colors hover:bg-[#e6b800] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isProcessing ? (
                     <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
                   ) : (
                     <Wallet className="mr-2 h-5 w-5" />
                   )}
-                  {isProcessing ? "Processing..." : "Pay with M-Pesa"}
+                  {isProcessing ? "Processing..." : "Pay with Paystack"}
                 </Button>
               </form>
             </>
