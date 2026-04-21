@@ -35,7 +35,7 @@ const menuGroups: MenuItem[][] = [
     {
       label: "My Bets",
       icon: <Ticket size={18} />,
-      to: "/user/bets?tab=normal&filter=all&page=1",
+      to: "/user/bets",
     },
   ],
   [

@@ -306,7 +306,7 @@ export default function AdminShell() {
 
   return (
     <ProtectedRoute requireRole="ADMIN">
-      <div className="relative flex h-dvh overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,197,24,0.08),transparent_28%),linear-gradient(180deg,var(--admin-bg)_0%,var(--admin-card)_100%)] font-admin text-admin-text-primary">
+      <div className="relative flex h-dvh overflow-hidden bg-[radial-gradient(circle_at_top,#0f1a2d_0%,#0b1526_44%,#08101d_100%)] font-admin text-admin-text-primary">
         {/* Mobile Sidebar Overlay */}
         {mobileSidebarOpen && (
           <button

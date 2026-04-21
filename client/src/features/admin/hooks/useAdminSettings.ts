@@ -36,8 +36,7 @@ export interface AdminSettingsConfig {
     methods: {
       mpesa: boolean;
       bankTransfer: boolean;
-      airtelMoney: boolean;
-      card: boolean;
+      paystack: boolean;
     };
     mpesa: {
       shortcode: string;
@@ -47,7 +46,14 @@ export interface AdminSettingsConfig {
       callbackUrl: string;
       transactionFeePercent: number;
       autoWithdrawEnabled: boolean;
-      withdrawalApprovalThreshold: number;
+      mpesaWithdrawalApprovalThreshold: number;
+    };
+    paystack: {
+      secretKey: string;
+      publicKey: string;
+      webhookSecret: string;
+      callbackUrl: string;
+      webhookUrl: string;
     };
   };
   bettingEngineConfig: {

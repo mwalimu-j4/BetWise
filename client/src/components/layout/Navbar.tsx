@@ -41,35 +41,35 @@ const tickerItems = [
   { label: "Chelsea vs Villa", odds: "2.40", up: false },
 ];
 
-  const quickLinks = [
-    { label: "Home", to: "/user", icon: <House size={14} /> },
-    {
-      label: "Live",
-      to: "/user/live",
-      icon: <Flame size={14} />,
-      isLive: true,
-    },
-    { label: "Featured", to: "/user/featured-events", icon: <Star size={14} /> },
-    {
-      label: "Football",
-      to: "/user/sport/football",
-      icon: <Trophy size={14} />,
-    },
-    {
-      label: "Basketball",
-      to: "/user/sport/basketball",
-      icon: <Zap size={14} />,
-    },
-    { label: "Tennis", to: "/user/sport/tennis", icon: <TrendingUp size={14} /> },
-  ];
+const quickLinks = [
+  { label: "Home", to: "/user", icon: <House size={14} /> },
+  {
+    label: "Live",
+    to: "/user/live",
+    icon: <Flame size={14} />,
+    isLive: true,
+  },
+  { label: "Featured", to: "/user/featured-events", icon: <Star size={14} /> },
+  {
+    label: "Football",
+    to: "/user/sport/football",
+    icon: <Trophy size={14} />,
+  },
+  {
+    label: "Basketball",
+    to: "/user/sport/basketball",
+    icon: <Zap size={14} />,
+  },
+  { label: "Tennis", to: "/user/sport/tennis", icon: <TrendingUp size={14} /> },
+];
 
-  const leagues = [
-    { label: "Premier League", to: "/user/sport/football" },
-    { label: "Champions League", to: "/user/sport/football" },
-    { label: "La Liga", to: "/user/sport/football" },
-    { label: "NBA", to: "/user/sport/basketball" },
-    { label: "UFC", to: "/user/sport/boxing-mma" },
-  ];
+const leagues = [
+  { label: "Premier League", to: "/user/sport/football" },
+  { label: "Champions League", to: "/user/sport/football" },
+  { label: "La Liga", to: "/user/sport/football" },
+  { label: "NBA", to: "/user/sport/basketball" },
+  { label: "UFC", to: "/user/sport/boxing-mma" },
+];
 
 function formatNotificationTime(isoDate: string) {
   const eventTime = new Date(isoDate).getTime();
@@ -179,7 +179,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent | Event) => {
       if (e instanceof StorageEvent && e.key !== "bc_show_sub_nav") return;
-      
+
       const saved = localStorage.getItem("bc_show_sub_nav");
       setShowSubNav(saved === null ? true : saved === "true");
     };
@@ -227,7 +227,12 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
     type === "DEPOSIT_SUCCESS" || type === "WITHDRAWAL_SUCCESS";
 
   const isFailedNotification = (type: string) =>
-    type === "DEPOSIT_FAILED" || type === "WITHDRAWAL_FAILED";
+    type === "DEPOSIT_FAILED" ||
+    type === "WITHDRAWAL_FAILED" ||
+    type === "ERROR";
+
+  const isWarningNotification = (type: string) =>
+    type === "BET_LOST" || type === "BET_CANCELLED" || type === "MATCH_ENDED";
 
   return (
     <header className="bc-navbar" role="banner">
@@ -293,11 +298,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           {isAuthenticated && myBetsCount >= 0 ? (
             <Link
               to="/user/bets"
-              search={{
-                tab: "normal",
-                filter: "all",
-                page: "1",
-              }}
+              search={{}}
               className="bc-my-bets-btn"
               aria-label={`Open My Bets (${myBetsCount})`}
             >
@@ -384,15 +385,17 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                           onClick={() => setNotificationsOpen(false)}
                         >
                           <span
-                            className={`bc-notify-icon ${isSuccessNotification(notification.type) ? "is-success" : isFailedNotification(notification.type) ? "is-failed" : ""}`}
+                            className={`bc-notify-icon ${isSuccessNotification(notification.type) ? "is-success" : isFailedNotification(notification.type) ? "is-failed" : isWarningNotification(notification.type) ? "is-warning" : "is-info"}`}
                             aria-hidden="true"
                           >
                             {isSuccessNotification(notification.type) ? (
-                              <CircleCheck size={14} />
+                              <CircleCheck size={16} />
                             ) : isFailedNotification(notification.type) ? (
-                              <CircleX size={14} />
+                              <CircleX size={16} />
+                            ) : isWarningNotification(notification.type) ? (
+                              <Zap size={16} />
                             ) : (
-                              <Bell size={14} />
+                              <Bell size={16} />
                             )}
                           </span>
                           <span className="bc-notify-body">

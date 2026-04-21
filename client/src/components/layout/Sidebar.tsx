@@ -123,7 +123,7 @@ const myAccount: Item[] = [
   {
     label: "My Bets",
     to: "/user/bets",
-    search: { tab: "normal", filter: "all", page: "1" },
+    search: {},
     icon: <TrendingUp size={18} />,
   },
 ];
@@ -363,7 +363,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               {
                 label: "My Bets",
                 to: "/user/bets",
-                search: { tab: "normal", filter: "all", page: "1" },
+                search: { },
                 icon: <TrendingUp size={18} />,
               },
               {

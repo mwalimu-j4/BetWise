@@ -14,6 +14,7 @@ import { adminQuickSettingsRoute } from "./routes/admin/quick-settings";
 import { adminReportsRoute } from "./routes/admin/reports";
 import { adminRiskRoute } from "./routes/admin/risk";
 import { adminRoute } from "./routes/admin/route";
+import { adminSecurityRoute } from "./routes/admin/security";
 import { adminSettingsRoute } from "./routes/admin/settings";
 import { adminTransactionsRoute } from "./routes/admin/transactions";
 import { adminWithdrawalsRoute } from "./routes/admin/withdrawals";
@@ -79,6 +80,7 @@ const routeTree = rootRoute.addChildren([
     adminReportsRoute,
     adminNewsletterRoute,
     adminQuickSettingsRoute,
+    adminSecurityRoute,
     adminSettingsRoute,
   ]),
 ]);

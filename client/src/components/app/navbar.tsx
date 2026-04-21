@@ -110,12 +110,7 @@ const navItems: NavItem[] = [
 const leagueItems: LeagueItem[] = [
   { id: "all-sports", label: "All Sports", icon: Goal, color: "#22c55e" },
   { id: "ucl", label: "UCL", icon: Trophy, color: "#facc15" },
-  {
-    id: "premier-league",
-    label: "Premier League",
-    icon: Goal,
-    color: "#a855f7",
-  },
+  { id: "premier-league", label: "Premier League", icon: Goal, color: "#a855f7" },
   { id: "la-liga", label: "La Liga", icon: Goal, color: "#ef4444" },
   { id: "bundesliga", label: "Bundesliga", icon: Goal, color: "#dc2626" },
   { id: "serie-a", label: "Serie A", icon: Goal, color: "#2563eb" },
