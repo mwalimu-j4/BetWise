@@ -210,11 +210,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const isWarningNotification = (type: string) =>
     type === "BET_LOST" || type === "BET_CANCELLED" || type === "MATCH_ENDED";
 
-  const isInfoNotification = (type: string) =>
-    !isSuccessNotification(type) &&
-    !isFailedNotification(type) &&
-    !isWarningNotification(type);
-
   return (
     <header className="bc-navbar" role="banner">
       <div className="bc-ticker">
