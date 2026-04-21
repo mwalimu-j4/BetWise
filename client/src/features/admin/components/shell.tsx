@@ -282,7 +282,7 @@ export default function AdminShell() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex h-full w-70 max-w-[85vw] flex-col overflow-hidden border-r border-admin-border/50 bg-[#0b1426]/95 backdrop-blur-xl",
+            "fixed inset-y-0 left-0 z-50 flex h-full w-70 max-w-[85vw] flex-col overflow-hidden border-r border-admin-border/50 bg-[#0d2137]/95 backdrop-blur-xl",
             "shadow-[4px_0_24px_rgba(0,0,0,0.3)] transition-all duration-300 ease-in-out",
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:relative lg:translate-x-0 lg:shadow-none",
@@ -420,7 +420,7 @@ export default function AdminShell() {
 
         {/* Main Content Area */}
         <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-admin-border/50 bg-[#0b1426]/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8 shadow-sm">
+          <header className="z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-admin-border/50 bg-[#0f1a2d]/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8 shadow-sm">
             <div className="flex items-center gap-3 lg:hidden">
               <button
                 type="button"
