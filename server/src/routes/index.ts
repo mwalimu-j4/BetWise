@@ -30,6 +30,7 @@ apiRouter.use(adminRouter);
 apiRouter.use(paymentRouter);
 apiRouter.use("/payments/paystack", paystackRouter);
 apiRouter.use("/payments/mpesa", mpesaRouter);
+apiRouter.use("/mpesa", mpesaRouter);
 apiRouter.use(profileRouter);
 apiRouter.use(notificationRouter);
 apiRouter.use(myBetsRouter);

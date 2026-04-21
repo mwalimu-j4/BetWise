@@ -294,15 +294,24 @@ async function queryMpesaTransaction(transactionId: string): Promise<MpesaDeposi
     currentStatus === "failed" ||
     !transaction.checkoutRequestId
   ) {
+    if (currentStatus === "completed") {
+      return {
+        status: "completed",
+        message: transaction.providerResponseDescription ?? "Payment completed.",
+        transactionId: transaction.id,
+        amount: transaction.amount,
+        mpesaCode: transaction.providerReceiptNumber,
+        processedAt: transaction.processedAt ?? new Date(),
+      };
+    }
+
     return {
-      status: currentStatus,
+      status: currentStatus === "failed" ? "failed" : "pending",
       message:
         transaction.providerResponseDescription ??
-        (currentStatus === "completed"
-          ? "Payment completed."
-          : currentStatus === "failed"
-            ? "Payment failed."
-            : "Payment is still pending."),
+        (currentStatus === "failed"
+          ? "Payment failed."
+          : "Payment is still pending."),
       transactionId: transaction.id,
       amount: transaction.amount,
       mpesaCode: transaction.providerReceiptNumber,
