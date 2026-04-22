@@ -36,7 +36,7 @@ const TYPE_COLORS: Record<string, string> = {
 
 export default function PaymentsHistoryPage() {
   const [typeFilter, setTypeFilter] = useState<FilterOption>("all");
-  const { data } = useWalletSummary();
+  const { data, isLoading: isHistoryLoading } = useWalletSummary();
   const transactions = data?.transactions ?? [];
 
   const filtered = useMemo(() => {
@@ -78,7 +78,55 @@ export default function PaymentsHistoryPage() {
           </div>
         </div>
 
-        {filtered.length === 0 ? (
+        {isHistoryLoading ? (
+          <div className="px-6 py-6">
+            <div className="mb-4 hidden gap-2 sm:flex">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={`history-pill-skeleton-${index}`}
+                  className="h-7 w-20 animate-pulse rounded-full bg-[#122034]"
+                />
+              ))}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-[680px] w-full table-fixed">
+                <thead className="border-b border-[#1a2f45] bg-[#0d1829]">
+                  <tr>
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <th
+                        key={`history-head-skeleton-${index}`}
+                        className="px-3 py-3 sm:px-6"
+                      >
+                        <div className="h-2.5 w-16 animate-pulse rounded bg-[#14263a]" />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 5 }).map((_, rowIndex) => (
+                    <tr
+                      key={`history-row-skeleton-${rowIndex}`}
+                      className="border-b border-[#1a2f45]"
+                    >
+                      <td className="px-3 py-4 sm:px-6">
+                        <div className="h-3 w-24 animate-pulse rounded bg-[#122034]" />
+                      </td>
+                      <td className="px-3 py-4 sm:px-6">
+                        <div className="h-3 w-36 animate-pulse rounded bg-[#122034]" />
+                      </td>
+                      <td className="px-3 py-4 sm:px-6">
+                        <div className="h-3 w-28 animate-pulse rounded bg-[#122034]" />
+                      </td>
+                      <td className="px-3 py-4 sm:px-6">
+                        <div className="h-5 w-16 animate-pulse rounded-full bg-[#122034]" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="px-6 py-12">
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#1a2f45] bg-[#0d1829] py-16 text-center">
               <p className="text-sm font-semibold text-[#4a6a85]">

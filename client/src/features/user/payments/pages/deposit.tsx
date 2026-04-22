@@ -754,13 +754,31 @@ export default function DepositPage() {
       />
 
       {isPaymentMethodsLoading ? (
-        <div className="mx-auto max-w-md rounded-3xl border border-[#3d5a73] bg-[#101c2a] p-6 text-center text-sm text-[#a8c4e0] shadow-inner">
-          <p className="font-semibold text-white">
-            Loading payment settings...
-          </p>
-          <p className="mt-2 text-[#8a9bb0]">
-            Checking available deposit methods. Please wait a moment.
-          </p>
+        <div className="mx-auto w-full max-w-[700px] overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
+          <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 animate-pulse rounded-xl bg-[#14263a]" />
+                <div className="space-y-2">
+                  <div className="h-3 w-24 animate-pulse rounded bg-[#14263a]" />
+                  <div className="h-2.5 w-20 animate-pulse rounded bg-[#122034]" />
+                </div>
+              </div>
+              <div className="h-10 w-[156px] animate-pulse rounded-xl bg-[#14263a]" />
+            </div>
+          </div>
+          <div className="space-y-4 px-7 py-6">
+            <div className="grid grid-cols-4 gap-2">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={`deposit-quick-skeleton-${index}`}
+                  className="h-8 animate-pulse rounded-xl bg-[#122034]"
+                />
+              ))}
+            </div>
+            <div className="h-12 animate-pulse rounded-2xl bg-[#122034]" />
+            <div className="h-12 animate-pulse rounded-2xl bg-[#f5c518]/30" />
+          </div>
         </div>
       ) : !isMpesaEnabled && !isPaystackEnabled ? (
         <div className="mx-auto max-w-md rounded-3xl border border-[#7a2f36] bg-[#2a101e] p-6 text-center text-sm text-[#f2c7cb] shadow-inner">

@@ -42,7 +42,7 @@ export default function PaymentsWithdrawalPage() {
   const [amount, setAmount] = useState("500");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const { data: walletData } = useWalletSummary();
+  const { data: walletData, isLoading: isWalletLoading } = useWalletSummary();
   const queryClient = useQueryClient();
   const accountPhone = useMemo(
     () => normalizePhone(user?.phone ?? ""),
@@ -144,6 +144,32 @@ export default function PaymentsWithdrawalPage() {
 
   const phoneError = phone && !isPhoneValid(normalizePhone(phone));
   const busy = isSubmitting || withdrawalMutation.isPending;
+
+  if (isWalletLoading) {
+    return (
+      <section className="mx-auto w-full max-w-5xl px-4 py-8">
+        <div className="mx-auto w-full max-w-[700px] space-y-4">
+          <article className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
+            <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 animate-pulse rounded-xl bg-[#14263a]" />
+                <div className="space-y-2">
+                  <div className="h-3 w-28 animate-pulse rounded bg-[#14263a]" />
+                  <div className="h-2.5 w-44 animate-pulse rounded bg-[#122034]" />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 px-7 py-6">
+              <div className="h-12 animate-pulse rounded-2xl bg-[#122034]" />
+              <div className="h-12 animate-pulse rounded-2xl bg-[#122034]" />
+              <div className="h-12 animate-pulse rounded-2xl bg-[#f5c518]/30" />
+            </div>
+          </article>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-8">
