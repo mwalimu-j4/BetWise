@@ -420,83 +420,92 @@ export default function SecurityWizard() {
 
       {/* QR Code Modal */}
       <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
-        <AdminDialogContent className="max-w-2xl p-0">
-           <DialogHeader className="p-6 pb-0">
-             <DialogTitle className="text-xl font-bold text-admin-text-primary">Final Activation</DialogTitle>
-             <p className="mt-1 text-sm text-admin-text-muted">Scan the token using your authenticator app.</p>
+        <AdminDialogContent className="max-w-[95vw] sm:max-w-2xl p-0 overflow-hidden border-white/5">
+           <DialogHeader className="p-6 pb-0 sm:p-8 sm:pb-0">
+             <div className="flex items-center gap-3">
+               <div className="p-2 rounded-lg bg-admin-accent/10 text-admin-accent">
+                 <Shield size={20} />
+               </div>
+               <DialogTitle className="text-xl font-bold text-admin-text-primary">Final Activation</DialogTitle>
+             </div>
+             <p className="mt-2 text-sm text-admin-text-muted">Scan the token using your authenticator app to complete setup.</p>
            </DialogHeader>
 
-           <div className="p-8">
-             <div className="grid gap-10 md:grid-cols-2">
+           <div className="p-6 sm:p-8">
+             <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
                <div className="space-y-6">
-                 <div className="relative group mx-auto md:mx-0 w-max">
+                 <div className="relative group mx-auto lg:mx-0 w-max">
                    <div className="absolute inset-0 bg-[#f5c518]/10 blur-2xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700" />
-                   <div className="relative flex shrink-0 items-center justify-center rounded-3xl border-4 border-admin-accent/20 bg-white p-5 shadow-2xl">
+                   <div className="relative flex shrink-0 items-center justify-center rounded-2xl border-2 border-admin-accent/20 bg-white p-4 shadow-2xl">
                      {qrCodeDataUrl ? (
                        <img
                          src={qrCodeDataUrl}
                          alt="Secure TOTP Token"
-                         className="h-40 w-40 transition-transform duration-500 group-hover:scale-105"
+                         className="h-44 w-44 sm:h-48 sm:w-48 transition-transform duration-500 group-hover:scale-105"
                        />
                      ) : (
-                       <div className="h-40 w-40 grid place-items-center bg-admin-surface/20 rounded-2xl">
+                       <div className="h-48 w-48 grid place-items-center bg-admin-surface/20 rounded-2xl">
                          <Loader2 className="animate-spin text-admin-accent" />
                        </div>
                      )}
                    </div>
                  </div>
 
-                 <div className="group relative overflow-hidden rounded-2xl border border-white/5 bg-black/40 p-4 transition-all hover:bg-black/60">
-                   <p className="text-[9px] font-black uppercase tracking-widest text-[#f5c518]/80">
+                 <div className="group relative overflow-hidden rounded-xl border border-white/5 bg-black/40 p-4 transition-all hover:bg-black/60">
+                   <p className="text-[10px] font-bold uppercase tracking-widest text-admin-accent/80">
                      Security Key
                    </p>
-                   <div className="mt-2 flex items-center justify-between">
-                     <span className="font-mono text-xs font-bold text-admin-text-primary tracking-widest break-all">
+                   <div className="mt-2 flex items-center justify-between gap-3">
+                     <span className="font-mono text-xs font-medium text-admin-text-primary tracking-wider break-all bg-black/20 px-2 py-1 rounded">
                        {manualEntryKey}
                      </span>
                      <button
                        onClick={() => copyToClipboard(manualEntryKey || "")}
-                       className="ml-3 rounded-lg p-2 bg-white/5 text-admin-text-muted hover:bg-[#f5c518]/10 hover:text-[#f5c518] transition-all"
+                       className="shrink-0 rounded-lg p-2.5 bg-white/5 text-admin-text-muted hover:bg-admin-accent/10 hover:text-admin-accent transition-all active:scale-90"
                      >
-                       <Copy size={14} />
+                       <Copy size={16} />
                      </button>
                    </div>
                  </div>
                </div>
 
-               <div className="flex flex-col justify-center space-y-6">
-                 <div className="rounded-3xl border border-white/5 bg-black/20 p-6 backdrop-blur-sm">
-                   <label className="mb-3 block text-[10px] font-black uppercase tracking-widest text-[#f5c518]">
+               <div className="flex flex-col space-y-6">
+                 <div className="rounded-2xl border border-white/5 bg-black/30 p-6 backdrop-blur-sm">
+                   <label className="mb-4 block text-[10px] font-bold uppercase tracking-[0.2em] text-admin-accent">
                      Verification Token
                    </label>
-                   <input
-                     type="text"
-                     maxLength={6}
-                     value={twoFactorCode}
-                     onChange={(e) =>
-                       setTwoFactorCode(e.target.value.replace(/\D/g, ""))
-                     }
-                     placeholder="000 000"
-                     className="h-14 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-center text-2xl font-bold tracking-[0.4em] text-[#f5c518] outline-none focus:border-[#f5c518]/40 focus:ring-4 focus:ring-[#f5c518]/5 transition-all"
-                   />
-                   <p className="mt-3 text-[10px] text-admin-text-muted/60 text-center italic">
+                   <div className="relative">
+                     <input
+                       type="text"
+                       maxLength={6}
+                       value={twoFactorCode}
+                       onChange={(e) =>
+                         setTwoFactorCode(e.target.value.replace(/\D/g, ""))
+                       }
+                       placeholder="000000"
+                       className="h-16 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-center text-3xl font-mono font-bold tracking-[0.2em] text-admin-accent outline-none focus:border-admin-accent/40 focus:ring-4 focus:ring-admin-accent/5 transition-all placeholder:opacity-20"
+                     />
+                   </div>
+                   <p className="mt-4 text-[10px] text-admin-text-muted/60 text-center font-medium italic tracking-wide">
                      Refreshes every 30 seconds
                    </p>
                  </div>
 
-                 <div className="flex gap-3">
-                   <Button
-                     onClick={() => void enable2FA.mutateAsync()}
-                     disabled={enable2FA.isPending || twoFactorCode.length !== 6}
-                     className="h-14 flex-1 rounded-xl bg-[#f5c518] text-[#0d2137] font-bold shadow-xl shadow-[#f5c518]/20 hover:bg-[#e6b800] active:scale-95 transition-all uppercase tracking-widest text-xs"
-                   >
-                     {enable2FA.isPending ? (
-                       <Loader2 size={16} className="animate-spin" />
-                     ) : (
-                       "Confirm Identity"
-                     )}
-                   </Button>
-                 </div>
+                 <Button
+                   onClick={() => void enable2FA.mutateAsync()}
+                   disabled={enable2FA.isPending || twoFactorCode.length !== 6}
+                   className="h-14 w-full rounded-xl bg-admin-accent text-admin-bg font-bold shadow-xl shadow-admin-accent/20 hover:bg-admin-accent-strong active:scale-95 transition-all uppercase tracking-[0.2em] text-xs"
+                 >
+                   {enable2FA.isPending ? (
+                     <Loader2 size={18} className="animate-spin" />
+                   ) : (
+                     "Enable Protection"
+                   )}
+                 </Button>
+                 
+                 <p className="text-[10px] text-center text-admin-text-muted px-4 leading-relaxed">
+                   Enter the 6-digit code from your authenticator app to verify your identity and activate protection.
+                 </p>
                </div>
              </div>
            </div>
