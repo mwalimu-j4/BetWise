@@ -244,28 +244,37 @@ export default function SecurityWizard() {
           {!isEnabled ? (
             <AdminCard className="h-full border-admin-border/50 bg-[#0b1426]/40 shadow-2xl backdrop-blur-xl rounded-3xl overflow-hidden">
               <div className="flex flex-col h-full">
-                <div className="px-8 py-5 border-b border-admin-border/50 bg-white/5">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-admin-text-primary">
-                        Setup Wizard
-                      </h3>
-                      <p className="text-xs text-admin-text-muted">
-                        Secure your account in simple steps
-                      </p>
+                <div className="px-8 py-7 bg-gradient-to-br from-white/[0.03] to-transparent">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-admin-accent/10 text-admin-accent border border-admin-accent/20 shadow-[0_0_20px_rgba(245,197,24,0.1)]">
+                        <Lock size={22} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold tracking-tight text-admin-text-primary">
+                          Two-Factor Setup
+                        </h3>
+                        <p className="text-xs text-admin-text-muted mt-0.5">
+                          Follow the steps to harden your account security
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      {[1, 2].map((step) => (
-                        <div
-                          key={step}
-                          className={cn(
-                            "h-1.5 w-8 rounded-full transition-all duration-700",
-                            setupStep >= step
-                              ? "bg-admin-accent shadow-[0_0_10px_rgba(245,197,24,0.3)]"
-                              : "bg-white/5"
-                          )}
-                        />
-                      ))}
+                    
+                    <div className="flex items-center gap-3 bg-black/20 px-4 py-2 rounded-2xl border border-white/5">
+                      <span className="text-[10px] font-bold text-admin-text-muted uppercase tracking-widest mr-2">Step {setupStep} of 2</span>
+                      <div className="flex gap-1.5">
+                        {[1, 2].map((step) => (
+                          <div
+                            key={step}
+                            className={cn(
+                              "h-1.5 w-6 rounded-full transition-all duration-500",
+                              setupStep >= step
+                                ? "bg-admin-accent shadow-[0_0_10px_rgba(245,197,24,0.4)]"
+                                : "bg-white/10"
+                            )}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
