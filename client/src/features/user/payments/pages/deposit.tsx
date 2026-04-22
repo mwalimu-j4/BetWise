@@ -33,7 +33,7 @@ import {
   useMpesaInitialize,
 } from "../hooks/useMpesaPayment";
 
-const quickAmounts = [500, 1000, 2500, 5000];
+
 const paystackPendingStorageKey = "betwise-paystack-pending-reference";
 const mpesaPendingStorageKey = "betwise-mpesa-pending-transaction";
 const mpesaLogoUrl =
@@ -79,11 +79,26 @@ export default function DepositPage() {
     [user?.phone],
   );
   const hasValidMpesaPhone = isValidPhone(normalizedPhone);
+  const minDeposit = enabledMethodsQuery.data?.limits.minDeposit ?? 500;
+  const quickAmounts = useMemo(
+    () => [minDeposit, minDeposit * 2, minDeposit * 5, minDeposit * 10],
+    [minDeposit],
+  );
 
   const [amounts, setAmounts] = useState<Record<DepositMethod, string>>({
-    mpesa: "500",
-    paystack: "500",
+    mpesa: String(minDeposit),
+    paystack: String(minDeposit),
   });
+  useEffect(() => {
+    if (enabledMethodsQuery.data?.limits.minDeposit) {
+      const min = String(enabledMethodsQuery.data.limits.minDeposit);
+      setAmounts({
+        mpesa: min,
+        paystack: min,
+      });
+    }
+  }, [enabledMethodsQuery.data?.limits.minDeposit]);
+
   const [paymentStatus, setPaymentStatus] = useState<PaymentResult>(null);
   const [showPaymentResult, setShowPaymentResult] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -373,8 +388,16 @@ export default function DepositPage() {
 
     const amountValue = Number(amounts[method]) || 0;
 
-    if (amountValue < 500) {
-      toast.error("Minimum deposit is KES 500.");
+    const minDeposit = enabledMethodsQuery.data?.limits.minDeposit ?? 500;
+    const maxDeposit = enabledMethodsQuery.data?.limits.maxDeposit ?? 200000;
+
+    if (amountValue < minDeposit) {
+      toast.error(`Minimum deposit is KES ${minDeposit.toLocaleString()}.`);
+      return;
+    }
+
+    if (amountValue > maxDeposit) {
+      toast.error(`Maximum deposit is KES ${maxDeposit.toLocaleString()}.`);
       return;
     }
 
@@ -661,7 +684,7 @@ export default function DepositPage() {
                     />
                   </div>
                   <p className="text-xs text-[#3d5a73]">
-                    Minimum deposit: KES 500
+                    Minimum deposit: KES {(enabledMethodsQuery.data?.limits.minDeposit ?? 500).toLocaleString()}
                   </p>
                 </label>
 
