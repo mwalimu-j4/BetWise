@@ -1189,7 +1189,7 @@ export async function getEnabledPaymentMethods(
         mpesaTransactionFeePercent: true,
         minBetAmount: true,
         maxBetAmount: true,
-        maxTotalOdds: true,
+        maxWinPerBet: true,
       },
     });
 
@@ -1216,7 +1216,7 @@ export async function getEnabledPaymentMethods(
       betting: {
         minBetAmount: settings.minBetAmount,
         maxBetAmount: settings.maxBetAmount,
-        maxTotalOdds: settings.maxTotalOdds,
+        maxWinPerBet: settings.maxWinPerBet,
       },
       currency: "KES",
     });
