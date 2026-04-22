@@ -447,6 +447,46 @@ export default function DepositPage() {
   const getMethodLabel = (method: DepositMethod) =>
     method === "mpesa" ? "M-Pesa" : "Paystack";
 
+  const renderMethodDropdown = (align: "center" | "end") => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full min-w-0 items-center justify-between rounded-2xl border border-[#23415d] bg-[#08111d] px-4 py-3 text-left shadow-[0_18px_40px_rgba(4,12,22,0.35)] transition-colors hover:border-[#32597d] sm:w-[220px]"
+        >
+          <span className="min-w-0">
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-[#69839c]">
+              Payment Method
+            </span>
+            <span className="mt-1 block truncate text-sm font-semibold text-white">
+              {getMethodLabel(activeMethod!)}
+            </span>
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-[#f5c518]" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align={align}
+        className="w-56 rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_24px_50px_rgba(4,12,22,0.55)]"
+      >
+        {enabledDepositMethods.map((method) => {
+          const isActive = method === activeMethod;
+
+          return (
+            <DropdownMenuItem
+              key={method}
+              onClick={() => setSelectedMethod(method)}
+              className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold text-[#dce7f2] outline-none transition-colors focus:bg-[#102134] focus:text-white"
+            >
+              <span>{getMethodLabel(method)}</span>
+              {isActive ? <Check className="h-4 w-4 text-[#f5c518]" /> : null}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   const renderDepositCard = (method: DepositMethod) => {
     const isMpesa = method === "mpesa";
     const isEnabled = isMpesa ? isMpesaEnabled : isPaystackEnabled;
@@ -465,7 +505,7 @@ export default function DepositPage() {
         className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl"
       >
         <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               {isMpesa ? (
                 <img
@@ -482,12 +522,17 @@ export default function DepositPage() {
                 {!isMpesa && "Paystack"}
               </span>
             </div>
-            {!isMpesa && (
-              <span className="flex items-center gap-1.5 rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1 text-[11px] font-semibold text-[#f5c518]">
-                <ShieldCheck className="h-3 w-3" />
-                Powered by Paystack
-              </span>
-            )}
+
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+              {showMethodToggle
+                ? renderMethodDropdown("end")
+                : !isMpesa && (
+                    <span className="flex items-center gap-1.5 rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1 text-[11px] font-semibold text-[#f5c518]">
+                      <ShieldCheck className="h-3 w-3" />
+                      Powered by Paystack
+                    </span>
+                  )}
+            </div>
           </div>
         </div>
 
@@ -585,7 +630,7 @@ export default function DepositPage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-5xl px-4 py-8 lg:relative">
+    <section className="mx-auto w-full max-w-5xl px-4 py-8">
       <PaymentLoadingModal
         isOpen={isProcessing}
         amount={processingAmount}
@@ -666,101 +711,7 @@ export default function DepositPage() {
         </div>
       ) : activeMethod ? (
         <div className="space-y-4">
-          {showMethodToggle ? (
-            <>
-              <div className="flex justify-center lg:hidden">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className="flex w-full max-w-sm items-center justify-between rounded-2xl border border-[#23415d] bg-[#08111d] px-4 py-3 text-left shadow-[0_18px_40px_rgba(4,12,22,0.35)] transition-colors hover:border-[#32597d]"
-                    >
-                      <span>
-                        <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-[#69839c]">
-                          Payment Method
-                        </span>
-                        <span className="mt-1 block text-sm font-semibold text-white">
-                          {getMethodLabel(activeMethod)}
-                        </span>
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-[#f5c518]" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="center"
-                    className="w-[var(--radix-dropdown-menu-trigger-width)] rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_24px_50px_rgba(4,12,22,0.55)]"
-                  >
-                    {enabledDepositMethods.map((method) => {
-                      const isActive = method === activeMethod;
-
-                      return (
-                        <DropdownMenuItem
-                          key={method}
-                          onClick={() => setSelectedMethod(method)}
-                          className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold text-[#dce7f2] outline-none transition-colors focus:bg-[#102134] focus:text-white"
-                        >
-                          <span>{getMethodLabel(method)}</span>
-                          {isActive ? (
-                            <Check className="h-4 w-4 text-[#f5c518]" />
-                          ) : null}
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <div className="hidden lg:absolute lg:right-4 lg:top-8 lg:block">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className="flex min-w-[220px] items-center justify-between rounded-2xl border border-[#23415d] bg-[#08111d] px-4 py-3 text-left shadow-[0_18px_40px_rgba(4,12,22,0.35)] transition-colors hover:border-[#32597d]"
-                    >
-                      <span>
-                        <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-[#69839c]">
-                          Payment Method
-                        </span>
-                        <span className="mt-1 block text-sm font-semibold text-white">
-                          {getMethodLabel(activeMethod)}
-                        </span>
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-[#f5c518]" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-56 rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_24px_50px_rgba(4,12,22,0.55)]"
-                  >
-                    {enabledDepositMethods.map((method) => {
-                      const isActive = method === activeMethod;
-
-                      return (
-                        <DropdownMenuItem
-                          key={method}
-                          onClick={() => setSelectedMethod(method)}
-                          className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold text-[#dce7f2] outline-none transition-colors focus:bg-[#102134] focus:text-white"
-                        >
-                          <span>{getMethodLabel(method)}</span>
-                          {isActive ? (
-                            <Check className="h-4 w-4 text-[#f5c518]" />
-                          ) : null}
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </>
-          ) : (
-            <div className="flex justify-center lg:justify-end">
-              <div className="inline-flex items-center rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#f5c518]">
-                {getMethodLabel(activeMethod)} enabled
-              </div>
-            </div>
-          )}
-
-          <div className="mx-auto w-full max-w-4xl">
+          <div className="mx-auto w-full max-w-[860px]">
             {renderDepositCard(activeMethod)}
           </div>
         </div>
