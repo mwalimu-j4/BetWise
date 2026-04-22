@@ -210,12 +210,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Update URL via router if available
     const router = getRouter();
     if (router) {
-      void router.navigate({
+      void (router.navigate as any)({
         search: (prev: any) => ({
           ...prev,
           modal: modal === "none" ? undefined : modal,
         }),
-        replace: true, // Use replace to avoid polluting history with modal toggles
+        replace: true,
       });
     }
   }, []);

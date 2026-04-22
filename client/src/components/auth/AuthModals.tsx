@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
  */
 export default function AuthModals() {
   const [mounted, setMounted] = useState(false);
-  const { authModal } = useAuth();
+  const { authModal: _ } = useAuth();
 
   useEffect(() => {
     setMounted(true);
