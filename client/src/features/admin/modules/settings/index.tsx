@@ -135,45 +135,6 @@ function setByPath<T extends object>(obj: T, path: string, value: unknown): T {
 
 const sectionDefinitions: SectionDefinition[] = [
   {
-    id: "user-defaults",
-    title: "User Defaults & Restrictions",
-    subtitle: "Wallet defaults, limits, and account verification rules",
-    group: "Financial Operations",
-    icon: <UserCog size={16} />,
-    fields: [
-      {
-        path: "userDefaultsAndRestrictions.minDeposit",
-        label: "Min deposit",
-        type: "number",
-      },
-      {
-        path: "userDefaultsAndRestrictions.maxDeposit",
-        label: "Max deposit",
-        type: "number",
-      },
-      {
-        path: "userDefaultsAndRestrictions.minWithdrawal",
-        label: "Min withdrawal",
-        type: "number",
-      },
-      {
-        path: "userDefaultsAndRestrictions.maxWithdrawal",
-        label: "Max withdrawal",
-        type: "number",
-      },
-      {
-        path: "userDefaultsAndRestrictions.dailyTransactionLimit",
-        label: "Daily transaction limit",
-        type: "number",
-      },
-      {
-        path: "userDefaultsAndRestrictions.maxActiveBetsPerUser",
-        label: "Max active bets per user",
-        type: "number",
-      },
-    ],
-  },
-  {
     id: "mpesa",
     title: "M-Pesa Integration",
     subtitle: "STK Push, B2C transfers, and automated reconciliation",
@@ -257,42 +218,6 @@ const sectionDefinitions: SectionDefinition[] = [
         path: "paymentsConfig.paystack.webhookUrl",
         label: "Webhook URL",
         type: "text",
-      },
-    ],
-  },
-  {
-    id: "tax",
-    title: "Tax & Financial Rules",
-    subtitle: "Taxation, commissions, and rounding policy",
-    group: "Financial Operations",
-    icon: <Percent size={16} />,
-    fields: [
-      {
-        path: "taxAndFinancialRules.winningsTaxPercent",
-        label: "Tax on winnings (%)",
-        type: "number",
-      },
-      {
-        path: "taxAndFinancialRules.depositTaxPercent",
-        label: "Tax on deposits (%)",
-        type: "number",
-      },
-      {
-        path: "taxAndFinancialRules.commissionPercent",
-        label: "Commission settings (%)",
-        type: "number",
-      },
-      {
-        path: "taxAndFinancialRules.roundingRule",
-        label: "Rounding rule",
-        type: "select",
-        options: [
-          { label: "Nearest 1", value: "nearest_1" },
-          { label: "Nearest 5", value: "nearest_5" },
-          { label: "Nearest 10", value: "nearest_10" },
-          { label: "Floor", value: "floor" },
-          { label: "Ceil", value: "ceil" },
-        ],
       },
     ],
   },

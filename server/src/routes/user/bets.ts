@@ -7,6 +7,7 @@ import {
   placeBetRateLimiter,
 } from "../../middleware/rateLimiter";
 import { computePossiblePayout, generateBetCode } from "../../utils/betUtils";
+import { getSystemSettings } from "../../lib/settings";
 
 const userBetsRouter = Router();
 
@@ -43,12 +44,30 @@ userBetsRouter.post(
       const { eventId, marketType, side, stake, odds, confirmOddsChange } =
         parsedBody.data;
 
-      if (stake < 50) {
-        return res.status(400).json({ error: "Minimum stake is KES 50." });
+      const settings = await getSystemSettings();
+      const { minBetAmount, maxBetAmount } = settings.bettingEngineConfig;
+      const { maxActiveBetsPerUser } = settings.userDefaultsAndRestrictions;
+
+      if (stake < minBetAmount) {
+        return res
+          .status(400)
+          .json({ error: `Minimum stake is KES ${minBetAmount.toLocaleString()}.` });
       }
 
-      if (stake > 100000) {
-        return res.status(400).json({ error: "Maximum stake is KES 100,000." });
+      if (stake > maxBetAmount) {
+        return res
+          .status(400)
+          .json({ error: `Maximum stake is KES ${maxBetAmount.toLocaleString()}.` });
+      }
+
+      const activeBetsCount = await prisma.bet.count({
+        where: { userId, status: "PENDING" },
+      });
+
+      if (activeBetsCount >= maxActiveBetsPerUser) {
+        return res.status(400).json({
+          error: `You have reached the maximum limit of ${maxActiveBetsPerUser} active bets. Please wait for your current bets to settle.`,
+        });
       }
 
       const stakeAmount = stake;

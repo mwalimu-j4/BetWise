@@ -5,6 +5,7 @@ import { prisma } from "../lib/prisma";
 import { getOrCreateWallet } from "../lib/wallet";
 import { emitWalletUpdate } from "../lib/socket";
 import { createDepositNotifications } from "./notifications.controller";
+import { getSystemSettings } from "../lib/settings";
 import {
   initializePaystackTransaction,
   verifyPaystackTransaction,
@@ -20,9 +21,6 @@ import {
 // ============================================================================
 
 const paystackDepositSchema = paystackInitializeSchema.extend({
-  amount: paystackInitializeSchema.shape.amount
-    .min(100, "Minimum amount is 100 KES")
-    .max(500000, "Maximum amount is 500,000 KES"),
   callbackUrl: z.string().url().optional(),
 });
 
@@ -455,6 +453,11 @@ async function finalizePaystackDeposit(
   const wallet = transaction.wallet;
   const verificationPayload = toSafeJson(verificationResult.data);
 
+  const settings = await getSystemSettings();
+  const { depositTaxPercent } = settings.taxAndFinancialRules;
+  const taxAmount = (transaction.amount * depositTaxPercent) / 100;
+  const netAmount = transaction.amount - taxAmount;
+
   const updatedWallet = await prisma.$transaction(async (tx) => {
     const transition = await tx.walletTransaction.updateMany({
       where: {
@@ -472,6 +475,9 @@ async function finalizePaystackDeposit(
           verifiedAt: processedAt.toISOString(),
           verificationData: verificationPayload,
           paystackReference: verificationResult.data.reference,
+          netAmount,
+          taxAmount,
+          depositTaxPercent,
         },
       },
     });
@@ -484,7 +490,7 @@ async function finalizePaystackDeposit(
       where: { id: wallet.id },
       data: {
         balance: {
-          increment: transaction.amount,
+          increment: netAmount,
         },
       },
     });
@@ -517,9 +523,9 @@ async function finalizePaystackDeposit(
   emitWalletUpdate(transaction.userId, {
     transactionId: transaction.id,
     status: "COMPLETED",
-    message: "Deposit successful",
+    message: `Deposit successful${taxAmount > 0 ? `. Tax of KES ${taxAmount} deducted.` : ""}`,
     balance: updatedWallet.balance,
-    amount: transaction.amount,
+    amount: netAmount,
   });
 
   await createDepositNotifications({
@@ -596,6 +602,29 @@ export async function initializePaystackPayment(
 
     if (authenticatedUser && authenticatedUser.email !== body.email) {
       res.status(403).json({ error: "Email does not match your account" });
+      return;
+    }
+
+    const settings = await getSystemSettings();
+    const { minDeposit, maxDeposit } = settings.userDefaultsAndRestrictions;
+    const paystackEnabled = settings.paymentsConfig.methods.paystack;
+
+    if (!paystackEnabled) {
+      res.status(403).json({ error: "Paystack payments are currently disabled." });
+      return;
+    }
+
+    if (body.amount < minDeposit) {
+      res.status(400).json({
+        error: `Minimum deposit is KES ${minDeposit.toLocaleString()}.`,
+      });
+      return;
+    }
+
+    if (body.amount > maxDeposit) {
+      res.status(400).json({
+        error: `Maximum deposit is KES ${maxDeposit.toLocaleString()}.`,
+      });
       return;
     }
 

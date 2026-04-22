@@ -7,6 +7,7 @@ import { prisma } from "../lib/prisma";
 import { getOrCreateWallet } from "../lib/wallet";
 import { emitWalletUpdate } from "../lib/socket";
 import { createDepositNotifications } from "./notifications.controller";
+import { getSystemSettings } from "../lib/settings";
 import {
   getMpesaAccessToken,
   getMpesaConfig,
@@ -18,11 +19,7 @@ import {
   type MpesaStkQueryResponse,
 } from "../lib/mpesa";
 
-const mpesaDepositSchema = stkPushBodySchema.extend({
-  amount: stkPushBodySchema.shape.amount
-    .min(100, "Minimum amount is 100 KES")
-    .max(200000, "Maximum amount is 200,000 KES"),
-});
+const mpesaDepositSchema = stkPushBodySchema;
 
 const mpesaStatusParamsSchema = z.object({
   transactionId: z.string().uuid(),
@@ -70,22 +67,6 @@ function isPendingQueryResult(resultCode?: string) {
   return ["", "1037", "1025", "9999"].includes((resultCode ?? "").trim());
 }
 
-async function getDepositSettings() {
-  const settings = await prisma.adminSettings.findUnique({
-    where: { key: "global" },
-    select: {
-      paymentMpesaEnabled: true,
-      minDeposit: true,
-      maxDeposit: true,
-    },
-  });
-
-  return {
-    mpesaEnabled: settings?.paymentMpesaEnabled ?? false,
-    minDeposit: settings?.minDeposit ?? 100,
-    maxDeposit: settings?.maxDeposit ?? 200000,
-  };
-}
 
 async function finalizeSuccessfulMpesaDeposit(args: {
   transactionId: string;
@@ -116,12 +97,17 @@ async function finalizeSuccessfulMpesaDeposit(args: {
       return null;
     }
 
+    const settings = await getSystemSettings();
+    const { depositTaxPercent } = settings.taxAndFinancialRules;
+    const taxAmount = (transaction.amount * depositTaxPercent) / 100;
+    const netAmount = transaction.amount - taxAmount;
+
     const wallet = transaction.wallet ?? (await getOrCreateWallet(transaction.userId, tx));
     const updatedWallet = await tx.wallet.update({
       where: { id: wallet.id },
       data: {
         balance: {
-          increment: transaction.amount,
+          increment: netAmount,
         },
       },
       select: { balance: true },
@@ -133,6 +119,13 @@ async function finalizeSuccessfulMpesaDeposit(args: {
         walletId: wallet.id,
         status: "COMPLETED",
         processedAt: new Date(),
+        providerCallback: {
+          ...(transaction.providerCallback as any),
+          ...(args.providerCallback as any),
+          netAmount,
+          taxAmount,
+          depositTaxPercent,
+        },
         providerReceiptNumber:
           args.providerReceiptNumber ?? transaction.providerReceiptNumber ?? undefined,
         providerResponseCode:
@@ -141,7 +134,6 @@ async function finalizeSuccessfulMpesaDeposit(args: {
           args.providerResponseDescription ??
           transaction.providerResponseDescription ??
           "M-Pesa payment completed successfully.",
-        providerCallback: args.providerCallback ?? transaction.providerCallback ?? undefined,
       },
     });
 
@@ -151,9 +143,9 @@ async function finalizeSuccessfulMpesaDeposit(args: {
       merchantRequestId: updatedTransaction.merchantRequestId,
       mpesaCode: updatedTransaction.providerReceiptNumber,
       status: "COMPLETED",
-      message: "M-Pesa deposit completed successfully.",
+      message: `M-Pesa deposit completed successfully.${taxAmount > 0 ? ` Tax of KES ${taxAmount} deducted.` : ""}`,
       balance: updatedWallet.balance,
-      amount: updatedTransaction.amount,
+      amount: netAmount,
     });
 
     await createDepositNotifications({
@@ -453,23 +445,25 @@ export async function initializeMpesaDeposit(req: Request, res: Response) {
     }
 
     const body = mpesaDepositSchema.parse(req.body);
-    const settings = await getDepositSettings();
+    const settings = await getSystemSettings();
+    const { minDeposit, maxDeposit } = settings.userDefaultsAndRestrictions;
+    const mpesaEnabled = settings.paymentsConfig.methods.mpesa;
 
-    if (!settings.mpesaEnabled) {
+    if (!mpesaEnabled) {
       res.status(403).json({ message: "M-Pesa deposits are currently disabled." });
       return;
     }
 
-    if (body.amount < settings.minDeposit) {
+    if (body.amount < minDeposit) {
       res.status(400).json({
-        message: `Minimum deposit is KES ${settings.minDeposit.toLocaleString()}.`,
+        message: `Minimum deposit is KES ${minDeposit.toLocaleString()}.`,
       });
       return;
     }
 
-    if (body.amount > settings.maxDeposit) {
+    if (body.amount > maxDeposit) {
       res.status(400).json({
-        message: `Maximum deposit is KES ${settings.maxDeposit.toLocaleString()}.`,
+        message: `Maximum deposit is KES ${maxDeposit.toLocaleString()}.`,
       });
       return;
     }
