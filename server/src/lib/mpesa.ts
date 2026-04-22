@@ -346,6 +346,51 @@ export function getValue(
   return items.find((item) => item.Name === name)?.Value;
 }
 
+export async function initiateMpesaB2C(args: {
+  phoneNumber: string;
+  amount: number;
+  remarks?: string;
+  occasion?: string;
+}): Promise<MpesaB2CResponse> {
+  const config = getMpesaB2CConfig();
+  if (!config.isConfigured) {
+    throw new Error(
+      `M-Pesa B2C not configured: ${config.missingVars.join(", ")}`,
+    );
+  }
+
+  const tokenResponse = await getMpesaAccessToken(config);
+
+  const payload = {
+    InitiatorName: config.initiatorName,
+    SecurityCredential: config.securityCredential,
+    CommandID: config.commandId,
+    Amount: args.amount,
+    PartyA: config.shortcode,
+    PartyB: args.phoneNumber,
+    Remarks: args.remarks || "Withdrawal",
+    QueueTimeOutURL: config.timeoutUrl,
+    ResultURL: config.resultUrl,
+    Occassion: args.occasion || "",
+  };
+
+  const response = await fetch(`${config.baseUrl}/mpesa/b2c/v1/paymentrequest`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${tokenResponse.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`M-Pesa B2C request failed: ${errorBody}`);
+  }
+
+  return (await response.json()) as MpesaB2CResponse;
+}
+
 export function normalizeCallbackValue(value: unknown): string | null {
   if (typeof value === "string") {
     return value;
