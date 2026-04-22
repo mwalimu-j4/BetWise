@@ -945,40 +945,22 @@ adminCustomEventsRouter.post(
             },
           });
 
-          // 5. Process winning bets with tax and rounding
-          const settings = await getSystemSettings();
-          const { winningsTaxPercent, roundingRule } = settings.taxAndFinancialRules;
-
+          // 5. Mark winning bets
           if (winningBets.length > 0) {
+            await tx.customBet.updateMany({
+              where: {
+                selectionId: winningSelectionId,
+                status: "PENDING",
+              },
+              data: { status: "WON", settledAt: new Date() },
+            });
+
+            // 6. Credit wallets
             for (const bet of winningBets) {
-              const { netPayout, taxAmount } = calculatePayoutWithTax(
-                bet.potentialWin,
-                bet.stake,
-                winningsTaxPercent,
-                roundingRule
-              );
-
-              // Update bet with net payout and tax info
-              await tx.customBet.update({
-                where: { id: bet.id },
-                data: {
-                  status: "WON",
-                  settledAt: new Date(),
-                  // We might want to store netPayout and taxAmount in the DB, 
-                  // but let's stick to current schema for now if possible.
-                  // Actually, potentialWin is what was promised.
-                },
-              });
-
-              // Credit wallet with net payout
               await tx.wallet.update({
                 where: { userId: bet.userId },
-                data: { balance: { increment: netPayout } },
+                data: { balance: { increment: Math.round(bet.potentialWin) } },
               });
-              
-              // Attach net payout and tax info to the bet object for notifications
-              (bet as any).netPayout = netPayout;
-              (bet as any).taxAmount = taxAmount;
             }
           }
 
@@ -1043,15 +1025,12 @@ adminCustomEventsRouter.post(
       // Send notifications to winning bettors
       const eventName = `${market.event.teamHome} vs ${market.event.teamAway}`;
       for (const bet of result.winningBets) {
-        const netPayout = (bet as any).netPayout ?? bet.potentialWin;
-        const taxAmount = (bet as any).taxAmount ?? 0;
-        
         void createBetSettlementNotification({
           userId: bet.userId,
           betCode: `CB-${bet.id.slice(0, 8).toUpperCase()}`,
           eventName,
           stake: bet.stake,
-          potentialPayout: netPayout,
+          potentialPayout: bet.potentialWin,
           status: "WON",
         });
       }
