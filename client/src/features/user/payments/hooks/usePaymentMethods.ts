@@ -16,7 +16,7 @@ export type EnabledPaymentMethods = {
   betting: {
     minBetAmount: number;
     maxBetAmount: number;
-    maxTotalOdds: number;
+    maxWinPerBet: number;
   };
   currency: string;
 };
