@@ -577,7 +577,7 @@ export default function DepositPage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-5xl px-4 py-8">
+    <section className="mx-auto w-full max-w-5xl px-4 py-8 lg:relative">
       <PaymentLoadingModal
         isOpen={isProcessing}
         amount={processingAmount}
@@ -658,36 +658,63 @@ export default function DepositPage() {
         </div>
       ) : activeMethod ? (
         <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-start lg:justify-end">
-            {showMethodToggle ? (
-              <div className="inline-flex w-full self-stretch rounded-2xl border border-[#23415d] bg-[#08111d] p-1.5 shadow-[0_18px_40px_rgba(4,12,22,0.35)] sm:self-center lg:w-auto lg:self-auto">
-                {enabledDepositMethods.map((method) => {
-                  const isActive = method === activeMethod;
+          {showMethodToggle ? (
+            <>
+              <div className="flex justify-center lg:hidden">
+                <div className="inline-flex w-full max-w-md rounded-2xl border border-[#23415d] bg-[#08111d] p-1.5 shadow-[0_18px_40px_rgba(4,12,22,0.35)]">
+                  {enabledDepositMethods.map((method) => {
+                    const isActive = method === activeMethod;
 
-                  return (
-                    <button
-                      key={method}
-                      type="button"
-                      onClick={() => setSelectedMethod(method)}
-                      className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 sm:min-w-[150px] lg:flex-none ${
-                        isActive
-                          ? "bg-[#f5c518] text-black shadow-[0_10px_30px_rgba(245,197,24,0.2)]"
-                          : "text-[#8ea6bb] hover:bg-[#102134] hover:text-white"
-                      }`}
-                    >
-                      {getMethodLabel(method)}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setSelectedMethod(method)}
+                        className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                          isActive
+                            ? "bg-[#f5c518] text-black shadow-[0_10px_30px_rgba(245,197,24,0.2)]"
+                            : "text-[#8ea6bb] hover:bg-[#102134] hover:text-white"
+                        }`}
+                      >
+                        {getMethodLabel(method)}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            ) : (
-              <div className="inline-flex items-center self-start rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#f5c518] lg:ml-auto">
+
+              <div className="hidden lg:absolute lg:right-4 lg:top-8 lg:block">
+                <div className="inline-flex rounded-2xl border border-[#23415d] bg-[#08111d] p-1.5 shadow-[0_18px_40px_rgba(4,12,22,0.35)]">
+                  {enabledDepositMethods.map((method) => {
+                    const isActive = method === activeMethod;
+
+                    return (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setSelectedMethod(method)}
+                        className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 min-w-[150px] ${
+                          isActive
+                            ? "bg-[#f5c518] text-black shadow-[0_10px_30px_rgba(245,197,24,0.2)]"
+                            : "text-[#8ea6bb] hover:bg-[#102134] hover:text-white"
+                        }`}
+                      >
+                        {getMethodLabel(method)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-center lg:justify-end">
+              <div className="inline-flex items-center rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#f5c518]">
                 {getMethodLabel(activeMethod)} enabled
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          <div className="mx-auto w-full max-w-[1016px]">
+          <div className="mx-auto w-full max-w-5xl">
             {renderDepositCard(activeMethod)}
           </div>
         </div>
