@@ -24,7 +24,7 @@ import {
   Shield,
   Sparkles,
   UserCog,
-  Zap
+  Zap,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
