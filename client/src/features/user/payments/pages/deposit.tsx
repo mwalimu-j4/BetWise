@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
   AlertCircle,
@@ -102,6 +102,7 @@ export default function DepositPage() {
   );
   const [isMethodMenuOpen, setIsMethodMenuOpen] = useState(false);
   const [isMethodMenuPreparing, setIsMethodMenuPreparing] = useState(false);
+  const methodMenuTimerRef = useRef<number | null>(null);
 
   const mpesaAmount = Number(amounts.mpesa) || 0;
   const paystackAmount = Number(amounts.paystack) || 0;
@@ -243,19 +244,35 @@ export default function DepositPage() {
     shouldVerifyPaystack,
   ]);
 
-  useEffect(() => {
-    if (!isMethodMenuOpen) {
+  useEffect(
+    () => () => {
+      if (methodMenuTimerRef.current !== null) {
+        window.clearTimeout(methodMenuTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const onMethodMenuOpenChange = (open: boolean) => {
+    if (methodMenuTimerRef.current !== null) {
+      window.clearTimeout(methodMenuTimerRef.current);
+      methodMenuTimerRef.current = null;
+    }
+
+    setIsMethodMenuOpen(open);
+
+    if (!open) {
       setIsMethodMenuPreparing(false);
       return;
     }
 
+    // Open immediately, then briefly show feedback without blocking the menu.
     setIsMethodMenuPreparing(true);
-    const timer = window.setTimeout(() => {
+    methodMenuTimerRef.current = window.setTimeout(() => {
       setIsMethodMenuPreparing(false);
-    }, 180);
-
-    return () => window.clearTimeout(timer);
-  }, [isMethodMenuOpen]);
+      methodMenuTimerRef.current = null;
+    }, 20);
+  };
 
   useEffect(() => {
     const status = mpesaStatusQuery.data?.status;
@@ -473,7 +490,10 @@ export default function DepositPage() {
     );
 
   const renderMethodDropdown = (align: "center" | "end") => (
-    <DropdownMenu open={isMethodMenuOpen} onOpenChange={setIsMethodMenuOpen}>
+    <DropdownMenu
+      open={isMethodMenuOpen}
+      onOpenChange={onMethodMenuOpenChange}
+    >
       <DropdownMenuTrigger asChild>
         <button
           type="button"
@@ -498,8 +518,10 @@ export default function DepositPage() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
+        forceMount
         align={align}
-        className="w-48 rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_12px_26px_rgba(4,12,22,0.35)] data-[state=open]:animate-none data-[state=closed]:animate-none"
+        sideOffset={2}
+        className="w-48 rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_10px_20px_rgba(4,12,22,0.24)] data-[state=open]:animate-none data-[state=closed]:animate-none"
       >
         {isMethodMenuPreparing ? (
           <div className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-xs font-medium text-[#9fb4c9]">
