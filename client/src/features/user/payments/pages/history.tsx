@@ -99,16 +99,16 @@ export default function PaymentsHistoryPage() {
               <table className="min-w-[680px] w-full table-fixed">
                 <thead className="border-b border-[#1a2f45] bg-[#0d1829]">
                   <tr className="text-left">
-                    <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
+                    <th className="px-3 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c] sm:px-6">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
+                    <th className="px-3 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c] sm:px-6">
                       Date
                     </th>
-                    <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
+                    <th className="px-3 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c] sm:px-6">
                       Amount
                     </th>
-                    <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
+                    <th className="px-3 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c] sm:px-6">
                       Status
                     </th>
                   </tr>
@@ -119,17 +119,17 @@ export default function PaymentsHistoryPage() {
                       key={item.id}
                       className="border-b border-[#1a2f45] transition hover:bg-[#0d1829]"
                     >
-                      <td className="whitespace-nowrap px-6 py-4">
+                      <td className="whitespace-nowrap px-3 py-4 sm:px-6">
                         <span
                           className={`text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
                         >
                           {titleCase(item.type)}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-xs text-[#3d5a73]">
+                      <td className="whitespace-nowrap px-3 py-4 text-xs text-[#3d5a73] sm:px-6">
                         {formatDateTime(item.createdAt)}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4">
+                      <td className="whitespace-nowrap px-3 py-4 sm:px-6">
                         <span
                           className={`text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
                         >
@@ -139,7 +139,7 @@ export default function PaymentsHistoryPage() {
                           {formatMoney(item.amount)}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4">
+                      <td className="whitespace-nowrap px-3 py-4 sm:px-6">
                         <span
                           className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[item.status as TransactionStatus] ?? ""}`}
                         >
