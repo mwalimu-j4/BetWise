@@ -77,9 +77,8 @@ export default function DepositPage() {
   const [paymentStatus, setPaymentStatus] = useState<PaymentResult>(null);
   const [showPaymentResult, setShowPaymentResult] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingMethod, setProcessingMethod] = useState<DepositMethod | null>(
-    null,
-  );
+  const [processingMethod, setProcessingMethod] =
+    useState<DepositMethod | null>(null);
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
   const [shouldVerifyPaystack, setShouldVerifyPaystack] = useState(false);
   const [paystackReference, setPaystackReference] = useState<string | null>(
@@ -120,7 +119,7 @@ export default function DepositPage() {
   const activeMethod =
     selectedMethod && enabledDepositMethods.includes(selectedMethod)
       ? selectedMethod
-      : enabledDepositMethods[0] ?? null;
+      : (enabledDepositMethods[0] ?? null);
 
   useEffect(() => {
     if (enabledDepositMethods.length === 0) {
@@ -168,7 +167,9 @@ export default function DepositPage() {
       }
     }
 
-    const storedMpesaTransactionId = localStorage.getItem(mpesaPendingStorageKey);
+    const storedMpesaTransactionId = localStorage.getItem(
+      mpesaPendingStorageKey,
+    );
     if (storedMpesaTransactionId) {
       setProcessingMethod("mpesa");
       setPendingMpesaTransactionId(storedMpesaTransactionId);
@@ -219,7 +220,9 @@ export default function DepositPage() {
       setIsProcessing(false);
       setPaymentStatus("failed");
       setShowPaymentResult(true);
-      toast.error("Payment verification timed out. Please check again shortly.");
+      toast.error(
+        "Payment verification timed out. Please check again shortly.",
+      );
     }
   }, [
     paystackReference,
@@ -319,7 +322,10 @@ export default function DepositPage() {
     }));
   }
 
-  async function onSubmit(method: DepositMethod, event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(
+    method: DepositMethod,
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     const amountValue = Number(amounts[method]) || 0;
@@ -357,9 +363,12 @@ export default function DepositPage() {
         localStorage.setItem(mpesaPendingStorageKey, response.transactionId);
         setPendingMpesaTransactionId(response.transactionId);
         setPaymentReference(response.transactionId);
-        toast.success(response.customerMessage ?? "STK push sent to your phone.", {
-          description: `Approve KES ${formatMoney(amountValue)} on your phone.`,
-        });
+        toast.success(
+          response.customerMessage ?? "STK push sent to your phone.",
+          {
+            description: `Approve KES ${formatMoney(amountValue)} on your phone.`,
+          },
+        );
       } catch (error: any) {
         setIsProcessing(false);
         const message =
@@ -513,7 +522,10 @@ export default function DepositPage() {
                 </div>
               </div>
 
-              <form onSubmit={(event) => void onSubmit(method, event)} className="space-y-4">
+              <form
+                onSubmit={(event) => void onSubmit(method, event)}
+                className="space-y-4"
+              >
                 <label className="block space-y-2">
                   <span className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
                     Amount (KES)
@@ -521,7 +533,10 @@ export default function DepositPage() {
                   <Input
                     value={amount}
                     onChange={(event) =>
-                      setMethodAmount(method, normalizeAmount(event.target.value))
+                      setMethodAmount(
+                        method,
+                        normalizeAmount(event.target.value),
+                      )
                     }
                     inputMode="numeric"
                     type="text"
@@ -568,9 +583,7 @@ export default function DepositPage() {
         amount={processingAmount}
         message={processingMessage}
         onCancel={onCancelProcessing}
-        cancelLabel={
-          processingMethod === "mpesa" ? "Cancel Waiting" : "Close"
-        }
+        cancelLabel={processingMethod === "mpesa" ? "Cancel Waiting" : "Close"}
       />
 
       <PaymentFeedbackModal
@@ -625,7 +638,9 @@ export default function DepositPage() {
 
       {isPaymentMethodsLoading ? (
         <div className="mx-auto max-w-md rounded-3xl border border-[#3d5a73] bg-[#101c2a] p-6 text-center text-sm text-[#a8c4e0] shadow-inner">
-          <p className="font-semibold text-white">Loading payment settings...</p>
+          <p className="font-semibold text-white">
+            Loading payment settings...
+          </p>
           <p className="mt-2 text-[#8a9bb0]">
             Checking available deposit methods. Please wait a moment.
           </p>
@@ -642,23 +657,10 @@ export default function DepositPage() {
           </p>
         </div>
       ) : activeMethod ? (
-        <div className="space-y-5">
-          <div className="flex flex-col gap-4 rounded-3xl border border-[#1a2f45] bg-[#0d1829] px-5 py-4 shadow-xl sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-[#5f7b95]">
-                Deposit Funds
-              </p>
-              <h1 className="mt-1 text-2xl font-bold text-white">
-                Fund your wallet
-              </h1>
-              <p className="mt-1 text-sm text-[#89a1b7]">
-                Use {getMethodLabel(activeMethod)} to add money to your BetWise
-                wallet.
-              </p>
-            </div>
-
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-start lg:justify-end">
             {showMethodToggle ? (
-              <div className="inline-flex w-full rounded-2xl border border-[#23415d] bg-[#08111d] p-1.5 sm:w-auto">
+              <div className="inline-flex w-full self-stretch rounded-2xl border border-[#23415d] bg-[#08111d] p-1.5 shadow-[0_18px_40px_rgba(4,12,22,0.35)] sm:self-center lg:w-auto lg:self-auto">
                 {enabledDepositMethods.map((method) => {
                   const isActive = method === activeMethod;
 
@@ -667,7 +669,7 @@ export default function DepositPage() {
                       key={method}
                       type="button"
                       onClick={() => setSelectedMethod(method)}
-                      className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 sm:flex-none ${
+                      className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 sm:min-w-[150px] lg:flex-none ${
                         isActive
                           ? "bg-[#f5c518] text-black shadow-[0_10px_30px_rgba(245,197,24,0.2)]"
                           : "text-[#8ea6bb] hover:bg-[#102134] hover:text-white"
@@ -679,20 +681,24 @@ export default function DepositPage() {
                 })}
               </div>
             ) : (
-              <div className="inline-flex items-center rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#f5c518]">
+              <div className="inline-flex items-center self-start rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#f5c518] lg:ml-auto">
                 {getMethodLabel(activeMethod)} enabled
               </div>
             )}
           </div>
 
-          {renderDepositCard(activeMethod)}
+          <div className="mx-auto w-full max-w-[1016px]">
+            {renderDepositCard(activeMethod)}
+          </div>
         </div>
       ) : (
         <div className="mx-auto max-w-md rounded-3xl border border-[#7a2f36] bg-[#2a101e] p-6 text-center text-sm text-[#f2c7cb] shadow-inner">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#7a2f36]/10 text-[#f5a8ad]">
             <AlertCircle className="h-7 w-7" />
           </div>
-          <p className="font-semibold text-white">Unable to load deposit mode</p>
+          <p className="font-semibold text-white">
+            Unable to load deposit mode
+          </p>
           <p className="mt-2 text-[#d7b1b8]">
             Please refresh the page and try again.
           </p>
