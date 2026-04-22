@@ -7,6 +7,7 @@ import {
   CreditCard,
   LoaderCircle,
   ShieldCheck,
+  Smartphone,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -447,27 +448,41 @@ export default function DepositPage() {
   const getMethodLabel = (method: DepositMethod) =>
     method === "mpesa" ? "M-Pesa" : "Paystack";
 
+  const getMethodIcon = (method: DepositMethod, className = "h-4 w-4") =>
+    method === "mpesa" ? (
+      <Smartphone className={className} />
+    ) : (
+      <CreditCard className={className} />
+    );
+
   const renderMethodDropdown = (align: "center" | "end") => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex w-full min-w-0 items-center justify-between rounded-2xl border border-[#23415d] bg-[#08111d] px-4 py-3 text-left shadow-[0_18px_40px_rgba(4,12,22,0.35)] transition-colors hover:border-[#32597d] sm:w-[220px]"
+          className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-[#23415d] bg-[#08111d] px-3 py-2.5 text-left shadow-[0_14px_30px_rgba(4,12,22,0.28)] transition-colors hover:border-[#32597d] sm:w-[176px]"
         >
-          <span className="min-w-0">
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-[#69839c]">
-              Payment Method
+          <span className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#f5c518]/15 bg-[#f5c518]/10 text-[#f5c518]">
+              {getMethodIcon(activeMethod!, "h-4 w-4")}
             </span>
-            <span className="mt-1 block truncate text-sm font-semibold text-white">
-              {getMethodLabel(activeMethod!)}
+            <span className="min-w-0">
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#69839c]">
+                Method
+              </span>
+              <span className="mt-0.5 block truncate text-sm font-semibold text-white">
+                {getMethodLabel(activeMethod!)}
+              </span>
             </span>
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-[#f5c518]" />
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#102134] text-[#f5c518]">
+            <ChevronDown className="h-4 w-4" />
+          </span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
-        className="w-56 rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_24px_50px_rgba(4,12,22,0.55)]"
+        className="w-52 rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_24px_50px_rgba(4,12,22,0.55)]"
       >
         {enabledDepositMethods.map((method) => {
           const isActive = method === activeMethod;
@@ -476,9 +491,14 @@ export default function DepositPage() {
             <DropdownMenuItem
               key={method}
               onClick={() => setSelectedMethod(method)}
-              className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold text-[#dce7f2] outline-none transition-colors focus:bg-[#102134] focus:text-white"
+              className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-[#dce7f2] outline-none transition-colors focus:bg-[#102134] focus:text-white"
             >
-              <span>{getMethodLabel(method)}</span>
+              <span className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#f5c518]/15 bg-[#f5c518]/10 text-[#f5c518]">
+                  {getMethodIcon(method, "h-3.5 w-3.5")}
+                </span>
+                <span>{getMethodLabel(method)}</span>
+              </span>
               {isActive ? <Check className="h-4 w-4 text-[#f5c518]" /> : null}
             </DropdownMenuItem>
           );
@@ -527,9 +547,9 @@ export default function DepositPage() {
               {showMethodToggle
                 ? renderMethodDropdown("end")
                 : !isMpesa && (
-                    <span className="flex items-center gap-1.5 rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1 text-[11px] font-semibold text-[#f5c518]">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f5c518]/15 bg-[#f5c518]/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#f5c518]">
                       <ShieldCheck className="h-3 w-3" />
-                      Powered by Paystack
+                      Secure
                     </span>
                   )}
             </div>
