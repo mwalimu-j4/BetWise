@@ -134,17 +134,6 @@ export async function getSystemSettings(): Promise<AdminSettingsConfig> {
         ipWhitelist: settings.ipWhitelist,
         ipBlacklist: settings.ipBlacklist,
       },
-      taxAndFinancialRules: {
-        winningsTaxPercent: settings.winningsTaxPercent,
-        depositTaxPercent: settings.depositTaxPercent,
-        commissionPercent: settings.commissionPercent,
-        roundingRule: settings.roundingRule as
-          | "nearest_1"
-          | "nearest_5"
-          | "nearest_10"
-          | "floor"
-          | "ceil",
-      },
       affiliateAndAgentConfig: {
         commissionPercent: settings.affiliateCommissionPercent,
         multiLevelReferralsEnabled: settings.multiLevelReferralsEnabled,
