@@ -1,16 +1,17 @@
 import { api } from "@/api/axiosConfig";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
-  CheckCircle2,
   CheckSquare,
   Loader2,
   RefreshCw,
   Settings2,
   Shield,
   Square,
+  Zap,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -18,10 +19,6 @@ import {
   AdminCard,
   AdminSectionHeader,
   AdminStatCard,
-  TableShell,
-  adminTableCellClassName,
-  adminTableClassName,
-  adminTableHeadCellClassName,
 } from "../../components/ui";
 
 interface SportCategory {
