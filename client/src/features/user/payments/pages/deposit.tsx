@@ -493,12 +493,7 @@ export default function DepositPage() {
               onClick={() => setSelectedMethod(method)}
               className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-[#dce7f2] outline-none transition-colors focus:bg-[#102134] focus:text-white"
             >
-              <span className="flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#f5c518]/15 bg-[#f5c518]/10 text-[#f5c518]">
-                  {getMethodIcon(method, "h-3.5 w-3.5")}
-                </span>
-                <span>{getMethodLabel(method)}</span>
-              </span>
+              <span>{getMethodLabel(method)}</span>
               {isActive ? <Check className="h-4 w-4 text-[#f5c518]" /> : null}
             </DropdownMenuItem>
           );
@@ -531,7 +526,7 @@ export default function DepositPage() {
                 <img
                   src={mpesaLogoUrl}
                   alt="M-Pesa"
-                  className="h-9 w-auto object-contain"
+                  className="h-12 w-auto object-contain"
                 />
               ) : (
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#f5c518]/20 bg-[#f5c518]/10">
