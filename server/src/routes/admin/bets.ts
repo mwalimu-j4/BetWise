@@ -8,7 +8,6 @@ import { authenticate } from "../../middleware/authenticate";
 import { requireAdmin } from "../../middleware/requireAdmin";
 import { createBetSettlementNotification } from "../../controllers/notifications.controller";
 import { getSystemSettings } from "../../lib/settings";
-import { calculatePayoutWithTax } from "../../utils/betUtils";
 
 const betsAdminRouter = Router();
 
@@ -313,8 +312,8 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
     return res.status(200).json({
       settled: true,
       status: won ? "WON" : "LOST",
-      payout: won ? result?.netPayout : 0,
-      taxDeducted: won ? result?.taxAmount : 0,
+      payout: won ? bet.potentialPayout : 0,
+      taxDeducted: 0,
     });
   } catch (error) {
     next(error);
