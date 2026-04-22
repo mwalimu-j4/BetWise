@@ -12,6 +12,7 @@ import {
 import {
   normalizePhoneNumber,
   toClientTransaction,
+  initiateMpesaB2C,
   type WalletTransactionStatus,
 } from "../lib/mpesa";
 import { getSystemSettings } from "../lib/settings";
@@ -40,6 +41,7 @@ const withdrawalRequestSchema = z.object({
   phone: z.string().trim().min(9).max(20),
   amount: z.number().int().positive(),
   pin: z.string().trim().min(4).max(6).optional(),
+  provider: z.enum(["mpesa", "paystack"]).optional(),
 });
 
 type PaymentEvent = {
@@ -533,7 +535,70 @@ async function initiateWithdrawalDisbursement(args: {
       };
     }
 
-    const payoutResponse = await initiatePaystackWithdrawal(
+    let payoutResponse;
+    if (transaction.channel === "mpesa") {
+      const b2cResponse = await initiateMpesaB2C({
+        phoneNumber: payoutPhone,
+        amount: transaction.amount,
+        remarks: "BetWise Withdrawal",
+      });
+
+      if (b2cResponse.ResponseCode !== "0") {
+        const failureMessage =
+          b2cResponse.ResponseDescription ?? "M-Pesa B2C request rejected.";
+
+        await settleFailedWithdrawal({
+          transactionId: transaction.id,
+          failureReason: failureMessage,
+          failureStage: "B2C_REQUEST",
+          providerResponseDescription: failureMessage,
+          providerCallback: b2cResponse as never,
+        });
+
+        return {
+          ok: false as const,
+          code: 502,
+          message: failureMessage,
+        };
+      }
+
+      const updatedTransaction = await prisma.walletTransaction.update({
+        where: { id: transaction.id },
+        data: {
+          checkoutRequestId: b2cResponse.ConversationID,
+          merchantRequestId: b2cResponse.OriginatorConversationID,
+          providerResponseDescription:
+            b2cResponse.ResponseDescription ||
+            "M-Pesa B2C initiated successfully.",
+          providerCallback: mergeProviderMeta(transaction.providerCallback, {
+            requestedPayoutAt: new Date().toISOString(),
+            disbursementState: "PROCESSING",
+          }),
+        },
+      });
+
+      const wallet = await getOrCreateWallet(updatedTransaction.userId);
+      emitWalletEvent({
+        userId: updatedTransaction.userId,
+        transactionId: updatedTransaction.id,
+        checkoutRequestId: updatedTransaction.checkoutRequestId,
+        merchantRequestId: updatedTransaction.merchantRequestId,
+        status: "PROCESSING",
+        message: "Withdrawal approved and payout request sent via M-Pesa.",
+        balance: wallet.balance,
+        amount: updatedTransaction.amount,
+      });
+
+      return {
+        ok: true as const,
+        code: 200,
+        message: "Withdrawal approved and M-Pesa B2C initiated successfully.",
+        transaction: updatedTransaction,
+      };
+    }
+
+    // Default to Paystack for other channels (including "paystack")
+    payoutResponse = await initiatePaystackWithdrawal(
       payoutPhone,
       transaction.amount,
       transferReference,
@@ -700,11 +765,35 @@ export async function createWithdrawalRequest(
     
     const { withdrawalRequiresKyc } = settings.kycAndComplianceConfig;
     const mpesaEnabled = settings.paymentsConfig.methods.mpesa;
+    const paystackEnabled = settings.paymentsConfig.methods.paystack;
     const feePercentage = settings.paymentsConfig.mpesa.transactionFeePercent;
 
-    if (!mpesaEnabled) {
+    // Determine which provider to use
+    let selectedProvider = parsedBody.data.provider;
+
+    if (!selectedProvider) {
+      if (mpesaEnabled) {
+        selectedProvider = "mpesa";
+      } else if (paystackEnabled) {
+        selectedProvider = "paystack";
+      }
+    }
+
+    if (!selectedProvider) {
       return res.status(403).json({
-        message: "Mobile money withdrawals are currently disabled.",
+        message: "Withdrawals are currently disabled.",
+      });
+    }
+
+    if (selectedProvider === "mpesa" && !mpesaEnabled) {
+      return res.status(403).json({
+        message: "Mobile money (M-Pesa) withdrawals are currently disabled.",
+      });
+    }
+
+    if (selectedProvider === "paystack" && !paystackEnabled) {
+      return res.status(403).json({
+        message: "Paystack withdrawals are currently disabled.",
       });
     }
 
@@ -810,11 +899,11 @@ export async function createWithdrawalRequest(
           status: "PENDING",
           amount: requestedAmount,
           currency: "KES",
-          channel: "paystack",
+          channel: selectedProvider,
           reference: `WD-${randomUUID()}`,
           phone: normalizedPhone,
           accountReference: "BET-WITHDRAWAL",
-          description: `Withdrawal via Paystack to mobile money (${normalizedPhone})`,
+          description: `Withdrawal via ${selectedProvider === "mpesa" ? "M-Pesa" : "Paystack"} to mobile money (${normalizedPhone})`,
           providerCallback: {
             fee: feeAmount,
             totalDebit,
