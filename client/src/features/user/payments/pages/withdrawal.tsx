@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { Smartphone, ArrowUpRight, LoaderCircle } from "lucide-react";
+import { Smartphone, ArrowUpRight, LoaderCircle, Banknote } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -173,7 +173,8 @@ export default function PaymentsWithdrawalPage() {
                     Amount (KES)
                   </span>
                   <div className="flex overflow-hidden rounded-2xl border border-[#1a2f45] bg-[#0f1d2e] transition-colors focus-within:border-[#f5c518]">
-                    <span className="flex items-center border-r border-[#1a2f45] px-4 text-xs font-bold text-[#3d5a73]">
+                    <span className="flex items-center gap-1.5 border-r border-[#1a2f45] px-3 text-xs font-bold text-[#3d5a73]">
+                      <Banknote className="h-3.5 w-3.5" />
                       KES
                     </span>
                     <input
@@ -198,17 +199,20 @@ export default function PaymentsWithdrawalPage() {
                       M-Pesa Number
                     </p>
                   </div>
-                  <input
-                    className={`mt-2 h-12 w-full rounded-2xl border bg-[#0f1d2e] px-3 text-sm text-white outline-none placeholder:text-[#2e4a63] transition-colors ${
-                      phoneError
-                        ? "border-red-500/60 focus:border-red-500"
-                        : "border-[#1a2f45] focus:border-[#f5c518]"
-                    }`}
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="2547XXXXXXXX"
-                  />
+                  <div className="relative">
+                    <Smartphone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#3d5a73]" />
+                    <input
+                      className={`mt-2 h-12 w-full rounded-2xl border bg-[#0f1d2e] px-3 pl-10 text-sm text-white outline-none placeholder:text-[#2e4a63] transition-colors ${
+                        phoneError
+                          ? "border-red-500/60 focus:border-red-500"
+                          : "border-[#1a2f45] focus:border-[#f5c518]"
+                      }`}
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="2547XXXXXXXX"
+                    />
+                  </div>
                   <p
                     className={`mt-2 text-xs ${
                       phoneError ? "text-red-400" : "text-[#3d5a73]"

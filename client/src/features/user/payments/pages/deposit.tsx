@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
   AlertCircle,
+  Banknote,
   Check,
   ChevronDown,
   CreditCard,
@@ -598,19 +599,22 @@ export default function DepositPage() {
                   <span className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
                     Amount (KES)
                   </span>
-                  <Input
-                    value={amount}
-                    onChange={(event) =>
-                      setMethodAmount(
-                        method,
-                        normalizeAmount(event.target.value),
-                      )
-                    }
-                    inputMode="numeric"
-                    type="text"
-                    placeholder="Enter amount"
-                    className="h-12 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-base text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]"
-                  />
+                  <div className="relative">
+                    <Banknote className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#3d5a73]" />
+                    <Input
+                      value={amount}
+                      onChange={(event) =>
+                        setMethodAmount(
+                          method,
+                          normalizeAmount(event.target.value),
+                        )
+                      }
+                      inputMode="numeric"
+                      type="text"
+                      placeholder="Enter amount"
+                      className="h-12 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] pl-10 text-base text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]"
+                    />
+                  </div>
                   <p className="text-xs text-[#3d5a73]">
                     Minimum deposit: KES 500
                   </p>
