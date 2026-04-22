@@ -453,11 +453,6 @@ async function finalizePaystackDeposit(
   const wallet = transaction.wallet;
   const verificationPayload = toSafeJson(verificationResult.data);
 
-  const settings = await getSystemSettings();
-  const { depositTaxPercent } = settings.taxAndFinancialRules;
-  const taxAmount = (transaction.amount * depositTaxPercent) / 100;
-  const netAmount = transaction.amount - taxAmount;
-
   const updatedWallet = await prisma.$transaction(async (tx) => {
     const transition = await tx.walletTransaction.updateMany({
       where: {
@@ -475,9 +470,6 @@ async function finalizePaystackDeposit(
           verifiedAt: processedAt.toISOString(),
           verificationData: verificationPayload,
           paystackReference: verificationResult.data.reference,
-          netAmount,
-          taxAmount,
-          depositTaxPercent,
         },
       },
     });
@@ -490,7 +482,7 @@ async function finalizePaystackDeposit(
       where: { id: wallet.id },
       data: {
         balance: {
-          increment: netAmount,
+          increment: transaction.amount,
         },
       },
     });
@@ -506,10 +498,12 @@ async function finalizePaystackDeposit(
     return {
       status: "success",
       message: "Payment already processed",
-      reference,
-      transactionId: transaction.id,
-      amount: transaction.amount,
-      processedAt: completedAt,
+      data: {
+        transactionId: transaction.id,
+        status: "COMPLETED",
+        amount: transaction.amount,
+        processedAt: completedAt,
+      },
     };
   }
 
@@ -523,9 +517,9 @@ async function finalizePaystackDeposit(
   emitWalletUpdate(transaction.userId, {
     transactionId: transaction.id,
     status: "COMPLETED",
-    message: `Deposit successful${taxAmount > 0 ? `. Tax of KES ${taxAmount} deducted.` : ""}`,
+    message: "Deposit successful",
     balance: updatedWallet.balance,
-    amount: netAmount,
+    amount: transaction.amount,
   });
 
   await createDepositNotifications({
