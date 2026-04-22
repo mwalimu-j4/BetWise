@@ -177,7 +177,7 @@ export default function PaymentsWithdrawalPage() {
                       KES
                     </span>
                     <input
-                      className="h-14 w-full bg-transparent px-4 text-lg font-semibold text-white outline-none placeholder:text-[#2e4a63]"
+                      className="h-12 w-full bg-transparent px-3 text-base font-semibold text-white outline-none placeholder:text-[#2e4a63]"
                       type="number"
                       min={MIN_WITHDRAWAL}
                       max={MAX_WITHDRAWAL}
@@ -199,7 +199,7 @@ export default function PaymentsWithdrawalPage() {
                     </p>
                   </div>
                   <input
-                    className={`mt-2 h-14 w-full rounded-2xl border bg-[#0f1d2e] px-4 text-sm text-white outline-none placeholder:text-[#2e4a63] transition-colors ${
+                    className={`mt-2 h-12 w-full rounded-2xl border bg-[#0f1d2e] px-3 text-sm text-white outline-none placeholder:text-[#2e4a63] transition-colors ${
                       phoneError
                         ? "border-red-500/60 focus:border-red-500"
                         : "border-[#1a2f45] focus:border-[#f5c518]"
