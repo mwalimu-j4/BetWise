@@ -111,4 +111,50 @@ export function getUnauthorizedHandler() {
   return unauthorizedHandler;
 }
 
+api.interceptors.request.use(
+  (config) => {
+    // Priority: memory variable > localStorage
+    const token = accessToken || getStoredAccessToken();
+
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Handle 401 Unauthorized errors
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log("[Axios] 401 detected, attempting refresh...");
+      originalRequest._retry = true;
+
+      if (refreshHandler) {
+        try {
+          const newToken = await refreshHandler();
+          if (newToken) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return api(originalRequest);
+          }
+        } catch (refreshError) {
+          console.error("[Axios] Refresh failed:", refreshError);
+        }
+      }
+
+      // If no refresh handler or refresh fails, call unauthorized handler
+      if (unauthorizedHandler) {
+        unauthorizedHandler();
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 export { api };

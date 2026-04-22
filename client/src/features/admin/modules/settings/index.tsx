@@ -135,6 +135,81 @@ function setByPath<T extends object>(obj: T, path: string, value: unknown): T {
 
 const sectionDefinitions: SectionDefinition[] = [
   {
+    id: "user-defaults",
+    title: "User Defaults & Restrictions",
+    subtitle: "Wallet defaults, limits, and account verification rules",
+    group: "Financial Operations",
+    icon: <UserCog size={16} />,
+    fields: [
+      {
+        path: "userDefaultsAndRestrictions.minDeposit",
+        label: "Min deposit",
+        type: "number",
+      },
+      {
+        path: "userDefaultsAndRestrictions.maxDeposit",
+        label: "Max deposit",
+        type: "number",
+      },
+      {
+        path: "userDefaultsAndRestrictions.minWithdrawal",
+        label: "Min withdrawal",
+        type: "number",
+      },
+      {
+        path: "userDefaultsAndRestrictions.maxWithdrawal",
+        label: "Max withdrawal",
+        type: "number",
+      },
+      {
+        path: "userDefaultsAndRestrictions.dailyTransactionLimit",
+        label: "Daily transaction limit",
+        type: "number",
+      },
+      {
+        path: "userDefaultsAndRestrictions.maxActiveBetsPerUser",
+        label: "Max active bets per user",
+        type: "number",
+      },
+    ],
+  },
+  {
+    id: "tax-rules",
+    title: "Tax & Financial Rules",
+    subtitle: "Winnings tax, deposit tax, and rounding rules",
+    group: "Financial Operations",
+    icon: <Percent size={16} />,
+    fields: [
+      {
+        path: "taxAndFinancialRules.winningsTaxPercent",
+        label: "Winnings Tax (%)",
+        type: "number",
+      },
+      {
+        path: "taxAndFinancialRules.depositTaxPercent",
+        label: "Deposit Tax (%)",
+        type: "number",
+      },
+      {
+        path: "taxAndFinancialRules.commissionPercent",
+        label: "Commission (%)",
+        type: "number",
+      },
+      {
+        path: "taxAndFinancialRules.roundingRule",
+        label: "Rounding Rule",
+        type: "select",
+        options: [
+          { label: "Nearest 1 KES", value: "nearest_1" },
+          { label: "Nearest 5 KES", value: "nearest_5" },
+          { label: "Nearest 10 KES", value: "nearest_10" },
+          { label: "Floor (Down)", value: "floor" },
+          { label: "Ceil (Up)", value: "ceil" },
+        ],
+      },
+    ],
+  },
+  {
     id: "mpesa",
     title: "M-Pesa Integration",
     subtitle: "STK Push, B2C transfers, and automated reconciliation",
