@@ -176,13 +176,7 @@ const sectionDefinitions: SectionDefinition[] = [
     title: "M-Pesa Integration",
     subtitle: "STK Push, B2C transfers, and automated reconciliation",
     group: "Financial Operations",
-    icon: (
-      <img
-        src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
-        className="h-7 w-auto object-contain"
-        alt="M-Pesa"
-      />
-    ),
+    icon: <Globe size={16} />,
     fields: [
       { type: "header", label: "Api Configuration" },
       {
@@ -233,13 +227,7 @@ const sectionDefinitions: SectionDefinition[] = [
     title: "Paystack Gateway",
     subtitle: "Card payments, Apple Pay, and bank transfers via Paystack",
     group: "Financial Operations",
-    icon: (
-      <img
-        src="/images/paystack.png"
-        className="h-6 w-auto object-contain"
-        alt="Paystack"
-      />
-    ),
+    icon: <Globe size={16} />,
     fields: [
       { type: "header", label: "API Credentials" },
       {
