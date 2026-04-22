@@ -174,42 +174,6 @@ const sectionDefinitions: SectionDefinition[] = [
     ],
   },
   {
-    id: "tax-rules",
-    title: "Tax & Financial Rules",
-    subtitle: "Winnings tax, deposit tax, and rounding rules",
-    group: "Financial Operations",
-    icon: <Percent size={16} />,
-    fields: [
-      {
-        path: "taxAndFinancialRules.winningsTaxPercent",
-        label: "Winnings Tax (%)",
-        type: "number",
-      },
-      {
-        path: "taxAndFinancialRules.depositTaxPercent",
-        label: "Deposit Tax (%)",
-        type: "number",
-      },
-      {
-        path: "taxAndFinancialRules.commissionPercent",
-        label: "Commission (%)",
-        type: "number",
-      },
-      {
-        path: "taxAndFinancialRules.roundingRule",
-        label: "Rounding Rule",
-        type: "select",
-        options: [
-          { label: "Nearest 1 KES", value: "nearest_1" },
-          { label: "Nearest 5 KES", value: "nearest_5" },
-          { label: "Nearest 10 KES", value: "nearest_10" },
-          { label: "Floor (Down)", value: "floor" },
-          { label: "Ceil (Up)", value: "ceil" },
-        ],
-      },
-    ],
-  },
-  {
     id: "mpesa",
     title: "M-Pesa Integration",
     subtitle: "STK Push, B2C transfers, and automated reconciliation",
