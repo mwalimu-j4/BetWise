@@ -170,7 +170,10 @@ const bulkMarginSchema = z.preprocess(
     if (body.filter === undefined) {
       if (Array.isArray(body.eventIds) && body.eventIds.length > 0) {
         body.filter = "selected";
-      } else if (typeof body.sportKey === "string" && body.sportKey.trim().length > 0) {
+      } else if (
+        typeof body.sportKey === "string" &&
+        body.sportKey.trim().length > 0
+      ) {
         body.filter = "sport";
       } else {
         body.filter = "league";
@@ -599,66 +602,71 @@ eventsAdminRouter.get("/admin/events/:eventId", async (req, res, next) => {
   }
 });
 
-eventsAdminRouter.patch(
-  "/admin/events/:eventId",
-  async (req, res, next) => {
-    try {
-      const eventId = Array.isArray(req.params.eventId)
-        ? req.params.eventId[0]
-        : req.params.eventId;
+eventsAdminRouter.patch("/admin/events/:eventId", async (req, res, next) => {
+  try {
+    const eventId = Array.isArray(req.params.eventId)
+      ? req.params.eventId[0]
+      : req.params.eventId;
 
-      if (!eventId) {
-        return res.status(400).json({ message: "Invalid event id." });
-      }
+    if (
+      eventId === "bulk-margin" ||
+      eventId === "bulk-config" ||
+      eventId === "bulk-toggle"
+    ) {
+      return next();
+    }
 
-      const parsedBody = updateEventSchema.safeParse(req.body);
-      if (!parsedBody.success) {
-        return res.status(400).json({ message: "Invalid event update." });
-      }
+    if (!eventId) {
+      return res.status(400).json({ message: "Invalid event id." });
+    }
 
-      const updatedEvent = await prisma.sportEvent.update({
-        where: { eventId },
-        data: {
-          ...(typeof parsedBody.data.isFeatured === "boolean" && {
-            isFeatured: parsedBody.data.isFeatured,
-          }),
-          ...(typeof parsedBody.data.featuredPriority === "number" && {
-            featuredPriority: parsedBody.data.featuredPriority,
-          }),
-        },
-        select: {
-          id: true,
-          eventId: true,
-          leagueName: true,
-          sportKey: true,
-          homeTeam: true,
-          awayTeam: true,
-          commenceTime: true,
-          status: true,
-          homeScore: true,
-          awayScore: true,
-          isActive: true,
-          isFeatured: true,
-          featuredPriority: true,
-          houseMargin: true,
-          marketsEnabled: true,
-          _count: {
-            select: {
-              odds: true,
-              bets: true,
-            },
+    const parsedBody = updateEventSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json({ message: "Invalid event update." });
+    }
+
+    const updatedEvent = await prisma.sportEvent.update({
+      where: { eventId },
+      data: {
+        ...(typeof parsedBody.data.isFeatured === "boolean" && {
+          isFeatured: parsedBody.data.isFeatured,
+        }),
+        ...(typeof parsedBody.data.featuredPriority === "number" && {
+          featuredPriority: parsedBody.data.featuredPriority,
+        }),
+      },
+      select: {
+        id: true,
+        eventId: true,
+        leagueName: true,
+        sportKey: true,
+        homeTeam: true,
+        awayTeam: true,
+        commenceTime: true,
+        status: true,
+        homeScore: true,
+        awayScore: true,
+        isActive: true,
+        isFeatured: true,
+        featuredPriority: true,
+        houseMargin: true,
+        marketsEnabled: true,
+        _count: {
+          select: {
+            odds: true,
+            bets: true,
           },
         },
-      });
+      },
+    });
 
-      invalidateEventsCache();
+    invalidateEventsCache();
 
-      return res.status(200).json(updatedEvent);
-    } catch (error) {
-      next(error);
-    }
-  },
-);
+    return res.status(200).json(updatedEvent);
+  } catch (error) {
+    next(error);
+  }
+});
 
 eventsAdminRouter.patch(
   "/admin/events/:eventId/toggle",
