@@ -167,7 +167,7 @@ export default function PaymentsWithdrawalPage() {
 
           <div className="space-y-5 px-7 py-6">
             <form onSubmit={onSubmit} className="space-y-5">
-              <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+              <div className="space-y-4">
                 <label className="block space-y-2">
                   <span className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
                     Amount (KES)
@@ -191,7 +191,7 @@ export default function PaymentsWithdrawalPage() {
                   </p>
                 </label>
 
-                <div>
+                <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Smartphone size={13} className="text-[#3d5a73]" />
                     <p className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
@@ -250,35 +250,28 @@ export default function PaymentsWithdrawalPage() {
           </DialogHeader>
 
           <div className="space-y-4 px-6 py-5">
-            <div className="grid gap-3 rounded-2xl border border-[#1a2f45] bg-[#0d1829] p-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-[#1e3a5a] bg-[#08111d] px-4 py-3">
-                <p className="text-[10px] uppercase tracking-widest text-[#6e86a1]">
-                  Withdraw
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-white">
-                  {formatMoney(numAmount)}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-[#1e3a5a] bg-[#08111d] px-4 py-3">
-                <p className="text-[10px] uppercase tracking-widest text-[#6e86a1]">
-                  Fee ({WITHDRAWAL_FEE_PERCENTAGE}%)
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-[#f5c518]">
-                  -{formatMoney(feeAmount)}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-[#1e3a5a] bg-[#08111d] px-4 py-3">
-                <p className="text-[10px] uppercase tracking-widest text-[#6e86a1]">
-                  You Receive
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-emerald-400">
-                  {formatMoney(netAmount)}
-                </p>
-              </div>
-            </div>
-
+            <p className="text-sm leading-relaxed text-[#9bb0c6]">
+              You are about to withdraw{" "}
+              <span className="font-semibold text-white">
+                {formatMoney(numAmount)}
+              </span>{" "}
+              to{" "}
+              <span className="font-semibold text-white">{normalizedPhone}</span>
+              .
+            </p>
+            <p className="text-sm leading-relaxed text-[#9bb0c6]">
+              A{" "}
+              <span className="font-semibold text-[#f5c518]">
+                {WITHDRAWAL_FEE_PERCENTAGE}% fee ({formatMoney(feeAmount)})
+              </span>{" "}
+              will apply, and you will receive{" "}
+              <span className="font-semibold text-emerald-400">
+                {formatMoney(netAmount)}
+              </span>
+              .
+            </p>
             <p className="text-xs text-[#6e86a1]">
-              Destination: <span className="font-semibold text-white">{normalizedPhone}</span>
+              Confirm to proceed with this withdrawal request.
             </p>
           </div>
 
