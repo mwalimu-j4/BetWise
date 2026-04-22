@@ -498,12 +498,10 @@ async function finalizePaystackDeposit(
     return {
       status: "success",
       message: "Payment already processed",
-      data: {
-        transactionId: transaction.id,
-        status: "COMPLETED",
-        amount: transaction.amount,
-        processedAt: completedAt,
-      },
+      reference,
+      transactionId: transaction.id,
+      amount: transaction.amount,
+      processedAt: completedAt,
     };
   }
 
