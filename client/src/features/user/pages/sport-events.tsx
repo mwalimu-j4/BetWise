@@ -1,6 +1,8 @@
-import EventCard from "../components/EventCard";
+import { lazy, Suspense } from "react";
 import type { BetSelection } from "../components/hooks/useBetSlip";
 import type { ApiEvent } from "../components/hooks/useEvents";
+
+const EventCard = lazy(() => import("../components/EventCard"));
 
 type SportEventsProps = {
   events: ApiEvent[];
@@ -98,14 +100,22 @@ export default function SportEvents({
           <div
             className={`grid ${eventGridClassName} ${eventGridSpacingClassName}`}
           >
-            {leagueEvents.map((event) => (
-              <EventCard
-                key={event.eventId}
-                event={event}
-                onOddsSelect={onOddsSelect}
-                selectedOdds={selectedOdds}
-              />
-            ))}
+            <Suspense
+              fallback={
+                <div className="col-span-full rounded-xl border border-[#1e3350]/30 bg-[#111d2e]/40 p-4 text-xs text-[#7a94b8]">
+                  Loading events...
+                </div>
+              }
+            >
+              {leagueEvents.map((event) => (
+                <EventCard
+                  key={event.eventId}
+                  event={event}
+                  onOddsSelect={onOddsSelect}
+                  selectedOdds={selectedOdds}
+                />
+              ))}
+            </Suspense>
           </div>
         </section>
       ))}

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
@@ -18,9 +18,10 @@ import {
 } from "lucide-react";
 import { api } from "@/api/axiosConfig";
 import BetSlip from "../components/BetSlip";
-import EventCard from "../components/EventCard";
 import useBetSlip from "../components/hooks/useBetSlip";
 import type { ApiEvent } from "../components/hooks/useEvents";
+
+const EventCard = lazy(() => import("../components/EventCard"));
 
 type SportCategoryInfo = {
   id: string;
@@ -401,14 +402,22 @@ export default function SportCategoryPage() {
                   </div>
                 </div>
                 <div className="space-y-2 p-1.5 sm:space-y-3 sm:p-3 md:p-4">
-                  {liveEvents.map((event) => (
-                    <EventCard
-                      key={event.eventId}
-                      event={event}
-                      onOddsSelect={betSlip.addSelection}
-                      selectedOdds={selectedOdds}
-                    />
-                  ))}
+                  <Suspense
+                    fallback={
+                      <div className="rounded-xl border border-[#1e3350]/30 bg-[#111d2e]/40 p-4 text-xs text-[#7a94b8]">
+                        Loading live events...
+                      </div>
+                    }
+                  >
+                    {liveEvents.map((event) => (
+                      <EventCard
+                        key={event.eventId}
+                        event={event}
+                        onOddsSelect={betSlip.addSelection}
+                        selectedOdds={selectedOdds}
+                      />
+                    ))}
+                  </Suspense>
                 </div>
               </section>
             ) : null}
@@ -529,14 +538,22 @@ export default function SportCategoryPage() {
                             ) : null}
                           </div>
                           <div className="grid gap-1.5 p-1.5 sm:grid-cols-2 sm:gap-3 sm:p-3">
-                            {leagueEvents.map((event) => (
-                              <EventCard
-                                key={event.eventId}
-                                event={event}
-                                onOddsSelect={betSlip.addSelection}
-                                selectedOdds={selectedOdds}
-                              />
-                            ))}
+                            <Suspense
+                              fallback={
+                                <div className="col-span-full rounded-xl border border-[#1e3350]/30 bg-[#111d2e]/40 p-4 text-xs text-[#7a94b8]">
+                                  Loading events...
+                                </div>
+                              }
+                            >
+                              {leagueEvents.map((event) => (
+                                <EventCard
+                                  key={event.eventId}
+                                  event={event}
+                                  onOddsSelect={betSlip.addSelection}
+                                  selectedOdds={selectedOdds}
+                                />
+                              ))}
+                            </Suspense>
                           </div>
                         </section>
                       ),
