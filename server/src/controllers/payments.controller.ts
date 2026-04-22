@@ -812,7 +812,7 @@ export async function createWithdrawalRequest(
       });
     }
 
-    if (settings.withdrawalRequiresKyc && !user.isVerified) {
+    if (withdrawalRequiresKyc && !user.isVerified) {
       return res.status(403).json({
         message:
           "Your account must be verified before you can make withdrawals.",
