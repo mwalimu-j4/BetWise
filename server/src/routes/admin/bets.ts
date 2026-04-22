@@ -7,6 +7,8 @@ import { getOrCreateWallet } from "../../lib/wallet";
 import { authenticate } from "../../middleware/authenticate";
 import { requireAdmin } from "../../middleware/requireAdmin";
 import { createBetSettlementNotification } from "../../controllers/notifications.controller";
+import { getSystemSettings } from "../../lib/settings";
+import { calculatePayoutWithTax } from "../../utils/betUtils";
 
 const betsAdminRouter = Router();
 
@@ -250,7 +252,7 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
           where: { id: wallet.id },
           data: {
             balance: {
-              increment: Math.round(bet.potentialPayout),
+              increment: bet.potentialPayout,
             },
           },
           select: { balance: true },
@@ -262,7 +264,7 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
             walletId: wallet.id,
             type: "BET_WIN",
             status: "COMPLETED",
-            amount: Math.round(bet.potentialPayout),
+            amount: bet.potentialPayout,
             currency: "KES",
             channel: "betting",
             reference: `BET-WIN-${bet.id}`,
@@ -294,7 +296,7 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
         status: "COMPLETED",
         message: "Winning payout credited to your wallet.",
         balance: result.balance,
-        amount: Math.round(bet.potentialPayout),
+        amount: bet.potentialPayout,
       });
     }
 
@@ -311,7 +313,8 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
     return res.status(200).json({
       settled: true,
       status: won ? "WON" : "LOST",
-      payout: won ? bet.potentialPayout : 0,
+      payout: won ? result?.netPayout : 0,
+      taxDeducted: won ? result?.taxAmount : 0,
     });
   } catch (error) {
     next(error);

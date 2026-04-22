@@ -118,10 +118,6 @@ const adminSettingsSelect = {
   maxLoginAttempts: true,
   ipWhitelist: true,
   ipBlacklist: true,
-  winningsTaxPercent: true,
-  depositTaxPercent: true,
-  commissionPercent: true,
-  roundingRule: true,
   affiliateCommissionPercent: true,
   multiLevelReferralsEnabled: true,
   affiliateMinimumPayoutThreshold: true,
@@ -165,6 +161,7 @@ function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
     allowedCountries: config.kycAndComplianceConfig.allowedCountries,
     paymentMpesaEnabled: config.paymentsConfig.methods.mpesa,
     paymentBankTransferEnabled: config.paymentsConfig.methods.bankTransfer,
+    paymentPaystackEnabled: config.paymentsConfig.methods.paystack,
     mpesaShortcode: config.paymentsConfig.mpesa.shortcode,
     mpesaConsumerKey: config.paymentsConfig.mpesa.consumerKey,
     mpesaConsumerSecret: config.paymentsConfig.mpesa.consumerSecret,
@@ -175,6 +172,11 @@ function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
     mpesaAutoWithdrawEnabled: config.paymentsConfig.mpesa.autoWithdrawEnabled,
     mpesaWithdrawalApprovalThreshold:
       config.paymentsConfig.mpesa.mpesaWithdrawalApprovalThreshold,
+    paystackSecretKey: config.paymentsConfig.paystack.secretKey,
+    paystackPublicKey: config.paymentsConfig.paystack.publicKey,
+    paystackWebhookSecret: config.paymentsConfig.paystack.webhookSecret,
+    paystackCallbackUrl: config.paymentsConfig.paystack.callbackUrl,
+    paystackWebhookUrl: config.paymentsConfig.paystack.webhookUrl,
     minBetAmount: config.bettingEngineConfig.minBetAmount,
     maxBetAmount: config.bettingEngineConfig.maxBetAmount,
     maxWinPerBet: config.bettingEngineConfig.maxWinPerBet,
@@ -226,10 +228,6 @@ function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
     maxLoginAttempts: config.securityConfig.maxLoginAttempts,
     ipWhitelist: config.securityConfig.ipWhitelist,
     ipBlacklist: config.securityConfig.ipBlacklist,
-    winningsTaxPercent: config.taxAndFinancialRules.winningsTaxPercent,
-    depositTaxPercent: config.taxAndFinancialRules.depositTaxPercent,
-    commissionPercent: config.taxAndFinancialRules.commissionPercent,
-    roundingRule: config.taxAndFinancialRules.roundingRule,
     affiliateCommissionPercent:
       config.affiliateAndAgentConfig.commissionPercent,
     multiLevelReferralsEnabled:
@@ -280,6 +278,7 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
       methods: {
         mpesa: record.paymentMpesaEnabled,
         bankTransfer: record.paymentBankTransferEnabled,
+        paystack: record.paymentPaystackEnabled,
       },
       mpesa: {
         shortcode: record.mpesaShortcode,
@@ -293,7 +292,11 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
           record.mpesaWithdrawalApprovalThreshold,
       },
       paystack: {
-        ...defaultAdminSettings.paymentsConfig.paystack,
+        secretKey: record.paystackSecretKey,
+        publicKey: record.paystackPublicKey,
+        webhookSecret: record.paystackWebhookSecret,
+        callbackUrl: record.paystackCallbackUrl,
+        webhookUrl: record.paystackWebhookUrl,
       },
     },
     bettingEngineConfig: {
@@ -358,17 +361,6 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
       maxLoginAttempts: record.maxLoginAttempts,
       ipWhitelist: record.ipWhitelist,
       ipBlacklist: record.ipBlacklist,
-    },
-    taxAndFinancialRules: {
-      winningsTaxPercent: record.winningsTaxPercent,
-      depositTaxPercent: record.depositTaxPercent,
-      commissionPercent: record.commissionPercent,
-      roundingRule: record.roundingRule as
-        | "nearest_1"
-        | "nearest_5"
-        | "nearest_10"
-        | "floor"
-        | "ceil",
     },
     affiliateAndAgentConfig: {
       commissionPercent: record.affiliateCommissionPercent,
@@ -1040,12 +1032,8 @@ export async function getBettingAnalytics(req: Request, res: Response) {
     }),
   ]);
 
-  const commissionRate =
-    settings?.commissionPercent ??
-    defaultAdminSettings.taxAndFinancialRules.commissionPercent;
-  const taxRate =
-    settings?.winningsTaxPercent ??
-    defaultAdminSettings.taxAndFinancialRules.winningsTaxPercent;
+  const commissionRate = 0;
+  const taxRate = 0;
 
   const walletDeposits = walletTransactions
     .filter((tx) => tx.type === "DEPOSIT")

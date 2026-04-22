@@ -260,42 +260,6 @@ const sectionDefinitions: SectionDefinition[] = [
       },
     ],
   },
-  {
-    id: "tax",
-    title: "Tax & Financial Rules",
-    subtitle: "Taxation, commissions, and rounding policy",
-    group: "Financial Operations",
-    icon: <Percent size={16} />,
-    fields: [
-      {
-        path: "taxAndFinancialRules.winningsTaxPercent",
-        label: "Tax on winnings (%)",
-        type: "number",
-      },
-      {
-        path: "taxAndFinancialRules.depositTaxPercent",
-        label: "Tax on deposits (%)",
-        type: "number",
-      },
-      {
-        path: "taxAndFinancialRules.commissionPercent",
-        label: "Commission settings (%)",
-        type: "number",
-      },
-      {
-        path: "taxAndFinancialRules.roundingRule",
-        label: "Rounding rule",
-        type: "select",
-        options: [
-          { label: "Nearest 1", value: "nearest_1" },
-          { label: "Nearest 5", value: "nearest_5" },
-          { label: "Nearest 10", value: "nearest_10" },
-          { label: "Floor", value: "floor" },
-          { label: "Ceil", value: "ceil" },
-        ],
-      },
-    ],
-  },
 ];
 
 export default function Settings() {

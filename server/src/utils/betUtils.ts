@@ -11,6 +11,7 @@ export function computePossiblePayout(stake: number, odds: number) {
   return Math.round(stake * odds * 100) / 100;
 }
 
+
 export function getClientIp(ip: string | undefined) {
   return ip?.trim() || null;
 }

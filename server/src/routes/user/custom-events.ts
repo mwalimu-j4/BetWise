@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { authenticate } from "../../middleware/authenticate";
+import { getSystemSettings } from "../../lib/settings";
 
 const userCustomEventsRouter = Router();
 
@@ -108,6 +109,33 @@ userCustomEventsRouter.post(
       }
 
       const { selectionId, stake } = parsed.data;
+      const settings = await getSystemSettings();
+      const { minBetAmount, maxBetAmount } = settings.bettingEngineConfig;
+      const { maxActiveBetsPerUser } = settings.userDefaultsAndRestrictions;
+
+      if (stake < minBetAmount) {
+        return res
+          .status(400)
+          .json({ error: `Minimum stake is KES ${minBetAmount.toLocaleString()}.` });
+      }
+
+      if (stake > maxBetAmount) {
+        return res
+          .status(400)
+          .json({ error: `Maximum stake is KES ${maxBetAmount.toLocaleString()}.` });
+      }
+
+      // Check total active bets (Normal + Custom)
+      const [normalActiveCount, customActiveCount] = await Promise.all([
+        prisma.bet.count({ where: { userId, status: "PENDING" } }),
+        prisma.customBet.count({ where: { userId, status: "PENDING" } }),
+      ]);
+
+      if (normalActiveCount + customActiveCount >= maxActiveBetsPerUser) {
+        return res.status(400).json({
+          error: `You have reached the maximum limit of ${maxActiveBetsPerUser} active bets. Please wait for your current bets to settle.`,
+        });
+      }
 
       // Use a transaction to prevent race conditions on balance
       const result = await prisma.$transaction(

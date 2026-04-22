@@ -127,18 +127,6 @@ export const adminSettingsSchema = z.object({
     ipWhitelist: z.array(z.string().trim().max(64)).max(200),
     ipBlacklist: z.array(z.string().trim().max(64)).max(500),
   }),
-  taxAndFinancialRules: z.object({
-    winningsTaxPercent: percentageField,
-    depositTaxPercent: percentageField,
-    commissionPercent: percentageField,
-    roundingRule: z.enum([
-      "nearest_1",
-      "nearest_5",
-      "nearest_10",
-      "floor",
-      "ceil",
-    ]),
-  }),
   affiliateAndAgentConfig: z.object({
     commissionPercent: percentageField,
     multiLevelReferralsEnabled: z.boolean(),
@@ -271,12 +259,6 @@ export const defaultAdminSettings: AdminSettingsConfig = {
     maxLoginAttempts: 5,
     ipWhitelist: [],
     ipBlacklist: [],
-  },
-  taxAndFinancialRules: {
-    winningsTaxPercent: 20,
-    depositTaxPercent: 0,
-    commissionPercent: 2,
-    roundingRule: "nearest_1",
   },
   affiliateAndAgentConfig: {
     commissionPercent: 5,

@@ -14,6 +14,7 @@ import {
   toClientTransaction,
   type WalletTransactionStatus,
 } from "../lib/mpesa";
+import { getSystemSettings } from "../lib/settings";
 import {
   initiatePaystackWithdrawal,
   getPaystackTransferStatus,
@@ -37,12 +38,7 @@ const WITHDRAWAL_DEFAULTS = {
 
 const withdrawalRequestSchema = z.object({
   phone: z.string().trim().min(9).max(20),
-  amount: z
-    .number()
-    .int()
-    .positive()
-    .min(WITHDRAWAL_DEFAULTS.MIN_AMOUNT)
-    .max(WITHDRAWAL_DEFAULTS.MAX_AMOUNT_PER_REQUEST),
+  amount: z.number().int().positive(),
   pin: z.string().trim().min(4).max(6).optional(),
 });
 
@@ -160,45 +156,6 @@ function getNestedObject(value: unknown) {
   return value as Record<string, unknown>;
 }
 
-async function getWithdrawalSettings(): Promise<WithdrawalSettings> {
-  const settings = await prisma.adminSettings.findUnique({
-    where: { key: "global" },
-    select: {
-      minWithdrawal: true,
-      maxWithdrawal: true,
-      dailyTransactionLimit: true,
-      withdrawalRequiresKyc: true,
-      paymentMpesaEnabled: true,
-      mpesaTransactionFeePercent: true,
-      mpesaAutoWithdrawEnabled: true,
-      mpesaWithdrawalApprovalThreshold: true,
-    },
-  });
-
-  if (!settings) {
-    return {
-      minWithdrawal: WITHDRAWAL_DEFAULTS.MIN_AMOUNT,
-      maxWithdrawal: WITHDRAWAL_DEFAULTS.MAX_AMOUNT_PER_REQUEST,
-      dailyTransactionLimit: WITHDRAWAL_DEFAULTS.DAILY_LIMIT,
-      withdrawalRequiresKyc: WITHDRAWAL_DEFAULTS.KYC_REQUIRED,
-      feePercentage: WITHDRAWAL_DEFAULTS.FEE_PERCENTAGE,
-      autoWithdrawEnabled: false,
-      approvalThreshold: WITHDRAWAL_DEFAULTS.APPROVAL_THRESHOLD,
-      mpesaEnabled: WITHDRAWAL_DEFAULTS.MPESA_ENABLED,
-    };
-  }
-
-  return {
-    minWithdrawal: settings.minWithdrawal,
-    maxWithdrawal: settings.maxWithdrawal,
-    dailyTransactionLimit: settings.dailyTransactionLimit,
-    withdrawalRequiresKyc: settings.withdrawalRequiresKyc,
-    feePercentage: settings.mpesaTransactionFeePercent,
-    autoWithdrawEnabled: settings.mpesaAutoWithdrawEnabled,
-    approvalThreshold: settings.mpesaWithdrawalApprovalThreshold,
-    mpesaEnabled: settings.paymentMpesaEnabled,
-  };
-}
 
 async function settleFailedWithdrawal(args: {
   transactionId: string;
@@ -721,7 +678,7 @@ export async function createWithdrawalRequest(
 
     const userId = req.user.id;
     const [settings, user] = await Promise.all([
-      getWithdrawalSettings(),
+      getSystemSettings(),
       prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -735,7 +692,17 @@ export async function createWithdrawalRequest(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    if (!settings.mpesaEnabled) {
+    const {
+      minWithdrawal,
+      maxWithdrawal,
+      dailyTransactionLimit,
+    } = settings.userDefaultsAndRestrictions;
+    
+    const { withdrawalRequiresKyc } = settings.kycAndComplianceConfig;
+    const mpesaEnabled = settings.paymentsConfig.methods.mpesa;
+    const feePercentage = settings.paymentsConfig.mpesa.transactionFeePercent;
+
+    if (!mpesaEnabled) {
       return res.status(403).json({
         message: "Mobile money withdrawals are currently disabled.",
       });
@@ -764,20 +731,20 @@ export async function createWithdrawalRequest(
     }
 
     const requestedAmount = parsedBody.data.amount;
-    if (requestedAmount < settings.minWithdrawal) {
+    if (requestedAmount < minWithdrawal) {
       return res.status(400).json({
-        message: `Minimum withdrawal is KES ${settings.minWithdrawal.toLocaleString()}.`,
+        message: `Minimum withdrawal is KES ${minWithdrawal.toLocaleString()}.`,
       });
     }
 
-    if (requestedAmount > settings.maxWithdrawal) {
+    if (requestedAmount > maxWithdrawal) {
       return res.status(400).json({
-        message: `Maximum withdrawal is KES ${settings.maxWithdrawal.toLocaleString()}.`,
+        message: `Maximum withdrawal is KES ${maxWithdrawal.toLocaleString()}.`,
       });
     }
 
     const feeAmount = Math.ceil(
-      (requestedAmount * settings.feePercentage) / 100,
+      (requestedAmount * feePercentage) / 100,
     );
     const totalDebit = requestedAmount + feeAmount;
 
@@ -809,10 +776,10 @@ export async function createWithdrawalRequest(
     const dailyRequestedAmount = dailyWithdrawalAggregate._sum.amount ?? 0;
     if (
       dailyRequestedAmount + requestedAmount >
-      settings.dailyTransactionLimit
+      dailyTransactionLimit
     ) {
       return res.status(400).json({
-        message: `Daily withdrawal limit exceeded. You can only withdraw up to KES ${settings.dailyTransactionLimit.toLocaleString()} per day.`,
+        message: `Daily withdrawal limit exceeded. You can only withdraw up to KES ${dailyTransactionLimit.toLocaleString()} per day.`,
       });
     }
 
