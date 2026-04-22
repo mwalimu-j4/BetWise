@@ -62,7 +62,7 @@ export default function PaymentsWithdrawalPage() {
       toast.success(
         data.message || "Withdrawal request submitted successfully!",
       );
-      setAmount("500");
+      setAmount("");
       setShowConfirmModal(false);
       queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
     },
