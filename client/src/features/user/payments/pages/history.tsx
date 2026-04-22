@@ -95,8 +95,8 @@ export default function PaymentsHistoryPage() {
           </div>
         ) : (
           <>
-            <div className="hidden md:block">
-              <table className="w-full table-fixed">
+            <div className="overflow-x-auto">
+              <table className="min-w-[680px] w-full table-fixed">
                 <thead className="border-b border-[#1a2f45] bg-[#0d1829]">
                   <tr className="text-left">
                     <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
@@ -119,17 +119,17 @@ export default function PaymentsHistoryPage() {
                       key={item.id}
                       className="border-b border-[#1a2f45] transition hover:bg-[#0d1829]"
                     >
-                      <td className="px-6 py-4">
+                      <td className="whitespace-nowrap px-6 py-4">
                         <span
                           className={`text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
                         >
                           {titleCase(item.type)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-[#3d5a73]">
+                      <td className="whitespace-nowrap px-6 py-4 text-xs text-[#3d5a73]">
                         {formatDateTime(item.createdAt)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="whitespace-nowrap px-6 py-4">
                         <span
                           className={`text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
                         >
@@ -139,7 +139,7 @@ export default function PaymentsHistoryPage() {
                           {formatMoney(item.amount)}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="whitespace-nowrap px-6 py-4">
                         <span
                           className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[item.status as TransactionStatus] ?? ""}`}
                         >
@@ -150,34 +150,6 @@ export default function PaymentsHistoryPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
-
-            <div className="divide-y divide-[#1a2f45] md:hidden">
-              {filtered.map((item) => (
-                <div key={item.id} className="px-4 py-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <span
-                      className={`text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
-                    >
-                      {titleCase(item.type)}
-                    </span>
-                    <span
-                      className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[item.status as TransactionStatus] ?? ""}`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-xs text-[#3d5a73]">
-                    {formatDateTime(item.createdAt)}
-                  </p>
-                  <p
-                    className={`mt-2 text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
-                  >
-                    {["withdrawal", "bet-stake"].includes(item.type) ? "-" : "+"}
-                    {formatMoney(item.amount)}
-                  </p>
-                </div>
-              ))}
             </div>
           </>
         )}
