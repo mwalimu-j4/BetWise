@@ -11,6 +11,7 @@ import {
   FileText,
   Flag,
   Flame,
+  Goal,
   HelpCircle,
   Hexagon,
   History,
@@ -22,9 +23,9 @@ import {
   Target,
   TrendingUp,
   Triangle,
-  Trophy,
   House,
   User,
+  Volleyball,
   Wallet,
   Zap,
 } from "lucide-react";
@@ -44,6 +45,7 @@ type Item = {
   search?: Record<string, string | undefined>;
   hash?: string;
   match?: "highlights" | "home";
+  variant?: "default" | "sport";
   liveBadge?: string;
   badgeCount?: number;
   badgeGold?: boolean;
@@ -192,7 +194,7 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
       to={item.to as never}
       search={item.search as never}
       hash={item.hash}
-      className={`bc-sidebar-link ${isActive ? "is-active" : ""}`}
+      className={`bc-sidebar-link ${item.variant === "sport" ? "bc-sidebar-link--sport" : ""} ${isActive ? "is-active" : ""}`.trim()}
       onClick={() => {
         if (item.warn) {
           console.warn(`Route ${item.to} not yet implemented`);
@@ -363,7 +365,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               {
                 label: "My Bets",
                 to: "/user/bets",
-                search: { },
+                search: {},
                 icon: <TrendingUp size={18} />,
               },
               {
@@ -395,6 +397,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                       label: cat.displayName,
                       to: `/user/sport/${slug}`,
                       icon: <span className="text-base">{cat.icon}</span>,
+                      variant: "sport",
                       badgeCount:
                         cat.eventCount > 0 ? cat.eventCount : undefined,
                       badgeGold: cat.sportKey === "soccer",
@@ -407,7 +410,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           ) : (
             /* FALLBACK: Hardcoded sports when API hasn't loaded */
             <>
-              <div className="bc-side-section">
+              <div className="bc-side-section bc-side-section--sports">
                 <p className="bc-side-heading">
                   <span className="bc-heading-dot" aria-hidden="true" />
                   Popular Sports
@@ -416,44 +419,51 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   {
                     label: "Football",
                     to: "/user/sport/football",
-                    icon: <Trophy size={18} />,
+                    icon: <Goal size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.football ?? 0,
                     badgeGold: true,
                   },
                   {
                     label: "Basketball",
                     to: "/user/sport/basketball",
-                    icon: <CircleDot size={18} />,
+                    icon: <Volleyball size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.basketball ?? 0,
                   },
                   {
                     label: "Tennis",
                     to: "/user/sport/tennis",
                     icon: <Circle size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.tennis ?? 0,
                   },
                   {
                     label: "American Football",
                     to: "/user/sport/american-football",
                     icon: <Shield size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.americanFootball ?? 0,
                   },
                   {
                     label: "Cricket",
                     to: "/user/sport/cricket",
                     icon: <Triangle size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.cricket ?? 0,
                   },
                   {
                     label: "Ice Hockey",
                     to: "/user/sport/ice-hockey",
                     icon: <CircleSlash size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.iceHockey ?? 0,
                   },
                   {
                     label: "Rugby Union",
                     to: "/user/sport/rugby-union",
                     icon: <Hexagon size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.rugbyUnion ?? 0,
                   },
                 ].map((item) => (
@@ -465,7 +475,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 ))}
               </div>
 
-              <div className="bc-side-section">
+              <div className="bc-side-section bc-side-section--sports">
                 <p className="bc-side-heading">
                   <span className="bc-heading-dot" aria-hidden="true" />
                   More Sports
@@ -475,36 +485,43 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     label: "Boxing / MMA",
                     to: "/user/sport/boxing-mma",
                     icon: <Swords size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Baseball",
                     to: "/user/sport/baseball",
                     icon: <CircleDot size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Volleyball",
                     to: "/user/sport/volleyball",
-                    icon: <Circle size={18} />,
+                    icon: <Volleyball size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Table Tennis",
                     to: "/user/sport/table-tennis",
                     icon: <Crosshair size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Golf",
                     to: "/user/sport/golf",
                     icon: <Flag size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Snooker",
                     to: "/user/sport/snooker",
                     icon: <CircleSlash size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Darts",
                     to: "/user/sport/darts",
                     icon: <Target size={18} />,
+                    variant: "sport" as const,
                   },
                 ].map((item) => (
                   <ItemLink
