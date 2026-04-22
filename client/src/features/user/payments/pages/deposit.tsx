@@ -461,29 +461,29 @@ export default function DepositPage() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#23415d] bg-[#08111d] px-3 py-2.5 text-left shadow-[0_14px_30px_rgba(4,12,22,0.28)] transition-colors hover:border-[#32597d]"
+          className="flex h-10 w-[156px] min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl border border-[#23415d] bg-[#08111d] px-2.5 text-left shadow-[0_10px_20px_rgba(4,12,22,0.2)] transition-colors hover:border-[#32597d]"
         >
-          <span className="flex min-w-0 items-center gap-2.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#f5c518]/15 bg-[#f5c518]/10 text-[#f5c518]">
-              {getMethodIcon(activeMethod!, "h-4 w-4")}
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#f5c518]/15 bg-[#f5c518]/10 text-[#f5c518]">
+              {getMethodIcon(activeMethod!, "h-3.5 w-3.5")}
             </span>
             <span className="min-w-0">
-              <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#69839c]">
+              <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
                 Method
               </span>
-              <span className="mt-0.5 block truncate text-sm font-semibold text-white">
+              <span className="mt-0.5 block truncate text-[13px] font-semibold text-white">
                 {getMethodLabel(activeMethod!)}
               </span>
             </span>
           </span>
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#102134] text-[#f5c518]">
-            <ChevronDown className="h-4 w-4" />
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#102134] text-[#f5c518]">
+            <ChevronDown className="h-3.5 w-3.5" />
           </span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
-        className="w-52 rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_24px_50px_rgba(4,12,22,0.55)]"
+        className="w-48 rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_12px_26px_rgba(4,12,22,0.35)] data-[state=open]:animate-none data-[state=closed]:animate-none"
       >
         {enabledDepositMethods.map((method) => {
           const isActive = method === activeMethod;
