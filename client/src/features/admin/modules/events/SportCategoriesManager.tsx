@@ -411,19 +411,15 @@ export default function SportCategoriesManager() {
               onClick={() => toggleSelect(category.sportKey)}
             >
               <CardContent className="p-3">
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2">
                   <div className="flex min-w-0 items-center gap-2.5">
-                    {/* Checkbox */}
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleSelect(category.sportKey);
                       }}
-                      className={cn(
-                        adminTableCellClassName,
-                        "w-10 text-center",
-                      )}
+                      className="flex size-7 shrink-0 items-center justify-center rounded border border-admin-border bg-admin-surface/70"
                     >
                       <input
                         type="checkbox"
@@ -435,65 +431,60 @@ export default function SportCategoriesManager() {
                         onClick={(e) => e.stopPropagation()}
                         className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
                       />
-                    </td>
-                    <td className={adminTableCellClassName}>
-                      <div className="flex items-center gap-3">
+                    </button>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
                         <span className="text-xl" aria-hidden="true">
                           {category.icon}
                         </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-bold text-admin-text-primary">
-                            {category.displayName}
-                          </p>
-                          <p className="text-[10px] text-admin-text-muted">
-                            Key: {category.sportKey}
-                          </p>
-                        </div>
+                        <p className="truncate text-sm font-bold text-admin-text-primary">
+                          {category.displayName}
+                        </p>
                       </div>
-                    </td>
-                    <td className={cn(adminTableCellClassName, "text-center")}>
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span className="font-mono text-xs font-bold text-admin-text-primary">
-                          {(
-                            category.liveEventCount ?? category.eventCount
-                          ).toLocaleString()}
-                        </span>
-                        <span className="text-[9px] uppercase tracking-tighter text-admin-text-muted">
-                          Events
-                        </span>
-                      </div>
-                    </td>
-                    <td className={adminTableCellClassName}>
-                      <p className="text-xs text-admin-text-muted">
-                        {formatSyncTime(category.lastSyncedAt)}
+                      <p className="text-[10px] text-admin-text-muted">
+                        Key: {category.sportKey}
                       </p>
                     </div>
                   </div>
 
-                  {/* Toggle */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void handleToggle(category);
-                    }}
-                    disabled={isTogglingThis}
-                    className="shrink-0"
-                  >
-                    <Badge
-                      className={cn(
-                        "cursor-pointer text-[9px] font-bold uppercase tracking-wide transition",
-                        category.isActive
-                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                          : "border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20",
-                      )}
+                  <div className="ml-auto flex items-start gap-2">
+                    <div className="text-right">
+                      <p className="font-mono text-xs font-bold text-admin-text-primary">
+                        {eventCount.toLocaleString()}
+                      </p>
+                      <p className="text-[9px] uppercase tracking-tighter text-admin-text-muted">
+                        Events
+                      </p>
+                      <p className="text-[10px] text-admin-text-muted">
+                        {formatSyncTime(category.lastSyncedAt)}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleToggle(category);
+                      }}
+                      disabled={isTogglingThis}
+                      className="shrink-0"
                     >
-                      {isTogglingThis ? (
-                        <Loader2 className="mr-0.5 size-2.5 animate-spin" />
-                      ) : null}
-                      {category.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </button>
+                      <Badge
+                        className={cn(
+                          "cursor-pointer text-[9px] font-bold uppercase tracking-wide transition",
+                          category.isActive
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                            : "border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20",
+                        )}
+                      >
+                        {isTogglingThis ? (
+                          <Loader2 className="mr-0.5 size-2.5 animate-spin" />
+                        ) : null}
+                        {category.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Stats row */}
