@@ -4,7 +4,6 @@ import {
   ChevronRight,
   Shield,
   ShieldCheck,
-  ShieldAlert,
   Loader2,
   QrCode,
   Mail,
@@ -22,7 +21,9 @@ import {
   AdminCard,
   AdminSectionHeader,
   AdminCardHeader,
+  AdminDialogContent,
 } from "../../components/ui";
+import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type AdminTwoFactorStatusResponse = {
@@ -50,7 +51,8 @@ const MICROSOFT_AUTHENTICATOR_FALLBACK_URL =
 
 export default function SecurityWizard() {
   const queryClient = useQueryClient();
-  const [setupStep, setSetupStep] = useState<1 | 2 | 3>(1);
+  const [setupStep, setSetupStep] = useState<1 | 2>(1);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [setupToken, setSetupToken] = useState<string | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
@@ -78,7 +80,7 @@ export default function SecurityWizard() {
       setQrCodeDataUrl(payload.qrCodeDataUrl);
       setManualEntryKey(payload.manualEntryKey);
       setTwoFactorCode("");
-      setSetupStep(3);
+      setIsQrModalOpen(true);
       toast.success(payload.message);
     },
     onError: (error: any) => {
@@ -115,6 +117,7 @@ export default function SecurityWizard() {
       void queryClient.invalidateQueries({ queryKey: ["admin-2fa-status"] });
       setSetupStep(1);
       setSetupToken(null);
+      setIsQrModalOpen(false);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message ?? "Verification failed");
@@ -166,54 +169,38 @@ export default function SecurityWizard() {
   const isEnabled = statusQuery.data?.enabled;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="mx-auto max-w-5xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <AdminSectionHeader
         title="Security Center"
         subtitle="Protect your administrative account with mandatory two-factor authentication"
       />
 
       <div className="grid gap-6 lg:grid-cols-12">
-        {/* Left Column: Management & Status */}
+        {/* Left Column: Information */}
         <div className="lg:col-span-4 space-y-6">
-          <AdminCard className="overflow-hidden border-admin-border/50 bg-[#0b1426]/60 shadow-lg shadow-black/20">
-            <div className="p-8">
-              <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-[2rem] bg-admin-accent/10 text-admin-accent shadow-[inset_0_0_15px_rgba(245,197,24,0.1)]">
-                <Shield size={32} />
+          <AdminCard className="overflow-hidden border-admin-border/50 bg-[#0b1426]/60 shadow-lg">
+            <div className="p-6">
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-admin-accent/10 text-admin-accent border border-admin-accent/20 shadow-[inset_0_0_15px_rgba(245,197,24,0.1)]">
+                <Shield size={24} />
               </div>
-              <h3 className="text-lg font-bold text-admin-text-primary">
+              <h3 className="text-base font-bold text-admin-text-primary">
                 Account Protection
               </h3>
-              <p className="mt-2 text-sm text-admin-text-muted leading-relaxed">
+              <p className="mt-2 text-xs text-admin-text-muted leading-relaxed">
                 TOTP-based authentication adds an extra layer of security by
                 requiring a unique code from your mobile device.
               </p>
 
-              <div className="mt-8 space-y-4">
-                <div
-                  className={cn(
-                    "flex items-center gap-4 rounded-[2rem] border p-5 transition-all duration-500",
-                    isEnabled
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 shadow-[0_10px_30px_rgba(16,185,129,0.1)]"
-                      : "border-admin-red/30 bg-admin-red/10 text-admin-red shadow-[0_10px_30px_rgba(239,68,68,0.1)]"
-                  )}
-                >
-                  {isEnabled ? (
-                    <div className="relative">
-                      <div className="absolute inset-0 animate-ping rounded-full bg-emerald-500/20" />
-                      <ShieldCheck size={28} className="relative shrink-0" />
-                    </div>
-                  ) : (
-                    <ShieldAlert size={28} className="shrink-0" />
-                  )}
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">
-                      System Status
-                    </p>
-                    <p className="text-sm font-bold uppercase tracking-widest">
-                      {isEnabled ? "Protected" : "Vulnerable"}
-                    </p>
-                  </div>
-                </div>
+              <div className="mt-6">
+                 <div className={cn(
+                   "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-wider uppercase",
+                   isEnabled 
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "bg-admin-red/10 text-admin-red border border-admin-red/20"
+                 )}>
+                   <div className={cn("h-1.5 w-1.5 rounded-full", isEnabled ? "bg-emerald-400 animate-pulse" : "bg-admin-red")} />
+                   {isEnabled ? "Protected" : "Vulnerable"}
+                 </div>
               </div>
             </div>
           </AdminCard>
@@ -224,28 +211,25 @@ export default function SecurityWizard() {
                 title="Disable Protection"
                 subtitle="Enter your current code to remove 2FA"
               />
-              <div className="p-5 pt-0 space-y-4">
+              <div className="p-4 pt-0 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-admin-text-muted">
-                    Verification Code
-                  </label>
                   <input
                     type="text"
                     maxLength={6}
                     value={twoFactorCode}
                     onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ""))}
                     placeholder="000000"
-                    className="h-12 w-full rounded-xl border border-admin-border bg-admin-bg/50 px-4 text-center text-xl font-bold tracking-[0.5em] text-admin-text-primary outline-none focus:border-admin-accent/50 focus:ring-4 focus:ring-admin-accent/10"
+                    className="h-10 w-full rounded-xl border border-admin-border bg-admin-bg/50 px-4 text-center text-lg font-bold tracking-[0.5em] text-admin-text-primary outline-none focus:border-admin-accent/50 focus:ring-4 focus:ring-admin-accent/10 transition-all"
                   />
                 </div>
                 <Button
                   onClick={() => void disable2FA.mutateAsync()}
                   disabled={disable2FA.isPending || twoFactorCode.length !== 6}
                   variant="outline"
-                  className="w-full border-admin-red/20 text-admin-red hover:bg-admin-red/10"
+                  className="w-full h-10 border-admin-red/20 text-admin-red hover:bg-admin-red/10 text-xs font-bold uppercase tracking-wider"
                 >
                   {disable2FA.isPending ? (
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2 size={14} className="animate-spin" />
                   ) : (
                     "Disable TOTP"
                   )}
@@ -258,27 +242,26 @@ export default function SecurityWizard() {
         {/* Right Column: Setup Wizard */}
         <div className="lg:col-span-8">
           {!isEnabled ? (
-            <AdminCard className="h-full border-admin-border/50 bg-[#0b1426]/40 shadow-2xl backdrop-blur-xl rounded-[3rem]">
+            <AdminCard className="h-full border-admin-border/50 bg-[#0b1426]/40 shadow-2xl backdrop-blur-xl rounded-3xl overflow-hidden">
               <div className="flex flex-col h-full">
-                {/* Wizard Header */}
-                <div className="px-8 py-6 border-b border-admin-border/50">
+                <div className="px-8 py-5 border-b border-admin-border/50 bg-white/5">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-xl font-bold text-admin-text-primary">
+                      <h3 className="text-lg font-bold text-admin-text-primary">
                         Setup Wizard
                       </h3>
-                      <p className="mt-1 text-sm text-admin-text-muted">
-                        Secure your account in three easy steps
+                      <p className="text-xs text-admin-text-muted">
+                        Secure your account in simple steps
                       </p>
                     </div>
-                    <div className="flex gap-2.5">
-                      {[1, 2, 3].map((step) => (
+                    <div className="flex gap-2">
+                      {[1, 2].map((step) => (
                         <div
                           key={step}
                           className={cn(
-                            "h-2 w-10 rounded-full transition-all duration-700",
+                            "h-1.5 w-8 rounded-full transition-all duration-700",
                             setupStep >= step
-                              ? "bg-admin-accent shadow-[0_0_15px_rgba(245,197,24,0.5)]"
+                              ? "bg-admin-accent shadow-[0_0_10px_rgba(245,197,24,0.3)]"
                               : "bg-white/5"
                           )}
                         />
@@ -287,59 +270,56 @@ export default function SecurityWizard() {
                   </div>
                 </div>
 
-                {/* Wizard Steps */}
                 <div className="flex-1 p-8">
                   {setupStep === 1 && (
                     <div className="animate-in fade-in slide-in-from-right-4 duration-500">
                       <div className="flex items-center gap-4 mb-8">
-                        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-indigo-500/10 text-indigo-400">
-                          <Smartphone size={24} />
+                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500/10 text-indigo-400">
+                          <Smartphone size={20} />
                         </div>
                         <div>
-                          <h4 className="font-bold text-admin-text-primary">
+                          <h4 className="text-sm font-bold text-admin-text-primary uppercase tracking-tight">
                             Step 1: Get the App
                           </h4>
-                          <p className="text-sm text-admin-text-muted">
+                          <p className="text-xs text-admin-text-muted">
                             Install Microsoft Authenticator on your mobile device
                           </p>
                         </div>
                       </div>
 
-                      <div className="grid gap-6 sm:grid-cols-2">
+                      <div className="grid gap-4 sm:grid-cols-2">
                         <button
                           onClick={openInstallLink}
-                          className="group relative flex flex-col items-start p-8 rounded-[2rem] border border-white/5 bg-[#0d2137]/40 hover:bg-[#1a3a6b]/30 hover:border-[#f5c518]/30 transition-all duration-500 text-left shadow-lg overflow-hidden"
+                          className="group relative flex flex-col items-start p-6 rounded-2xl border border-white/5 bg-[#0d2137]/40 hover:bg-[#1a3a6b]/30 hover:border-[#f5c518]/30 transition-all duration-500 text-left shadow-lg overflow-hidden"
                         >
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,197,24,0.05),transparent)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <div className="mb-5 rounded-[1.25rem] bg-black/40 p-3 text-admin-text-muted group-hover:text-admin-accent group-hover:scale-110 transition-all duration-500">
-                            <ArrowRight size={24} />
+                          <div className="mb-4 rounded-xl bg-black/40 p-2 text-admin-text-muted group-hover:text-admin-accent transition-all duration-500">
+                            <ArrowRight size={20} />
                           </div>
-                          <span className="text-lg font-bold tracking-tight text-admin-text-primary">
+                          <span className="text-base font-bold tracking-tight text-admin-text-primary">
                             Manual Install
                           </span>
-                          <span className="text-xs text-admin-text-muted mt-2 leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
-                            Open the App Store or Play Store directly from your browser.
+                          <span className="text-[10px] text-admin-text-muted mt-2 leading-relaxed opacity-70">
+                            Open App Store or Play Store from your browser.
                           </span>
                         </button>
 
                         <button
                           onClick={() => void sendAppLink.mutateAsync()}
                           disabled={sendAppLink.isPending}
-                          className="group relative flex flex-col items-start p-8 rounded-[2rem] border border-white/5 bg-[#0d2137]/40 hover:bg-[#1a3a6b]/30 hover:border-[#f5c518]/30 transition-all duration-500 text-left shadow-lg overflow-hidden"
+                          className="group relative flex flex-col items-start p-6 rounded-2xl border border-white/5 bg-[#0d2137]/40 hover:bg-[#1a3a6b]/30 hover:border-[#f5c518]/30 transition-all duration-500 text-left shadow-lg overflow-hidden"
                         >
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,197,24,0.05),transparent)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <div className="mb-5 rounded-[1.25rem] bg-black/40 p-3 text-admin-text-muted group-hover:text-admin-accent group-hover:scale-110 transition-all duration-500">
+                          <div className="mb-4 rounded-xl bg-black/40 p-2 text-admin-text-muted group-hover:text-admin-accent transition-all duration-500">
                             {sendAppLink.isPending ? (
-                              <Loader2 size={24} className="animate-spin" />
+                              <Loader2 size={20} className="animate-spin" />
                             ) : (
-                              <Mail size={24} />
+                              <Mail size={20} />
                             )}
                           </div>
-                          <span className="text-lg font-bold tracking-tight text-admin-text-primary">
+                          <span className="text-base font-bold tracking-tight text-admin-text-primary">
                             Email Me Links
                           </span>
-                          <span className="text-xs text-admin-text-muted mt-2 leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
-                            We'll send the download links directly to your inbox.
+                          <span className="text-[10px] text-admin-text-muted mt-2 leading-relaxed opacity-70">
+                            Receive download links in your inbox.
                           </span>
                         </button>
                       </div>
@@ -348,145 +328,51 @@ export default function SecurityWizard() {
                         <Button
                           variant="ghost"
                           onClick={() => setSetupStep(2)}
-                          className="group text-admin-text-secondary hover:text-admin-text-primary"
+                          className="group text-xs text-admin-text-secondary hover:text-admin-text-primary"
                         >
                           Already have the app?
-                          <ChevronRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" />
+                          <ChevronRight size={14} className="ml-1 transition-transform group-hover:translate-x-1" />
                         </Button>
                       </div>
                     </div>
                   )}
 
                   {setupStep === 2 && (
-                    <div className="flex flex-col items-center justify-center py-12 animate-in fade-in slide-in-from-right-4 duration-700">
-                      <div className="relative mb-10">
+                    <div className="flex flex-col items-center justify-center py-6 animate-in fade-in slide-in-from-right-4 duration-700">
+                      <div className="relative mb-8">
                         <div className="absolute inset-0 scale-150 blur-3xl opacity-20 bg-[#f5c518] animate-pulse" />
-                        <div className="relative h-28 w-28 flex items-center justify-center rounded-[2.5rem] bg-[#f5c518]/10 text-[#f5c518] border border-[#f5c518]/20 shadow-[inset_0_0_20px_rgba(245,197,24,0.1)]">
-                          <QrCode size={48} />
+                        <div className="relative h-20 w-20 flex items-center justify-center rounded-2xl bg-[#f5c518]/10 text-[#f5c518] border border-[#f5c518]/20 shadow-[inset_0_0_20px_rgba(245,197,24,0.1)]">
+                          <QrCode size={36} />
                         </div>
                       </div>
-                      <h4 className="text-xl font-bold tracking-tight text-admin-text-primary text-center">
+                      <h4 className="text-lg font-bold tracking-tight text-admin-text-primary text-center">
                         Generate Configuration
                       </h4>
-                      <p className="mt-4 text-sm text-admin-text-muted text-center max-w-md leading-relaxed">
-                        Securely initialize your authentication profile. This will generate a unique secret key and QR code recognized by your authenticator app.
+                      <p className="mt-3 text-xs text-admin-text-muted text-center max-w-xs leading-relaxed">
+                        Securely initialize your authentication profile and generate your unique QR code.
                       </p>
 
-                      <div className="mt-12 flex gap-4">
+                      <div className="mt-10 flex gap-3">
                         <Button
                           variant="outline"
                           onClick={() => setSetupStep(1)}
-                          className="h-14 px-10 rounded-2xl border-white/10 hover:bg-white/5 active:scale-95 transition-all"
+                          className="h-12 px-8 rounded-xl border-white/10 hover:bg-white/5 active:scale-95 transition-all text-xs"
                         >
-                          <ArrowLeft size={18} className="mr-3" />
+                          <ArrowLeft size={16} className="mr-2" />
                           Back
                         </Button>
                         <Button
                           onClick={() => void startSetup.mutateAsync()}
                           disabled={startSetup.isPending}
-                          className="h-14 px-12 rounded-xl bg-[#f5c518] text-[#0d2137] font-bold shadow-xl shadow-[#f5c518]/20 hover:bg-[#e6b800] active:scale-95 transition-all"
+                          className="h-12 px-10 rounded-xl bg-[#f5c518] text-[#0d2137] font-bold shadow-xl shadow-[#f5c518]/20 hover:bg-[#e6b800] active:scale-95 transition-all text-xs uppercase tracking-wider"
                         >
                           {startSetup.isPending ? (
-                            <Loader2 size={18} className="animate-spin mr-3" />
+                            <Loader2 size={16} className="animate-spin mr-2" />
                           ) : (
-                            <Sparkles size={18} className="mr-3" />
+                            <Sparkles size={16} className="mr-2" />
                           )}
                           Initialize Setup
                         </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {setupStep === 3 && setupToken && (
-                    <div className="animate-in fade-in slide-in-from-right-4 duration-700">
-                      <div className="grid gap-12 md:grid-cols-2">
-                        <div className="space-y-8">
-                          <div>
-                            <h4 className="text-lg font-bold tracking-tight text-admin-text-primary">
-                              Final Activation
-                            </h4>
-                            <p className="mt-2 text-sm text-admin-text-muted leading-relaxed opacity-70">
-                              Scan the secure identity token using your authenticator app. If scanning is unavailable, use the manual cryptographic key provided below.
-                            </p>
-                          </div>
- 
-                          <div className="relative group mx-auto md:mx-0 w-max">
-                            <div className="absolute inset-0 bg-[#f5c518]/20 blur-2xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700" />
-                            <div className="relative flex shrink-0 items-center justify-center rounded-[2.5rem] border-4 border-admin-accent/20 bg-white p-6 shadow-2xl">
-                              {qrCodeDataUrl ? (
-                                <img
-                                  src={qrCodeDataUrl}
-                                  alt="Secure TOTP Token"
-                                  className="h-48 w-48 transition-transform duration-500 group-hover:scale-105"
-                                />
-                              ) : (
-                                <div className="h-48 w-48 grid place-items-center bg-admin-surface/20 rounded-2xl">
-                                  <Loader2 className="animate-spin text-admin-accent" />
-                                </div>
-                              )}
-                            </div>
-                          </div>
- 
-                          <div className="group relative overflow-hidden rounded-3xl border border-white/5 bg-black/40 p-6 transition-all hover:bg-black/60">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#f5c518]/80">
-                              Cryptographic Security Key
-                            </p>
-                            <div className="mt-3 flex items-center justify-between">
-                              <span className="font-mono text-sm font-bold text-admin-text-primary tracking-widest break-all">
-                                {manualEntryKey}
-                              </span>
-                              <button
-                                onClick={() => copyToClipboard(manualEntryKey || "")}
-                                className="ml-4 rounded-xl p-3 bg-white/5 text-admin-text-muted hover:bg-[#f5c518]/10 hover:text-[#f5c518] transition-all"
-                              >
-                                <Copy size={18} />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
- 
-                        <div className="flex flex-col justify-center space-y-8">
-                          <div className="rounded-[2.5rem] border border-white/5 bg-black/20 p-8 backdrop-blur-sm">
-                            <label className="mb-4 block text-sm font-black uppercase tracking-widest text-[#f5c518]">
-                              Verification Token
-                            </label>
-                            <input
-                              type="text"
-                              maxLength={6}
-                              value={twoFactorCode}
-                              onChange={(e) =>
-                                setTwoFactorCode(e.target.value.replace(/\D/g, ""))
-                              }
-                              placeholder="000 000"
-                              className="h-16 w-full rounded-xl border border-white/10 bg-black/40 px-6 text-center text-3xl font-bold tracking-[0.4em] text-[#f5c518] outline-none focus:border-[#f5c518]/40 focus:ring-4 focus:ring-[#f5c518]/5 transition-all"
-                            />
-                            <p className="mt-4 text-[11px] text-admin-text-muted/60 text-center italic tracking-wide">
-                              Identity tokens refresh every 30 seconds
-                            </p>
-                          </div>
- 
-                          <div className="flex gap-4">
-                            <Button
-                              variant="outline"
-                              onClick={() => setSetupStep(2)}
-                              className="h-14 flex-1 rounded-2xl border-white/10 hover:bg-white/5 transition-all"
-                            >
-                              <ArrowLeft size={18} className="mr-3" />
-                              Reset
-                            </Button>
-                            <Button
-                              onClick={() => void enable2FA.mutateAsync()}
-                              disabled={enable2FA.isPending || twoFactorCode.length !== 6}
-                              className="h-14 flex-1 rounded-xl bg-[#f5c518] text-[#0d2137] font-bold shadow-xl shadow-[#f5c518]/20 hover:bg-[#e6b800] active:scale-95 transition-all"
-                            >
-                              {enable2FA.isPending ? (
-                                <Loader2 size={18} className="animate-spin" />
-                              ) : (
-                                "Confirm Identity"
-                              )}
-                            </Button>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   )}
@@ -494,34 +380,119 @@ export default function SecurityWizard() {
               </div>
             </AdminCard>
           ) : (
-            <AdminCard className="flex h-full flex-col items-center justify-center border-emerald-500/10 bg-[#0b1426]/40 p-16 text-center shadow-2xl rounded-[3rem] overflow-hidden relative group">
+            <AdminCard className="flex h-full flex-col items-center justify-center border-emerald-500/10 bg-[#0b1426]/40 p-12 text-center shadow-2xl rounded-3xl overflow-hidden relative group">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05),transparent)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-              <div className="relative mb-10">
+              <div className="relative mb-8">
                 <div className="absolute inset-0 scale-150 blur-3xl opacity-30 bg-emerald-500 animate-pulse rounded-full" />
-                <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[inset_0_0_30px_rgba(16,185,129,0.1)]">
-                  <CheckCircle2 size={64} className="animate-in zoom-in-50 duration-700" />
+                <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[inset_0_0_30px_rgba(16,185,129,0.1)]">
+                  <CheckCircle2 size={48} className="animate-in zoom-in-50 duration-700" />
                 </div>
               </div>
-              <h3 className="text-3xl font-bold tracking-tighter text-white">
-                Enterprise Shield Active
+              <h3 className="text-2xl font-bold tracking-tight text-white">
+                Protection Active
               </h3>
-              <p className="mt-6 max-w-lg text-emerald-100/60 leading-relaxed text-sm">
-                Your administrative gateway is now hardened with military-grade TOTP protection. All authentication requests require primary device verification.
+              <p className="mt-4 max-w-sm text-emerald-100/60 leading-relaxed text-xs">
+                Your administrative gateway is now hardened with TOTP protection. All authentication requests require device verification.
               </p>
-              <div className="mt-12 flex items-center gap-6">
-                 <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-6 py-2.5 text-[10px] font-bold tracking-[0.2em] text-emerald-400">
-                   <Lock size={14} aria-hidden="true" />
-                   E2EE ESTABLISHED
+              <div className="mt-10 flex items-center gap-4">
+                 <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-2 text-[9px] font-bold tracking-widest text-emerald-400 uppercase">
+                   <Lock size={12} aria-hidden="true" />
+                   ENCRYPTED
                  </div>
-                 <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-6 py-2.5 text-[10px] font-bold tracking-[0.2em] text-emerald-400">
-                   <ShieldCheck size={14} aria-hidden="true" />
-                   SECURE SESSION
+                 <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-2 text-[9px] font-bold tracking-widest text-emerald-400 uppercase">
+                   <ShieldCheck size={12} aria-hidden="true" />
+                   SECURE
                  </div>
               </div>
             </AdminCard>
           )}
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      <Dialog open={isQrModalOpen} onOpenChange={setIsQrModalOpen}>
+        <AdminDialogContent className="max-w-2xl p-0">
+           <DialogHeader className="p-6 pb-0">
+             <DialogTitle className="text-xl font-bold text-admin-text-primary">Final Activation</DialogTitle>
+             <p className="mt-1 text-sm text-admin-text-muted">Scan the token using your authenticator app.</p>
+           </DialogHeader>
+
+           <div className="p-8">
+             <div className="grid gap-10 md:grid-cols-2">
+               <div className="space-y-6">
+                 <div className="relative group mx-auto md:mx-0 w-max">
+                   <div className="absolute inset-0 bg-[#f5c518]/10 blur-2xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700" />
+                   <div className="relative flex shrink-0 items-center justify-center rounded-3xl border-4 border-admin-accent/20 bg-white p-5 shadow-2xl">
+                     {qrCodeDataUrl ? (
+                       <img
+                         src={qrCodeDataUrl}
+                         alt="Secure TOTP Token"
+                         className="h-40 w-40 transition-transform duration-500 group-hover:scale-105"
+                       />
+                     ) : (
+                       <div className="h-40 w-40 grid place-items-center bg-admin-surface/20 rounded-2xl">
+                         <Loader2 className="animate-spin text-admin-accent" />
+                       </div>
+                     )}
+                   </div>
+                 </div>
+
+                 <div className="group relative overflow-hidden rounded-2xl border border-white/5 bg-black/40 p-4 transition-all hover:bg-black/60">
+                   <p className="text-[9px] font-black uppercase tracking-widest text-[#f5c518]/80">
+                     Security Key
+                   </p>
+                   <div className="mt-2 flex items-center justify-between">
+                     <span className="font-mono text-xs font-bold text-admin-text-primary tracking-widest break-all">
+                       {manualEntryKey}
+                     </span>
+                     <button
+                       onClick={() => copyToClipboard(manualEntryKey || "")}
+                       className="ml-3 rounded-lg p-2 bg-white/5 text-admin-text-muted hover:bg-[#f5c518]/10 hover:text-[#f5c518] transition-all"
+                     >
+                       <Copy size={14} />
+                     </button>
+                   </div>
+                 </div>
+               </div>
+
+               <div className="flex flex-col justify-center space-y-6">
+                 <div className="rounded-3xl border border-white/5 bg-black/20 p-6 backdrop-blur-sm">
+                   <label className="mb-3 block text-[10px] font-black uppercase tracking-widest text-[#f5c518]">
+                     Verification Token
+                   </label>
+                   <input
+                     type="text"
+                     maxLength={6}
+                     value={twoFactorCode}
+                     onChange={(e) =>
+                       setTwoFactorCode(e.target.value.replace(/\D/g, ""))
+                     }
+                     placeholder="000 000"
+                     className="h-14 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-center text-2xl font-bold tracking-[0.4em] text-[#f5c518] outline-none focus:border-[#f5c518]/40 focus:ring-4 focus:ring-[#f5c518]/5 transition-all"
+                   />
+                   <p className="mt-3 text-[10px] text-admin-text-muted/60 text-center italic">
+                     Refreshes every 30 seconds
+                   </p>
+                 </div>
+
+                 <div className="flex gap-3">
+                   <Button
+                     onClick={() => void enable2FA.mutateAsync()}
+                     disabled={enable2FA.isPending || twoFactorCode.length !== 6}
+                     className="h-14 flex-1 rounded-xl bg-[#f5c518] text-[#0d2137] font-bold shadow-xl shadow-[#f5c518]/20 hover:bg-[#e6b800] active:scale-95 transition-all uppercase tracking-widest text-xs"
+                   >
+                     {enable2FA.isPending ? (
+                       <Loader2 size={16} className="animate-spin" />
+                     ) : (
+                       "Confirm Identity"
+                     )}
+                   </Button>
+                 </div>
+               </div>
+             </div>
+           </div>
+        </AdminDialogContent>
+      </Dialog>
     </div>
   );
 }
