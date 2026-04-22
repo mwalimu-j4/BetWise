@@ -88,6 +88,9 @@ export default function DepositPage() {
   const [pendingMpesaTransactionId, setPendingMpesaTransactionId] = useState<
     string | null
   >(null);
+  const [selectedMethod, setSelectedMethod] = useState<DepositMethod | null>(
+    null,
+  );
 
   const mpesaAmount = Number(amounts.mpesa) || 0;
   const paystackAmount = Number(amounts.paystack) || 0;
@@ -100,6 +103,37 @@ export default function DepositPage() {
   const isPaymentMethodsLoading = enabledMethodsQuery.isLoading;
   const isMpesaEnabled = enabledMethodsQuery.data?.mpesa ?? false;
   const isPaystackEnabled = enabledMethodsQuery.data?.paystack ?? false;
+  const enabledDepositMethods = useMemo(() => {
+    const methods: DepositMethod[] = [];
+
+    if (isMpesaEnabled) {
+      methods.push("mpesa");
+    }
+
+    if (isPaystackEnabled) {
+      methods.push("paystack");
+    }
+
+    return methods;
+  }, [isMpesaEnabled, isPaystackEnabled]);
+  const showMethodToggle = enabledDepositMethods.length > 1;
+  const activeMethod =
+    selectedMethod && enabledDepositMethods.includes(selectedMethod)
+      ? selectedMethod
+      : enabledDepositMethods[0] ?? null;
+
+  useEffect(() => {
+    if (enabledDepositMethods.length === 0) {
+      if (selectedMethod !== null) {
+        setSelectedMethod(null);
+      }
+      return;
+    }
+
+    if (!selectedMethod || !enabledDepositMethods.includes(selectedMethod)) {
+      setSelectedMethod(enabledDepositMethods[0]);
+    }
+  }, [enabledDepositMethods, selectedMethod]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -393,6 +427,9 @@ export default function DepositPage() {
         ? "Confirming your Paystack payment"
         : "Preparing Paystack checkout";
 
+  const getMethodLabel = (method: DepositMethod) =>
+    method === "mpesa" ? "M-Pesa" : "Paystack";
+
   const renderDepositCard = (method: DepositMethod) => {
     const isMpesa = method === "mpesa";
     const isEnabled = isMpesa ? isMpesaEnabled : isPaystackEnabled;
@@ -604,10 +641,61 @@ export default function DepositPage() {
             contact support.
           </p>
         </div>
+      ) : activeMethod ? (
+        <div className="space-y-5">
+          <div className="flex flex-col gap-4 rounded-3xl border border-[#1a2f45] bg-[#0d1829] px-5 py-4 shadow-xl sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-[#5f7b95]">
+                Deposit Funds
+              </p>
+              <h1 className="mt-1 text-2xl font-bold text-white">
+                Fund your wallet
+              </h1>
+              <p className="mt-1 text-sm text-[#89a1b7]">
+                Use {getMethodLabel(activeMethod)} to add money to your BetWise
+                wallet.
+              </p>
+            </div>
+
+            {showMethodToggle ? (
+              <div className="inline-flex w-full rounded-2xl border border-[#23415d] bg-[#08111d] p-1.5 sm:w-auto">
+                {enabledDepositMethods.map((method) => {
+                  const isActive = method === activeMethod;
+
+                  return (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setSelectedMethod(method)}
+                      className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 sm:flex-none ${
+                        isActive
+                          ? "bg-[#f5c518] text-black shadow-[0_10px_30px_rgba(245,197,24,0.2)]"
+                          : "text-[#8ea6bb] hover:bg-[#102134] hover:text-white"
+                      }`}
+                    >
+                      {getMethodLabel(method)}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="inline-flex items-center rounded-full border border-[#f5c518]/20 bg-[#f5c518]/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#f5c518]">
+                {getMethodLabel(activeMethod)} enabled
+              </div>
+            )}
+          </div>
+
+          {renderDepositCard(activeMethod)}
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          {renderDepositCard("mpesa")}
-          {renderDepositCard("paystack")}
+        <div className="mx-auto max-w-md rounded-3xl border border-[#7a2f36] bg-[#2a101e] p-6 text-center text-sm text-[#f2c7cb] shadow-inner">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#7a2f36]/10 text-[#f5a8ad]">
+            <AlertCircle className="h-7 w-7" />
+          </div>
+          <p className="font-semibold text-white">Unable to load deposit mode</p>
+          <p className="mt-2 text-[#d7b1b8]">
+            Please refresh the page and try again.
+          </p>
         </div>
       )}
     </section>
