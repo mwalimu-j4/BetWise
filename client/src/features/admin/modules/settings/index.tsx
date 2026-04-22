@@ -15,7 +15,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   ChevronRight,
-  CreditCard,
   Eye,
   EyeOff,
   Globe,
@@ -23,10 +22,9 @@ import {
   Lock,
   Percent,
   Shield,
-  Smartphone,
   Sparkles,
   UserCog,
-  Zap,
+  Zap
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -178,7 +176,13 @@ const sectionDefinitions: SectionDefinition[] = [
     title: "M-Pesa Integration",
     subtitle: "STK Push, B2C transfers, and automated reconciliation",
     group: "Financial Operations",
-    icon: <Smartphone size={16} />,
+    icon: (
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg"
+        className="h-7 w-auto object-contain"
+        alt="M-Pesa"
+      />
+    ),
     fields: [
       { type: "header", label: "Api Configuration" },
       {
@@ -229,7 +233,13 @@ const sectionDefinitions: SectionDefinition[] = [
     title: "Paystack Gateway",
     subtitle: "Card payments, Apple Pay, and bank transfers via Paystack",
     group: "Financial Operations",
-    icon: <CreditCard size={16} />,
+    icon: (
+      <img
+        src="/images/paystack.png"
+        className="h-6 w-auto object-contain"
+        alt="Paystack"
+      />
+    ),
     fields: [
       { type: "header", label: "API Credentials" },
       {

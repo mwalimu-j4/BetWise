@@ -35,6 +35,7 @@ import {
 
 
 const paystackPendingStorageKey = "betwise-paystack-pending-reference";
+const paystackLogoUrl = "/images/paystack.png";
 const mpesaPendingStorageKey = "betwise-mpesa-pending-transaction";
 const mpesaLogoUrl =
   "https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg";
@@ -598,12 +599,12 @@ export default function DepositPage() {
                   className="h-12 w-auto object-contain"
                 />
               ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#f5c518]/20 bg-[#f5c518]/10">
-                  <CreditCard className="h-4 w-4 text-[#f5c518]" />
-                </div>
+
+                  <img src={paystackLogoUrl} alt="Paystack" className="h-10 w-auto object-contain" />
+
               )}
               <span className="text-base font-bold text-white">
-                {!isMpesa && "Paystack"}
+                {!isMpesa && ""}
               </span>
             </div>
 
