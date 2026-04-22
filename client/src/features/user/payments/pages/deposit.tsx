@@ -726,7 +726,7 @@ export default function DepositPage() {
         </div>
       ) : activeMethod ? (
         <div className="space-y-4">
-          <div className="mx-auto w-full max-w-[860px]">
+          <div className="mx-auto w-full max-w-[760px]">
             {renderDepositCard(activeMethod)}
           </div>
         </div>
