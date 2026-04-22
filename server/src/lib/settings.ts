@@ -149,6 +149,14 @@ export async function getSystemSettings(): Promise<AdminSettingsConfig> {
     };
 
     const parsed = adminSettingsSchema.safeParse(config);
+
+    if (!parsed.success) {
+      console.error(
+        "[Settings] Validation failed for admin settings. Falling back to defaults.",
+        parsed.error.format(),
+      );
+    }
+
     return parsed.success ? parsed.data : defaultAdminSettings;
   } catch (error) {
     console.error("[Settings] Error fetching system settings:", error);
