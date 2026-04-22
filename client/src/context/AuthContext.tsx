@@ -10,7 +10,7 @@ import {
 } from "react";
 import { api } from "@/api/axiosConfig";
 import { configureAuthHandlers, setAccessToken } from "@/api/axiosConfig";
-import { getRouter } from "@/router";
+import { getRouter } from "@/lib/router-instance";
 
 type Role = "USER" | "ADMIN";
 
