@@ -1,8 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
-import { Smartphone, ArrowUpRight, LoaderCircle, Banknote } from "lucide-react";
-import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/api/axiosConfig";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,13 +8,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatMoney } from "../data";
-import { useWalletSummary, walletSummaryQueryKey } from "../wallet";
-import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  ArrowUpRight,
+  Banknote,
+  Check,
+  ChevronDown,
+  CreditCard,
+  LoaderCircle,
+  Smartphone,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { formatMoney } from "../data";
 import { useEnabledPaymentMethods } from "../hooks/usePaymentMethods";
-
-
+import { useWalletSummary, walletSummaryQueryKey } from "../wallet";
 
 type WithdrawalResponse = {
   message: string;
@@ -38,11 +50,13 @@ function isPhoneValid(phone: string) {
 
 export default function PaymentsWithdrawalPage() {
   const { user } = useAuth();
-  const [amount, setAmount] = useState("500");
+  const [amount, setAmount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<"mpesa" | "paystack" | null>(null);
   const { data: walletData, isLoading: isWalletLoading } = useWalletSummary();
   const queryClient = useQueryClient();
+
   const accountPhone = useMemo(
     () => normalizePhone(user?.phone ?? ""),
     [user?.phone],
@@ -50,8 +64,25 @@ export default function PaymentsWithdrawalPage() {
   const [phone, setPhone] = useState(accountPhone);
   const normalizedPhone = useMemo(() => normalizePhone(phone), [phone]);
 
+  const enabledMethodsQuery = useEnabledPaymentMethods();
+  const isMpesaEnabled = enabledMethodsQuery.data?.mpesa ?? false;
+  const isPaystackEnabled = enabledMethodsQuery.data?.paystack ?? false;
+
+  const enabledMethods = useMemo(() => {
+    const methods: ("mpesa" | "paystack")[] = [];
+    if (isMpesaEnabled) methods.push("mpesa");
+    if (isPaystackEnabled) methods.push("paystack");
+    return methods;
+  }, [isMpesaEnabled, isPaystackEnabled]);
+
+  useEffect(() => {
+    if (enabledMethods.length > 0 && !selectedProvider) {
+      setSelectedProvider(enabledMethods[0]);
+    }
+  }, [enabledMethods, selectedProvider]);
+
   const withdrawalMutation = useMutation({
-    mutationFn: async (data: { amount: number; phone: string }) => {
+    mutationFn: async (data: { amount: number; phone: string; provider: string }) => {
       const response = await api.post<WithdrawalResponse>(
         "/payments/withdrawals",
         data,
@@ -73,7 +104,6 @@ export default function PaymentsWithdrawalPage() {
     },
   });
 
-  const enabledMethodsQuery = useEnabledPaymentMethods();
   const limits = enabledMethodsQuery.data?.limits;
 
   const minWithdrawal = limits?.minWithdrawal ?? 50;
@@ -82,9 +112,7 @@ export default function PaymentsWithdrawalPage() {
 
   const numAmount = Number(amount) || 0;
   const feeAmount =
-    numAmount > 0
-      ? Math.ceil((numAmount * feePercentage) / 100)
-      : 0;
+    numAmount > 0 ? Math.ceil((numAmount * feePercentage) / 100) : 0;
   const netAmount = numAmount - feeAmount;
   const balance = walletData?.wallet?.balance ?? 0;
   const totalNeeded = numAmount + feeAmount;
@@ -99,7 +127,14 @@ export default function PaymentsWithdrawalPage() {
       numAmount <= maxWithdrawal &&
       totalNeeded <= balance &&
       isPhoneValid(normalizedPhone),
-    [numAmount, balance, normalizedPhone, totalNeeded, minWithdrawal, maxWithdrawal],
+    [
+      numAmount,
+      balance,
+      normalizedPhone,
+      totalNeeded,
+      minWithdrawal,
+      maxWithdrawal,
+    ],
   );
 
   function validateWithdrawalInput() {
@@ -109,12 +144,16 @@ export default function PaymentsWithdrawalPage() {
     }
 
     if (numAmount < minWithdrawal) {
-      toast.error(`Minimum withdrawal is KES ${minWithdrawal.toLocaleString()}.`);
+      toast.error(
+        `Minimum withdrawal is KES ${minWithdrawal.toLocaleString()}.`,
+      );
       return false;
     }
 
     if (numAmount > maxWithdrawal) {
-      toast.error(`Maximum withdrawal is KES ${maxWithdrawal.toLocaleString()}.`);
+      toast.error(
+        `Maximum withdrawal is KES ${maxWithdrawal.toLocaleString()}.`,
+      );
       return false;
     }
 
@@ -135,13 +174,14 @@ export default function PaymentsWithdrawalPage() {
   }
 
   async function onConfirmWithdrawal() {
-    if (!canWithdraw) return;
+    if (!canWithdraw || !selectedProvider) return;
 
     setIsSubmitting(true);
     try {
       await withdrawalMutation.mutateAsync({
         amount: numAmount,
         phone: normalizedPhone,
+        provider: selectedProvider,
       });
     } finally {
       setIsSubmitting(false);
@@ -182,19 +222,61 @@ export default function PaymentsWithdrawalPage() {
       <div className="mx-auto w-full max-w-[700px] space-y-4">
         <article className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
           <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#f5c518]/20 bg-[#f5c518]/10">
-                <ArrowUpRight size={17} className="text-[#f5c518]" />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#f5c518]/20 bg-[#f5c518]/10">
+                    <ArrowUpRight size={17} className="text-[#f5c518]" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-white">
+                      Withdraw Funds
+                    </h2>
+                    <p className="text-xs text-[#4a6a85]">
+                      Choose provider and enter amount
+                    </p>
+                  </div>
+                </div>
+
+                {enabledMethods.length > 1 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center gap-2 rounded-xl border border-[#1a2f45] bg-[#0f1d2e] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:border-[#f5c518]/50">
+                        {selectedProvider === "mpesa" ? (
+                          <>
+                            <Smartphone className="h-3.5 w-3.5 text-[#f5c518]" />
+                            M-Pesa
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className="h-3.5 w-3.5 text-[#f5c518]" />
+                            Paystack
+                          </>
+                        )}
+                        <ChevronDown className="h-3.5 w-3.5 text-[#4a6a85]" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="border border-[#1a2f45] bg-[#0b1421] text-white">
+                      {enabledMethods.map((m) => (
+                        <DropdownMenuItem
+                          key={m}
+                          onClick={() => setSelectedProvider(m)}
+                          className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium hover:bg-[#14263a]"
+                        >
+                          <div className="flex items-center gap-2">
+                            {m === "mpesa" ? (
+                              <Smartphone className="h-3.5 w-3.5" />
+                            ) : (
+                              <CreditCard className="h-3.5 w-3.5" />
+                            )}
+                            {m === "mpesa" ? "M-Pesa" : "Paystack"}
+                          </div>
+                          {selectedProvider === m && <Check className="h-3.5 w-3.5 text-[#f5c518]" />}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
-              <div>
-                <h2 className="text-base font-bold text-white">
-                  Withdraw Funds
-                </h2>
-                <p className="text-xs text-[#4a6a85]">
-                  Enter amount and M-Pesa number to continue
-                </p>
-              </div>
-            </div>
           </div>
 
           <div className="space-y-5 px-7 py-6">
@@ -225,10 +307,9 @@ export default function PaymentsWithdrawalPage() {
                 </label>
 
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Smartphone size={13} className="text-[#3d5a73]" />
+                  <div className="flex items-center">
                     <p className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
-                      M-Pesa Number
+                      {selectedProvider === "mpesa" ? "M-Pesa Number" : "Phone Number"}
                     </p>
                   </div>
                   <div className="relative">
@@ -292,7 +373,9 @@ export default function PaymentsWithdrawalPage() {
                 {formatMoney(numAmount)}
               </span>{" "}
               to{" "}
-              <span className="font-semibold text-white">{normalizedPhone}</span>
+              <span className="font-semibold text-white">
+                {normalizedPhone}
+              </span>
               .
             </p>
             <p className="text-sm leading-relaxed text-[#9bb0c6]">
