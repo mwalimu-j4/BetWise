@@ -97,17 +97,12 @@ async function finalizeSuccessfulMpesaDeposit(args: {
       return null;
     }
 
-    const settings = await getSystemSettings();
-    const { depositTaxPercent } = settings.taxAndFinancialRules;
-    const taxAmount = (transaction.amount * depositTaxPercent) / 100;
-    const netAmount = transaction.amount - taxAmount;
-
     const wallet = transaction.wallet ?? (await getOrCreateWallet(transaction.userId, tx));
     const updatedWallet = await tx.wallet.update({
       where: { id: wallet.id },
       data: {
         balance: {
-          increment: netAmount,
+          increment: transaction.amount,
         },
       },
       select: { balance: true },
@@ -119,13 +114,6 @@ async function finalizeSuccessfulMpesaDeposit(args: {
         walletId: wallet.id,
         status: "COMPLETED",
         processedAt: new Date(),
-        providerCallback: {
-          ...(transaction.providerCallback as any),
-          ...(args.providerCallback as any),
-          netAmount,
-          taxAmount,
-          depositTaxPercent,
-        },
         providerReceiptNumber:
           args.providerReceiptNumber ?? transaction.providerReceiptNumber ?? undefined,
         providerResponseCode:
@@ -134,6 +122,7 @@ async function finalizeSuccessfulMpesaDeposit(args: {
           args.providerResponseDescription ??
           transaction.providerResponseDescription ??
           "M-Pesa payment completed successfully.",
+        providerCallback: args.providerCallback ?? transaction.providerCallback ?? undefined,
       },
     });
 
@@ -143,9 +132,9 @@ async function finalizeSuccessfulMpesaDeposit(args: {
       merchantRequestId: updatedTransaction.merchantRequestId,
       mpesaCode: updatedTransaction.providerReceiptNumber,
       status: "COMPLETED",
-      message: `M-Pesa deposit completed successfully.${taxAmount > 0 ? ` Tax of KES ${taxAmount} deducted.` : ""}`,
+      message: "M-Pesa deposit completed successfully.",
       balance: updatedWallet.balance,
-      amount: netAmount,
+      amount: updatedTransaction.amount,
     });
 
     await createDepositNotifications({
