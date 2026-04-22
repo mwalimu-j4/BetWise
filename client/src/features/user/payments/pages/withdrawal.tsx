@@ -16,10 +16,9 @@ import { formatMoney } from "../data";
 import { useWalletSummary, walletSummaryQueryKey } from "../wallet";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
+import { useEnabledPaymentMethods } from "../hooks/usePaymentMethods";
 
-const MAX_WITHDRAWAL = 500000;
-const WITHDRAWAL_FEE_PERCENTAGE = 15;
-const MIN_WITHDRAWAL = 50;
+
 
 type WithdrawalResponse = {
   message: string;
@@ -74,10 +73,17 @@ export default function PaymentsWithdrawalPage() {
     },
   });
 
+  const enabledMethodsQuery = useEnabledPaymentMethods();
+  const limits = enabledMethodsQuery.data?.limits;
+
+  const minWithdrawal = limits?.minWithdrawal ?? 50;
+  const maxWithdrawal = limits?.maxWithdrawal ?? 500000;
+  const feePercentage = limits?.feePercentage ?? 15;
+
   const numAmount = Number(amount) || 0;
   const feeAmount =
     numAmount > 0
-      ? Math.ceil((numAmount * WITHDRAWAL_FEE_PERCENTAGE) / 100)
+      ? Math.ceil((numAmount * feePercentage) / 100)
       : 0;
   const netAmount = numAmount - feeAmount;
   const balance = walletData?.wallet?.balance ?? 0;
@@ -89,11 +95,11 @@ export default function PaymentsWithdrawalPage() {
 
   const canWithdraw = useMemo(
     () =>
-      numAmount >= MIN_WITHDRAWAL &&
-      numAmount <= MAX_WITHDRAWAL &&
+      numAmount >= minWithdrawal &&
+      numAmount <= maxWithdrawal &&
       totalNeeded <= balance &&
       isPhoneValid(normalizedPhone),
-    [numAmount, balance, normalizedPhone, totalNeeded],
+    [numAmount, balance, normalizedPhone, totalNeeded, minWithdrawal, maxWithdrawal],
   );
 
   function validateWithdrawalInput() {
@@ -102,13 +108,13 @@ export default function PaymentsWithdrawalPage() {
       return false;
     }
 
-    if (numAmount < MIN_WITHDRAWAL) {
-      toast.error(`Minimum withdrawal is KES ${MIN_WITHDRAWAL}.`);
+    if (numAmount < minWithdrawal) {
+      toast.error(`Minimum withdrawal is KES ${minWithdrawal.toLocaleString()}.`);
       return false;
     }
 
-    if (numAmount > MAX_WITHDRAWAL) {
-      toast.error(`Maximum withdrawal is KES ${MAX_WITHDRAWAL}.`);
+    if (numAmount > maxWithdrawal) {
+      toast.error(`Maximum withdrawal is KES ${maxWithdrawal.toLocaleString()}.`);
       return false;
     }
 
@@ -206,15 +212,15 @@ export default function PaymentsWithdrawalPage() {
                     <input
                       className="h-12 w-full bg-transparent px-3 text-base font-semibold text-white outline-none placeholder:text-[#2e4a63]"
                       type="number"
-                      min={MIN_WITHDRAWAL}
-                      max={MAX_WITHDRAWAL}
+                      min={minWithdrawal}
+                      max={maxWithdrawal}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      placeholder={`Min ${MIN_WITHDRAWAL}`}
+                      placeholder={`Min ${minWithdrawal}`}
                     />
                   </div>
                   <p className="text-xs text-[#3d5a73]">
-                    Minimum withdrawal: KES {MIN_WITHDRAWAL}
+                    Minimum withdrawal: KES {minWithdrawal.toLocaleString()}
                   </p>
                 </label>
 
@@ -292,7 +298,7 @@ export default function PaymentsWithdrawalPage() {
             <p className="text-sm leading-relaxed text-[#9bb0c6]">
               A{" "}
               <span className="font-semibold text-[#f5c518]">
-                {WITHDRAWAL_FEE_PERCENTAGE}% fee ({formatMoney(feeAmount)})
+                {feePercentage}% fee ({formatMoney(feeAmount)})
               </span>{" "}
               will apply, and you will receive{" "}
               <span className="font-semibold text-emerald-400">

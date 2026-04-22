@@ -1181,6 +1181,15 @@ export async function getEnabledPaymentMethods(
         paymentMpesaEnabled: true,
         paymentPaystackEnabled: true,
         paymentBankTransferEnabled: true,
+        minDeposit: true,
+        maxDeposit: true,
+        minWithdrawal: true,
+        maxWithdrawal: true,
+        dailyTransactionLimit: true,
+        mpesaTransactionFeePercent: true,
+        minBetAmount: true,
+        maxBetAmount: true,
+        maxTotalOdds: true,
       },
     });
 
@@ -1196,6 +1205,20 @@ export async function getEnabledPaymentMethods(
       mpesa: settings.paymentMpesaEnabled,
       paystack: settings.paymentPaystackEnabled,
       bankTransfer: settings.paymentBankTransferEnabled,
+      limits: {
+        minDeposit: settings.minDeposit,
+        maxDeposit: settings.maxDeposit,
+        minWithdrawal: settings.minWithdrawal,
+        maxWithdrawal: settings.maxWithdrawal,
+        dailyLimit: settings.dailyTransactionLimit,
+        feePercentage: settings.mpesaTransactionFeePercent,
+      },
+      betting: {
+        minBetAmount: settings.minBetAmount,
+        maxBetAmount: settings.maxBetAmount,
+        maxTotalOdds: settings.maxTotalOdds,
+      },
+      currency: "KES",
     });
   } catch (error) {
     next(error);
