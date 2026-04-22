@@ -425,7 +425,7 @@ export default function DepositPage() {
                 </div>
               )}
               <span className="text-base font-bold text-white">
-                {isMpesa ? "M-Pesa" : "Paystack"}
+                {!isMpesa && "Paystack"}
               </span>
             </div>
             {!isMpesa && (
