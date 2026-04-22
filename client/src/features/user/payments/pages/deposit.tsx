@@ -100,6 +100,8 @@ export default function DepositPage() {
   const [selectedMethod, setSelectedMethod] = useState<DepositMethod | null>(
     null,
   );
+  const [isMethodMenuOpen, setIsMethodMenuOpen] = useState(false);
+  const [isMethodMenuPreparing, setIsMethodMenuPreparing] = useState(false);
 
   const mpesaAmount = Number(amounts.mpesa) || 0;
   const paystackAmount = Number(amounts.paystack) || 0;
@@ -240,6 +242,20 @@ export default function DepositPage() {
     paystackVerificationQuery.isError,
     shouldVerifyPaystack,
   ]);
+
+  useEffect(() => {
+    if (!isMethodMenuOpen) {
+      setIsMethodMenuPreparing(false);
+      return;
+    }
+
+    setIsMethodMenuPreparing(true);
+    const timer = window.setTimeout(() => {
+      setIsMethodMenuPreparing(false);
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [isMethodMenuOpen]);
 
   useEffect(() => {
     const status = mpesaStatusQuery.data?.status;
@@ -457,7 +473,7 @@ export default function DepositPage() {
     );
 
   const renderMethodDropdown = (align: "center" | "end") => (
-    <DropdownMenu>
+    <DropdownMenu open={isMethodMenuOpen} onOpenChange={setIsMethodMenuOpen}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
@@ -485,20 +501,27 @@ export default function DepositPage() {
         align={align}
         className="w-48 rounded-2xl border border-[#23415d] bg-[#08111d] p-2 text-white shadow-[0_12px_26px_rgba(4,12,22,0.35)] data-[state=open]:animate-none data-[state=closed]:animate-none"
       >
-        {enabledDepositMethods.map((method) => {
-          const isActive = method === activeMethod;
+        {isMethodMenuPreparing ? (
+          <div className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-xs font-medium text-[#9fb4c9]">
+            <LoaderCircle className="h-4 w-4 animate-spin text-[#f5c518]" />
+            Loading methods...
+          </div>
+        ) : (
+          enabledDepositMethods.map((method) => {
+            const isActive = method === activeMethod;
 
-          return (
-            <DropdownMenuItem
-              key={method}
-              onClick={() => setSelectedMethod(method)}
-              className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-[#dce7f2] outline-none transition-colors focus:bg-[#102134] focus:text-white"
-            >
-              <span>{getMethodLabel(method)}</span>
-              {isActive ? <Check className="h-4 w-4 text-[#f5c518]" /> : null}
-            </DropdownMenuItem>
-          );
-        })}
+            return (
+              <DropdownMenuItem
+                key={method}
+                onClick={() => setSelectedMethod(method)}
+                className="flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-[#dce7f2] outline-none transition-colors focus:bg-[#102134] focus:text-white"
+              >
+                <span>{getMethodLabel(method)}</span>
+                {isActive ? <Check className="h-4 w-4 text-[#f5c518]" /> : null}
+              </DropdownMenuItem>
+            );
+          })
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
