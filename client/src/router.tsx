@@ -1,5 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
+import { setRouter } from "@/lib/router-instance";
 import { adminBetsRoute } from "./routes/admin/bets";
 import { adminAnalyticsRoute } from "./routes/admin/analytics";
 import { adminAppealsRoute } from "./routes/admin/appeals";
@@ -85,18 +86,13 @@ const routeTree = rootRoute.addChildren([
   ]),
 ]);
 
-let routerInstance: ReturnType<typeof createRouter> | null = null;
-
-export function getRouter() {
-  return routerInstance;
-}
-
 export function createAppRouter(queryClient: QueryClient) {
-  routerInstance = createRouter({
+  const router = createRouter({
     routeTree,
     context: {
       queryClient,
     },
   });
-  return routerInstance;
+  setRouter(router);
+  return router;
 }
