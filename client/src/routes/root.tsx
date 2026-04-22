@@ -30,8 +30,17 @@ function Root() {
   );
 }
 
+type RootSearchParams = {
+  modal?: "login" | "register" | "forgot-password";
+};
+
 export const rootRoute = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
+  validateSearch: (search: Record<string, unknown>): RootSearchParams => {
+    return {
+      modal: (search.modal as RootSearchParams["modal"]) || undefined,
+    };
+  },
   component: Root,
 });

@@ -6,7 +6,6 @@ type RetryableRequestConfig = {
   url?: string;
 };
 
-let refreshPromise: Promise<string | null> | null = null;
 let installed = false;
 
 function debugLog(message: string, details: Record<string, unknown>) {
@@ -20,7 +19,8 @@ function shouldSkipRefresh(url: string | undefined) {
   return (
     url.includes("/auth/refresh") ||
     url.includes("/auth/login") ||
-    url.includes("/auth/register")
+    url.includes("/auth/register") ||
+    url.includes("/auth/me")
   );
 }
 
@@ -60,6 +60,11 @@ export function installApiInterceptors() {
       const originalRequest = error.config as RetryableRequestConfig | undefined;
       const status = error.response?.status as number | undefined;
 
+      if (status === 401) {
+        getUnauthorizedHandler()?.();
+        return Promise.reject(error);
+      }
+
       if (
         !originalRequest ||
         status !== 401 ||
@@ -77,23 +82,7 @@ export function installApiInterceptors() {
         return Promise.reject(error);
       }
 
-      if (!refreshPromise) {
-        refreshPromise = refreshHandler().finally(() => {
-          refreshPromise = null;
-        });
-      }
-
-      const newToken = await refreshPromise;
-
-      if (!newToken) {
-        getUnauthorizedHandler()?.();
-        return Promise.reject(error);
-      }
-
-      originalRequest.headers = originalRequest.headers ?? {};
-      originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-      return api(originalRequest);
+      return Promise.reject(error);
     },
   );
 }

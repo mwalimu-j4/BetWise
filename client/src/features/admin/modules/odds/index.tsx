@@ -270,7 +270,7 @@ export default function Odds() {
   }) {
     void navigate({
       to: "/admin/odds",
-      search: (prev) => ({
+      search: (prev: any) => ({
         ...(prev as Record<string, unknown>),
         filter: next.filter ?? activeFilter,
         page: next.page ?? currentPage,

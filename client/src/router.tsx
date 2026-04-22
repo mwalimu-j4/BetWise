@@ -85,11 +85,18 @@ const routeTree = rootRoute.addChildren([
   ]),
 ]);
 
+let routerInstance: ReturnType<typeof createRouter> | null = null;
+
+export function getRouter() {
+  return routerInstance;
+}
+
 export function createAppRouter(queryClient: QueryClient) {
-  return createRouter({
+  routerInstance = createRouter({
     routeTree,
     context: {
       queryClient,
     },
   });
+  return routerInstance;
 }
