@@ -247,22 +247,12 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
       });
 
       if (won) {
-        const settings = await getSystemSettings();
-        const { winningsTaxPercent, roundingRule } = settings.taxAndFinancialRules;
-
-        const { netPayout, taxAmount } = calculatePayoutWithTax(
-          bet.potentialPayout,
-          bet.stake,
-          winningsTaxPercent,
-          roundingRule
-        );
-
         const wallet = await getOrCreateWallet(bet.userId, tx);
         const updatedWallet = await tx.wallet.update({
           where: { id: wallet.id },
           data: {
             balance: {
-              increment: netPayout,
+              increment: bet.potentialPayout,
             },
           },
           select: { balance: true },
@@ -274,19 +264,17 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
             walletId: wallet.id,
             type: "BET_WIN",
             status: "COMPLETED",
-            amount: netPayout,
+            amount: bet.potentialPayout,
             currency: "KES",
             channel: "betting",
             reference: `BET-WIN-${bet.id}`,
-            description: `Winning payout for bet ${bet.betCode}${taxAmount > 0 ? ` (Tax: KES ${taxAmount})` : ""}`,
+            description: `Winning payout for bet ${bet.betCode}`,
           },
         });
 
         return {
           balance: updatedWallet.balance,
           transactionId: transaction.id,
-          netPayout,
-          taxAmount,
         };
       }
 
@@ -306,9 +294,9 @@ betsAdminRouter.post("/admin/bets/:betId/settle", async (req, res, next) => {
       emitWalletUpdate(bet.userId, {
         transactionId: result.transactionId,
         status: "COMPLETED",
-        message: `Winning payout credited to your wallet.${result.taxAmount > 0 ? ` Tax of KES ${result.taxAmount} deducted.` : ""}`,
+        message: "Winning payout credited to your wallet.",
         balance: result.balance,
-        amount: result.netPayout,
+        amount: bet.potentialPayout,
       });
     }
 
