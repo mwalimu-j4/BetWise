@@ -147,7 +147,7 @@ export default function PaymentsWithdrawalPage() {
 
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-8">
-      <div className="mx-auto w-full max-w-[760px] space-y-4">
+      <div className="mx-auto w-full max-w-[700px] space-y-4">
         <article className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
           <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
             <div className="flex items-center gap-3">
@@ -224,7 +224,7 @@ export default function PaymentsWithdrawalPage() {
               <Button
                 type="submit"
                 disabled={busy}
-                className="h-14 w-full rounded-2xl bg-[#f5c518] text-base font-bold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-12 w-full rounded-2xl bg-[#f5c518] text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy ? (
                   <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />

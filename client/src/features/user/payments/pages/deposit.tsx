@@ -460,7 +460,7 @@ export default function DepositPage() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-[#23415d] bg-[#08111d] px-3 py-2.5 text-left shadow-[0_14px_30px_rgba(4,12,22,0.28)] transition-colors hover:border-[#32597d] sm:w-[176px]"
+          className="flex w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#23415d] bg-[#08111d] px-3 py-2.5 text-left shadow-[0_14px_30px_rgba(4,12,22,0.28)] transition-colors hover:border-[#32597d]"
         >
           <span className="flex min-w-0 items-center gap-2.5">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#f5c518]/15 bg-[#f5c518]/10 text-[#f5c518]">
@@ -578,7 +578,7 @@ export default function DepositPage() {
                       key={value}
                       type="button"
                       onClick={() => setMethodAmount(method, String(value))}
-                      className={`rounded-xl border py-2.5 text-xs font-semibold transition-all duration-150 ${
+                      className={`rounded-xl border py-2 text-xs font-semibold transition-all duration-150 ${
                         amountValue === value
                           ? "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518]"
                           : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#f5c518]/30 hover:text-white"
@@ -609,7 +609,7 @@ export default function DepositPage() {
                     inputMode="numeric"
                     type="text"
                     placeholder="Enter amount"
-                    className="h-14 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-lg text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]"
+                    className="h-12 rounded-2xl border-[#1a2f45] bg-[#0f1d2e] text-base text-white placeholder:text-[#2e4a63] transition-colors focus:border-[#f5c518] focus:ring-1 focus:ring-[#f5c518]"
                   />
                   <p className="text-xs text-[#3d5a73]">
                     Minimum deposit: KES 500
@@ -625,7 +625,7 @@ export default function DepositPage() {
                 <Button
                   type="submit"
                   disabled={isBusy || (isMpesa && !hasValidMpesaPhone)}
-                  className="h-14 w-full rounded-2xl bg-[#f5c518] text-base font-bold text-black transition-colors hover:bg-[#e6b800] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-12 w-full rounded-2xl bg-[#f5c518] text-sm font-bold text-black transition-colors hover:bg-[#e6b800] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isBusy && (
                     <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
@@ -726,7 +726,7 @@ export default function DepositPage() {
         </div>
       ) : activeMethod ? (
         <div className="space-y-4">
-          <div className="mx-auto w-full max-w-[760px]">
+          <div className="mx-auto w-full max-w-[700px]">
             {renderDepositCard(activeMethod)}
           </div>
         </div>
