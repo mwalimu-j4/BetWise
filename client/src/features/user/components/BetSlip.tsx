@@ -2,6 +2,7 @@ import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Copy, Loader2, MessageCircle, Share2, X } from "lucide-react";
 import type { BetSelection, UseBetSlipReturn } from "./hooks/useBetSlip";
 import { betSlipToggleEventName } from "./hooks/useBetSlip";
+import { useEnabledPaymentMethods } from "../payments/hooks/usePaymentMethods";
 
 function formatCurrency(value?: number) {
   const safeValue = Number(value) || 0;
@@ -43,6 +44,7 @@ function BetSlipPanel({
   onClose,
   compactActions = false,
 }: UseBetSlipReturn & { onClose?: () => void; compactActions?: boolean }) {
+  const enabledMethodsQuery = useEnabledPaymentMethods();
   const safeStake = stake || 0;
   const totalStake = safeStake * selections.length;
   const [copySuccess, setCopySuccess] = useState(false);
@@ -242,11 +244,11 @@ function BetSlipPanel({
             <input
               id="bet-stake"
               type="number"
-              min={50}
-              max={100000}
+              min={enabledMethodsQuery.data?.betting.minBetAmount ?? 50}
+              max={enabledMethodsQuery.data?.betting.maxBetAmount ?? 100000}
               value={stake || ""}
               onChange={handleStakeChange}
-              placeholder="50"
+              placeholder={String(enabledMethodsQuery.data?.betting.minBetAmount ?? 50)}
               className="w-full bg-transparent px-2.5 py-1.5 text-center text-[15px] font-bold text-white outline-none"
             />
           </div>
