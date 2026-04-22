@@ -5,6 +5,20 @@ export type EnabledPaymentMethods = {
   mpesa: boolean;
   paystack: boolean;
   bankTransfer: boolean;
+  limits: {
+    minDeposit: number;
+    maxDeposit: number;
+    minWithdrawal: number;
+    maxWithdrawal: number;
+    dailyLimit: number;
+    feePercentage: number;
+  };
+  betting: {
+    minBetAmount: number;
+    maxBetAmount: number;
+    maxTotalOdds: number;
+  };
+  currency: string;
 };
 
 export function useEnabledPaymentMethods() {
