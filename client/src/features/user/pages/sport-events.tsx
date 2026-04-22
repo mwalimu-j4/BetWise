@@ -1,6 +1,8 @@
-import EventCard from "../components/EventCard";
+import { lazy, Suspense } from "react";
 import type { BetSelection } from "../components/hooks/useBetSlip";
 import type { ApiEvent } from "../components/hooks/useEvents";
+
+const EventCard = lazy(() => import("../components/EventCard"));
 
 type SportEventsProps = {
   events: ApiEvent[];
@@ -45,7 +47,12 @@ export default function SportEvents({
       ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-2"
       : cardsPerRow === 3
         ? "md:grid-cols-2 lg:grid-cols-3"
-        : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2";
+        : "grid-cols-2";
+
+  const eventGridSpacingClassName =
+    cardsPerRow === 2
+      ? "gap-1 p-1 sm:gap-2 sm:p-2 md:gap-3 md:p-3"
+      : "gap-1.5 p-1.5 sm:gap-3 sm:p-3";
 
   const groupedEvents = events.reduce<Record<string, ApiEvent[]>>(
     (groups, event) => {
@@ -91,16 +98,24 @@ export default function SportEvents({
 
           {/* Event cards grid */}
           <div
-            className={`grid gap-1.5 p-1.5 sm:gap-3 sm:p-3 ${eventGridClassName}`}
+            className={`grid ${eventGridClassName} ${eventGridSpacingClassName}`}
           >
-            {leagueEvents.map((event) => (
-              <EventCard
-                key={event.eventId}
-                event={event}
-                onOddsSelect={onOddsSelect}
-                selectedOdds={selectedOdds}
-              />
-            ))}
+            <Suspense
+              fallback={
+                <div className="col-span-full rounded-xl border border-[#1e3350]/30 bg-[#111d2e]/40 p-4 text-xs text-[#7a94b8]">
+                  Loading events...
+                </div>
+              }
+            >
+              {leagueEvents.map((event) => (
+                <EventCard
+                  key={event.eventId}
+                  event={event}
+                  onOddsSelect={onOddsSelect}
+                  selectedOdds={selectedOdds}
+                />
+              ))}
+            </Suspense>
           </div>
         </section>
       ))}

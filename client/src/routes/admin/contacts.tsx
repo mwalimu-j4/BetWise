@@ -1,6 +1,8 @@
 import { createRoute } from "@tanstack/react-router";
-import Contacts from "@/features/admin/modules/contacts";
+import { lazy } from "react";
 import { adminRoute } from "./route";
+
+const Contacts = lazy(() => import("@/features/admin/modules/contacts"));
 
 export const adminContactsRoute = createRoute({
   getParentRoute: () => adminRoute,

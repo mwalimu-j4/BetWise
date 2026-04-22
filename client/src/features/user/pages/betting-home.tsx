@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import BetSlip from "../components/BetSlip";
-import EventCard from "../components/EventCard";
 import { CustomEventCard } from "../components/CustomEventCard";
 import HighlightsSection from "../components/HighlightsSection";
 import LiveTicker from "../components/LiveTicker";
@@ -46,7 +45,6 @@ export default function BettingHome() {
   const location = useLocation();
   const {
     events,
-    liveEvents,
     loading,
     error,
     sports,
@@ -55,7 +53,10 @@ export default function BettingHome() {
     setSelectedSport,
     setSelectedLeague,
     refetch,
-  } = useEvents({ limit: 500 });
+  } = useEvents({
+    limit: 500,
+    includeLiveEvents: false,
+  });
   const { events: featuredEvents } = useEvents({
     featured: true,
     includeLiveEvents: false,
@@ -113,23 +114,40 @@ export default function BettingHome() {
   }, [sports]);
 
   const nowMs = Date.now();
+  const nonLiveEvents = useMemo(
+    () => events.filter((event) => event.status !== "LIVE"),
+    [events],
+  );
+  const nonLiveFeaturedEvents = useMemo(
+    () => featuredEvents.filter((event) => event.status !== "LIVE"),
+    [featuredEvents],
+  );
+  const nonLiveCustomEvents = useMemo(
+    () => customEvents.filter((event) => event.status !== "LIVE"),
+    [customEvents],
+  );
   const isHighlightsFocused =
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("section") ===
           "highlights" || window.location.hash === "#highlights"
       : false;
-  const upcomingEvents = events.filter((event) => {
+  const upcomingEvents = nonLiveEvents.filter((event) => {
     const commenceMs = new Date(event.commenceTime).getTime();
     return Number.isFinite(commenceMs) && commenceMs > nowMs;
   });
   const highlightEvents = useMemo(
     () =>
       getHighlightEvents({
-        regularEvents: [...featuredEvents, ...liveEvents, ...events],
-        customEvents,
+        regularEvents: [...nonLiveFeaturedEvents, ...nonLiveEvents],
+        customEvents: nonLiveCustomEvents,
         now: highlightsRefreshTick,
       }),
-    [customEvents, events, featuredEvents, highlightsRefreshTick, liveEvents],
+    [
+      nonLiveCustomEvents,
+      nonLiveEvents,
+      nonLiveFeaturedEvents,
+      highlightsRefreshTick,
+    ],
   );
   const highlightedRegularEventIds = useMemo(
     () =>
@@ -149,18 +167,11 @@ export default function BettingHome() {
       ),
     [highlightEvents],
   );
-  const featuredLiveEvents = liveEvents
-    .filter((event) => !highlightedRegularEventIds.has(event.eventId))
-    .slice(0, 6);
-  const liveCustomEvents = customEvents.filter(
-    (event) =>
-      event.status === "LIVE" && !highlightedCustomEventIds.has(event.id),
-  );
-  const upcomingCustomEvents = customEvents.filter(
+  const upcomingCustomEvents = nonLiveCustomEvents.filter(
     (event) =>
       event.status === "PUBLISHED" && !highlightedCustomEventIds.has(event.id),
   );
-  const filteredFeaturedEvents = featuredEvents.filter(
+  const filteredFeaturedEvents = nonLiveFeaturedEvents.filter(
     (event) => !highlightedRegularEventIds.has(event.eventId),
   );
   const filteredUpcomingEvents = upcomingEvents.filter(
@@ -228,7 +239,7 @@ export default function BettingHome() {
 
   useEffect(() => {
     setHighlightsRefreshTick(Date.now());
-  }, [events, liveEvents, customEvents]);
+  }, [nonLiveEvents, nonLiveCustomEvents]);
 
   useEffect(() => {
     const params = new URLSearchParams(
@@ -412,52 +423,8 @@ export default function BettingHome() {
               hasSelections ? "lg:min-w-0 lg:flex-1" : ""
             }`}
           >
-            {/* LIVE NOW section */}
-            {liveEvents.length > 0 ? (
-              <section className="mobile-home-panel mb-3 rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:mb-4 sm:rounded-2xl">
-                <div className="flex items-center justify-between border-b border-[#1e3350]/40 px-3 py-2 sm:px-4 sm:py-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
-                    </span>
-                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-white sm:text-[11px]">
-                      Live Now
-                    </h2>
-                    <span className="rounded-md bg-[#22c55e]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#22c55e]">
-                      {liveEvents.length}
-                    </span>
-                  </div>
-                  {liveEvents.length > 6 ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedSport("");
-                        setSelectedLeague("");
-                      }}
-                      className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#ffd500] transition hover:text-[#ffe566] sm:text-[10px]"
-                    >
-                      View all →
-                    </button>
-                  ) : null}
-                </div>
-
-                <div className="space-y-2 p-1.5 sm:space-y-3 sm:p-3 md:p-4">
-                  {featuredLiveEvents.map((event) => (
-                    <EventCard
-                      key={event.eventId}
-                      event={event}
-                      onOddsSelect={betSlip.addSelection}
-                      selectedOdds={selectedOdds}
-                    />
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
             {/* CUSTOM EVENTS section */}
-            {(liveCustomEvents.length > 0 ||
-              upcomingCustomEvents.length > 0) && (
+            {upcomingCustomEvents.length > 0 && (
               <section className="mobile-home-panel mb-3 overflow-hidden rounded-xl border border-amber-400/10 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] sm:mb-4 sm:rounded-2xl">
                 <div className="flex items-center justify-between border-b border-[#1e3350]/40 px-3 py-2 sm:px-4 sm:py-2.5">
                   <div className="flex items-center gap-2">
@@ -466,7 +433,7 @@ export default function BettingHome() {
                       Custom Events
                     </h2>
                     <span className="rounded-md bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-400">
-                      {liveCustomEvents.length + upcomingCustomEvents.length}
+                      {upcomingCustomEvents.length}
                     </span>
                   </div>
                   <a
@@ -478,16 +445,14 @@ export default function BettingHome() {
                 </div>
 
                 <div className="grid gap-1.5 p-1.5 sm:grid-cols-2 sm:gap-3 sm:p-3">
-                  {[...liveCustomEvents, ...upcomingCustomEvents]
-                    .slice(0, 4)
-                    .map((event) => (
-                      <CustomEventCard
-                        key={event.id}
-                        event={event}
-                        onSelectOutcome={handleCustomSelect}
-                        activeSelections={customActiveSelections}
-                      />
-                    ))}
+                  {upcomingCustomEvents.slice(0, 4).map((event) => (
+                    <CustomEventCard
+                      key={event.id}
+                      event={event}
+                      onSelectOutcome={handleCustomSelect}
+                      activeSelections={customActiveSelections}
+                    />
+                  ))}
                 </div>
               </section>
             )}
@@ -509,7 +474,7 @@ export default function BettingHome() {
                     events={filteredFeaturedEvents.slice(0, 5)}
                     onOddsSelect={betSlip.addSelection}
                     selectedOdds={selectedOdds}
-                    cardsPerRow={1}
+                    cardsPerRow={2}
                   />
                 </div>
               </section>
@@ -629,7 +594,7 @@ export default function BettingHome() {
                     events={filteredUpcomingEvents}
                     onOddsSelect={betSlip.addSelection}
                     selectedOdds={selectedOdds}
-                    cardsPerRow={1}
+                    cardsPerRow={2}
                   />
                 )}
               </div>

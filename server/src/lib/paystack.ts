@@ -1,38 +1,16 @@
 import { z } from "zod";
 import crypto from "crypto";
-import { prisma } from "./prisma";
 
 /**
- * Get Paystack configuration from database or environment variables.
- * Prioritizes database settings.
+ * Get Paystack configuration from environment variables.
  */
 async function getPaystackConfig() {
-  try {
-    const settings = await prisma.adminSettings.findUnique({
-      where: { key: "global" },
-      select: {
-        paystackSecretKey: true,
-        paystackPublicKey: true,
-        paystackWebhookSecret: true,
-      },
-    });
-
-    return {
-      secretKey: settings?.paystackSecretKey || process.env.PAYSTACK_SECRET_KEY,
-      publicKey: settings?.paystackPublicKey || process.env.PAYSTACK_PUBLIC_KEY,
-      webhookSecret:
-        settings?.paystackWebhookSecret || process.env.PAYSTACK_WEBHOOK_SECRET,
-    };
-  } catch (error) {
-    console.error("Error fetching Paystack config from DB:", error);
-    return {
-      secretKey: process.env.PAYSTACK_SECRET_KEY,
-      publicKey: process.env.PAYSTACK_PUBLIC_KEY,
-      webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET,
-    };
-  }
+  return {
+    secretKey: process.env.PAYSTACK_SECRET_KEY,
+    publicKey: process.env.PAYSTACK_PUBLIC_KEY,
+    webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET,
+  };
 }
-
 
 // ============================================================================
 // TYPES
@@ -541,7 +519,8 @@ export async function initiatePaystackWithdrawal(
   amount: number,
   reference: string,
 ): Promise<PaystackTransferResponse> {
-  if (!PAYSTACK_SECRET_KEY) {
+  const config = await getPaystackConfig();
+  if (!config.secretKey) {
     throw new Error("PAYSTACK_SECRET_KEY not configured");
   }
 
@@ -570,7 +549,6 @@ export async function initiatePaystackWithdrawal(
       reason: "BetWise Withdrawal",
     };
 
-    const config = await getPaystackConfig();
     const response = await fetch("https://api.paystack.co/transfer", {
       method: "POST",
       headers: {

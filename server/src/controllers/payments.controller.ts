@@ -29,7 +29,7 @@ const WITHDRAWAL_DEFAULTS = {
   DAILY_LIMIT:
     defaultAdminSettings.userDefaultsAndRestrictions.dailyTransactionLimit,
   APPROVAL_THRESHOLD:
-    defaultAdminSettings.paymentsConfig.mpesa.withdrawalApprovalThreshold,
+    defaultAdminSettings.paymentsConfig.mpesa.mpesaWithdrawalApprovalThreshold,
   KYC_REQUIRED:
     defaultAdminSettings.kycAndComplianceConfig.withdrawalRequiresKyc,
   MPESA_ENABLED: defaultAdminSettings.paymentsConfig.methods.mpesa,

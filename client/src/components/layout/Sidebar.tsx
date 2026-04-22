@@ -11,6 +11,7 @@ import {
   FileText,
   Flag,
   Flame,
+  Goal,
   HelpCircle,
   Hexagon,
   History,
@@ -22,9 +23,9 @@ import {
   Target,
   TrendingUp,
   Triangle,
-  Trophy,
   House,
   User,
+  Volleyball,
   Wallet,
   Zap,
 } from "lucide-react";
@@ -44,6 +45,7 @@ type Item = {
   search?: Record<string, string | undefined>;
   hash?: string;
   match?: "highlights" | "home";
+  variant?: "default" | "sport";
   liveBadge?: string;
   badgeCount?: number;
   badgeGold?: boolean;
@@ -99,6 +101,109 @@ const SPORT_KEY_TO_SLUG: Record<string, string> = {
   snooker: "snooker",
   darts: "darts",
 };
+
+const POPULAR_SPORT_KEYS = new Set([
+  "soccer",
+  "basketball",
+  "tennis",
+  "americanfootball",
+  "cricket",
+  "icehockey",
+  "rugbyunion",
+]);
+
+function getSidebarSportIcon(category: SportCategoryItem) {
+  const key = (category.sportKey ?? "").toLowerCase();
+  const iconValue = (category.icon ?? "").toLowerCase();
+  const label = (category.displayName ?? "").toLowerCase();
+
+  if (
+    key.includes("soccer") ||
+    iconValue.includes("football") ||
+    label.includes("football")
+  ) {
+    return <Goal size={18} />;
+  }
+
+  if (key.includes("basket") || iconValue.includes("basket")) {
+    return <Volleyball size={18} />;
+  }
+
+  if (
+    key.includes("american") ||
+    iconValue.includes("shield") ||
+    label.includes("american")
+  ) {
+    return <Shield size={18} />;
+  }
+
+  if (key.includes("cricket") || iconValue.includes("cricket")) {
+    return <Triangle size={18} />;
+  }
+
+  if (
+    key.includes("icehockey") ||
+    iconValue.includes("hockey") ||
+    label.includes("hockey")
+  ) {
+    return <CircleSlash size={18} />;
+  }
+
+  if (
+    key.includes("rugby") ||
+    iconValue.includes("rugby") ||
+    label.includes("rugby")
+  ) {
+    return <Hexagon size={18} />;
+  }
+
+  if (
+    key.includes("boxing") ||
+    iconValue.includes("combat") ||
+    label.includes("mma")
+  ) {
+    return <Swords size={18} />;
+  }
+
+  if (key.includes("baseball") || iconValue.includes("baseball")) {
+    return <CircleDot size={18} />;
+  }
+
+  if (key.includes("volley") || iconValue.includes("volleyball")) {
+    return <Volleyball size={18} />;
+  }
+
+  if (key.includes("tabletennis") || iconValue.includes("table-tennis")) {
+    return <Crosshair size={18} />;
+  }
+
+  if (key.includes("golf") || iconValue.includes("golf")) {
+    return <Flag size={18} />;
+  }
+
+  if (key.includes("snooker") || iconValue.includes("snooker")) {
+    return <CircleSlash size={18} />;
+  }
+
+  if (key.includes("darts") || iconValue.includes("darts")) {
+    return <Target size={18} />;
+  }
+
+  if (
+    key.includes("tennis") ||
+    iconValue.includes("tennis") ||
+    label.includes("tennis")
+  ) {
+    return <Circle size={18} />;
+  }
+
+  // If API ever returns a real emoji/symbol icon, keep using it.
+  if (category.icon && /[^\u0000-\u007f]/.test(category.icon)) {
+    return <span className="text-base">{category.icon}</span>;
+  }
+
+  return <Circle size={18} />;
+}
 
 function toEventCountKey(raw: string): keyof EventCounts | null {
   const value = raw.toLowerCase();
@@ -192,7 +297,7 @@ function ItemLink({ item, onClick }: { item: Item; onClick: () => void }) {
       to={item.to as never}
       search={item.search as never}
       hash={item.hash}
-      className={`bc-sidebar-link ${isActive ? "is-active" : ""}`}
+      className={`bc-sidebar-link ${item.variant === "sport" ? "bc-sidebar-link--sport" : ""} ${isActive ? "is-active" : ""}`.trim()}
       onClick={() => {
         if (item.warn) {
           console.warn(`Route ${item.to} not yet implemented`);
@@ -232,6 +337,32 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     if (!isAuthenticated) return [];
     return myAccount;
   }, [isAuthenticated]);
+
+  const sortedDynamicCategories = useMemo(
+    () =>
+      [...dynamicCategories].sort(
+        (a, b) =>
+          (a.sortOrder ?? Number.MAX_SAFE_INTEGER) -
+          (b.sortOrder ?? Number.MAX_SAFE_INTEGER),
+      ),
+    [dynamicCategories],
+  );
+
+  const popularDynamicCategories = useMemo(
+    () =>
+      sortedDynamicCategories.filter((category) =>
+        POPULAR_SPORT_KEYS.has(category.sportKey.toLowerCase()),
+      ),
+    [sortedDynamicCategories],
+  );
+
+  const moreDynamicCategories = useMemo(
+    () =>
+      sortedDynamicCategories.filter(
+        (category) => !POPULAR_SPORT_KEYS.has(category.sportKey.toLowerCase()),
+      ),
+    [sortedDynamicCategories],
+  );
 
   function closeIfMobile() {
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
@@ -363,7 +494,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               {
                 label: "My Bets",
                 to: "/user/bets",
-                search: { },
+                search: {},
                 icon: <TrendingUp size={18} />,
               },
               {
@@ -380,34 +511,71 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* DYNAMIC SPORT CATEGORIES */}
-          {categoriesLoaded && dynamicCategories.length > 0 ? (
-            <div className="bc-side-section">
-              <p className="bc-side-heading">
-                <span className="bc-heading-dot" aria-hidden="true" />
-                Sports
-              </p>
-              {dynamicCategories.map((cat) => {
-                const slug = SPORT_KEY_TO_SLUG[cat.sportKey] ?? cat.sportKey;
-                return (
-                  <ItemLink
-                    key={cat.id}
-                    item={{
-                      label: cat.displayName,
-                      to: `/user/sport/${slug}`,
-                      icon: <span className="text-base">{cat.icon}</span>,
-                      badgeCount:
-                        cat.eventCount > 0 ? cat.eventCount : undefined,
-                      badgeGold: cat.sportKey === "soccer",
-                    }}
-                    onClick={closeIfMobile}
-                  />
-                );
-              })}
-            </div>
+          {categoriesLoaded && sortedDynamicCategories.length > 0 ? (
+            <>
+              {popularDynamicCategories.length > 0 ? (
+                <div className="bc-side-section bc-side-section--sports">
+                  <p className="bc-side-heading">
+                    <span className="bc-heading-dot" aria-hidden="true" />
+                    Popular Sports
+                  </p>
+                  {popularDynamicCategories.map((category) => {
+                    const slug =
+                      SPORT_KEY_TO_SLUG[category.sportKey] ?? category.sportKey;
+                    return (
+                      <ItemLink
+                        key={category.id}
+                        item={{
+                          label: category.displayName,
+                          to: `/user/sport/${slug}`,
+                          icon: getSidebarSportIcon(category),
+                          variant: "sport",
+                          badgeCount:
+                            category.eventCount > 0
+                              ? category.eventCount
+                              : undefined,
+                          badgeGold: category.sportKey === "soccer",
+                        }}
+                        onClick={closeIfMobile}
+                      />
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              {moreDynamicCategories.length > 0 ? (
+                <div className="bc-side-section bc-side-section--sports">
+                  <p className="bc-side-heading">
+                    <span className="bc-heading-dot" aria-hidden="true" />
+                    More Sports
+                  </p>
+                  {moreDynamicCategories.map((category) => {
+                    const slug =
+                      SPORT_KEY_TO_SLUG[category.sportKey] ?? category.sportKey;
+                    return (
+                      <ItemLink
+                        key={category.id}
+                        item={{
+                          label: category.displayName,
+                          to: `/user/sport/${slug}`,
+                          icon: getSidebarSportIcon(category),
+                          variant: "sport",
+                          badgeCount:
+                            category.eventCount > 0
+                              ? category.eventCount
+                              : undefined,
+                        }}
+                        onClick={closeIfMobile}
+                      />
+                    );
+                  })}
+                </div>
+              ) : null}
+            </>
           ) : (
             /* FALLBACK: Hardcoded sports when API hasn't loaded */
             <>
-              <div className="bc-side-section">
+              <div className="bc-side-section bc-side-section--sports">
                 <p className="bc-side-heading">
                   <span className="bc-heading-dot" aria-hidden="true" />
                   Popular Sports
@@ -416,44 +584,51 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   {
                     label: "Football",
                     to: "/user/sport/football",
-                    icon: <Trophy size={18} />,
+                    icon: <Goal size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.football ?? 0,
                     badgeGold: true,
                   },
                   {
                     label: "Basketball",
                     to: "/user/sport/basketball",
-                    icon: <CircleDot size={18} />,
+                    icon: <Volleyball size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.basketball ?? 0,
                   },
                   {
                     label: "Tennis",
                     to: "/user/sport/tennis",
                     icon: <Circle size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.tennis ?? 0,
                   },
                   {
                     label: "American Football",
                     to: "/user/sport/american-football",
                     icon: <Shield size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.americanFootball ?? 0,
                   },
                   {
                     label: "Cricket",
                     to: "/user/sport/cricket",
                     icon: <Triangle size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.cricket ?? 0,
                   },
                   {
                     label: "Ice Hockey",
                     to: "/user/sport/ice-hockey",
                     icon: <CircleSlash size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.iceHockey ?? 0,
                   },
                   {
                     label: "Rugby Union",
                     to: "/user/sport/rugby-union",
                     icon: <Hexagon size={18} />,
+                    variant: "sport" as const,
                     badgeCount: eventCounts?.rugbyUnion ?? 0,
                   },
                 ].map((item) => (
@@ -465,7 +640,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 ))}
               </div>
 
-              <div className="bc-side-section">
+              <div className="bc-side-section bc-side-section--sports">
                 <p className="bc-side-heading">
                   <span className="bc-heading-dot" aria-hidden="true" />
                   More Sports
@@ -475,36 +650,43 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     label: "Boxing / MMA",
                     to: "/user/sport/boxing-mma",
                     icon: <Swords size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Baseball",
                     to: "/user/sport/baseball",
                     icon: <CircleDot size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Volleyball",
                     to: "/user/sport/volleyball",
-                    icon: <Circle size={18} />,
+                    icon: <Volleyball size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Table Tennis",
                     to: "/user/sport/table-tennis",
                     icon: <Crosshair size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Golf",
                     to: "/user/sport/golf",
                     icon: <Flag size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Snooker",
                     to: "/user/sport/snooker",
                     icon: <CircleSlash size={18} />,
+                    variant: "sport" as const,
                   },
                   {
                     label: "Darts",
                     to: "/user/sport/darts",
                     icon: <Target size={18} />,
+                    variant: "sport" as const,
                   },
                 ].map((item) => (
                   <ItemLink

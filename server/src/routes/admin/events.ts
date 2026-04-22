@@ -25,7 +25,7 @@ type EventsConfiguredResponse = {
     leagueName: string | null;
     sportKey: string | null;
     commenceTime: Date;
-    status: "UPCOMING" | "LIVE" | "FINISHED" | "CANCELLED";
+    status: "UPCOMING" | "LIVE" | "FINISHED" | "CANCELLED" | "SUSPENDED";
     houseMargin: number;
     marketsEnabled: string[];
     _count: {
@@ -112,14 +112,85 @@ const updateEventSchema = z
     },
   );
 
-const bulkMarginSchema = z.object({
-  filter: z.enum(["league", "sport", "selected"]),
-  leagueName: z.string().trim().optional(),
-  sportKey: z.string().trim().optional(),
-  eventIds: z.array(z.string().trim().min(1)).optional(),
-  houseMargin: z.number().min(0).max(100),
-  marketsEnabled: z.array(z.string().trim().min(1)).optional(),
-});
+const bulkMarginSchema = z.preprocess(
+  (raw) => {
+    if (!raw || typeof raw !== "object") return raw;
+
+    const body = { ...(raw as Record<string, unknown>) };
+
+    // Backward compatibility for older payload keys from previous UI versions.
+    if (body.houseMargin === undefined && body.margin !== undefined) {
+      body.houseMargin = body.margin;
+    }
+    if (body.houseMargin === undefined && body.house_margin !== undefined) {
+      body.houseMargin = body.house_margin;
+    }
+    if (body.sportKey === undefined && body.sport !== undefined) {
+      body.sportKey = body.sport;
+    }
+    if (body.leagueName === undefined && body.league !== undefined) {
+      body.leagueName = body.league;
+    }
+    if (body.eventIds === undefined && body.ids !== undefined) {
+      body.eventIds = body.ids;
+    }
+    if (body.marketsEnabled === undefined && body.markets !== undefined) {
+      body.marketsEnabled = body.markets;
+    }
+    if (body.marketsEnabled === undefined && body.marketTypes !== undefined) {
+      body.marketsEnabled = body.marketTypes;
+    }
+    if (body.filter === undefined && body.filterType !== undefined) {
+      body.filter = body.filterType;
+    }
+    if (body.filter === undefined && body.target !== undefined) {
+      body.filter = body.target;
+    }
+
+    if (typeof body.filter === "string") {
+      body.filter = body.filter.trim().toLowerCase();
+    }
+
+    // Allow comma-separated event ids/markets from manual or legacy clients.
+    if (typeof body.eventIds === "string") {
+      body.eventIds = body.eventIds
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    if (typeof body.marketsEnabled === "string") {
+      body.marketsEnabled = body.marketsEnabled
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    // If filter is omitted by older clients, infer it from the payload shape.
+    if (body.filter === undefined) {
+      if (Array.isArray(body.eventIds) && body.eventIds.length > 0) {
+        body.filter = "selected";
+      } else if (
+        typeof body.sportKey === "string" &&
+        body.sportKey.trim().length > 0
+      ) {
+        body.filter = "sport";
+      } else {
+        body.filter = "league";
+      }
+    }
+
+    return body;
+  },
+  z.object({
+    filter: z.enum(["league", "sport", "selected"]),
+    leagueName: z.string().trim().optional(),
+    sportKey: z.string().trim().optional(),
+    eventIds: z.array(z.string().trim().min(1)).optional(),
+    houseMargin: z.coerce.number().min(0).max(100),
+    marketsEnabled: z.array(z.string().trim().min(1)).optional(),
+  }),
+);
 
 eventsAdminRouter.use("/admin/events", authenticate, requireAdmin);
 
@@ -531,66 +602,71 @@ eventsAdminRouter.get("/admin/events/:eventId", async (req, res, next) => {
   }
 });
 
-eventsAdminRouter.patch(
-  "/admin/events/:eventId",
-  async (req, res, next) => {
-    try {
-      const eventId = Array.isArray(req.params.eventId)
-        ? req.params.eventId[0]
-        : req.params.eventId;
+eventsAdminRouter.patch("/admin/events/:eventId", async (req, res, next) => {
+  try {
+    const eventId = Array.isArray(req.params.eventId)
+      ? req.params.eventId[0]
+      : req.params.eventId;
 
-      if (!eventId) {
-        return res.status(400).json({ message: "Invalid event id." });
-      }
+    if (
+      eventId === "bulk-margin" ||
+      eventId === "bulk-config" ||
+      eventId === "bulk-toggle"
+    ) {
+      return next();
+    }
 
-      const parsedBody = updateEventSchema.safeParse(req.body);
-      if (!parsedBody.success) {
-        return res.status(400).json({ message: "Invalid event update." });
-      }
+    if (!eventId) {
+      return res.status(400).json({ message: "Invalid event id." });
+    }
 
-      const updatedEvent = await prisma.sportEvent.update({
-        where: { eventId },
-        data: {
-          ...(typeof parsedBody.data.isFeatured === "boolean" && {
-            isFeatured: parsedBody.data.isFeatured,
-          }),
-          ...(typeof parsedBody.data.featuredPriority === "number" && {
-            featuredPriority: parsedBody.data.featuredPriority,
-          }),
-        },
-        select: {
-          id: true,
-          eventId: true,
-          leagueName: true,
-          sportKey: true,
-          homeTeam: true,
-          awayTeam: true,
-          commenceTime: true,
-          status: true,
-          homeScore: true,
-          awayScore: true,
-          isActive: true,
-          isFeatured: true,
-          featuredPriority: true,
-          houseMargin: true,
-          marketsEnabled: true,
-          _count: {
-            select: {
-              odds: true,
-              bets: true,
-            },
+    const parsedBody = updateEventSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json({ message: "Invalid event update." });
+    }
+
+    const updatedEvent = await prisma.sportEvent.update({
+      where: { eventId },
+      data: {
+        ...(typeof parsedBody.data.isFeatured === "boolean" && {
+          isFeatured: parsedBody.data.isFeatured,
+        }),
+        ...(typeof parsedBody.data.featuredPriority === "number" && {
+          featuredPriority: parsedBody.data.featuredPriority,
+        }),
+      },
+      select: {
+        id: true,
+        eventId: true,
+        leagueName: true,
+        sportKey: true,
+        homeTeam: true,
+        awayTeam: true,
+        commenceTime: true,
+        status: true,
+        homeScore: true,
+        awayScore: true,
+        isActive: true,
+        isFeatured: true,
+        featuredPriority: true,
+        houseMargin: true,
+        marketsEnabled: true,
+        _count: {
+          select: {
+            odds: true,
+            bets: true,
           },
         },
-      });
+      },
+    });
 
-      invalidateEventsCache();
+    invalidateEventsCache();
 
-      return res.status(200).json(updatedEvent);
-    } catch (error) {
-      next(error);
-    }
-  },
-);
+    return res.status(200).json(updatedEvent);
+  } catch (error) {
+    next(error);
+  }
+});
 
 eventsAdminRouter.patch(
   "/admin/events/:eventId/toggle",
@@ -818,7 +894,18 @@ eventsAdminRouter.patch("/admin/events/bulk-margin", async (req, res, next) => {
   try {
     const parsedBody = bulkMarginSchema.safeParse(req.body);
     if (!parsedBody.success) {
-      return res.status(400).json({ message: "Invalid bulk margin payload." });
+      const details = parsedBody.error.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message,
+      }));
+      console.warn("[AdminEvents] Invalid bulk margin payload", {
+        body: req.body,
+        details,
+      });
+      return res.status(400).json({
+        message: "Invalid bulk margin payload.",
+        details,
+      });
     }
 
     const { filter, houseMargin, marketsEnabled } = parsedBody.data;

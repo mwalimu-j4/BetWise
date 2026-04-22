@@ -20,6 +20,8 @@ import {
   XCircle,
   Settings,
   SlidersHorizontal,
+  Shield,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -39,6 +41,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { adminNavigation } from "../config/navigation";
+import { api } from "@/api/axiosConfig";
+
+interface SystemAlert {
+  id: string;
+  type: string;
+  message: string;
+  sportKey: string | null;
+  severity: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 export default function AdminShell() {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -66,6 +79,31 @@ export default function AdminShell() {
   const notifications = notificationData?.notifications ?? [];
   const unreadCount = notificationData?.unreadCount ?? 0;
   const withdrawalSoundEnabled = personalQuickSettings.withdrawalSoundEnabled;
+
+  // System alerts state
+  const [systemAlerts, setSystemAlerts] = useState<SystemAlert[]>([]);
+  const [systemAlertUnread, setSystemAlertUnread] = useState(0);
+
+  // Fetch system alerts
+  useEffect(() => {
+    async function fetchAlerts() {
+      try {
+        const [alertsRes, countRes] = await Promise.all([
+          api.get<{ alerts: SystemAlert[] }>("/admin/system/alerts", { params: { limit: 8 } }),
+          api.get<{ unreadCount: number }>("/admin/system/alerts/unread-count"),
+        ]);
+        setSystemAlerts(alertsRes.data.alerts);
+        setSystemAlertUnread(countRes.data.unreadCount);
+      } catch {
+        // Silent fail
+      }
+    }
+    void fetchAlerts();
+    const timer = window.setInterval(() => void fetchAlerts(), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const totalUnread = unreadCount + systemAlertUnread;
   const withdrawalSoundTone = personalQuickSettings.withdrawalSoundTone;
   const withdrawalSoundVolume = personalQuickSettings.withdrawalSoundVolume;
   const playSoundOnlyWhenPageVisible =
@@ -481,9 +519,9 @@ export default function AdminShell() {
                       notificationsOpen && "scale-110",
                     )}
                   />
-                  {unreadCount > 0 && (
+                  {totalUnread > 0 && (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-admin-card bg-admin-red px-1 text-[9px] font-bold text-white shadow-sm">
-                      {Math.min(unreadCount, 99)}
+                      {Math.min(totalUnread, 99)}
                     </span>
                   )}
                 </button>
@@ -578,6 +616,74 @@ export default function AdminShell() {
                           View all history
                         </button>
                       </div>
+                    )}
+
+                    {/* System Alerts Section */}
+                    {systemAlerts.length > 0 && (
+                      <>
+                        <div className="flex items-center justify-between border-t border-admin-border/50 px-5 py-3">
+                          <h3 className="flex items-center gap-1.5 text-xs font-semibold text-admin-text-primary">
+                            <Shield size={12} className="text-admin-accent" />
+                            System Alerts
+                          </h3>
+                          {systemAlertUnread > 0 && (
+                            <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+                              {systemAlertUnread}
+                            </span>
+                          )}
+                        </div>
+                        <div className="app-scrollbar max-h-48 overflow-y-auto px-2 pb-2">
+                          <div className="space-y-1">
+                            {systemAlerts.slice(0, 5).map((alert) => (
+                              <button
+                                key={alert.id}
+                                type="button"
+                                onClick={() => {
+                                  setNotificationsOpen(false);
+                                  void navigate({ to: "/admin/events" });
+                                  // Mark as read
+                                  void api.patch(`/admin/system/alerts/${alert.id}/read`);
+                                  setSystemAlerts((prev) =>
+                                    prev.map((a) => a.id === alert.id ? { ...a, isRead: true } : a)
+                                  );
+                                  setSystemAlertUnread((c) => Math.max(0, c - 1));
+                                }}
+                                className={cn(
+                                  "group flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-all hover:bg-admin-border/40",
+                                  !alert.isRead && "bg-admin-accent/[0.03]",
+                                )}
+                              >
+                                <div className="mt-0.5 shrink-0">
+                                  {alert.severity === "critical" ? (
+                                    <XCircle size={16} className="text-red-400" />
+                                  ) : alert.severity === "warning" ? (
+                                    <AlertTriangle size={16} className="text-amber-400" />
+                                  ) : (
+                                    <CheckCircle2 size={16} className="text-emerald-400" />
+                                  )}
+                                </div>
+                                <div className="flex-1 space-y-0.5">
+                                  <p className="text-[11px] font-semibold leading-tight text-admin-text-primary">
+                                    {alert.type.replace(/_/g, " ")}
+                                  </p>
+                                  <p className="text-[10px] leading-relaxed text-admin-text-secondary line-clamp-2">
+                                    {alert.message}
+                                  </p>
+                                  <p className="flex items-center gap-1 text-[9px] text-admin-text-muted">
+                                    <Clock size={8} />
+                                    {new Date(alert.createdAt).toLocaleString(undefined, {
+                                      month: "short",
+                                      day: "numeric",
+                                      hour: "numeric",
+                                      minute: "2-digit",
+                                    })}
+                                  </p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
                 )}

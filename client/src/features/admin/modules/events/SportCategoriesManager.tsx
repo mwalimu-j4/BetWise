@@ -3,10 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  AlertTriangle,
+  CheckCircle2,
   CheckSquare,
   Loader2,
   RefreshCw,
   Settings2,
+  Shield,
   Square,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -34,6 +37,10 @@ interface SportCategory {
   lastSyncedAt: string | null;
   configuredBy: string | null;
   liveEventCount?: number;
+  oddsAvailable?: boolean;
+  marginQuality?: "good" | "fair" | "poor" | "none";
+  averageBookmakerMargin?: number;
+  warning?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -55,12 +62,34 @@ interface SyncStatus {
 
 function formatSyncTime(timestamp: string | null) {
   if (!timestamp) return "Never synced";
+  const diffMs = Date.now() - new Date(timestamp).getTime();
+  const sec = diffMs / 1000;
+  if (sec < 60) return `${Math.floor(sec)}s ago`;
+  if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+  if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
   return new Date(timestamp).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function getEventCountHealth(count: number): {
+  color: string;
+  bg: string;
+  label: string;
+} {
+  if (count === 0) return { color: "text-red-400", bg: "bg-red-500/10", label: "No events" };
+  if (count < 5) return { color: "text-amber-400", bg: "bg-amber-500/10", label: "Low" };
+  return { color: "text-emerald-400", bg: "bg-emerald-500/10", label: "Healthy" };
+}
+
+function getMarginIndicator(quality: SportCategory["marginQuality"]) {
+  if (quality === "good") return { color: "text-emerald-400", label: "Good margin" };
+  if (quality === "fair") return { color: "text-amber-400", label: "Fair margin" };
+  if (quality === "poor") return { color: "text-red-400", label: "Poor margin" };
+  return { color: "text-admin-text-muted", label: "No margin" };
 }
 
 export default function SportCategoriesManager() {
@@ -78,6 +107,14 @@ export default function SportCategoriesManager() {
   );
   const totalInactive = useMemo(
     () => categories.filter((c) => !c.isActive).length,
+    [categories],
+  );
+  const totalEvents = useMemo(
+    () => categories.reduce((sum, c) => sum + (c.liveEventCount ?? c.eventCount), 0),
+    [categories],
+  );
+  const sportsWithNoEvents = useMemo(
+    () => categories.filter((c) => c.isActive && c.eventCount === 0).length,
     [categories],
   );
 
@@ -244,7 +281,7 @@ export default function SportCategoriesManager() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <AdminStatCard
           label="Total"
           value={String(categories.length)}
@@ -252,9 +289,19 @@ export default function SportCategoriesManager() {
         />
         <AdminStatCard label="Active" value={String(totalActive)} tone="live" />
         <AdminStatCard
-          label="Inactive"
-          value={String(totalInactive)}
-          tone="red"
+          label="Total Events"
+          value={totalEvents.toLocaleString()}
+          tone="accent"
+        />
+        <AdminStatCard
+          label="Total Events"
+          value={totalEvents.toLocaleString()}
+          tone="accent"
+        />
+        <AdminStatCard
+          label="Sports Empty"
+          value={String(sportsWithNoEvents)}
+          tone={sportsWithNoEvents > 0 ? "gold" : "blue"}
         />
       </div>
 
@@ -265,9 +312,23 @@ export default function SportCategoriesManager() {
             <span className="font-bold text-admin-text-primary">
               {categories.length}
             </span>{" "}
-            sports ·{" "}
-            <span className="font-bold text-admin-accent">{totalActive}</span>{" "}
-            active
+            sports available ·{" "}
+            <span className="font-bold text-emerald-400">
+              {totalActive}
+            </span>{" "}
+            active ·{" "}
+            <span className="font-bold text-red-400">
+              {totalInactive}
+            </span>{" "}
+            inactive
+            {sportsWithNoEvents > 0 && (
+              <>
+                {" · "}
+                <span className="font-bold text-amber-400">
+                  ⚠ {sportsWithNoEvents} with no events
+                </span>
+              </>
+            )}
           </p>
           <div className="flex flex-wrap gap-1.5">
             <Button
@@ -331,62 +392,34 @@ export default function SportCategoriesManager() {
         </AdminCard>
       )}
 
-      {/* Sport Categories Table */}
-      <AdminCard className="overflow-hidden p-0">
-        <TableShell>
-          <table className={adminTableClassName}>
-            <thead>
-              <tr>
-                <th
-                  className={cn(
-                    adminTableHeadCellClassName,
-                    "w-10 text-center",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedKeys.size === categories.length &&
-                      categories.length > 0
-                    }
-                    onChange={(e) => {
-                      if (e.target.checked) handleSelectAll();
-                      else handleDeselectAll();
-                    }}
-                    className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
-                  />
-                </th>
-                <th className={adminTableHeadCellClassName}>Sport</th>
-                <th
-                  className={cn(
-                    adminTableHeadCellClassName,
-                    "w-24 text-center",
-                  )}
-                >
-                  Events
-                </th>
-                <th className={adminTableHeadCellClassName}>Last Synced</th>
-                <th
-                  className={cn(adminTableHeadCellClassName, "w-32 text-right")}
-                >
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {categories.map((category) => {
-                const isSelected = selectedKeys.has(category.sportKey);
-                const isTogglingThis = toggling === category.id;
-                return (
-                  <tr
-                    key={category.id}
-                    className={cn(
-                      "group cursor-pointer transition-colors duration-200 hover:bg-white/[0.02]",
-                      isSelected && "bg-admin-accent/[0.03]",
-                    )}
-                    onClick={() => toggleSelect(category.sportKey)}
-                  >
-                    <td
+      {/* Sport cards grid */}
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {categories.map((category) => {
+          const isSelected = selectedKeys.has(category.sportKey);
+          const isTogglingThis = toggling === category.id;
+          const eventCount = category.liveEventCount ?? category.eventCount;
+          const health = getEventCountHealth(eventCount);
+          const margin = getMarginIndicator(category.marginQuality);
+
+          return (
+            <Card
+              key={category.id}
+              className={cn(
+                "group cursor-pointer border-admin-border bg-admin-card shadow-sm transition-all hover:border-admin-accent/30",
+                isSelected && "border-admin-accent/50 bg-admin-accent/[0.04]",
+              )}
+              onClick={() => toggleSelect(category.sportKey)}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    {/* Checkbox */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(category.sportKey);
+                      }}
                       className={cn(
                         adminTableCellClassName,
                         "w-10 text-center",
@@ -434,39 +467,110 @@ export default function SportCategoriesManager() {
                       <p className="text-xs text-admin-text-muted">
                         {formatSyncTime(category.lastSyncedAt)}
                       </p>
-                    </td>
-                    <td className={cn(adminTableCellClassName, "text-right")}>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void handleToggle(category);
-                        }}
-                        disabled={isTogglingThis}
-                        className="shrink-0"
-                      >
-                        <Badge
-                          className={cn(
-                            "cursor-pointer border-transparent text-[9px] font-bold uppercase tracking-wide transition",
-                            category.isActive
-                              ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                              : "bg-red-500/10 text-red-400 hover:bg-red-500/20",
-                          )}
-                        >
-                          {isTogglingThis ? (
-                            <Loader2 className="mr-0.5 size-2.5 animate-spin" />
-                          ) : null}
-                          {category.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </TableShell>
-      </AdminCard>
+                    </div>
+                  </div>
+
+                  {/* Toggle */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleToggle(category);
+                    }}
+                    disabled={isTogglingThis}
+                    className="shrink-0"
+                  >
+                    <Badge
+                      className={cn(
+                        "cursor-pointer text-[9px] font-bold uppercase tracking-wide transition",
+                        category.isActive
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                          : "border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20",
+                      )}
+                    >
+                      {isTogglingThis ? (
+                        <Loader2 className="mr-0.5 size-2.5 animate-spin" />
+                      ) : null}
+                      {category.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </button>
+                </div>
+
+                {/* Stats row */}
+                <div className="mt-2.5 flex items-center gap-3 border-t border-admin-border/50 pt-2">
+                  {/* Event count with health indicator */}
+                  <div className="flex items-center gap-1 text-[10px] text-admin-text-muted">
+                    <Zap size={10} className="text-admin-accent" />
+                    <span>
+                      <span className={cn("font-bold", health.color)}>
+                        {eventCount.toLocaleString()}
+                      </span>{" "}
+                      events
+                    </span>
+                  </div>
+
+                  {/* Health indicator */}
+                  {category.isActive && (
+                    <div className="flex items-center gap-1 text-[10px]">
+                      {eventCount === 0 ? (
+                        <AlertTriangle size={10} className="text-amber-400" />
+                      ) : (
+                        <Shield size={10} className={health.color} />
+                      )}
+                      <span className={health.color}>{health.label}</span>
+                    </div>
+                  )}
+
+                  <div className="ml-auto text-[10px] text-admin-text-muted">
+                    {formatSyncTime(category.lastSyncedAt)}
+                  </div>
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
+                  <Badge
+                    className={cn(
+                      "border px-2 py-0.5",
+                      category.oddsAvailable
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                        : "border-red-500/30 bg-red-500/10 text-red-400",
+                    )}
+                  >
+                    {category.oddsAvailable ? "Odds available" : "No odds"}
+                  </Badge>
+                  <span className={margin.color}>{margin.label}</span>
+                  {typeof category.averageBookmakerMargin === "number" && category.averageBookmakerMargin > 0 ? (
+                    <span className="text-admin-text-muted">
+                      Margin {(category.averageBookmakerMargin * 100).toFixed(1)}%
+                    </span>
+                  ) : null}
+                  {category.warning ? (
+                    <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-400">
+                      WARNING
+                    </Badge>
+                  ) : null}
+                </div>
+
+                {/* Event count health bar */}
+                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-admin-surface/60">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      eventCount === 0
+                        ? "bg-red-500/60"
+                        : eventCount < 5
+                          ? "bg-amber-500/60"
+                          : "bg-emerald-500/60",
+                    )}
+                    style={{
+                      width: `${Math.min(100, (eventCount / 50) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

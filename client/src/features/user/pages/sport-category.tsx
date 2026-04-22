@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
@@ -18,9 +18,10 @@ import {
 } from "lucide-react";
 import { api } from "@/api/axiosConfig";
 import BetSlip from "../components/BetSlip";
-import EventCard from "../components/EventCard";
 import useBetSlip from "../components/hooks/useBetSlip";
 import type { ApiEvent } from "../components/hooks/useEvents";
+
+const EventCard = lazy(() => import("../components/EventCard"));
 
 type SportCategoryInfo = {
   id: string;
@@ -61,16 +62,21 @@ const SLUG_TO_SPORT_KEY: Record<string, string> = {
   darts: "darts",
 };
 
-function matchesCategoryKey(eventSportKey: string, categoryKey: string): boolean {
+function matchesCategoryKey(
+  eventSportKey: string,
+  categoryKey: string,
+): boolean {
   const lower = eventSportKey.toLowerCase();
   if (categoryKey === "soccer") return lower.startsWith("soccer");
   if (categoryKey === "basketball") return lower.startsWith("basketball");
   if (categoryKey === "tennis") return lower.startsWith("tennis");
-  if (categoryKey === "americanfootball") return lower.startsWith("americanfootball");
+  if (categoryKey === "americanfootball")
+    return lower.startsWith("americanfootball");
   if (categoryKey === "cricket") return lower.startsWith("cricket");
   if (categoryKey === "icehockey") return lower.startsWith("icehockey");
   if (categoryKey === "rugbyunion") return lower.startsWith("rugby");
-  if (categoryKey === "boxing_mma") return lower.startsWith("mma") || lower.startsWith("boxing");
+  if (categoryKey === "boxing_mma")
+    return lower.startsWith("mma") || lower.startsWith("boxing");
   if (categoryKey === "baseball") return lower.startsWith("baseball");
   if (categoryKey === "volleyball") return lower.startsWith("volleyball");
   if (categoryKey === "tabletennis") return lower.startsWith("tabletennis");
@@ -157,8 +163,12 @@ export default function SportCategoryPage() {
   const categoryQuery = useQuery({
     queryKey: ["sport-category-info", sportKey, sportSlug],
     queryFn: async () => {
-      const { data } = await api.get<CategoriesResponse>("/user/sport-categories");
-      const match = data.categories.find((category) => category.sportKey === sportKey);
+      const { data } = await api.get<CategoriesResponse>(
+        "/user/sport-categories",
+      );
+      const match = data.categories.find(
+        (category) => category.sportKey === sportKey,
+      );
 
       if (match) {
         return {
@@ -204,7 +214,8 @@ export default function SportCategoryPage() {
       });
 
       return data.events.filter(
-        (event) => event.sportKey && matchesCategoryKey(event.sportKey, sportKey),
+        (event) =>
+          event.sportKey && matchesCategoryKey(event.sportKey, sportKey),
       );
     },
     staleTime: 30_000,
@@ -218,7 +229,8 @@ export default function SportCategoryPage() {
       const { data } = await api.get<EventsResponse>("/user/events/live");
 
       return data.events.filter(
-        (event) => event.sportKey && matchesCategoryKey(event.sportKey, sportKey),
+        (event) =>
+          event.sportKey && matchesCategoryKey(event.sportKey, sportKey),
       );
     },
     staleTime: 15_000,
@@ -231,7 +243,9 @@ export default function SportCategoryPage() {
   const events = eventsQuery.data ?? [];
   const liveEvents = liveEventsQuery.data ?? [];
   const loading =
-    categoryQuery.isLoading || eventsQuery.isLoading || liveEventsQuery.isLoading;
+    categoryQuery.isLoading ||
+    eventsQuery.isLoading ||
+    liveEventsQuery.isLoading;
   const error =
     eventsQuery.error || liveEventsQuery.error
       ? "Unable to load events right now."
@@ -292,12 +306,17 @@ export default function SportCategoryPage() {
           </Link>
           <div className="flex flex-col items-center rounded-2xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] px-6 py-16 text-center shadow-lg">
             <span className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#17253a]">
-              <Trophy size={34} style={{ color: "#facc15" }} aria-hidden="true" />
+              <Trophy
+                size={34}
+                style={{ color: "#facc15" }}
+                aria-hidden="true"
+              />
             </span>
             <h1 className="text-xl font-bold text-white">Sport Not Found</h1>
             <p className="mt-2 max-w-md text-sm text-[#637fa0]">
               The sport category &ldquo;{sportSlug}&rdquo; doesn&apos;t exist.
-              Browse our available sports from the sidebar or head back to the homepage.
+              Browse our available sports from the sidebar or head back to the
+              homepage.
             </p>
             <Link
               to="/user"
@@ -342,7 +361,9 @@ export default function SportCategoryPage() {
                 </h1>
                 <p className="text-[10px] text-[#637fa0] sm:text-xs">
                   {liveEvents.length > 0 ? (
-                    <span className="mr-2 text-[#22c55e]">{liveEvents.length} Live</span>
+                    <span className="mr-2 text-[#22c55e]">
+                      {liveEvents.length} Live
+                    </span>
                   ) : null}
                   {upcomingEvents.length} Upcoming
                 </p>
@@ -358,8 +379,12 @@ export default function SportCategoryPage() {
           </div>
         </section>
 
-        <div className={`min-w-0 ${hasSelections ? "lg:flex lg:items-start lg:gap-5" : ""}`}>
-          <div className={`events-pane min-w-0 ${hasSelections ? "lg:min-w-0 lg:flex-1" : ""}`}>
+        <div
+          className={`min-w-0 ${hasSelections ? "lg:flex lg:items-start lg:gap-5" : ""}`}
+        >
+          <div
+            className={`events-pane min-w-0 ${hasSelections ? "lg:min-w-0 lg:flex-1" : ""}`}
+          >
             {liveEvents.length > 0 ? (
               <section className="mb-3 rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-lg sm:mb-4 sm:rounded-2xl">
                 <div className="flex items-center justify-between border-b border-[#1e3350]/40 px-3 py-2 sm:px-4 sm:py-2.5">
@@ -377,14 +402,22 @@ export default function SportCategoryPage() {
                   </div>
                 </div>
                 <div className="space-y-2 p-1.5 sm:space-y-3 sm:p-3 md:p-4">
-                  {liveEvents.map((event) => (
-                    <EventCard
-                      key={event.eventId}
-                      event={event}
-                      onOddsSelect={betSlip.addSelection}
-                      selectedOdds={selectedOdds}
-                    />
-                  ))}
+                  <Suspense
+                    fallback={
+                      <div className="rounded-xl border border-[#1e3350]/30 bg-[#111d2e]/40 p-4 text-xs text-[#7a94b8]">
+                        Loading live events...
+                      </div>
+                    }
+                  >
+                    {liveEvents.map((event) => (
+                      <EventCard
+                        key={event.eventId}
+                        event={event}
+                        onOddsSelect={betSlip.addSelection}
+                        selectedOdds={selectedOdds}
+                      />
+                    ))}
+                  </Suspense>
                 </div>
               </section>
             ) : null}
@@ -394,7 +427,8 @@ export default function SportCategoryPage() {
                 <div className="flex items-center gap-2">
                   <Flame size={14} className="text-[#637fa0]" />
                   <p className="text-[10px] text-[#637fa0] sm:text-xs">
-                    No live {displayName.toLowerCase()} events right now. Check back when matches start.
+                    No live {displayName.toLowerCase()} events right now. Check
+                    back when matches start.
                   </p>
                 </div>
               </section>
@@ -464,47 +498,66 @@ export default function SportCategoryPage() {
                   </div>
                 ) : (
                   <div className="space-y-3 sm:space-y-4">
-                    {Object.entries(groupedEvents).map(([leagueName, leagueEvents]) => (
-                      <section
-                        key={leagueName}
-                        className="overflow-hidden rounded-xl border border-[#1e3350]/40 bg-[#0c1625] sm:rounded-2xl"
-                      >
-                        <div className="flex items-center justify-between gap-2 border-b border-[#1e3350]/30 bg-gradient-to-r from-[#101d30] to-[#0f1a2d] px-2.5 py-2 sm:px-3.5 sm:py-2.5">
-                          <div className="flex min-w-0 items-center gap-1.5">
+                    {Object.entries(groupedEvents).map(
+                      ([leagueName, leagueEvents]) => (
+                        <section
+                          key={leagueName}
+                          className="overflow-hidden rounded-xl border border-[#1e3350]/40 bg-[#0c1625] sm:rounded-2xl"
+                        >
+                          <div className="flex items-center justify-between gap-2 border-b border-[#1e3350]/30 bg-gradient-to-r from-[#101d30] to-[#0f1a2d] px-2.5 py-2 sm:px-3.5 sm:py-2.5">
+                            <div className="flex min-w-0 items-center gap-1.5">
                               {(() => {
-                                const leagueVisual = getLeagueVisual(leagueName);
+                                const leagueVisual =
+                                  getLeagueVisual(leagueName);
                                 const LeagueIcon = leagueVisual.icon;
                                 return (
-                                  <span className="grid h-5 w-5 place-items-center rounded-md bg-[#15243a]" aria-hidden="true">
-                                    <LeagueIcon size={12} style={{ color: leagueVisual.color }} />
+                                  <span
+                                    className="grid h-5 w-5 place-items-center rounded-md bg-[#15243a]"
+                                    aria-hidden="true"
+                                  >
+                                    <LeagueIcon
+                                      size={12}
+                                      style={{ color: leagueVisual.color }}
+                                    />
                                   </span>
                                 );
                               })()}
-                            <h3 className="truncate text-[8px] font-bold uppercase tracking-[0.16em] text-[#7a94b8] sm:text-[10px]">
-                              {leagueName}
-                            </h3>
-                            <span className="shrink-0 rounded-md bg-[#ffd500]/[0.06] px-1.5 py-[1px] text-[8px] font-bold tabular-nums text-[#546e8f] sm:text-[9px]">
-                              {leagueEvents.length}
-                            </span>
+                              <h3 className="truncate text-[8px] font-bold uppercase tracking-[0.16em] text-[#7a94b8] sm:text-[10px]">
+                                {leagueName}
+                              </h3>
+                              <span className="shrink-0 rounded-md bg-[#ffd500]/[0.06] px-1.5 py-[1px] text-[8px] font-bold tabular-nums text-[#546e8f] sm:text-[9px]">
+                                {leagueEvents.length}
+                              </span>
+                            </div>
+                            {leagueEvents[0] ? (
+                              <p className="shrink-0 text-[8px] font-semibold uppercase tracking-[0.12em] text-[#4a6a8f] sm:text-[9px]">
+                                {formatKickoffTime(
+                                  leagueEvents[0].commenceTime,
+                                )}
+                              </p>
+                            ) : null}
                           </div>
-                          {leagueEvents[0] ? (
-                            <p className="shrink-0 text-[8px] font-semibold uppercase tracking-[0.12em] text-[#4a6a8f] sm:text-[9px]">
-                              {formatKickoffTime(leagueEvents[0].commenceTime)}
-                            </p>
-                          ) : null}
-                        </div>
-                        <div className="grid gap-1.5 p-1.5 sm:grid-cols-2 sm:gap-3 sm:p-3">
-                          {leagueEvents.map((event) => (
-                            <EventCard
-                              key={event.eventId}
-                              event={event}
-                              onOddsSelect={betSlip.addSelection}
-                              selectedOdds={selectedOdds}
-                            />
-                          ))}
-                        </div>
-                      </section>
-                    ))}
+                          <div className="grid gap-1.5 p-1.5 sm:grid-cols-2 sm:gap-3 sm:p-3">
+                            <Suspense
+                              fallback={
+                                <div className="col-span-full rounded-xl border border-[#1e3350]/30 bg-[#111d2e]/40 p-4 text-xs text-[#7a94b8]">
+                                  Loading events...
+                                </div>
+                              }
+                            >
+                              {leagueEvents.map((event) => (
+                                <EventCard
+                                  key={event.eventId}
+                                  event={event}
+                                  onOddsSelect={betSlip.addSelection}
+                                  selectedOdds={selectedOdds}
+                                />
+                              ))}
+                            </Suspense>
+                          </div>
+                        </section>
+                      ),
+                    )}
                   </div>
                 )}
               </div>

@@ -45,6 +45,13 @@ import {
   Search,
   Settings2,
   Star,
+  Zap,
+  Shield,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Activity,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -63,6 +70,192 @@ import {
 } from "../../components/ui";
 
 const CustomEventsManager = lazy(() => import("./CustomEventsManager"));
+
+// ── System Status Types ──
+interface SystemStatus {
+  health: "healthy" | "warning" | "critical";
+  api: {
+    isOnline: boolean;
+    isApiKeyValid: boolean;
+    creditsRemaining: number | null;
+    creditsPercent: number | null;
+    monthlyBudget: number;
+    dailyCallsUsed: number | null;
+    dailyBudget: number | null;
+    lastError: string | null;
+    isRateLimited: boolean;
+  };
+  sync: {
+    lastSyncTime: string | null;
+    nextSyncTime: string | null;
+  };
+  events: {
+    totalIn7Days: number;
+    eventsWithoutOdds: number;
+    liveCount: number;
+  };
+  sports: {
+    totalActive: number;
+    withNoEvents: string[];
+    withNoEventsCount: number;
+  };
+}
+
+interface AutoConfigureStatus {
+  running: boolean;
+  progress: number;
+  currentStep: string;
+  done: boolean;
+  lastRunAt: string | null;
+  cooldownMs: number;
+  results?: Record<string, number | string> | null;
+}
+
+// ── System Status Panel Component ──
+function SystemStatusPanel() {
+  const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  async function loadStatus() {
+    try {
+      const res = await api.get<SystemStatus>("/admin/system/status");
+      setStatus(res.data);
+    } catch {
+      // Silent fail — panel will show loading state
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadStatus();
+    const si = window.setInterval(() => void loadStatus(), 30000);
+    return () => window.clearInterval(si);
+  }, []);
+
+  function formatRelativeTime(iso: string | null): string {
+    if (!iso) return "Never";
+    const diffMs = Date.now() - new Date(iso).getTime();
+    if (diffMs < 0) {
+      const futureSec = Math.abs(diffMs) / 1000;
+      if (futureSec < 60) return `in ${Math.ceil(futureSec)}s`;
+      return `in ${Math.ceil(futureSec / 60)}m`;
+    }
+    const sec = diffMs / 1000;
+    if (sec < 60) return `${Math.floor(sec)}s ago`;
+    if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+    return `${Math.floor(sec / 3600)}h ago`;
+  }
+
+  if (loading || !status) {
+    return (
+      <div className="h-16 animate-pulse rounded-xl border border-admin-border/60 bg-admin-card" />
+    );
+  }
+
+  const healthBg = status.health === "healthy" ? "bg-emerald-500/10 border-emerald-500/20" : status.health === "warning" ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20";
+  const creditColor = (status.api.creditsPercent ?? 100) > 50 ? "text-emerald-400" : (status.api.creditsPercent ?? 100) > 20 ? "text-amber-400" : "text-red-400";
+
+  return (
+    <div className="space-y-2">
+      {/* Status bar */}
+      <Card className={cn("border shadow-sm", healthBg)}>
+        <CardContent className="p-2 sm:p-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px]">
+            {/* API Status */}
+            <div className="flex items-center gap-1.5">
+              {status.api.isOnline ? (
+                <CheckCircle2 size={12} className="text-emerald-400" />
+              ) : (
+                <XCircle size={12} className="text-red-400" />
+              )}
+              <span className={cn("font-semibold", status.api.isOnline ? "text-emerald-400" : "text-red-400")}>
+                API: {status.api.isOnline ? "Online" : "Offline"}
+              </span>
+            </div>
+
+            <div className="hidden h-3 w-px bg-admin-border/50 sm:block" />
+
+            {/* Credits */}
+            <div className="flex items-center gap-1.5">
+              <Shield size={12} className={creditColor} />
+              <span className="text-admin-text-muted">Credits:</span>
+              <span className={cn("font-bold tabular-nums", creditColor)}>
+                {status.api.creditsRemaining ?? "?"}
+              </span>
+              <span className="text-admin-text-muted">
+                ({status.api.creditsPercent ?? "?"}%)
+              </span>
+            </div>
+
+            <div className="hidden h-3 w-px bg-admin-border/50 sm:block" />
+
+            {/* Last Sync */}
+            <div className="flex items-center gap-1.5">
+              <Clock size={12} className="text-admin-text-muted" />
+              <span className="text-admin-text-muted">Last sync:</span>
+              <span className="font-semibold text-admin-text-primary">
+                {formatRelativeTime(status.sync.lastSyncTime)}
+              </span>
+            </div>
+
+            <div className="hidden h-3 w-px bg-admin-border/50 md:block" />
+
+            {/* Next Sync */}
+            <div className="hidden items-center gap-1.5 md:flex">
+              <Activity size={12} className="text-admin-text-muted" />
+              <span className="text-admin-text-muted">Next:</span>
+              <span className="font-semibold text-admin-text-primary">
+                {formatRelativeTime(status.sync.nextSyncTime)}
+              </span>
+            </div>
+
+            <div className="hidden h-3 w-px bg-admin-border/50 lg:block" />
+
+            {/* Events */}
+            <div className="hidden items-center gap-1.5 lg:flex">
+              <Zap size={12} className="text-admin-accent" />
+              <span className="text-admin-text-muted">7-day events:</span>
+              <span className="font-bold text-admin-text-primary">
+                {status.events.totalIn7Days}
+              </span>
+            </div>
+
+            {/* Sports Warning */}
+            {status.sports.withNoEventsCount > 0 && (
+              <>
+                <div className="hidden h-3 w-px bg-admin-border/50 lg:block" />
+                <div className="hidden items-center gap-1.5 lg:flex">
+                  <AlertTriangle size={12} className="text-amber-400" />
+                  <span className="text-amber-400">
+                    {status.sports.withNoEventsCount} sport{status.sports.withNoEventsCount !== 1 ? "s" : ""} empty
+                  </span>
+                </div>
+              </>
+            )}
+
+            <div className="hidden h-3 w-px bg-admin-border/50 sm:block" />
+            <div className="flex items-center gap-1.5">
+              {status.events.eventsWithoutOdds > 0 ? (
+                <XCircle size={12} className="text-red-400" />
+              ) : (
+                <Check size={12} className="text-emerald-400" />
+              )}
+              <span
+                className={cn(
+                  "font-semibold",
+                  status.events.eventsWithoutOdds > 0 ? "text-red-400" : "text-emerald-400",
+                )}
+              >
+                No-odds events: {status.events.eventsWithoutOdds}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 interface ApiEvent {
   id: string;
@@ -164,6 +357,18 @@ function formatUpdatedTime(timestamp: string) {
     minute: "2-digit",
   });
 }
+function formatRelativeTimeLabel(iso: string | null) {
+  if (!iso) return "Never";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 0) {
+    const futureMinutes = Math.ceil(Math.abs(diffMs) / 60000);
+    return `in ${futureMinutes} min`;
+  }
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  return `${Math.floor(minutes / 60)} hr ago`;
+}
 function formatUpcomingCountdown(commenceTime: string, nowMs: number) {
   const diffMs = new Date(commenceTime).getTime() - nowMs;
   if (diffMs <= 0) return "Now";
@@ -214,6 +419,9 @@ function FeedEvents() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+  const [autoConfigureLoading, setAutoConfigureLoading] = useState(false);
+  const [autoConfigureStatus, setAutoConfigureStatus] = useState<AutoConfigureStatus | null>(null);
   const [error, setError] = useState("");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -422,6 +630,54 @@ function FeedEvents() {
     }
   }
 
+  async function loadSystemStatus() {
+    try {
+      const res = await api.get<SystemStatus>("/admin/system/status");
+      setSystemStatus(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleAutoConfigureNow() {
+    if (autoConfigureLoading) return;
+    setAutoConfigureLoading(true);
+
+    try {
+      await api.post("/admin/system/auto-configure");
+      toast.success("Automation started.");
+
+      const poller = window.setInterval(async () => {
+        try {
+          const { data } = await api.get<AutoConfigureStatus>("/admin/system/auto-configure/status");
+          setAutoConfigureStatus(data);
+
+          if (data.done) {
+            window.clearInterval(poller);
+            setAutoConfigureLoading(false);
+            await Promise.all([
+              loadEvents({ background: true }),
+              loadStats(),
+              loadSystemStatus(),
+            ]);
+            if (data.currentStep.toLowerCase().startsWith("failed")) {
+              toast.error(data.currentStep);
+            } else {
+              toast.success("Automation completed successfully.");
+            }
+          }
+        } catch (error) {
+          window.clearInterval(poller);
+          setAutoConfigureLoading(false);
+          toast.error(getErrorMessage(error, "Failed to monitor automation."));
+        }
+      }, 2000);
+    } catch (error) {
+      setAutoConfigureLoading(false);
+      toast.error(getErrorMessage(error, "Failed to start automation."));
+    }
+  }
+
   async function loadEventDetail(eventId: string) {
     setDetailLoading(true);
     try {
@@ -436,7 +692,7 @@ function FeedEvents() {
   }
 
   async function handleRefresh() {
-    await Promise.all([loadEvents({ background: true }), loadStats()]);
+    await Promise.all([loadEvents({ background: true }), loadStats(), loadSystemStatus()]);
   }
 
   async function handleToggle(event: ApiEvent, nextIsActive?: boolean) {
@@ -736,6 +992,12 @@ function FeedEvents() {
   }, []);
 
   useEffect(() => {
+    void loadSystemStatus();
+    const timer = window.setInterval(() => void loadSystemStatus(), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     const si = window.setInterval(() => void loadStats(), 60000);
     const ei = window.setInterval(
       () => void loadEvents({ background: true }),
@@ -752,8 +1014,9 @@ function FeedEvents() {
   return (
     <>
       <div className="space-y-2">
-        {/* ── Tab Selector ── */}
-        {/* Note: tab state is managed by the wrapper */}
+        {/* ── System Status Panel ── */}
+        <SystemStatusPanel />
+
         {/* ── Header ── */}
         <AdminSectionHeader
           title="Events"
@@ -782,6 +1045,24 @@ function FeedEvents() {
                 <Settings2 className="size-3.5" />
                 Bulk update
               </Button>
+              <div className="grid gap-1">
+                <Button
+                  size="sm"
+                  onClick={() => void handleAutoConfigureNow()}
+                  disabled={autoConfigureLoading || (autoConfigureStatus?.cooldownMs ?? 0) > 0}
+                  className="w-full bg-emerald-500 text-black hover:bg-emerald-400 sm:w-auto"
+                >
+                  {autoConfigureLoading ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-3.5" />
+                  )}
+                  Auto Configure
+                </Button>
+                <p className="text-[10px] text-admin-text-muted sm:text-right">
+                  Last synced: {formatRelativeTimeLabel(systemStatus?.sync.lastSyncTime ?? null)}
+                </p>
+              </div>
               <Button
                 size="sm"
                 onClick={() => setCreateDialogOpen(true)}

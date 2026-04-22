@@ -14,7 +14,7 @@ type BanAppealTokenPayload = {
 };
 
 const ACCESS_TOKEN_TTL_SECONDS = 60 * 60 * 24;
-const BAN_APPEAL_TOKEN_TTL_SECONDS = 60 * 60 * 24;  
+const BAN_APPEAL_TOKEN_TTL_SECONDS = 60 * 60 * 24;
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const ACCESS_TOKEN_ISSUER =
   process.env.ACCESS_TOKEN_ISSUER?.trim() || "betwise-api";

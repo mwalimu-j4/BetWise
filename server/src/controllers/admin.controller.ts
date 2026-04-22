@@ -71,12 +71,6 @@ const adminSettingsSelect = {
   mpesaTransactionFeePercent: true,
   mpesaAutoWithdrawEnabled: true,
   mpesaWithdrawalApprovalThreshold: true,
-  paymentPaystackEnabled: true,
-  paystackSecretKey: true,
-  paystackPublicKey: true,
-  paystackWebhookSecret: true,
-  paystackCallbackUrl: true,
-  paystackWebhookUrl: true,
   minBetAmount: true,
   maxBetAmount: true,
   maxWinPerBet: true,
@@ -181,12 +175,6 @@ function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
     mpesaAutoWithdrawEnabled: config.paymentsConfig.mpesa.autoWithdrawEnabled,
     mpesaWithdrawalApprovalThreshold:
       config.paymentsConfig.mpesa.mpesaWithdrawalApprovalThreshold,
-    paymentPaystackEnabled: config.paymentsConfig.methods.paystack,
-    paystackSecretKey: config.paymentsConfig.paystack.secretKey,
-    paystackPublicKey: config.paymentsConfig.paystack.publicKey,
-    paystackWebhookSecret: config.paymentsConfig.paystack.webhookSecret,
-    paystackCallbackUrl: config.paymentsConfig.paystack.callbackUrl,
-    paystackWebhookUrl: config.paymentsConfig.paystack.webhookUrl,
     minBetAmount: config.bettingEngineConfig.minBetAmount,
     maxBetAmount: config.bettingEngineConfig.maxBetAmount,
     maxWinPerBet: config.bettingEngineConfig.maxWinPerBet,
@@ -292,7 +280,6 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
       methods: {
         mpesa: record.paymentMpesaEnabled,
         bankTransfer: record.paymentBankTransferEnabled,
-        paystack: record.paymentPaystackEnabled,
       },
       mpesa: {
         shortcode: record.mpesaShortcode,
@@ -302,14 +289,11 @@ function toConfig(record: AdminSettingsRecord): AdminSettingsConfig {
         callbackUrl: record.mpesaCallbackUrl,
         transactionFeePercent: record.mpesaTransactionFeePercent,
         autoWithdrawEnabled: record.mpesaAutoWithdrawEnabled,
-        mpesaWithdrawalApprovalThreshold: record.mpesaWithdrawalApprovalThreshold,
+        mpesaWithdrawalApprovalThreshold:
+          record.mpesaWithdrawalApprovalThreshold,
       },
       paystack: {
-        secretKey: record.paystackSecretKey,
-        publicKey: record.paystackPublicKey,
-        webhookSecret: record.paystackWebhookSecret,
-        callbackUrl: record.paystackCallbackUrl,
-        webhookUrl: record.paystackWebhookUrl,
+        ...defaultAdminSettings.paymentsConfig.paystack,
       },
     },
     bettingEngineConfig: {

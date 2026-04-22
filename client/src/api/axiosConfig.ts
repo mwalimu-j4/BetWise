@@ -7,12 +7,6 @@ const PRODUCTION_API_HOST = "api.betixpro.com";
 type RefreshHandler = () => Promise<string | null>;
 type UnauthorizedHandler = () => void;
 
-type RetryableRequestConfig = {
-  headers?: Record<string, string>;
-  _retry?: boolean;
-  url?: string;
-};
-
 function resolveApiBaseUrl() {
   const rawBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
   const configuredBaseUrl = rawBaseUrl || PRODUCTION_API_BASE_URL;
@@ -82,22 +76,8 @@ const api = axios.create({
 let accessToken: string | null = null;
 let refreshHandler: RefreshHandler | null = null;
 let unauthorizedHandler: UnauthorizedHandler | null = null;
-let refreshPromise: Promise<string | null> | null = null;
 
-function debugLog(message: string, details: Record<string, unknown>) {
-  if (import.meta.env.DEV) {
-    console.log(message, details);
-  }
-}
-
-function shouldSkipRefresh(url: string | undefined) {
-  if (!url) return false;
-  return (
-    url.includes("/auth/refresh") ||
-    url.includes("/auth/login") ||
-    url.includes("/auth/register")
-  );
-}
+const AUTH_TOKEN_KEY = "betwise-auth-token";
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
@@ -111,79 +91,24 @@ export function configureAuthHandlers(handlers: {
   unauthorizedHandler = handlers.onUnauthorized;
 }
 
-api.interceptors.request.use((config) => {
-  const mutableConfig = config as RetryableRequestConfig;
-  mutableConfig.headers = mutableConfig.headers ?? {};
+export function getAccessToken() {
+  return accessToken;
+}
 
-  // If token is not in memory, restore from localStorage (same source as AuthContext).
-  // This handles the case where the page was refreshed or came from a redirect
-  let tokenToUse = accessToken;
-  if (!tokenToUse) {
-    try {
-      const storedToken = localStorage.getItem("betwise-auth-token");
-      if (storedToken) {
-        tokenToUse = storedToken;
-        debugLog("[Axios] Restored token from localStorage", {
-          hasToken: Boolean(storedToken),
-          url: config.url,
-        });
-      }
-    } catch {
-      // localStorage might not be available in some contexts
-    }
+export function getStoredAccessToken() {
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY);
+  } catch {
+    return null;
   }
+}
 
-  if (tokenToUse) {
-    mutableConfig.headers.Authorization = `Bearer ${tokenToUse}`;
-    debugLog("[Axios] Added Authorization header", {
-      url: config.url,
-      hasToken: Boolean(tokenToUse),
-    });
-  }
+export function getRefreshHandler() {
+  return refreshHandler;
+}
 
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config as RetryableRequestConfig | undefined;
-    const status = error.response?.status as number | undefined;
-
-    if (
-      !originalRequest ||
-      status !== 401 ||
-      originalRequest._retry ||
-      shouldSkipRefresh(originalRequest.url)
-    ) {
-      return Promise.reject(error);
-    }
-
-    originalRequest._retry = true;
-
-    if (!refreshHandler) {
-      unauthorizedHandler?.();
-      return Promise.reject(error);
-    }
-
-    if (!refreshPromise) {
-      refreshPromise = refreshHandler().finally(() => {
-        refreshPromise = null;
-      });
-    }
-
-    const newToken = await refreshPromise;
-
-    if (!newToken) {
-      unauthorizedHandler?.();
-      return Promise.reject(error);
-    }
-
-    originalRequest.headers = originalRequest.headers ?? {};
-    originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-    return api(originalRequest);
-  },
-);
+export function getUnauthorizedHandler() {
+  return unauthorizedHandler;
+}
 
 export { api };
