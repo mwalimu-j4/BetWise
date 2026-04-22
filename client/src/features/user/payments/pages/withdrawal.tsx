@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import {
-  RefreshCw,
-  Smartphone,
-  ArrowUpRight,
-  Inbox,
-  LoaderCircle,
-} from "lucide-react";
+import { Smartphone, ArrowUpRight, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { formatDateTime, formatMoney } from "../data";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { formatMoney } from "../data";
 import { useWalletSummary, walletSummaryQueryKey } from "../wallet";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
@@ -39,7 +41,8 @@ export default function PaymentsWithdrawalPage() {
   const { user } = useAuth();
   const [amount, setAmount] = useState("500");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: walletData, refetch: refetchWallet } = useWalletSummary();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const { data: walletData } = useWalletSummary();
   const queryClient = useQueryClient();
   const accountPhone = useMemo(
     () => normalizePhone(user?.phone ?? ""),
@@ -61,8 +64,8 @@ export default function PaymentsWithdrawalPage() {
         data.message || "Withdrawal request submitted successfully!",
       );
       setAmount("500");
+      setShowConfirmModal(false);
       queryClient.invalidateQueries({ queryKey: walletSummaryQueryKey });
-      refetchWallet();
     },
     onError: (error: any) => {
       toast.error(
@@ -93,26 +96,41 @@ export default function PaymentsWithdrawalPage() {
     [numAmount, balance, normalizedPhone, totalNeeded],
   );
 
-  const recentWithdrawals = Array.isArray(walletData?.transactions)
-    ? walletData.transactions.filter((t) => t.type === "withdrawal").slice(0, 3)
-    : [];
+  function validateWithdrawalInput() {
+    if (!isPhoneValid(normalizedPhone)) {
+      toast.error("Invalid phone. Use format: 2547XXXXXXXX");
+      return false;
+    }
+
+    if (numAmount < MIN_WITHDRAWAL) {
+      toast.error(`Minimum withdrawal is KES ${MIN_WITHDRAWAL}.`);
+      return false;
+    }
+
+    if (numAmount > MAX_WITHDRAWAL) {
+      toast.error(`Maximum withdrawal is KES ${MAX_WITHDRAWAL}.`);
+      return false;
+    }
+
+    if (totalNeeded > balance) {
+      toast.error(
+        `Insufficient balance. Need KES ${totalNeeded.toLocaleString()}.`,
+      );
+      return false;
+    }
+
+    return true;
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!canWithdraw) {
-      if (!isPhoneValid(normalizedPhone))
-        toast.error("Invalid phone. Use format: 2547XXXXXXXX");
-      else if (numAmount < MIN_WITHDRAWAL)
-        toast.error(`Minimum withdrawal is KES ${MIN_WITHDRAWAL}.`);
-      else if (numAmount > MAX_WITHDRAWAL)
-        toast.error(`Maximum withdrawal is KES ${MAX_WITHDRAWAL}.`);
-      else if (totalNeeded > balance)
-        toast.error(
-          `Insufficient balance. Need KES ${totalNeeded.toLocaleString()}.`,
-        );
-      else toast.error("Please check your input and try again.");
-      return;
-    }
+    if (!validateWithdrawalInput()) return;
+    setShowConfirmModal(true);
+  }
+
+  async function onConfirmWithdrawal() {
+    if (!canWithdraw) return;
+
     setIsSubmitting(true);
     try {
       await withdrawalMutation.mutateAsync({
@@ -132,21 +150,18 @@ export default function PaymentsWithdrawalPage() {
       <div className="mx-auto w-full max-w-[860px] space-y-4">
         <article className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
           <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#f5c518]/20 bg-[#f5c518]/10">
-                  <ArrowUpRight size={17} className="text-[#f5c518]" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-white">
-                    Withdraw Funds
-                  </h2>
-                  <p className="text-xs text-[#4a6a85]">
-                    Send winnings straight to your M-Pesa line
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#f5c518]/20 bg-[#f5c518]/10">
+                <ArrowUpRight size={17} className="text-[#f5c518]" />
               </div>
-
+              <div>
+                <h2 className="text-base font-bold text-white">
+                  Withdraw Funds
+                </h2>
+                <p className="text-xs text-[#4a6a85]">
+                  Enter amount and M-Pesa number to continue
+                </p>
+              </div>
             </div>
           </div>
 
@@ -206,38 +221,9 @@ export default function PaymentsWithdrawalPage() {
                 </div>
               </div>
 
-              {numAmount > 0 && (
-                <div className="grid gap-3 rounded-2xl border border-[#1a2f45] bg-[#0d1829] p-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-[#1a2f45] bg-[#0b1421] px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400">
-                      Withdraw
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-white">
-                      {formatMoney(numAmount)}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-[#1a2f45] bg-[#0b1421] px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400">
-                      Fee ({WITHDRAWAL_FEE_PERCENTAGE}%)
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-[#f5c518]">
-                      -{formatMoney(feeAmount)}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-[#1a2f45] bg-[#0b1421] px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400">
-                      You Receive
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-emerald-500">
-                      {formatMoney(netAmount)}
-                    </p>
-                  </div>
-                </div>
-              )}
-
               <Button
                 type="submit"
-                disabled={!canWithdraw || busy}
+                disabled={busy}
                 className="h-14 w-full rounded-2xl bg-[#f5c518] text-base font-bold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {busy ? (
@@ -250,71 +236,73 @@ export default function PaymentsWithdrawalPage() {
             </form>
           </div>
         </article>
+      </div>
 
-        <article className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
-          <div className="flex items-center justify-between border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
-            <div>
-              <h3 className="text-sm font-bold text-white">Recent Requests</h3>
-              <p className="mt-1 text-xs text-[#4a6a85]">
-                Your latest withdrawal activity at a glance
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void refetchWallet()}
-              className="flex items-center gap-1.5 rounded-xl border border-[#1a2f45] bg-[#08111d] px-3 py-2 text-xs font-medium text-[#4a6a85] transition hover:border-[#f5c518]/30 hover:text-white"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-              Refresh
-            </button>
-          </div>
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="max-w-xl border-[#1a2f45] bg-[#0b1421] p-0 text-white">
+          <DialogHeader className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
+            <DialogTitle className="text-base font-bold text-white">
+              Confirm Withdrawal
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#4a6a85]">
+              Please review these details before submitting.
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="space-y-3 px-6 py-5">
-            {recentWithdrawals.length > 0 ? (
-              recentWithdrawals.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="rounded-2xl border border-[#1a2f45] bg-[#0d1829] px-4 py-3 transition hover:border-[#f5c518]/20"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-bold text-white">
-                      {formatMoney(entry.amount)}
-                    </p>
-                    <span
-                      className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                        entry.status === "completed"
-                          ? "border-green-500/30 bg-green-500/10 text-green-400"
-                          : entry.status === "processing"
-                            ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
-                            : entry.status === "pending"
-                              ? "border-yellow-500/30 bg-yellow-500/10 text-yellow-400"
-                              : "border-red-500/30 bg-red-500/10 text-red-400"
-                      }`}
-                    >
-                      {entry.status}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-[#4a6a85]">
-                    {formatDateTime(entry.createdAt)}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#1a2f45] bg-[#0d1829] py-10 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#1a2f45] bg-[#0b1421]">
-                  <Inbox className="h-6 w-6 text-[#2e4a63]" />
-                </div>
-                <p className="mt-3 text-sm font-semibold text-[#4a6a85]">
-                  No requests yet
+          <div className="space-y-4 px-6 py-5">
+            <div className="grid gap-3 rounded-2xl border border-[#1a2f45] bg-[#0d1829] p-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-[#1e3a5a] bg-[#08111d] px-4 py-3">
+                <p className="text-[10px] uppercase tracking-widest text-[#6e86a1]">
+                  Withdraw
                 </p>
-                <p className="mt-1 text-xs text-[#2e4a63]">
-                  Your withdrawals will appear here
+                <p className="mt-1 text-2xl font-semibold text-white">
+                  {formatMoney(numAmount)}
                 </p>
               </div>
-            )}
+              <div className="rounded-2xl border border-[#1e3a5a] bg-[#08111d] px-4 py-3">
+                <p className="text-[10px] uppercase tracking-widest text-[#6e86a1]">
+                  Fee ({WITHDRAWAL_FEE_PERCENTAGE}%)
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-[#f5c518]">
+                  -{formatMoney(feeAmount)}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-[#1e3a5a] bg-[#08111d] px-4 py-3">
+                <p className="text-[10px] uppercase tracking-widest text-[#6e86a1]">
+                  You Receive
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-emerald-400">
+                  {formatMoney(netAmount)}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#6e86a1]">
+              Destination: <span className="font-semibold text-white">{normalizedPhone}</span>
+            </p>
           </div>
-        </article>
-      </div>
+
+          <DialogFooter className="border-t border-[#1a2f45] px-6 py-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+              disabled={busy}
+              className="border-[#294157] bg-transparent text-[#dce7f2] hover:bg-[#102134] hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void onConfirmWithdrawal()}
+              disabled={busy}
+              className="bg-[#f5c518] text-black hover:bg-[#e6b800]"
+            >
+              {busy ? "Submitting..." : "Confirm Withdrawal"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
