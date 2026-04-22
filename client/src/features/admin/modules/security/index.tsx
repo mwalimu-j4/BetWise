@@ -99,7 +99,7 @@ export default function SecurityWizard() {
       toast.success(payload.message);
       setSetupStep(2);
     },
-    onError: (error: any) => {
+    onError: (error: never) => {
       toast.error(error.response?.data?.message ?? "Failed to send app link");
     },
   });
