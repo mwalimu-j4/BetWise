@@ -6,7 +6,6 @@ type RetryableRequestConfig = {
   url?: string;
 };
 
-let refreshPromise: Promise<string | null> | null = null;
 let installed = false;
 
 function debugLog(message: string, details: Record<string, unknown>) {

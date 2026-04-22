@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
 import ForgotPasswordModal from "./ForgotPasswordModal";
+import { useAuth } from "@/context/AuthContext";
 
 /**
  * Renders all auth modals globally using a portal.
@@ -11,6 +12,7 @@ import ForgotPasswordModal from "./ForgotPasswordModal";
  */
 export default function AuthModals() {
   const [mounted, setMounted] = useState(false);
+  const { authModal } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -18,6 +20,8 @@ export default function AuthModals() {
 
   if (!mounted) return null;
 
+  // The modals themselves handle their own "visibility" based on authModal state,
+  // but we can also be explicit here if we want.
   return createPortal(
     <>
       <LoginModal />

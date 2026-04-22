@@ -10,6 +10,7 @@ import {
 } from "react";
 import { api } from "@/api/axiosConfig";
 import { configureAuthHandlers, setAccessToken } from "@/api/axiosConfig";
+import { getRouter } from "@/router";
 
 type Role = "USER" | "ADMIN";
 
@@ -205,10 +206,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const openAuthModal = useCallback((modal: AuthModal) => {
     setAuthModal(modal);
+
+    // Update URL via router if available
+    const router = getRouter();
+    if (router) {
+      void router.navigate({
+        search: (prev: any) => ({
+          ...prev,
+          modal: modal === "none" ? undefined : modal,
+        }),
+        replace: true, // Use replace to avoid polluting history with modal toggles
+      });
+    }
   }, []);
 
   const closeAuthModal = useCallback(() => {
-    setAuthModal("none");
+    openAuthModal("none");
+  }, [openAuthModal]);
+
+  // Sync modal state from URL and keep it in sync with router navigation
+  useEffect(() => {
+    const syncModalFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const modalParam = params.get("modal") as AuthModal;
+      const validModals: AuthModal[] = ["login", "register", "forgot-password"];
+
+      if (modalParam && validModals.includes(modalParam)) {
+        console.log("[Auth] Syncing modal from URL:", modalParam);
+        setAuthModal(modalParam);
+      } else {
+        setAuthModal("none");
+      }
+    };
+
+    // Initial sync
+    syncModalFromUrl();
+
+    // Subscribe to router changes for subsequent syncs
+    const router = getRouter();
+    if (router) {
+      // subscribe returns an unsubscribe function
+      const unsubscribe = router.subscribe("onResolved", () => {
+        syncModalFromUrl();
+      });
+      return () => unsubscribe();
+    }
   }, []);
 
   const updateSession = useCallback((data: AuthResponse) => {
@@ -238,32 +280,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(me.data.user);
       hasValidAuth = true;
 
-      // Keep existing token if /auth/me succeeds
       if (currentToken) {
         persistAuthState(currentToken, me.data.user);
       }
       return currentToken;
     } catch (meError) {
-      // /auth/me failed, try refreshing token
-    }
-
-    try {
-      const { data } = await withTimeout(
-        api.post<AuthResponse>("/auth/refresh"),
-        SESSION_REFRESH_TIMEOUT_MS,
-      );
-      updateSession(data);
-      hasValidAuth = true;
-      return data.accessToken;
-    } catch (refreshError) {
-      // Refresh failed
+      // Immediate failure on 401
+      clearAuthState(setUser, setAccessTokenState);
+      accessTokenRef.current = null;
+      openAuthModal("login");
+      return null;
     }
 
     // Both /auth/me and /auth/refresh failed — session is dead
-    // Clear auth state so the user gets the login modal
     if (!hasValidAuth) {
       clearAuthState(setUser, setAccessTokenState);
       accessTokenRef.current = null;
+      openAuthModal("login");
       return null;
     }
 
@@ -365,10 +398,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onUnauthorized: () => {
         clearAuthState(setUser, setAccessTokenState);
         accessTokenRef.current = null;
-        setAuthModal("login");
+        openAuthModal("login");
       },
     });
-  }, [refreshSession]);
+  }, [refreshSession, openAuthModal]);
 
   // CRITICAL: Initialize auth state from sessionStorage IMMEDIATELY
   // This prevents logout during payment redirects
@@ -394,6 +427,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     } else {
       console.log("[Auth] No stored session found");
+      openAuthModal("login");
     }
 
     // Then verify/refresh the session (async)
