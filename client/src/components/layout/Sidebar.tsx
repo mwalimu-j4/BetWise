@@ -102,6 +102,109 @@ const SPORT_KEY_TO_SLUG: Record<string, string> = {
   darts: "darts",
 };
 
+const POPULAR_SPORT_KEYS = new Set([
+  "soccer",
+  "basketball",
+  "tennis",
+  "americanfootball",
+  "cricket",
+  "icehockey",
+  "rugbyunion",
+]);
+
+function getSidebarSportIcon(category: SportCategoryItem) {
+  const key = (category.sportKey ?? "").toLowerCase();
+  const iconValue = (category.icon ?? "").toLowerCase();
+  const label = (category.displayName ?? "").toLowerCase();
+
+  if (
+    key.includes("soccer") ||
+    iconValue.includes("football") ||
+    label.includes("football")
+  ) {
+    return <Goal size={18} />;
+  }
+
+  if (key.includes("basket") || iconValue.includes("basket")) {
+    return <Volleyball size={18} />;
+  }
+
+  if (
+    key.includes("american") ||
+    iconValue.includes("shield") ||
+    label.includes("american")
+  ) {
+    return <Shield size={18} />;
+  }
+
+  if (key.includes("cricket") || iconValue.includes("cricket")) {
+    return <Triangle size={18} />;
+  }
+
+  if (
+    key.includes("icehockey") ||
+    iconValue.includes("hockey") ||
+    label.includes("hockey")
+  ) {
+    return <CircleSlash size={18} />;
+  }
+
+  if (
+    key.includes("rugby") ||
+    iconValue.includes("rugby") ||
+    label.includes("rugby")
+  ) {
+    return <Hexagon size={18} />;
+  }
+
+  if (
+    key.includes("boxing") ||
+    iconValue.includes("combat") ||
+    label.includes("mma")
+  ) {
+    return <Swords size={18} />;
+  }
+
+  if (key.includes("baseball") || iconValue.includes("baseball")) {
+    return <CircleDot size={18} />;
+  }
+
+  if (key.includes("volley") || iconValue.includes("volleyball")) {
+    return <Volleyball size={18} />;
+  }
+
+  if (key.includes("tabletennis") || iconValue.includes("table-tennis")) {
+    return <Crosshair size={18} />;
+  }
+
+  if (key.includes("golf") || iconValue.includes("golf")) {
+    return <Flag size={18} />;
+  }
+
+  if (key.includes("snooker") || iconValue.includes("snooker")) {
+    return <CircleSlash size={18} />;
+  }
+
+  if (key.includes("darts") || iconValue.includes("darts")) {
+    return <Target size={18} />;
+  }
+
+  if (
+    key.includes("tennis") ||
+    iconValue.includes("tennis") ||
+    label.includes("tennis")
+  ) {
+    return <Circle size={18} />;
+  }
+
+  // If API ever returns a real emoji/symbol icon, keep using it.
+  if (category.icon && /[^\u0000-\u007f]/.test(category.icon)) {
+    return <span className="text-base">{category.icon}</span>;
+  }
+
+  return <Circle size={18} />;
+}
+
 function toEventCountKey(raw: string): keyof EventCounts | null {
   const value = raw.toLowerCase();
   if (value.includes("soccer") || value.includes("football")) return "football";
@@ -234,6 +337,32 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     if (!isAuthenticated) return [];
     return myAccount;
   }, [isAuthenticated]);
+
+  const sortedDynamicCategories = useMemo(
+    () =>
+      [...dynamicCategories].sort(
+        (a, b) =>
+          (a.sortOrder ?? Number.MAX_SAFE_INTEGER) -
+          (b.sortOrder ?? Number.MAX_SAFE_INTEGER),
+      ),
+    [dynamicCategories],
+  );
+
+  const popularDynamicCategories = useMemo(
+    () =>
+      sortedDynamicCategories.filter((category) =>
+        POPULAR_SPORT_KEYS.has(category.sportKey.toLowerCase()),
+      ),
+    [sortedDynamicCategories],
+  );
+
+  const moreDynamicCategories = useMemo(
+    () =>
+      sortedDynamicCategories.filter(
+        (category) => !POPULAR_SPORT_KEYS.has(category.sportKey.toLowerCase()),
+      ),
+    [sortedDynamicCategories],
+  );
 
   function closeIfMobile() {
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
@@ -382,31 +511,67 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* DYNAMIC SPORT CATEGORIES */}
-          {categoriesLoaded && dynamicCategories.length > 0 ? (
-            <div className="bc-side-section">
-              <p className="bc-side-heading">
-                <span className="bc-heading-dot" aria-hidden="true" />
-                Sports
-              </p>
-              {dynamicCategories.map((cat) => {
-                const slug = SPORT_KEY_TO_SLUG[cat.sportKey] ?? cat.sportKey;
-                return (
-                  <ItemLink
-                    key={cat.id}
-                    item={{
-                      label: cat.displayName,
-                      to: `/user/sport/${slug}`,
-                      icon: <span className="text-base">{cat.icon}</span>,
-                      variant: "sport",
-                      badgeCount:
-                        cat.eventCount > 0 ? cat.eventCount : undefined,
-                      badgeGold: cat.sportKey === "soccer",
-                    }}
-                    onClick={closeIfMobile}
-                  />
-                );
-              })}
-            </div>
+          {categoriesLoaded && sortedDynamicCategories.length > 0 ? (
+            <>
+              {popularDynamicCategories.length > 0 ? (
+                <div className="bc-side-section bc-side-section--sports">
+                  <p className="bc-side-heading">
+                    <span className="bc-heading-dot" aria-hidden="true" />
+                    Popular Sports
+                  </p>
+                  {popularDynamicCategories.map((category) => {
+                    const slug =
+                      SPORT_KEY_TO_SLUG[category.sportKey] ?? category.sportKey;
+                    return (
+                      <ItemLink
+                        key={category.id}
+                        item={{
+                          label: category.displayName,
+                          to: `/user/sport/${slug}`,
+                          icon: getSidebarSportIcon(category),
+                          variant: "sport",
+                          badgeCount:
+                            category.eventCount > 0
+                              ? category.eventCount
+                              : undefined,
+                          badgeGold: category.sportKey === "soccer",
+                        }}
+                        onClick={closeIfMobile}
+                      />
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              {moreDynamicCategories.length > 0 ? (
+                <div className="bc-side-section bc-side-section--sports">
+                  <p className="bc-side-heading">
+                    <span className="bc-heading-dot" aria-hidden="true" />
+                    More Sports
+                  </p>
+                  {moreDynamicCategories.map((category) => {
+                    const slug =
+                      SPORT_KEY_TO_SLUG[category.sportKey] ?? category.sportKey;
+                    return (
+                      <ItemLink
+                        key={category.id}
+                        item={{
+                          label: category.displayName,
+                          to: `/user/sport/${slug}`,
+                          icon: getSidebarSportIcon(category),
+                          variant: "sport",
+                          badgeCount:
+                            category.eventCount > 0
+                              ? category.eventCount
+                              : undefined,
+                        }}
+                        onClick={closeIfMobile}
+                      />
+                    );
+                  })}
+                </div>
+              ) : null}
+            </>
           ) : (
             /* FALLBACK: Hardcoded sports when API hasn't loaded */
             <>
