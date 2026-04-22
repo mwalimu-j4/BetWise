@@ -41,8 +41,7 @@ export default function PaymentsHistoryPage() {
 
   const filtered = useMemo(() => {
     return transactions.filter((item) => {
-      const matchesType = typeFilter === "all" || item.type === typeFilter;
-      return matchesType;
+      return typeFilter === "all" || item.type === typeFilter;
     });
   }, [typeFilter, transactions]);
 
@@ -50,13 +49,13 @@ export default function PaymentsHistoryPage() {
     <section className="mx-auto w-full max-w-5xl px-4 py-8">
       <article className="mx-auto w-full max-w-[860px] overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl">
         <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
-          <div className="flex flex-col gap-3">
+          <div className="space-y-3">
             <div>
               <h2 className="text-base font-bold text-white">
                 Transaction History
               </h2>
               <p className="text-xs text-[#4a6a85]">
-                Review deposits, withdrawals, wins, and balance movement
+                Review your recent payment activity
               </p>
             </div>
 
@@ -95,46 +94,92 @@ export default function PaymentsHistoryPage() {
             </div>
           </div>
         ) : (
-          <ul className="divide-y divide-[#1a2f45]">
-            {filtered.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-col gap-3 px-6 py-4 transition hover:bg-[#0d1829] sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+          <>
+            <div className="hidden md:block">
+              <table className="w-full table-fixed">
+                <thead className="border-b border-[#1a2f45] bg-[#0d1829]">
+                  <tr className="text-left">
+                    <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
+                      Amount
+                    </th>
+                    <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="border-b border-[#1a2f45] transition hover:bg-[#0d1829]"
+                    >
+                      <td className="px-6 py-4">
+                        <span
+                          className={`text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
+                        >
+                          {titleCase(item.type)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-[#3d5a73]">
+                        {formatDateTime(item.createdAt)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
+                        >
+                          {["withdrawal", "bet-stake"].includes(item.type)
+                            ? "-"
+                            : "+"}
+                          {formatMoney(item.amount)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[item.status as TransactionStatus] ?? ""}`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="divide-y divide-[#1a2f45] md:hidden">
+              {filtered.map((item) => (
+                <div key={item.id} className="px-4 py-4">
+                  <div className="flex items-center justify-between gap-3">
                     <span
                       className={`text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
                     >
                       {titleCase(item.type)}
                     </span>
-                    {item.mpesaCode && (
-                      <span className="rounded-md border border-[#1a2f45] bg-[#0d1829] px-2 py-0.5 font-mono text-[10px] text-[#4a6a85]">
-                        {item.mpesaCode}
-                      </span>
-                    )}
+                    <span
+                      className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[item.status as TransactionStatus] ?? ""}`}
+                    >
+                      {item.status}
+                    </span>
                   </div>
-                  <p className="mt-0.5 text-xs text-[#3d5a73]">
+                  <p className="mt-2 text-xs text-[#3d5a73]">
                     {formatDateTime(item.createdAt)}
                   </p>
-                </div>
-
-                <div className="flex flex-shrink-0 items-center justify-between gap-3 sm:flex-col sm:items-end">
-                  <span
-                    className={`text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
+                  <p
+                    className={`mt-2 text-sm font-bold ${TYPE_COLORS[item.type] ?? "text-white"}`}
                   >
                     {["withdrawal", "bet-stake"].includes(item.type) ? "-" : "+"}
                     {formatMoney(item.amount)}
-                  </span>
-                  <span
-                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${STATUS_STYLES[item.status as TransactionStatus] ?? ""}`}
-                  >
-                    {item.status}
-                  </span>
+                  </p>
                 </div>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </div>
+          </>
         )}
       </article>
     </section>

@@ -15,7 +15,6 @@ import { useWalletSummary, walletSummaryQueryKey } from "../wallet";
 import { api } from "@/api/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
 
-const quickAmounts = [500, 1000, 2500, 5000];
 const MAX_WITHDRAWAL = 500000;
 const WITHDRAWAL_FEE_PERCENTAGE = 15;
 const MIN_WITHDRAWAL = 50;
@@ -148,49 +147,11 @@ export default function PaymentsWithdrawalPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[#23415d] bg-[#08111d] px-4 py-3 text-left shadow-[0_18px_40px_rgba(4,12,22,0.35)] sm:min-w-[220px]">
-                <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-[#69839c]">
-                  Available Balance
-                </span>
-                <span className="mt-1 block text-sm font-semibold text-white">
-                  {formatMoney(balance)}
-                </span>
-              </div>
             </div>
           </div>
 
           <div className="space-y-5 px-7 py-6">
             <form onSubmit={onSubmit} className="space-y-5">
-              <div>
-                <p className="mb-2.5 text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
-                  Quick Select
-                </p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {quickAmounts.map((value) => {
-                    const fee = Math.ceil(
-                      (value * WITHDRAWAL_FEE_PERCENTAGE) / 100,
-                    );
-                    const insufficient = value + fee > balance;
-
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        disabled={insufficient}
-                        onClick={() => setAmount(String(value))}
-                        className={`rounded-xl border py-2.5 text-xs font-semibold transition-all duration-150 ${
-                          numAmount === value
-                            ? "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518]"
-                            : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#f5c518]/30 hover:text-white"
-                        } disabled:cursor-not-allowed disabled:opacity-40`}
-                      >
-                        {formatMoney(value)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
               <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
                 <label className="block space-y-2">
                   <span className="text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
