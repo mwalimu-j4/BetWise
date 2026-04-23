@@ -15,6 +15,7 @@ import {
   createEventEndedAdminNotification,
 } from "../../controllers/notifications.controller";
 import { getSystemSettings } from "../../lib/settings";
+import { chunkArray } from "../../utils/arrayUtils";
 
 const adminCustomEventsRouter = Router();
 const adminOnly = [authenticate, requireAdmin] as const;
@@ -44,6 +45,8 @@ const createEventSchema = z.object({
   bannerUrl: z.string().trim().url().optional(),
   markets: z.array(marketSchema).min(1, "At least one market is required"),
 });
+
+const batchCreateEventSchema = z.array(createEventSchema).min(1).max(500);
 
 const updateEventSchema = z.object({
   title: z.string().trim().min(1).optional(),
@@ -395,6 +398,89 @@ adminCustomEventsRouter.post(
       return res.status(201).json(event);
     } catch (error) {
       const msg = getErrorMessage(error, "Failed to create custom event");
+      next(error);
+    }
+  },
+);
+
+// ── POST /admin/custom-events/batch ──
+
+adminCustomEventsRouter.post(
+  "/admin/custom-events/batch",
+  ...adminOnly,
+  async (req, res, next) => {
+    try {
+      const adminId = req.user?.id;
+      if (!adminId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const parsed = batchCreateEventSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          error: "Invalid batch event data",
+          issues: parsed.error.issues,
+        });
+      }
+
+      const batch = parsed.data;
+      const chunks = chunkArray(batch, 50);
+      const createdEvents: any[] = [];
+
+      for (const chunk of chunks) {
+        const chunkResults = await prisma.$transaction(async (tx) => {
+          const events = [];
+          for (const item of chunk) {
+            const { markets, ...eventData } = item;
+            const event = await tx.customEvent.create({
+              data: {
+                title: eventData.title,
+                teamHome: eventData.teamHome,
+                teamAway: eventData.teamAway,
+                category: eventData.category,
+                league: eventData.league,
+                startTime: new Date(eventData.startTime),
+                endTime: eventData.endTime ? new Date(eventData.endTime) : null,
+                description: eventData.description ?? null,
+                bannerUrl: eventData.bannerUrl ?? null,
+                createdBy: adminId,
+                markets: {
+                  create: markets.map((market) => ({
+                    name: market.name,
+                    selections: {
+                      create: market.selections.map((selection) => ({
+                        label: selection.label,
+                        name: selection.name,
+                        odds: selection.odds,
+                      })),
+                    },
+                  })),
+                },
+              },
+            });
+
+            await tx.customEventAuditLog.create({
+              data: {
+                eventId: event.id,
+                adminId,
+                action: "CREATE_BATCH",
+                newValue: `Batch Created: ${event.title}`,
+              },
+            });
+
+            events.push(event);
+          }
+          return events;
+        });
+        createdEvents.push(...chunkResults);
+      }
+
+      return res.status(201).json({
+        message: `Successfully created ${createdEvents.length} custom events`,
+        count: createdEvents.length,
+        events: createdEvents,
+      });
+    } catch (error) {
       next(error);
     }
   },

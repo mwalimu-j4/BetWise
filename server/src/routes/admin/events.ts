@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "../../lib/prisma";
 import { authenticate } from "../../middleware/authenticate";
 import { requireAdmin } from "../../middleware/requireAdmin";
+import { chunkArray } from "../../utils/arrayUtils";
 
 const eventsAdminRouter = Router();
 
@@ -59,13 +60,6 @@ function invalidateEventsCache() {
   eventsLeaguesCache = null;
 }
 
-function chunkArray<T>(items: T[], size: number): T[][] {
-  const chunks: T[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size));
-  }
-  return chunks;
-}
 
 const listEventsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
