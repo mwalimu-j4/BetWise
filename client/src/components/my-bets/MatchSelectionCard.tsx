@@ -31,6 +31,18 @@ export function MatchSelectionCard({ selection }: MatchSelectionCardProps) {
         </span>
       </div>
 
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] text-[#6b86a8] font-semibold">
+        <span className="opacity-80">Kick-off:</span>
+        <span className="text-white">
+          {new Date(selection.match_time).toLocaleString(undefined, {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      </div>
+
       <div className="grid grid-cols-2 gap-2 text-xs text-[#9fb1c8]">
         <div>
           <p className="text-[9px] uppercase font-bold text-[#6b86a8]">Market</p>

@@ -28,6 +28,7 @@ function formatDate(date: string) {
   return parsed.toLocaleString(undefined, {
     day: "2-digit",
     month: "2-digit",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -113,7 +114,7 @@ export function BetCard({ bet, onClick }: BetCardProps) {
           <div className="flex items-center gap-3 text-[10px] font-medium text-[#c6d6ea]">
             <span className="flex items-center gap-1.5 opacity-80">
               <CalendarClock size={11} className="text-[#6b86a8]" />
-              {formatDate(bet.placed_at)}
+              {formatDate(bet.match_time)}
             </span>
             <span className="h-3 w-[1px] bg-[#1e3350]/50" />
             <span className="font-semibold text-[#8ea0b6]">

@@ -63,16 +63,27 @@ export function BetDetailModal({
               {bet.status}
             </span>
             {bet.match_name && (
-              <h2 className="text-sm font-bold text-white truncate max-w-[180px] sm:max-w-[250px] uppercase">
-                {bet.match_name}
-                {bet.selections.length === 1 &&
-                  bet.selections[0].ft_result &&
-                  bet.selections[0].ft_result !== "-" && (
-                    <span className="ml-2 text-[#f5c518]">
-                      ({bet.selections[0].ft_result})
-                    </span>
-                  )}
-              </h2>
+              <div className="flex flex-col">
+                <h2 className="text-sm font-bold text-white truncate max-w-[180px] sm:max-w-[250px] uppercase">
+                  {bet.match_name}
+                  {bet.selections.length === 1 &&
+                    bet.selections[0].ft_result &&
+                    bet.selections[0].ft_result !== "-" && (
+                      <span className="ml-2 text-[#f5c518]">
+                        ({bet.selections[0].ft_result})
+                      </span>
+                    )}
+                </h2>
+                <p className="text-[10px] font-medium text-[#6b86a8]">
+                  Placed at {new Date(bet.placed_at).toLocaleString(undefined, {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
             )}
           </div>
 

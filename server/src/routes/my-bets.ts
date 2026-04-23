@@ -305,6 +305,7 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
           total_odds: bet.displayOdds,
           selections_count: Array.isArray(bet.selectionsSnapshot) ? Math.max(1, bet.selectionsSnapshot.length) : 1,
           match_name: matchName,
+          match_time: bet.event.commenceTime.toISOString(),
           placed_at: bet.placedAt.toISOString(),
           cancellable_until: cancellableUntil.toISOString(),
           is_cancellable: isCancellable({
@@ -337,6 +338,7 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
         total_odds: bet.odds,
         selections_count: 1,
         match_name: `${bet.event.teamHome} vs ${bet.event.teamAway}`,
+        match_time: bet.event.startTime.toISOString(),
         placed_at: bet.placedAt.toISOString(),
         cancellable_until: cancellableUntil.toISOString(),
         is_cancellable: isCancellable({
@@ -507,6 +509,7 @@ myBetsRouter.get(
           possible_payout: customBet.potentialWin,
           total_odds: customBet.odds,
           match_name: `${customBet.event.teamHome} vs ${customBet.event.teamAway}`,
+          match_time: customBet.event.startTime.toISOString(),
           placed_at: customBet.placedAt.toISOString(),
           promoted_text: null,
           wlt: { won: 0, lost: 0, tie: 0 },
@@ -515,6 +518,7 @@ myBetsRouter.get(
               event_id: customBet.eventId,
               home_team: customBet.event.teamHome,
               away_team: customBet.event.teamAway,
+              match_time: customBet.event.startTime.toISOString(),
               market_type: customBet.event.category,
               pick: customBet.selection.name || customBet.selection.label,
               odds: customBet.odds,
@@ -574,6 +578,10 @@ myBetsRouter.get(
             typeof typedSelection.awayTeam === "string"
               ? typedSelection.awayTeam
               : bet!.event.awayTeam,
+          match_time:
+            typeof typedSelection.commenceTime === "string"
+              ? typedSelection.commenceTime
+              : bet!.event.commenceTime.toISOString(),
           market_type:
             typeof typedSelection.marketType === "string"
               ? typedSelection.marketType
@@ -623,6 +631,7 @@ myBetsRouter.get(
         possible_payout: computedPayout,
         total_odds: bet!.displayOdds,
         match_name: matchName,
+        match_time: bet!.event.commenceTime.toISOString(),
         placed_at: bet!.placedAt.toISOString(),
         promoted_text: bet!.isPromoted
           ? `Promoted Bet placed at ${bet!.placedAt.toLocaleTimeString()}`

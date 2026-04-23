@@ -24,6 +24,7 @@ export type MyBetListItem = {
   total_odds: number;
   selections_count: number;
   match_name?: string;
+  match_time: string;
   placed_at: string;
   cancellable_until: string;
   is_cancellable: boolean;

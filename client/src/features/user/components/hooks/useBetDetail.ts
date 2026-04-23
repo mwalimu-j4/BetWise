@@ -7,6 +7,7 @@ export type BetSelectionDetail = {
   event_id: string;
   home_team: string;
   away_team: string;
+  match_time: string;
   market_type: string;
   pick: string;
   odds: number;
@@ -23,6 +24,7 @@ export type BetDetail = {
   possible_payout: number;
   total_odds: number;
   match_name?: string;
+  match_time: string;
   placed_at: string;
   promoted_text: string | null;
   wlt: {
