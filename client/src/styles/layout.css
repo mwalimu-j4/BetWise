@@ -1924,6 +1924,10 @@
   flex-direction: column;
 }
 
+.bc-side-header {
+  display: none;
+}
+
 .bc-side-scroll {
   flex: 1;
   overflow-y: auto;
@@ -2320,6 +2324,47 @@
     height: 100vh;
     z-index: 2000;
     transform: translateX(-100%);
+  }
+
+  .bc-side-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding: 0 16px;
+    background: #0f1a2d;
+    border-bottom: 1px solid var(--color-border-primary);
+    flex-shrink: 0;
+  }
+
+  .bc-side-logo {
+    display: flex;
+    align-items: center;
+  }
+
+  .bc-side-logo img {
+    height: 32px;
+    width: auto;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+  }
+
+  .bc-side-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    background: transparent;
+    color: var(--nav-text);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .bc-side-close:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--nav-accent);
   }
 
   .bc-sidebar.is-open {
