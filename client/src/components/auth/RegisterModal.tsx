@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
 import {
   Eye,
@@ -430,23 +430,21 @@ export default function RegisterModal() {
                     className="text-xs leading-relaxed text-[#a8c4e0] cursor-pointer"
                   >
                     I agree to the{" "}
-                    <a
-                      href="/user/terms"
+                    <Link
+                      to="/user/terms"
                       target="_blank"
-                      rel="noopener noreferrer"
                       className="font-semibold text-[#f5c518] hover:underline"
                     >
                       Terms and Conditions
-                    </a>{" "}
+                    </Link>{" "}
                     and{" "}
-                    <a
-                      href="/user/privacy"
+                    <Link
+                      to="/user/privacy"
                       target="_blank"
-                      rel="noopener noreferrer"
                       className="font-semibold text-[#f5c518] hover:underline"
                     >
                       Privacy Policy
-                    </a>
+                    </Link>
                   </label>
                 </div>
 
