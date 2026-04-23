@@ -32,29 +32,12 @@ export default function UserProfilePage() {
     refetch: refetchProfile,
   } = useProfile();
 
-  const { data: transactionsData, isLoading: transactionsLoading } =
-    useProfileTransactions(true, 100, 1);
-
   const { totalDeposits, totalWithdrawals } = useMemo(() => {
-    if (!transactionsData?.transactions) {
-      return { totalDeposits: 0, totalWithdrawals: 0 };
-    }
-
-    let deposits = 0;
-    let withdrawals = 0;
-
-    transactionsData.transactions.forEach((tx) => {
-      if (tx.status === "completed") {
-        if (tx.type === "deposit") {
-          deposits += tx.amount;
-        } else if (tx.type === "withdrawal") {
-          withdrawals += tx.amount;
-        }
-      }
-    });
-
-    return { totalDeposits: deposits, totalWithdrawals: withdrawals };
-  }, [transactionsData]);
+    return {
+      totalDeposits: profile?.totalDeposits ?? 0,
+      totalWithdrawals: profile?.totalWithdrawals ?? 0,
+    };
+  }, [profile]);
 
   const handleSignOut = async () => {
     try {
@@ -349,7 +332,7 @@ export default function UserProfilePage() {
                     <div>
                       <p className="text-xs text-gray-400">Total Deposits</p>
                       <p className="text-sm font-semibold text-white">
-                        {transactionsLoading
+                        {profileLoading
                           ? "Loading..."
                           : formatMoney(totalDeposits)}
                       </p>
@@ -365,7 +348,7 @@ export default function UserProfilePage() {
                     <div>
                       <p className="text-xs text-gray-400">Total Withdrawals</p>
                       <p className="text-sm font-semibold text-white">
-                        {transactionsLoading
+                        {profileLoading
                           ? "Loading..."
                           : formatMoney(totalWithdrawals)}
                       </p>
