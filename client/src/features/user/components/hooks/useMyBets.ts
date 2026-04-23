@@ -26,6 +26,8 @@ export type MyBetListItem = {
   match_name?: string;
   match_time: string;
   placed_at: string;
+  event_status?: string;
+  sport_key?: string | null;
   cancellable_until: string;
   is_cancellable: boolean;
   is_live: boolean;
