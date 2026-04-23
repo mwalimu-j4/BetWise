@@ -5,6 +5,7 @@ import { prisma } from "../../lib/prisma";
 import { authenticate } from "../../middleware/authenticate";
 import { requireAdmin } from "../../middleware/requireAdmin";
 import { fetchAndSaveOdds } from "../../services/oddsService";
+import { chunkArray } from "../../utils/arrayUtils";
 
 const oddsAdminRouter = Router();
 
@@ -72,7 +73,7 @@ const configuredEventsQuerySchema = z.object({
 });
 
 const bulkBookmarkSchema = z.object({
-  eventIds: z.array(z.string().trim().min(1)).min(1).max(50),
+  eventIds: z.array(z.string().trim().min(1)).min(1).max(500),
 });
 
 function buildOddsListWhere(input: {
@@ -643,18 +644,24 @@ oddsAdminRouter.post("/admin/odds/bookmark-bulk", async (req, res, next) => {
 
     const eventIds = Array.from(new Set(parsedBody.data.eventIds));
 
-    if (eventIds.length > 50) {
+    if (eventIds.length > 500) {
       return jsonError(
         res,
         400,
-        "Maximum 50 eventIds per request.",
+        "Maximum 500 eventIds per request.",
         "BULK_BOOKMARK_LIMIT_EXCEEDED",
       );
     }
 
-    const results = await Promise.all(
-      eventIds.map((eventId) => bookmarkBestForEvent(eventId)),
-    );
+    const chunks = chunkArray(eventIds, 50);
+    const results: any[] = [];
+
+    for (const chunk of chunks) {
+      const chunkResults = await Promise.all(
+        chunk.map((eventId) => bookmarkBestForEvent(eventId)),
+      );
+      results.push(...chunkResults);
+    }
 
     invalidateOddsStatsCache();
 
@@ -689,24 +696,30 @@ oddsAdminRouter.post("/admin/odds/bulk-auto-select", async (req, res, next) => {
     if (!targetEventIds.length) {
       const configuredEvents = await prisma.sportEvent.findMany({
         where: { isActive: true, status: { in: [...ACTIVE_ODDS_STATUSES] } },
-        take: 50,
+        take: 500,
         select: { eventId: true },
       });
       targetEventIds = configuredEvents.map((event) => event.eventId);
     }
 
-    if (targetEventIds.length > 50) {
+    if (targetEventIds.length > 500) {
       return jsonError(
         res,
         400,
-        "Maximum 50 eventIds per request.",
+        "Maximum 500 eventIds per request.",
         "BULK_AUTO_SELECT_LIMIT_EXCEEDED",
       );
     }
 
-    const results = await Promise.all(
-      targetEventIds.map((eventId) => bookmarkBestForEvent(eventId)),
-    );
+    const chunks = chunkArray(targetEventIds, 50);
+    const results: any[] = [];
+
+    for (const chunk of chunks) {
+      const chunkResults = await Promise.all(
+        chunk.map((eventId) => bookmarkBestForEvent(eventId)),
+      );
+      results.push(...chunkResults);
+    }
 
     invalidateOddsStatsCache();
 

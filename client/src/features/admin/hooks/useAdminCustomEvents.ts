@@ -247,6 +247,35 @@ export function useAdminCustomEvents() {
     [ensureAdminSession, getAuthConfig, loadStats],
   );
 
+  const createEventsBatch = useCallback(
+    async (data: CreateCustomEventData[]) => {
+      if (!ensureAdminSession()) {
+        throw new Error("Unauthorized");
+      }
+
+      try {
+        const res = await api.post<{
+          message: string;
+          count: number;
+          events: AdminCustomEvent[];
+        }>("/admin/custom-events/batch", data, getAuthConfig());
+        toast.success(`Created ${res.data.count} custom events!`);
+        await loadStats();
+        return res.data;
+      } catch (err) {
+        let msg = "Failed to create batch of custom events";
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          msg = err.response.data.error;
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
+        toast.error(msg);
+        throw err;
+      }
+    },
+    [ensureAdminSession, getAuthConfig, loadStats],
+  );
+
   const updateEvent = useCallback(
     async (id: string, data: Record<string, unknown>) => {
       if (!ensureAdminSession()) {
@@ -519,6 +548,7 @@ export function useAdminCustomEvents() {
     suspendEvent,
     settleMarket,
     addMarket,
+    createEventsBatch,
     optimisticSetEventStatus,
     authLoading,
     isAuthenticated,
