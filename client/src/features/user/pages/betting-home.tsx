@@ -348,22 +348,22 @@ export default function BettingHome() {
 
 
         <section className="mobile-home-tabs relative mt-3 sm:mt-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-xl border border-[#1e3350]/40 bg-[#0f1b2d]/60 backdrop-blur-md overflow-hidden">
             {/* Left scroll arrow */}
             <button
               type="button"
               onClick={() => scrollTabs("left")}
-              className="z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#2d4362]/40 bg-[#0b1120]/60 text-[#8a9bb0] backdrop-blur-md transition hover:border-[#ffd500]/40 hover:text-white"
+              className="z-10 flex self-stretch items-center justify-center px-2 text-[#8aa4c5] transition hover:bg-white/5 hover:text-white"
               aria-label="Scroll tabs left"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={14} />
             </button>
 
             <div
               ref={tabsRef}
-              className="app-scrollbar relative flex-1 scroll-smooth overflow-x-auto rounded-xl border border-[#1e3350]/40 bg-[#0f1b2d]/60 p-1.5 backdrop-blur-sm"
+              className="app-scrollbar relative flex-1 scroll-smooth overflow-x-auto p-1"
             >
-              <div className="flex min-w-max gap-1.5">
+              <div className="flex min-w-max gap-1">
                 {tabs.map((tab) => {
                   const isActive =
                     selectedSport === tab.sportKey &&
@@ -377,7 +377,7 @@ export default function BettingHome() {
                         setSelectedSport(tab.sportKey);
                         setSelectedLeague(tab.league);
                       }}
-                      className={`relative flex items-center gap-2 whitespace-nowrap rounded-xl px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.08em] transition-all duration-300 ${
+                      className={`relative flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-[0.08em] transition-all duration-300 ${
                         isActive
                           ? "border border-[#f5c518] bg-[#f5c518]/5 text-[#f5c518]"
                           : "border border-transparent text-[#647fa0] hover:bg-white/[0.03] hover:text-[#a8c0dc]"
@@ -397,10 +397,10 @@ export default function BettingHome() {
             <button
               type="button"
               onClick={() => scrollTabs("right")}
-              className="z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#2d4362]/40 bg-[#0b1120]/60 text-[#8a9bb0] backdrop-blur-md transition hover:border-[#ffd500]/40 hover:text-white"
+              className="z-10 flex self-stretch items-center justify-center px-2 text-[#8aa4c5] transition hover:bg-white/5 hover:text-white"
               aria-label="Scroll tabs right"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={14} />
             </button>
           </div>
         </section>

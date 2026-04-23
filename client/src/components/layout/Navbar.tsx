@@ -257,6 +257,35 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
 
   return (
     <header className="bc-navbar" role="banner">
+      <div className="bc-ticker">
+        <span className="bc-live-pill">LIVE</span>
+        <div className="bc-ticker-viewport">
+          <div className="bc-ticker-track">
+            {tickerLoop.length > 0 ? (
+              tickerLoop.map((item, index) => (
+                <Link
+                  key={`${item.label}-${index}`}
+                  to="/user/live"
+                  search={{ highlight: item.id }}
+                  className="bc-ticker-item cursor-pointer transition-colors hover:bg-white/5"
+                >
+                  <span>{item.label}</span>
+                  <span className={item.up ? "is-up" : "is-down"}>
+                    {item.up ? "▲" : "▼"} {item.odds}
+                  </span>
+                  <span className="bc-ticker-sep" aria-hidden="true" />
+                </Link>
+              ))
+            ) : (
+              <div className="bc-ticker-item">
+                <span className="text-[10px] opacity-60 uppercase tracking-widest font-bold">
+                  Stay tuned for live action • Real-time odds updates • Best betting experience
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* ✅ MOBILE + DESKTOP LAYOUT () */}
       <div className="bc-main-row flex items-center justify-between">
