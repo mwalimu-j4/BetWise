@@ -62,7 +62,9 @@ export async function authenticate(
     const isChangePasswordRoute =
       requestPath === "/auth/change-password" ||
       requestOriginalPath.endsWith("/auth/change-password");
-    const mustChangePassword = user.mustChangePassword === true;
+    
+    // Only enforce password change for ADMINs
+    const mustChangePassword = user.role === "ADMIN" && user.mustChangePassword === true;
 
     if (mustChangePassword && !isChangePasswordRoute) {
       return res.status(403).json({
@@ -73,7 +75,7 @@ export async function authenticate(
     req.user = {
       id: user.id,
       role: user.role,
-      mustChangePassword,
+      ...(user.role === "ADMIN" && { mustChangePassword: user.mustChangePassword }),
     };
 
     return next();
@@ -110,6 +112,7 @@ export async function optionalAuthenticate(
         id: true,
         role: true,
         accountStatus: true,
+        mustChangePassword: true,
       },
     });
 
@@ -117,6 +120,7 @@ export async function optionalAuthenticate(
       req.user = {
         id: user.id,
         role: user.role,
+        ...(user.role === "ADMIN" && { mustChangePassword: user.mustChangePassword }),
       };
     }
   } catch (error) {

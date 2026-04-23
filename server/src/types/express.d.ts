@@ -6,7 +6,7 @@ declare global {
       user?: {
         id: string;
         role: UserRole;
-        mustChangePassword: boolean;
+        mustChangePassword?: boolean;
       };
       rawBody?: Buffer;
     }
