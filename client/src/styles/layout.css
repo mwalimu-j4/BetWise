@@ -2318,6 +2318,7 @@
   .bc-sidebar {
     top: 0;
     height: 100vh;
+    z-index: 2000;
     transform: translateX(-100%);
   }
 
@@ -2326,6 +2327,7 @@
   }
 
   .bc-side-backdrop.is-open {
+    z-index: 1999;
     opacity: 1;
     pointer-events: auto;
   }
