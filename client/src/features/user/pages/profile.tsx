@@ -1,25 +1,25 @@
-import { useState, useMemo } from "react";
-import {
-  Wallet,
-  Zap,
-  Edit2,
-  LogOut,
-  ArrowUpRight,
-  ArrowDownRight,
-  ChevronRight,
-  User,
-  Award,
-  TrendingUp,
-  History,
-} from "lucide-react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import EditPhoneModal from "@/components/profile/EditPhoneModal";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
-import { useProfile, useProfileTransactions } from "@/hooks/useProfile";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "@/features/user/payments/data";
+import { useProfile } from "@/hooks/useProfile";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Award,
+  ChevronRight,
+  Edit2,
+  History,
+  LogOut,
+  TrendingUp,
+  User,
+  Wallet,
+  Zap,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export default function UserProfilePage() {
   const navigate = useNavigate();
