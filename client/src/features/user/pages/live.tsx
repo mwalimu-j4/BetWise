@@ -293,6 +293,7 @@ const MatchRow = memo(function MatchRow({
   expanded,
   onToggleExpand,
   market,
+  highlighted,
 }: {
   match: LiveMatch;
   selectedOdds: Set<string>;
@@ -300,6 +301,7 @@ const MatchRow = memo(function MatchRow({
   expanded: boolean;
   onToggleExpand: () => void;
   market: LiveMarketKey;
+  highlighted?: boolean;
 }) {
   const timerLabel = useMatchClock(match);
   const primaryMarket = match.markets[0];
@@ -309,7 +311,10 @@ const MatchRow = memo(function MatchRow({
   const totalReds = match.stats.reds_home + match.stats.reds_away;
 
   return (
-    <article className="group border-b border-[#31455f] bg-[#0f172a] transition-colors hover:bg-[#0f172a]/80">
+    <article
+      id={`live-match-${match.id}`}
+      className={`group border-b border-[#31455f] bg-[#0f172a] transition-colors hover:bg-[#0f172a]/80 ${highlighted ? "match-highlight" : ""}`}
+    >
       <div className="grid grid-cols-[55%_45%] gap-1 px-[10px] py-[6px]">
         <div className="min-w-0">
           <div className="mb-1 flex items-center gap-1">
@@ -813,6 +818,9 @@ export default function LivePage() {
   >({});
   const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
   const [mobileSlipOpen, setMobileSlipOpen] = useState(false);
+  const [highlightedMatchId, setHighlightedMatchId] = useState<string | null>(
+    null,
+  );
   const virtualContainerRef = useRef<HTMLDivElement | null>(null);
   const [virtualScrollTop, setVirtualScrollTop] = useState(0);
   const betSlip = useBetSlip();
@@ -889,6 +897,63 @@ export default function LivePage() {
       window.clearTimeout(timer);
     };
   }, [filters]);
+
+  // Handle match highlighting and scrolling from ticker
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const highlightId = query.get("highlight");
+    if (!highlightId || matches.length === 0) {
+      return;
+    }
+
+    setHighlightedMatchId(highlightId);
+
+    const tryScroll = () => {
+      // 1. Ensure league is expanded
+      const targetMatch = matches.find((m) => m.id === highlightId);
+      if (targetMatch) {
+        const leagueKey = `${targetMatch.league.country} • ${targetMatch.league.name}`;
+        if (collapsedLeagues[leagueKey]) {
+          setCollapsedLeagues((prev) => ({ ...prev, [leagueKey]: false }));
+          // Re-run after state update
+          return;
+        }
+      }
+
+      // 2. Find row index in flatRows
+      const rowIndex = flatRows.findIndex(
+        (r) => r.kind === "match" && r.match.id === highlightId,
+      );
+      if (rowIndex !== -1) {
+        if (shouldVirtualize && virtualContainerRef.current) {
+          const offset = rowOffsets.offsets[rowIndex] ?? 0;
+          virtualContainerRef.current.scrollTo({
+            top: offset - 80,
+            behavior: "smooth",
+          });
+        } else {
+          const el = document.getElementById(`live-match-${highlightId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      }
+    };
+
+    const timer = setTimeout(tryScroll, 300);
+    const clearTimer = setTimeout(() => setHighlightedMatchId(null), 4000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(clearTimer);
+    };
+  }, [
+    window.location.search,
+    matches.length,
+    flatRows.length,
+    shouldVirtualize,
+    collapsedLeagues,
+  ]);
 
   const filterCount =
     Number(filters.highlights) + Number(Boolean(filters.q.trim()));
@@ -1241,6 +1306,7 @@ export default function LivePage() {
                                     );
                                   }}
                                   market={filters.market}
+                                  highlighted={highlightedMatchId === row.match.id}
                                 />
                               </div>
                             );
@@ -1281,6 +1347,7 @@ export default function LivePage() {
                                       );
                                     }}
                                     market={filters.market}
+                                    highlighted={highlightedMatchId === match.id}
                                   />
                                   {expandedMatchId === match.id ? (
                                     <ExpandedMarkets

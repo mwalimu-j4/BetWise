@@ -140,6 +140,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
       const selection = h2h?.selections[0];
 
       return {
+        id: match.id,
         label: `${match.home_team.name} vs ${match.away_team.name}`,
         odds: selection?.odds?.toFixed(2) ?? "1.00",
         up: (selection?.odds ?? 0) >= (selection?.previous_odds ?? 0),
@@ -262,13 +263,18 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           <div className="bc-ticker-track">
             {tickerLoop.length > 0 ? (
               tickerLoop.map((item, index) => (
-                <div key={`${item.label}-${index}`} className="bc-ticker-item">
+                <Link
+                  key={`${item.label}-${index}`}
+                  to="/user/live"
+                  search={{ highlight: item.id }}
+                  className="bc-ticker-item cursor-pointer transition-colors hover:bg-white/5"
+                >
                   <span>{item.label}</span>
                   <span className={item.up ? "is-up" : "is-down"}>
                     {item.up ? "▲" : "▼"} {item.odds}
                   </span>
                   <span className="bc-ticker-sep" aria-hidden="true" />
-                </div>
+                </Link>
               ))
             ) : (
               <div className="bc-ticker-item">
