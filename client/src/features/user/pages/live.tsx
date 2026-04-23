@@ -329,7 +329,7 @@ const MatchRow = memo(function MatchRow({
 
         <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-1 rounded-full border border-[#ef4444]/40 bg-[#ef4444]/10 px-1.5 py-0.5">
-            <span className="h-1 w-1 animate-pulse rounded-full bg-[#ef4444]" />
+            <span className="h-1 w-1 rounded-full bg-[#ef4444]" />
             <span className="text-[9px] font-bold uppercase tracking-tight text-[#ef4444]">
               {timerLabel}
             </span>
@@ -998,11 +998,9 @@ export default function LivePage() {
     };
 
     const timer = setTimeout(tryScroll, 300);
-    const clearTimer = setTimeout(() => setHighlightedMatchId(null), 4000);
 
     return () => {
       clearTimeout(timer);
-      clearTimeout(clearTimer);
     };
   }, [
     window.location.search,

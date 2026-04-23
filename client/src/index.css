@@ -359,15 +359,8 @@ html.light {
   animation-duration: 500ms;
 }
 
-@keyframes matchHighlightFade {
-  0% { background-color: rgba(245, 197, 24, 0.3); }
-  70% { background-color: rgba(245, 197, 24, 0.1); }
-  100% { background-color: transparent; }
-}
-
 .match-highlight {
-  animation: matchHighlightFade 4s ease-out forwards;
   border-color: var(--color-accent) !important;
-  z-index: 10;
-  position: relative;
+  background-color: rgba(245, 197, 24, 0.05);
+  z-index: 1;
 }
