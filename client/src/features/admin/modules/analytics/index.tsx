@@ -78,7 +78,7 @@ function preferredGroupByForTimeframe(
 }
 
 export default function Analytics() {
-  const [timeframe, setTimeframe] = useState<AnalyticsTimeframe>("1m");
+  const [timeframe, setTimeframe] = useState<AnalyticsTimeframe>("1y");
   const [groupBy, setGroupBy] = useState<AnalyticsGroupBy>(
     preferredGroupByForTimeframe("1m"),
   );
