@@ -223,6 +223,7 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
             select: {
               commenceTime: true,
               status: true,
+              sportKey: true,
               homeTeam: true,
               awayTeam: true,
             },
@@ -246,6 +247,7 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
                 select: {
                   startTime: true,
                   status: true,
+                  category: true,
                   teamHome: true,
                   teamAway: true,
                 },
@@ -310,6 +312,8 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
           match_name: matchName,
           match_time: bet.event.commenceTime.toISOString(),
           placed_at: bet.placedAt.toISOString(),
+          event_status: bet.event.status,
+          sport_key: bet.event.sportKey,
           cancellable_until: cancellableUntil.toISOString(),
           is_cancellable: isCancellable({
             status: bet.status,
@@ -343,6 +347,8 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
         match_name: `${bet.event.teamHome} vs ${bet.event.teamAway}`,
         match_time: bet.event.startTime.toISOString(),
         placed_at: bet.placedAt.toISOString(),
+        event_status: bet.event.status,
+        sport_key: bet.event.category,
         cancellable_until: cancellableUntil.toISOString(),
         is_cancellable: isCancellable({
           status:
