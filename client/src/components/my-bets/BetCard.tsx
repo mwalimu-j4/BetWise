@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarClock } from "lucide-react";
 import type { MyBetListItem } from "@/features/user/components/hooks/useMyBets";
 import { CancellationTimer } from "./CancellationTimer";
@@ -34,9 +34,78 @@ function formatDate(date: string) {
   });
 }
 
+function getEstimatedDurationMinutes(sportKey: string | null | undefined) {
+  const normalized = sportKey?.trim().toLowerCase() ?? "";
+
+  if (
+    normalized.includes("basket") ||
+    normalized.includes("nba") ||
+    normalized.includes("wnba") ||
+    normalized.includes("ncaab")
+  ) {
+    return 48;
+  }
+
+  if (
+    normalized.includes("soccer") ||
+    normalized.includes("football") ||
+    normalized.includes("epl") ||
+    normalized.includes("uefa") ||
+    normalized.includes("fifa") ||
+    normalized.includes("laliga") ||
+    normalized.includes("serie_a") ||
+    normalized.includes("bundesliga") ||
+    normalized.includes("ligue")
+  ) {
+    return 90;
+  }
+
+  if (normalized.includes("hockey") || normalized.includes("nhl")) {
+    return 60;
+  }
+
+  if (normalized.includes("baseball") || normalized.includes("mlb")) {
+    return 180;
+  }
+
+  if (normalized.includes("tennis")) {
+    return 120;
+  }
+
+  if (normalized.includes("cricket") || normalized.includes("ipl")) {
+    return 210;
+  }
+
+  if (normalized.includes("rugby")) {
+    return 80;
+  }
+
+  if (normalized.includes("americanfootball") || normalized.includes("nfl")) {
+    return 60;
+  }
+
+  return null;
+}
+
+function formatDurationParts(totalMinutes: number) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours <= 0) {
+    return `${minutes}m`;
+  }
+
+  if (minutes <= 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${minutes}m`;
+}
+
 export function BetCard({ bet, onClick }: BetCardProps) {
   const previousStatus = useRef<MyBetListItem["status"]>(bet.status);
   const [flashStatus, setFlashStatus] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (previousStatus.current !== bet.status) {
@@ -48,6 +117,51 @@ export function BetCard({ bet, onClick }: BetCardProps) {
 
     return undefined;
   }, [bet.status]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(Date.now());
+    }, 30_000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const timeMeta = useMemo(() => {
+    const kickoffAt = new Date(bet.match_time).getTime();
+    if (Number.isNaN(kickoffAt)) {
+      return null;
+    }
+
+    const diffMs = kickoffAt - now;
+    const eventStatus = bet.event_status?.toUpperCase() ?? (bet.is_live ? "LIVE" : "UPCOMING");
+    const estimatedDurationMinutes = getEstimatedDurationMinutes(bet.sport_key);
+
+    if (eventStatus === "LIVE" || bet.is_live) {
+      const elapsedMinutes = Math.max(0, Math.floor((now - kickoffAt) / 60000));
+      const remainingMinutes =
+        estimatedDurationMinutes === null
+          ? null
+          : Math.max(0, estimatedDurationMinutes - elapsedMinutes);
+
+      return {
+        label:
+          remainingMinutes === null
+            ? `${elapsedMinutes}m in play`
+            : `${elapsedMinutes}m played | ~${remainingMinutes}m left`,
+        toneClass: "text-[#22c55e]",
+      };
+    }
+
+    if (diffMs > 0) {
+      const remainingMinutes = Math.ceil(diffMs / 60000);
+      return {
+        label: `Starts in ${formatDurationParts(remainingMinutes)}`,
+        toneClass: "text-[#f8c146]",
+      };
+    }
+
+    return null;
+  }, [bet.event_status, bet.is_live, bet.match_time, bet.sport_key, now]);
 
   return (
     <button
@@ -95,6 +209,13 @@ export function BetCard({ bet, onClick }: BetCardProps) {
                   Settled
                 </span>
               )}
+              {timeMeta ? (
+                <span
+                  className={`text-[10px] font-semibold uppercase tracking-wider ${timeMeta.toneClass}`}
+                >
+                  {timeMeta.label}
+                </span>
+              ) : null}
             </div>
           </div>
 
