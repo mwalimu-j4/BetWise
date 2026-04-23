@@ -42,6 +42,8 @@ import { userHowItWorksRoute } from "./routes/user/how-it-works";
 import { userFaqsRoute } from "./routes/user/faqs";
 import { userLiveRoute } from "./routes/user/live";
 import { userLiveMatchRoute } from "./routes/user/live.$matchId";
+import { userTermsRoute } from "./routes/user/terms";
+import { userPrivacyRoute } from "./routes/user/privacy";
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -64,6 +66,8 @@ const routeTree = rootRoute.addChildren([
     userReportsRoute,
     userHowItWorksRoute,
     userFaqsRoute,
+    userTermsRoute,
+    userPrivacyRoute,
   ]),
   adminRoute.addChildren([
     adminIndexRoute,
