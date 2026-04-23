@@ -212,6 +212,11 @@ async function getEvents(args: {
     homeScore: event.homeScore,
     awayScore: event.awayScore,
     markets: toMarkets(event),
+    marketCount: new Set(
+      (event.displayedOdds ?? []).map(
+        (odd) => `${odd.marketType}::${odd.bookmakerName}`,
+      ),
+    ).size,
     _count: event._count,
   }));
 
