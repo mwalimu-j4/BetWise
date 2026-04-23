@@ -125,23 +125,20 @@ export default function ContactForm({
   };
 
   return (
-    <div className="rounded-2xl border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-8">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">
+    <div className="rounded-2xl border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-6">
+      <div className="mb-5">
+        <h2 className="text-xl font-bold text-white mb-1.5">
           Send us a Message
         </h2>
-        <p className="text-[#8a9bb0] text-sm">
-          Have a question or concern? We'd love to hear from you. Fill out the
-          form below and we'll get back to you as soon as possible.
-        </p>
+
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Full Name Input */}
         <div>
           <label
             htmlFor="fullName"
-            className="block text-sm font-semibold text-white mb-2"
+            className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
           >
             Full Name {!isLoggedIn && <span className="text-red-400">*</span>}
           </label>
@@ -154,7 +151,7 @@ export default function ContactForm({
             placeholder="Enter your full name"
             maxLength={100}
             readOnly={isLoggedIn && !!userFullName}
-            className={`w-full px-4 py-3 rounded-lg border bg-[#0b1120] text-white outline-none transition ${
+            className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition ${
               errors.fullName
                 ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
                 : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
@@ -173,7 +170,7 @@ export default function ContactForm({
         <div>
           <label
             htmlFor="phone"
-            className="block text-sm font-semibold text-white mb-2"
+            className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
           >
             Phone Number{" "}
             {!isLoggedIn && <span className="text-red-400">*</span>}
@@ -187,7 +184,7 @@ export default function ContactForm({
             placeholder="e.g., +254700000000 or 0700000000"
             maxLength={20}
             readOnly={isLoggedIn && !!userPhone}
-            className={`w-full px-4 py-3 rounded-lg border bg-[#0b1120] text-white outline-none transition ${
+            className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition ${
               errors.phone
                 ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
                 : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
@@ -206,7 +203,7 @@ export default function ContactForm({
         <div>
           <label
             htmlFor="subject"
-            className="block text-sm font-semibold text-white mb-2"
+            className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
           >
             Subject <span className="text-red-400">*</span>
           </label>
@@ -218,7 +215,7 @@ export default function ContactForm({
             onChange={handleChange}
             placeholder="What is this about?"
             maxLength={100}
-            className={`w-full px-4 py-3 rounded-lg border bg-[#0b1120] text-white outline-none transition ${
+            className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition ${
               errors.subject
                 ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
                 : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
@@ -237,7 +234,7 @@ export default function ContactForm({
         <div>
           <label
             htmlFor="message"
-            className="block text-sm font-semibold text-white mb-2"
+            className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
           >
             Message <span className="text-red-400">*</span>
           </label>
@@ -248,8 +245,8 @@ export default function ContactForm({
             onChange={handleChange}
             placeholder="Tell us what's on your mind..."
             maxLength={2000}
-            rows={5}
-            className={`w-full px-4 py-3 rounded-lg border bg-[#0b1120] text-white outline-none transition resize-none ${
+            rows={4}
+            className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition resize-none ${
               errors.message
                 ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
                 : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
@@ -259,7 +256,7 @@ export default function ContactForm({
           {errors.message && (
             <p className="mt-1 text-xs text-red-400">{errors.message}</p>
           )}
-          <p className="mt-1 text-xs text-[#5a6b7d]">
+          <p className="mt-1 text-[10px] text-right text-[#5a6b7d]">
             {formData.message.length}/2000 characters
           </p>
         </div>
