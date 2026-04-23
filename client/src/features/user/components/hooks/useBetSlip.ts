@@ -17,6 +17,7 @@ export interface BetSelection {
   commenceTime: string;
   isCustomEvent?: boolean;
   customSelectionId?: string;
+  isLive?: boolean;
 }
 
 type PlaceBetResponse = {
@@ -77,6 +78,10 @@ function isValidStoredSelection(value: unknown): value is BetSelection {
 }
 
 export function isSelectionExpired(selection: BetSelection) {
+  if (selection.isLive) {
+    return false;
+  }
+
   const commenceTimeMs = new Date(selection.commenceTime).getTime();
   if (!Number.isFinite(commenceTimeMs)) {
     return false;
