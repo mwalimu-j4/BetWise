@@ -90,7 +90,7 @@ export default function Newsletter() {
       <div className="grid grid-cols-2 gap-4">
         <SummaryCard
           label="Total Subscribers"
-          value={pagination.total.toLocaleString()}
+          value={(pagination.total ?? 0).toLocaleString()}
           tone="accent"
         />
         <SummaryCard

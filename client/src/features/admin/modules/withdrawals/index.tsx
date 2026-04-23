@@ -171,7 +171,7 @@ export default function WithdrawalsAdmin() {
       },
       {
         label: "Total Pending Amount",
-        value: `KES ${pendingAmount.toLocaleString()}`,
+        value: `KES ${(pendingAmount ?? 0).toLocaleString()}`,
         tone: "accent" as const,
       },
       {
@@ -187,7 +187,7 @@ export default function WithdrawalsAdmin() {
     ];
   }, [withdrawals]);
 
-  const formatCurrency = (value: number) => `KES ${value.toLocaleString()}`;
+  const formatCurrency = (value: number) => `KES ${(value ?? 0).toLocaleString()}`;
 
   const formatDateTime = (dateStr: string) => {
     if (!dateStr) return "-";

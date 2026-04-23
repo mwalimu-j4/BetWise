@@ -1082,7 +1082,7 @@ function FeedEvents() {
             <AdminStatCard
               key={metric.label}
               label={metric.label}
-              value={(statsLoading ? 0 : metric.value).toLocaleString()}
+              value={(statsLoading ? 0 : (metric.value ?? 0)).toLocaleString()}
               tone={metric.tone}
             />
           ))}
@@ -1180,10 +1180,10 @@ function FeedEvents() {
 
             {/* Row count + refresh hint */}
             <div className="flex items-center justify-between text-[11px] text-admin-text-muted">
-              <span>
-                {events.length.toLocaleString()} of {total.toLocaleString()}{" "}
+              <p className="text-[11px] font-medium text-admin-text-muted">
+                Showing {events.length.toLocaleString()} of {(total ?? 0).toLocaleString()}{" "}
                 events
-              </span>
+              </p>
               {refreshing ? (
                 <span className="inline-flex items-center gap-1">
                   <Loader2 className="size-2.5 animate-spin" />
@@ -1832,7 +1832,7 @@ function FeedEvents() {
                   />
                   <DetailField
                     label="Total bets"
-                    value={eventDetail._count.bets.toLocaleString()}
+                    value={(eventDetail._count?.bets ?? 0).toLocaleString()}
                   />
                 </div>
                 <div className="rounded-lg border border-admin-border/70 bg-admin-surface/20 p-3">

@@ -284,7 +284,7 @@ export default function Transactions() {
                     </td>
                     <td className={adminTableCellClassName}>
                       {transaction.type === "deposit" ? "+" : "-"}KES{" "}
-                      {transaction.amount.toLocaleString()}
+                      {(transaction.amount ?? 0).toLocaleString()}
                     </td>
                     <td className={adminTableCellClassName}>
                       <StatusBadge
@@ -379,7 +379,7 @@ export default function Transactions() {
                         Amount
                       </label>
                       <p className="text-sm font-semibold">
-                        KES {selectedTxn.amount.toLocaleString()}
+                        KES {(selectedTxn.amount ?? 0).toLocaleString()}
                       </p>
                     </div>
                     {selectedTxn.fee > 0 && (
@@ -388,7 +388,7 @@ export default function Transactions() {
                           Fee
                         </label>
                         <p className="text-sm font-semibold">
-                          KES {selectedTxn.fee.toLocaleString()}
+                          KES {(selectedTxn.fee ?? 0).toLocaleString()}
                         </p>
                       </div>
                     )}
@@ -399,7 +399,7 @@ export default function Transactions() {
                         Total Debit
                       </label>
                       <p className="text-sm font-semibold">
-                        KES {selectedTxn.totalDebit.toLocaleString()}
+                        KES {(selectedTxn.totalDebit ?? 0).toLocaleString()}
                       </p>
                     </div>
                   )}
@@ -471,10 +471,15 @@ export default function Transactions() {
                                 Verified At
                               </label>
                               <p className="text-xs font-semibold">
-                                {new Date(
+                                {(
                                   (selectedTxn.providerDetails as any)
-                                    .verifiedAt,
-                                ).toLocaleString()}
+                                    .verifiedAt
+                                    ? new Date(
+                                        (selectedTxn.providerDetails as any)
+                                          .verifiedAt,
+                                      ).toLocaleString()
+                                    : "N/A"
+                                )}
                               </p>
                             </div>
                           )}

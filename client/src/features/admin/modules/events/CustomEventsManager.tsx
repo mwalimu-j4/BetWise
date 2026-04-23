@@ -1178,7 +1178,7 @@ export default function CustomEventsManager() {
           <AdminStatCard
             key={metric.label}
             label={metric.label}
-            value={(statsLoading ? 0 : metric.value).toLocaleString()}
+            value={(statsLoading ? 0 : (metric.value ?? 0)).toLocaleString()}
             tone={metric.tone}
           />
         ))}
