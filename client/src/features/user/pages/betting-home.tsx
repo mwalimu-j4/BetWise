@@ -275,7 +275,7 @@ export default function BettingHome() {
   };
 
   return (
-    <div className="betting-home-wrapper min-h-screen bg-[radial-gradient(circle_at_top,_#163154_0%,_#0b1120_42%,_#08101d_100%)] font-[IBM_Plex_Sans,Segoe_UI,sans-serif] text-white">
+    <div className="betting-home-wrapper min-h-screen bg-[var(--color-bg-main)] font-[IBM_Plex_Sans,Segoe_UI,sans-serif] text-white">
       <div
         className={`betting-home-main mx-auto w-full max-w-none px-2 pb-24 pt-0 sm:px-3 sm:pb-24 sm:pt-1 md:px-4 md:pb-6 md:pt-2 lg:px-4 xl:px-5 2xl:px-6 ${
           hasSelections ? "has-betslip" : ""
@@ -348,12 +348,12 @@ export default function BettingHome() {
 
 
         <section className="mobile-home-tabs relative mt-3 sm:mt-4">
-          <div className="flex items-center rounded-xl border border-[#1e3350]/40 bg-[#0f1b2d]/60 backdrop-blur-md overflow-hidden">
+          <div className="flex items-center rounded-xl border border-[#1e3350]/60 bg-gradient-to-b from-[#0f1a2d] to-[#0b1525] shadow-[0_8px_24px_rgba(0,0,0,0.25)] overflow-hidden">
             {/* Left scroll arrow */}
             <button
               type="button"
               onClick={() => scrollTabs("left")}
-              className="z-10 flex self-stretch items-center justify-center px-2 text-[#8aa4c5] transition hover:bg-white/5 hover:text-white"
+              className="z-10 flex self-stretch items-center justify-center px-3 text-[#506680] transition hover:bg-[#1a2b44] hover:text-white"
               aria-label="Scroll tabs left"
             >
               <ChevronLeft size={14} />
@@ -361,9 +361,9 @@ export default function BettingHome() {
 
             <div
               ref={tabsRef}
-              className="app-scrollbar relative flex-1 scroll-smooth overflow-x-auto p-1"
+              className="app-scrollbar relative flex-1 scroll-smooth overflow-x-auto py-1"
             >
-              <div className="flex min-w-max gap-1">
+              <div className="flex min-w-max gap-1 px-1">
                 {tabs.map((tab) => {
                   const isActive =
                     selectedSport === tab.sportKey &&
@@ -380,7 +380,7 @@ export default function BettingHome() {
                       className={`relative flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-[0.08em] transition-all duration-300 ${
                         isActive
                           ? "border border-[#f5c518] text-[#f5c518]"
-                          : "border border-transparent text-[#647fa0] hover:bg-white/[0.03] hover:text-[#a8c0dc]"
+                          : "border border-transparent text-[#647fa0] hover:text-[#a8c0dc]"
                       }`}
                     >
                       {tab.label}
@@ -397,7 +397,7 @@ export default function BettingHome() {
             <button
               type="button"
               onClick={() => scrollTabs("right")}
-              className="z-10 flex self-stretch items-center justify-center px-2 text-[#8aa4c5] transition hover:bg-white/5 hover:text-white"
+              className="z-10 flex self-stretch items-center justify-center px-3 text-[#506680] transition hover:bg-[#1a2b44] hover:text-white"
               aria-label="Scroll tabs right"
             >
               <ChevronRight size={14} />

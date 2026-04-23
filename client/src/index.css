@@ -58,6 +58,7 @@
 
 :root {
   /* Backgrounds */
+  --color-bg-main: #0b1120;
   --color-bg-primary: #0b1426;
   --color-bg-secondary: #0f1a2d;
   --color-bg-surface: #15243d;
@@ -253,7 +254,7 @@ html.light {
   body {
     @apply min-h-screen bg-background text-foreground font-sans;
     overflow-x: hidden;
-    background: var(--color-bg-primary);
+    background: var(--color-bg-main);
     color: var(--color-text-primary);
   }
 

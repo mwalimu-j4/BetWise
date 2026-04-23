@@ -1,7 +1,7 @@
 .bc-layout-root {
   min-height: 100vh;
   overflow-x: clip;
-  background: #0b1120;
+  background: var(--color-bg-main);
   color: var(--nav-text);
   font-family: "Barlow", sans-serif;
 }
