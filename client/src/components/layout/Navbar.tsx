@@ -11,7 +11,7 @@ import {
   Star,
   TrendingUp,
   Trophy,
-  Wallet,
+  User,
   Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -319,9 +319,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               aria-label="Wallet Balance"
               onClick={() => navigate({ to: "/user/payments" })}
             >
-              <div className="bc-balance-icon-wrap">
-                <Wallet size={16} />
-              </div>
               <div className="bc-balance-content">
                 <span className="bc-balance-label">Wallet</span>
                 <span className="bc-balance-value">
@@ -428,8 +425,9 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                   className={`bc-account-trigger ${accountOpen ? "is-open" : ""}`}
                   onClick={() => setAccountOpen((prev) => !prev)}
                 >
-                  <span>Account</span>
-                  <ChevronDown size={14} className="bc-account-chevron" />
+                  <User size={18} className="bc-account-icon" />
+                  <span className="bc-account-text hidden md:inline">Account</span>
+                  <ChevronDown size={14} className="bc-account-chevron hidden md:inline" />
                 </button>
                 <AccountDropdown
                   open={accountOpen}
