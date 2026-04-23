@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, requireAuth } from "../middleware/authenticate";
+import { authenticate, requireAuth, optionalAuthenticate } from "../middleware/authenticate";
 import { requireAdmin } from "../middleware/requireAdmin";
 import { contactSubmitRateLimiter } from "../middleware/rateLimiter";
 import {
@@ -12,8 +12,8 @@ import {
 
 const contactRouter = Router();
 
-// Public route - anyone can send a contact message (no auth required)
-contactRouter.post("/contact", contactSubmitRateLimiter, createContact);
+// Public route - anyone can send a contact message (optional auth to link to user)
+contactRouter.post("/contact", optionalAuthenticate, contactSubmitRateLimiter, createContact);
 contactRouter.get("/contact/my-messages", requireAuth, getUserContacts);
 
 // Admin routes - require admin authentication
