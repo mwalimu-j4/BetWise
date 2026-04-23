@@ -692,10 +692,17 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1px solid var(--color-border-primary);
-  border-radius: 6px;
-  background: var(--nav-surface2);
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
   color: var(--nav-text);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.bc-hamburger:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--nav-accent);
 }
 
 .bc-logo {
@@ -981,20 +988,15 @@
 .bc-balance-card {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 14px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(30, 41, 59, 0.6),
-    rgba(15, 23, 42, 0.8)
-  );
-  border: 1px solid rgba(255, 213, 0, 0.15);
+  gap: 8px;
+  padding: 0 12px;
+  height: 38px;
+  border-radius: 14px;
+  background: rgba(245, 197, 24, 0.1);
+  border: 1px solid rgba(245, 197, 24, 0.2);
   backdrop-filter: blur(8px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .bc-balance-card:hover {
@@ -1010,18 +1012,7 @@
     0 0 15px rgba(255, 213, 0, 0.1);
 }
 
-.bc-balance-icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--nav-accent), var(--nav-accent2));
-  color: var(--color-text-dark);
-  box-shadow: 0 2px 8px rgba(255, 213, 0, 0.2);
-  flex-shrink: 0;
-}
+/* Removed balance-icon-wrap as requested */
 
 .bc-balance-content {
   display: flex;
@@ -1376,25 +1367,25 @@
 }
 
 .bc-account-trigger {
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(30, 41, 59, 0.8),
-    rgba(15, 23, 42, 0.95)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  height: 38px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(12px);
   color: #ffffff;
-  padding: 0 16px;
+  padding: 0 12px;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  font-size: 14px;
-  font-weight: 800;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.bc-account-icon {
+  color: var(--nav-accent);
+  opacity: 0.9;
 }
 
 .bc-account-trigger:hover {
@@ -2476,9 +2467,10 @@
   /* Account button mobile */
   .bc-account-trigger {
     height: 36px;
-    padding: 0 10px;
-    font-size: 11px;
-    border-radius: 12px;
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
   }
 
   .bc-account-chevron {
@@ -2574,10 +2566,10 @@
   /* Account button ultra compact */
   .bc-account-trigger {
     height: 34px;
-    padding: 0 8px;
-    font-size: 10px;
-    border-radius: 12px;
-    gap: 4px;
+    width: 34px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
   }
 
   .bc-account-chevron {
