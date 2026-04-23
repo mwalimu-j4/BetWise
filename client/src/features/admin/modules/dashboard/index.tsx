@@ -88,7 +88,7 @@ type DashboardSummaryResponse = {
 };
 
 function formatCurrency(value: number) {
-  return `KES ${value.toLocaleString()}`;
+  return `KES ${(value ?? 0).toLocaleString()}`;
 }
 
 export default function Dashboard() {
