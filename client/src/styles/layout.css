@@ -2439,23 +2439,7 @@
     font-size: 11px;
   }
 
-  /* Balance card mobile */
-  .bc-balance-card {
-    padding: 0 8px;
-    height: 32px;
-    font-size: 11px;
-  }
-
-  .bc-balance-label {
-    display: none !important;
-  }
-
-  .bc-balance-value {
-    font-size: 11px;
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  /* Balance card mobile - kept same size as desktop */
 
   /* Hamburger sizing */
   .bc-hamburger {
@@ -2544,24 +2528,7 @@
     padding: 0;
   }
 
-  /* Balance - ultra compact */
-  .bc-balance-card {
-    padding: 0 6px;
-    height: 30px;
-    border-radius: 8px;
-    gap: 0;
-  }
-
-  .bc-balance-label {
-    display: none !important;
-  }
-
-  .bc-balance-value {
-    font-size: 10px;
-    max-width: 80px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  /* Balance - ultra compact - kept same size as desktop */
 
   /* Account button ultra compact */
   .bc-account-trigger {

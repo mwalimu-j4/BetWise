@@ -7,7 +7,6 @@ import {
   Flame,
   House,
   Menu,
-  Search,
   Star,
   TrendingUp,
   Trophy,
@@ -253,7 +252,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
       </div>
 
-      {/* ✅ MOBILE + DESKTOP LAYOUT (following your latest request) */}
+      {/* ✅ MOBILE + DESKTOP LAYOUT () */}
       <div className="bc-main-row flex items-center justify-between">
         <button
           type="button"
@@ -264,7 +263,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           <Menu size={22} />
         </button>
 
-        {/* ✅ Logo + Mobile-only Search Icon */}
+        {/* ✅ Logo */}
         <div className="flex items-center gap-3">
           <Link to="/user" className="bc-logo" aria-label="BetixPro home">
             <img
@@ -278,15 +277,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                        hover:drop-shadow-[0_0_22px_#fefce8]"
             />
           </Link>
-
-          {/* ✅ New mobile search icon (visible only on mobile) */}
-          <button
-            type="button"
-            className="md:hidden p-2 text-[#a8c4e0] hover:text-white transition-colors"
-            aria-label="Search"
-          >
-            <Search size={22} />
-          </button>
         </div>
 
         {/* ✅ Full search bar kept ONLY on desktop (hidden on mobile) */}
@@ -456,7 +446,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
       </div>
 
-      <div className={`bc-leagues ${!showSubNav ? "is-hidden" : ""}`}>
+      <div className={`bc-leagues   ${!showSubNav ? "is-hidden" : ""}`}>
         <div className="bc-leagues-scroll">
           {quickLinks.map((link) => {
             const isActive = location.pathname === link.to;
