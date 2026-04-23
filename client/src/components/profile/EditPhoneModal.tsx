@@ -16,6 +16,28 @@ function normalizePhoneInput(value: string) {
   return value.replace(/[\s-]/g, "");
 }
 
+function formatToE164(phone: string) {
+  let cleaned = phone.replace(/\D/g, ""); // Remove all non-digits
+  
+  // Handle 07... or 01...
+  if (cleaned.startsWith("0") && cleaned.length === 10) {
+    cleaned = "254" + cleaned.substring(1);
+  } 
+  // Handle 7... or 1... (9 digits)
+  else if (cleaned.length === 9 && (cleaned.startsWith("7") || cleaned.startsWith("1"))) {
+    cleaned = "254" + cleaned;
+  }
+  
+  // Ensure it starts with +254
+  if (!cleaned.startsWith("254")) {
+    // If it doesn't start with 254 and it's not a standard Kenyan format, 
+    // we just return as is with + (fallback)
+    return phone.startsWith("+") ? phone : "+" + cleaned;
+  }
+
+  return "+" + cleaned;
+}
+
 export default function EditPhoneModal({
   isOpen,
   currentPhone,
@@ -40,8 +62,10 @@ export default function EditPhoneModal({
     setError("");
 
     try {
+      const formattedPhone = formatToE164(newPhone.trim());
+      
       await api.patch("/profile/phone", {
-        newPhone: newPhone.trim(),
+        newPhone: formattedPhone,
         password: password.trim(),
       });
 
