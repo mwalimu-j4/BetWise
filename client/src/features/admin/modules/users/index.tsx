@@ -361,17 +361,17 @@ export default function Users() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <AdminStatCard
           label="Total Users"
-          value={totalUsers.toLocaleString()}
+          value={(totalUsers ?? 0).toLocaleString()}
           tone="blue"
         />
         <AdminStatCard
           label="Active Users"
-          value={activeUsers.toLocaleString()}
+          value={(activeUsers ?? 0).toLocaleString()}
           tone="accent"
         />
         <AdminStatCard
           label="Banned Users"
-          value={bannedUsers.toLocaleString()}
+          value={(bannedUsers ?? 0).toLocaleString()}
           tone="red"
         />
       </div>
@@ -496,7 +496,7 @@ export default function Users() {
                       </span>
                     </td>
                     <td className={adminTableCellClassName}>
-                      KES {user.balance.toLocaleString()}
+                      KES {(user.balance ?? 0).toLocaleString()}
                     </td>
                     <td className={adminTableCellClassName}>
                       {user.isVerified ? (
@@ -648,7 +648,7 @@ export default function Users() {
                       Balance
                     </p>
                     <p className="text-base font-bold text-admin-accent font-mono">
-                      KES {selectedUser.balance.toLocaleString()}
+                      KES {(selectedUser.balance ?? 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
@@ -656,7 +656,7 @@ export default function Users() {
                       Total Bets
                     </p>
                     <p className="text-base font-semibold text-admin-text-primary">
-                      {selectedUser.totalBets?.toLocaleString() || "0"}
+                      {(selectedUser.totalBets ?? 0).toLocaleString()}
                     </p>
                   </div>
                 </div>
