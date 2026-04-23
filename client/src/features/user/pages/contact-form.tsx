@@ -30,11 +30,13 @@ const validateForm = (
     errors.fullName = "Full name must not exceed 100 characters";
   }
 
-  if (!formData.phone.trim() || formData.phone.trim().length < 7) {
-    errors.phone = "Phone number must be at least 7 characters";
-  }
-  if (formData.phone.length > 20) {
-    errors.phone = "Phone number must not exceed 20 characters";
+  if (!isLoggedIn) {
+    if (!formData.phone.trim() || formData.phone.trim().length < 7) {
+      errors.phone = "Phone number must be at least 7 characters";
+    }
+    if (formData.phone.length > 20) {
+      errors.phone = "Phone number must not exceed 20 characters";
+    }
   }
 
   if (!formData.subject.trim() || formData.subject.trim().length < 3) {
@@ -180,34 +182,35 @@ export default function ContactForm({
           )}
         </div>
 
-        {/* Phone Input */}
-        <div>
-          <label
-            htmlFor="phone"
-            className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
-          >
-            Phone Number <span className="text-red-400">*</span>
-          </label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="e.g., +254700000000 or 0700000000"
-            maxLength={20}
-            readOnly={isLoggedIn && !!userPhone}
-            className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition ${
-              errors.phone
-                ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
-                : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
-            } placeholder:text-[#5a6b7d] disabled:opacity-60 disabled:cursor-not-allowed`}
-            disabled={isSubmitting || (isLoggedIn && !!userPhone)}
-          />
-          {errors.phone && (
-            <p className="mt-1 text-xs text-red-400">{errors.phone}</p>
-          )}
-        </div>
+        {/* Phone Input - Guests only */}
+        {!isLoggedIn && (
+          <div>
+            <label
+              htmlFor="phone"
+              className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
+            >
+              Phone Number <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="e.g., +254700000000 or 0700000000"
+              maxLength={20}
+              className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition ${
+                errors.phone
+                  ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
+                  : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
+              } placeholder:text-[#5a6b7d]`}
+              disabled={isSubmitting}
+            />
+            {errors.phone && (
+              <p className="mt-1 text-xs text-red-400">{errors.phone}</p>
+            )}
+          </div>
+        )}
 
         {/* Subject Input */}
         <div>
