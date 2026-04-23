@@ -551,24 +551,12 @@ export default function DepositPage() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex h-10 w-[156px] min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl border border-[#23415d] bg-[#08111d] px-2.5 text-left shadow-[0_10px_20px_rgba(4,12,22,0.2)] transition-colors hover:border-[#32597d]"
+          className="flex h-11 min-w-[140px] cursor-pointer items-center justify-between gap-3 rounded-2xl border border-[#1a2f45] bg-[#0f1d2e] px-4 text-left transition-all hover:border-[#f5c518]/40 hover:bg-[#15263a]"
         >
-          <span className="flex min-w-0 items-center gap-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#f5c518]/15 bg-[#f5c518]/10 text-[#f5c518]">
-              {getMethodIcon(activeMethod!, "h-3.5 w-3.5")}
-            </span>
-            <span className="min-w-0">
-              <span className="block text-[9px] font-semibold uppercase tracking-[0.16em] text-[#69839c]">
-                Method
-              </span>
-              <span className="mt-0.5 block truncate text-[13px] font-semibold text-white">
-                {getMethodLabel(activeMethod!)}
-              </span>
-            </span>
+          <span className="truncate text-[14px] font-bold tracking-tight text-white">
+            {getMethodLabel(activeMethod!)}
           </span>
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#102134] text-[#f5c518]">
-            <ChevronDown className="h-3.5 w-3.5" />
-          </span>
+          <ChevronDown className="h-4 w-4 text-[#f5c518] opacity-80" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -620,7 +608,7 @@ export default function DepositPage() {
         className="overflow-hidden rounded-3xl border border-[#1a2f45] bg-[#0b1421] shadow-2xl"
       >
         <div className="border-b border-[#1a2f45] bg-[#0d1829] px-6 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               {isMpesa ? (
                 <img
@@ -638,7 +626,7 @@ export default function DepositPage() {
               </span>
             </div>
 
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+            <div className="flex flex-col gap-2 sm:items-end">
               {showMethodToggle
                 ? renderMethodDropdown("end")
                 : !isMpesa && (
@@ -672,13 +660,13 @@ export default function DepositPage() {
                 <p className="mb-2.5 text-xs font-medium uppercase tracking-widest text-[#3d5a73]">
                   Quick Select
                 </p>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="flex flex-wrap gap-2">
                   {quickAmounts.map((value) => (
                     <button
                       key={value}
                       type="button"
                       onClick={() => setMethodAmount(method, String(value))}
-                      className={`rounded-xl border py-2 text-xs font-semibold transition-all duration-150 ${
+                      className={`rounded-xl border px-4 py-2 text-xs font-semibold transition-all duration-150 ${
                         amountValue === value
                           ? "border-[#f5c518] bg-[#f5c518]/10 text-[#f5c518]"
                           : "border-[#1a2f45] bg-[#0f1d2e] text-[#7a94ad] hover:border-[#f5c518]/30 hover:text-white"
