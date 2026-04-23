@@ -346,70 +346,63 @@ export default function BettingHome() {
           </div>
         </section>
 
-        {/* ═══════════════════════════════════════════════════
-            LIVE TICKER
-          ═══════════════════════════════════════════════════ */}
-        <div className="mobile-home-panel mt-3 overflow-hidden rounded-2xl border border-[#1d3048]/70 bg-[#0f1a2d]/82 p-1.5 shadow-[0_14px_32px_rgba(3,8,20,0.28)] sm:mt-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
-          <LiveTicker />
-        </div>
 
-        {/* ═══════════════════════════════════════════════════
-            SPORT / LEAGUE TABS — pill style with scroll arrows
-          ═══════════════════════════════════════════════════ */}
         <section className="mobile-home-tabs relative mt-3 sm:mt-4">
-          {/* Left scroll arrow */}
-          <button
-            type="button"
-            onClick={() => scrollTabs("left")}
-            className="absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-[#2d4362] bg-[#0b1120]/90 p-1 text-[#8a9bb0] backdrop-blur-sm transition hover:border-[#ffd500]/40 hover:text-white sm:flex"
-            aria-label="Scroll tabs left"
-          >
-            <ChevronLeft size={14} />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Left scroll arrow */}
+            <button
+              type="button"
+              onClick={() => scrollTabs("left")}
+              className="z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#2d4362]/40 bg-[#0b1120]/60 text-[#8a9bb0] backdrop-blur-md transition hover:border-[#ffd500]/40 hover:text-white"
+              aria-label="Scroll tabs left"
+            >
+              <ChevronLeft size={16} />
+            </button>
 
-          <div
-            ref={tabsRef}
-            className="app-scrollbar scroll-smooth overflow-x-auto rounded-xl border border-[#1e3350]/60 bg-gradient-to-r from-[#0f1b2d] to-[#131f33] px-2 py-2 sm:mx-6 sm:px-3 sm:py-2.5"
-          >
-            <div className="flex min-w-max gap-1.5 sm:gap-2">
-              {tabs.map((tab) => {
-                const isActive =
-                  selectedSport === tab.sportKey &&
-                  selectedLeague === tab.league;
+            <div
+              ref={tabsRef}
+              className="app-scrollbar relative flex-1 scroll-smooth overflow-x-auto rounded-xl border border-[#1e3350]/40 bg-[#0f1b2d]/60 p-1.5 backdrop-blur-sm"
+            >
+              <div className="flex min-w-max gap-1.5">
+                {tabs.map((tab) => {
+                  const isActive =
+                    selectedSport === tab.sportKey &&
+                    selectedLeague === tab.league;
 
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedSport(tab.sportKey);
-                      setSelectedLeague(tab.league);
-                    }}
-                    className={`sport-tab relative whitespace-nowrap rounded-lg px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.06em] transition-all duration-200 sm:px-4 sm:py-2 sm:text-[11px] md:px-5 md:py-2 md:text-xs ${
-                      isActive
-                        ? "bg-gradient-to-r from-[#ffd500]/20 to-[#ffaa00]/10 text-[#ffd500] shadow-[inset_0_0_0_1px_rgba(255,213,0,0.35)]"
-                        : "text-[#637fa0] hover:bg-white/[0.04] hover:text-[#a8c0dc]"
-                    }`}
-                  >
-                    {tab.label}
-                    {isActive && (
-                      <span className="absolute bottom-0 left-1/2 h-[2px] w-3/5 -translate-x-1/2 rounded-full bg-[#ffd500]" />
-                    )}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedSport(tab.sportKey);
+                        setSelectedLeague(tab.league);
+                      }}
+                      className={`relative flex items-center gap-2 whitespace-nowrap rounded-xl px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.08em] transition-all duration-300 ${
+                        isActive
+                          ? "border border-[#f5c518] bg-[#f5c518]/5 text-[#f5c518]"
+                          : "border border-transparent text-[#647fa0] hover:bg-white/[0.03] hover:text-[#a8c0dc]"
+                      }`}
+                    >
+                      {tab.label}
+                      {isActive && (
+                        <div className="absolute -bottom-[1px] left-1/2 h-[2px] w-1/2 -translate-x-1/2 rounded-full bg-[#f5c518] shadow-[0_0_8px_#f5c518]" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
 
-          {/* Right scroll arrow */}
-          <button
-            type="button"
-            onClick={() => scrollTabs("right")}
-            className="absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-[#2d4362] bg-[#0b1120]/90 p-1 text-[#8a9bb0] backdrop-blur-sm transition hover:border-[#ffd500]/40 hover:text-white sm:flex"
-            aria-label="Scroll tabs right"
-          >
-            <ChevronRight size={14} />
-          </button>
+            {/* Right scroll arrow */}
+            <button
+              type="button"
+              onClick={() => scrollTabs("right")}
+              className="z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#2d4362]/40 bg-[#0b1120]/60 text-[#8a9bb0] backdrop-blur-md transition hover:border-[#ffd500]/40 hover:text-white"
+              aria-label="Scroll tabs right"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </section>
 
         {/* ═══════════════════════════════════════════════════
