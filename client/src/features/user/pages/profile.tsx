@@ -96,63 +96,49 @@ export default function UserProfilePage() {
             <div className="space-y-6">
               {/* Profile Card */}
               <div className="overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#111827] to-[#0f172a] shadow-xl">
-                <div className="relative px-6 py-8">
-                  <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
+                <div className="relative px-6 py-6">
+                  <div className="flex flex-col items-center gap-5 md:flex-row">
                     {/* Avatar */}
-                    <div className="relative">
-                      <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-linear-to-br from-[#f5c518] to-[#d4a800] shadow-lg">
-                        <span className="text-3xl font-bold text-black">
+                    <div className="relative shrink-0">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-linear-to-br from-[#f5c518] to-[#d4a800] shadow-lg">
+                        <span className="text-2xl font-bold text-black">
                           {profile.avatarLetter || "U"}
                         </span>
                       </div>
-                      <div className="absolute -bottom-1 -right-1 rounded-full bg-green-500 p-1.5 ring-2 ring-[#0f172a]">
-                        <div className="h-2 w-2 rounded-full bg-white" />
+                      <div className="absolute -bottom-1 -right-1 rounded-full bg-green-500 p-1 ring-2 ring-[#0f172a]">
+                        <div className="h-1.5 w-1.5 rounded-full bg-white" />
                       </div>
                     </div>
 
-                    {/* User Info */}
+                    {/* User Info & Balance */}
                     <div className="flex-1 text-center md:text-left">
-                      <h2 className="text-2xl font-bold text-white">
-                        {profile.phoneMasked || "User"}
-                      </h2>
-                      <div className="mt-3 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-                        <div className="flex items-center gap-1.5 rounded-full bg-[#1a2332] px-3 py-1">
-                          <User size={12} className="text-[#f5c518]" />
-                          <span className="text-xs text-gray-300 capitalize">
+                      <div className="flex flex-col md:flex-row md:items-baseline md:gap-4">
+                        <h2 className="text-xl font-bold text-white">
+                          {profile.phoneMasked || "User"}
+                        </h2>
+                        <div className="flex items-center justify-center gap-1.5 rounded-full bg-[#1a2332] px-2.5 py-0.5 md:justify-start w-fit mx-auto md:mx-0">
+                          <User size={10} className="text-[#f5c518]" />
+                          <span className="text-[10px] text-gray-300 capitalize">
                             {profile.status?.toLowerCase()}
                           </span>
                         </div>
+                      </div>
+                      <div className="mt-2 flex items-center justify-center gap-2 md:justify-start">
+                        <p className="text-xs font-medium text-gray-400">Balance:</p>
+                        <p className="text-lg font-bold text-[#22c55e]">
+                          {formatMoney(profile.balance)}
+                        </p>
                       </div>
                     </div>
 
                     {/* Edit Button */}
                     <button
                       onClick={() => setEditPhoneOpen(true)}
-                      className="flex items-center gap-2 rounded-lg border border-[#f5c518]/30 bg-[#f5c518]/10 px-4 py-2 text-sm font-medium text-[#f5c518] transition hover:bg-[#f5c518]/20"
+                      className="flex items-center gap-2 rounded-lg border border-[#f5c518]/30 bg-[#f5c518]/10 px-3 py-1.5 text-xs font-medium text-[#f5c518] transition hover:bg-[#f5c518]/20"
                     >
-                      <Edit2 size={14} />
+                      <Edit2 size={12} />
                       Edit Phone
                     </button>
-                  </div>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 border-t border-[#2a3a4a] bg-[#0a0f1a]/50">
-                  <div className="border-r border-[#2a3a4a] p-5 text-center">
-                    <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
-                      Balance
-                    </p>
-                    <p className="mt-2 text-2xl font-bold text-[#22c55e]">
-                      {formatMoney(profile.balance)}
-                    </p>
-                  </div>
-                  <div className="p-5 text-center">
-                    <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
-                      Bonus
-                    </p>
-                    <p className="mt-2 text-2xl font-bold text-[#f5c518]">
-                      {formatMoney(profile.bonus)}
-                    </p>
                   </div>
                 </div>
               </div>
