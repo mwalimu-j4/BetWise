@@ -9,6 +9,11 @@ import { userRoute } from "./route";
 const userIndexLayoutRoute = createRoute({
   getParentRoute: () => userRoute,
   id: "user-index-layout",
+  validateSearch: (search: Record<string, unknown>): { section?: string } => {
+    return {
+      section: (search.section as string) || undefined,
+    };
+  },
   component: Outlet,
 });
 
