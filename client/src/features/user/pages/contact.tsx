@@ -1,6 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { useCallback, useState } from "react";
-import { MessageSquare, AlertCircle } from "lucide-react";
+import { MessageSquare, AlertCircle, Loader2 } from "lucide-react";
 import ContactForm from "./contact-form";
 import { api } from "@/api/axiosConfig";
 import { toast } from "sonner";
@@ -142,71 +142,72 @@ export default function Contact() {
           </div>
         </div>
 
-        {/* Message History Section */}
-        <div className="mt-8">
-          <button
-            onClick={loadMessages}
-            disabled={isLoadingMessages}
-            className="inline-flex items-center gap-2 rounded-lg border border-[#294157] bg-[#0b1120] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#111d2e] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoadingMessages ? (
-              <>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#f5c518] border-transparent border-t-[#f5c518]" />
-                Loading...
-              </>
-            ) : (
-              <>
-                <MessageSquare className="h-4 w-4" />
-                View Message History
-              </>
-            )}
-          </button>
+        {/* Message History Section - Only for logged in users */}
+        {user && (
+          <div className="mt-8">
+            <button
+              onClick={loadMessages}
+              disabled={isLoadingMessages}
+              className="inline-flex items-center gap-2 rounded-lg border border-[#294157] bg-[#0b1120] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-[#111d2e] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoadingMessages ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#f5c518]" />
+                  <span>Loading History...</span>
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="h-3.5 w-3.5 text-[#f5c518]" />
+                  <span>View Message History</span>
+                </>
+              )}
+            </button>
 
-          {showMessages && messages.length > 0 && (
-            <div className="mt-6">
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Your Messages ({messages.length})
-              </h2>
-              <div className="space-y-3">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className="rounded-xl border border-[#294157] bg-[#0f172a] p-4 hover:border-[#f5c518]/30 transition"
-                  >
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-white truncate">
-                          {message.subject}
-                        </h3>
-                        <p className="text-xs text-[#8a9bb0] mt-1">
-                          {formatDate(message.createdAt)}
-                        </p>
+            {showMessages && messages.length > 0 && (
+              <div className="mt-4">
+                <h2 className="text-lg font-bold text-white mb-3">
+                  Your Messages ({messages.length})
+                </h2>
+                <div className="space-y-2">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className="rounded-xl border border-[#294157] bg-[#0f172a] p-3 hover:border-[#f5c518]/30 transition"
+                    >
+                      <div className="flex items-start justify-between gap-4 mb-1.5">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-bold text-white truncate">
+                            {message.subject}
+                          </h3>
+                          <p className="text-[10px] text-[#8a9bb0]">
+                            {formatDate(message.createdAt)}
+                          </p>
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap flex-shrink-0 ${getStatusColor(message.status)}`}
+                        >
+                          {getStatusLabel(message.status)}
+                        </span>
                       </div>
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 ${getStatusColor(message.status)}`}
-                      >
-                        {getStatusLabel(message.status)}
-                      </span>
+                      <p className="text-xs text-[#90a2bb] line-clamp-2 leading-relaxed">
+                        {message.message}
+                      </p>
                     </div>
-                    <p className="text-sm text-[#90a2bb] line-clamp-2">
-                      {message.message}
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {showMessages && messages.length === 0 && (
-            <div className="mt-6 rounded-xl border border-[#294157] bg-[#0b1120] p-8 text-center">
-              <AlertCircle className="h-8 w-8 text-[#8a9bb0] mx-auto mb-3" />
-              <p className="text-[#90a2bb]">
-                You haven't sent any messages yet. Use the form above to contact
-                us.
-              </p>
-            </div>
-          )}
-        </div>
+            {showMessages && messages.length === 0 && (
+              <div className="mt-4 rounded-xl border border-[#294157] bg-[#0b1120] p-6 text-center">
+                <AlertCircle className="h-6 w-6 text-[#8a9bb0] mx-auto mb-2" />
+                <p className="text-sm text-[#90a2bb]">
+                  You haven't sent any messages yet.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
