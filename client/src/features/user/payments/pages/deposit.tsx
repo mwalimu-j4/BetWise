@@ -5,10 +5,8 @@ import {
   Banknote,
   Check,
   ChevronDown,
-  CreditCard,
   LoaderCircle,
   ShieldCheck,
-  Smartphone,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -536,12 +534,7 @@ export default function DepositPage() {
   const getMethodLabel = (method: DepositMethod) =>
     method === "mpesa" ? "M-Pesa" : "Paystack";
 
-  const getMethodIcon = (method: DepositMethod, className = "h-4 w-4") =>
-    method === "mpesa" ? (
-      <Smartphone className={className} />
-    ) : (
-      <CreditCard className={className} />
-    );
+
 
   const renderMethodDropdown = (align: "center" | "end") => (
     <DropdownMenu
