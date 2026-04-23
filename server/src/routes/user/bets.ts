@@ -8,6 +8,7 @@ import {
 } from "../../middleware/rateLimiter";
 import { computePossiblePayout, generateBetCode } from "../../utils/betUtils";
 import { getSystemSettings } from "../../lib/settings";
+import { createBetPlacedNotification } from "../../controllers/notifications.controller";
 
 const userBetsRouter = Router();
 
@@ -210,7 +211,10 @@ userBetsRouter.post(
           throw new Error("Could not place bet. Please try again.");
         }
 
-        await tx.walletTransaction.create({
+        const stakeTransaction = await tx.walletTransaction.create({
+          select: {
+            id: true,
+          },
           data: {
             userId,
             walletId: wallet.id,
@@ -227,7 +231,20 @@ userBetsRouter.post(
         return {
           bet,
           newBalance: updatedWallet.balance,
+          eventName: `${event.homeTeam} vs ${event.awayTeam}`,
+          stakeTransactionId: stakeTransaction.id,
         };
+      });
+
+      void createBetPlacedNotification({
+        userId,
+        transactionId: result.stakeTransactionId,
+        betCode: result.bet.betCode,
+        eventName: result.eventName,
+        stake: result.bet.stake,
+        odds: result.bet.displayOdds,
+        potentialPayout: result.bet.potentialPayout,
+        balance: result.newBalance,
       });
 
       return res.status(200).json({

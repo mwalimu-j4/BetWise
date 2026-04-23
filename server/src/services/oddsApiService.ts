@@ -404,7 +404,8 @@ class OddsApiService {
 
   async fetchSportScores(sportKey: string): Promise<OddsApiScoreEvent[] | null> {
     const apiKey = getOddsApiKey();
-    const query = new URLSearchParams({ apiKey, daysFrom: "1" });
+    // Pull a small recent window so settlements can still recover after brief downtime.
+    const query = new URLSearchParams({ apiKey, daysFrom: "3" });
 
     return this.request({
       endpoint: `/sports/${sportKey}/scores`,

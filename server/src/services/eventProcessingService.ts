@@ -7,6 +7,8 @@ import {
   SEVEN_DAY_WINDOW_MS,
 } from "./oddsAutomationConfig";
 import { createAlert } from "./adminAlertService";
+import { BetSettlementService } from "./betSettlementService";
+import { createSportMatchEndedUserNotifications } from "../controllers/notifications.controller";
 
 function calculateOverround(outcomes: Array<{ price: number }>) {
   if (!outcomes.length) return Number.POSITIVE_INFINITY;
@@ -62,6 +64,27 @@ function inManagedWindow(commenceTime: Date, now = new Date()) {
 
 function statusForCommenceTime(commenceTime: Date, now = new Date()): EventStatus {
   return commenceTime <= now ? "LIVE" : "UPCOMING";
+}
+
+function normalizeTeam(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function extractScoreTuple(event: OddsApiScoreEvent) {
+  const byTeam = new Map(
+    (event.scores ?? []).map((row) => [
+      normalizeTeam(row.name),
+      Number.parseInt(row.score, 10),
+    ]),
+  );
+
+  const homeScore = byTeam.get(normalizeTeam(event.home_team));
+  const awayScore = byTeam.get(normalizeTeam(event.away_team));
+
+  return {
+    homeScore: Number.isFinite(homeScore) ? homeScore ?? null : null,
+    awayScore: Number.isFinite(awayScore) ? awayScore ?? null : null,
+  };
 }
 
 async function recomputeCategorySummary(categoryKey: string, tx: Prisma.TransactionClient = prisma) {
@@ -369,18 +392,30 @@ export async function updateLiveScores(scoreEvents: OddsApiScoreEvent[]) {
   let updated = 0;
 
   for (const event of scoreEvents) {
-    const [homeScore, awayScore] = (event.scores ?? []).map((score) => Number.parseInt(score.score, 10));
-    await prisma.sportEvent.updateMany({
+    const { homeScore, awayScore } = extractScoreTuple(event);
+    const updateResult = await prisma.sportEvent.updateMany({
       where: { eventId: event.id, status: { in: ["UPCOMING", "LIVE"] } },
       data: {
         status: event.completed ? "FINISHED" : "LIVE",
         isActive: !event.completed,
-        homeScore: Number.isFinite(homeScore) ? homeScore : null,
-        awayScore: Number.isFinite(awayScore) ? awayScore : null,
+        homeScore,
+        awayScore,
         syncedAt: new Date(),
         archivedAt: event.completed ? new Date() : null,
       },
     });
+
+    if (event.completed && homeScore !== null && awayScore !== null) {
+      void BetSettlementService.settleBetsForEvent(event.id, homeScore, awayScore);
+
+      if (updateResult.count > 0) {
+        void createSportMatchEndedUserNotifications({
+          eventId: event.id,
+          eventName: `${event.home_team} vs ${event.away_team}`,
+        });
+      }
+    }
+
     updated += 1;
   }
 
@@ -391,35 +426,61 @@ export async function archiveFinishedEvents() {
   const now = new Date();
   const cancelCutoff = new Date(now.getTime() - 6 * 60 * 60 * 1000);
 
-  const finished = await prisma.sportEvent.updateMany({
+  const finishedEvents = await prisma.sportEvent.findMany({
     where: {
       status: "LIVE",
       commenceTime: { lte: now },
       homeScore: { not: null },
       awayScore: { not: null },
     },
-    data: {
-      status: "FINISHED",
-      isActive: false,
-      archivedAt: now,
-    },
+    select: { eventId: true, homeScore: true, awayScore: true, homeTeam: true, awayTeam: true },
   });
 
-  const cancelled = await prisma.sportEvent.updateMany({
+  for (const event of finishedEvents) {
+    await prisma.sportEvent.update({
+      where: { eventId: event.eventId },
+      data: {
+        status: "FINISHED",
+        isActive: false,
+        archivedAt: now,
+      },
+    });
+
+    // Settle bets for these events
+    if (event.homeScore !== null && event.awayScore !== null) {
+      void BetSettlementService.settleBetsForEvent(event.eventId, event.homeScore, event.awayScore);
+      void createSportMatchEndedUserNotifications({
+        eventId: event.eventId,
+        eventName: `${event.homeTeam} vs ${event.awayTeam}`,
+      });
+    }
+  }
+
+  const cancelledEvents = await prisma.sportEvent.findMany({
     where: {
       status: { in: ["UPCOMING", "LIVE"] },
       commenceTime: { lte: cancelCutoff },
       homeScore: null,
       awayScore: null,
     },
-    data: {
-      status: "CANCELLED",
-      isActive: false,
-      archivedAt: now,
-    },
+    select: { eventId: true },
   });
 
-  return { finished: finished.count, cancelled: cancelled.count };
+  for (const event of cancelledEvents) {
+    await prisma.sportEvent.update({
+      where: { eventId: event.eventId },
+      data: {
+        status: "CANCELLED",
+        isActive: false,
+        archivedAt: now,
+      },
+    });
+
+    // Refund bets for cancelled events
+    void BetSettlementService.refundBetsForEvent(event.eventId, "Match timed out/cancelled");
+  }
+
+  return { finished: finishedEvents.length, cancelled: cancelledEvents.length };
 }
 
 export async function refreshCategorySummaries() {

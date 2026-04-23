@@ -26,13 +26,11 @@ export async function createDepositNotifications(args: {
     }),
   ]);
 
-  const normalizedPaystackReference =
-    args.paystackReference ?? args.mpesaCode ?? null;
+  const normalizedPaystackReference = args.paystackReference ?? args.mpesaCode ?? null;
   const referenceSuffix = normalizedPaystackReference
     ? ` Reference: ${normalizedPaystackReference}.`
     : "";
-  const userIdentifier =
-    userProfile?.phone ?? userProfile?.email ?? args.userId;
+  const userIdentifier = userProfile?.phone ?? userProfile?.email ?? args.userId;
   const isSuccess = args.status === "COMPLETED";
 
   const userTitle = isSuccess ? "Deposit Successful" : "Deposit Failed";
@@ -40,9 +38,7 @@ export async function createDepositNotifications(args: {
     ? `You deposited KES ${args.amount.toLocaleString()}. Your new balance is KES ${args.balance.toLocaleString()}.${referenceSuffix}`
     : `Your deposit request for KES ${args.amount.toLocaleString()} failed.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
 
-  const adminTitle = isSuccess
-    ? "New Customer Deposit"
-    : "Customer Deposit Failed";
+  const adminTitle = isSuccess ? "New Customer Deposit" : "Customer Deposit Failed";
   const adminMessage = isSuccess
     ? `${userIdentifier} deposited KES ${args.amount.toLocaleString()}. Updated wallet balance: KES ${args.balance.toLocaleString()}.${referenceSuffix}`
     : `${userIdentifier} had a failed deposit request of KES ${args.amount.toLocaleString()}.${args.failureReason ? ` Reason: ${args.failureReason}.` : ""}`;
@@ -138,16 +134,14 @@ export async function createWithdrawalNotifications(args: {
     }),
   ]);
 
-  const userIdentifier =
-    userProfile?.phone ?? userProfile?.email ?? args.userId;
+  const userIdentifier = userProfile?.phone ?? userProfile?.email ?? args.userId;
   const netAmount = args.amount - args.fee;
 
   let userTitle = "";
   let userMessage = "";
   let adminTitle = "";
   let adminMessage = "";
-  let notificationType: "WITHDRAWAL_SUCCESS" | "WITHDRAWAL_FAILED" | "SYSTEM" =
-    "SYSTEM";
+  let notificationType: "WITHDRAWAL_SUCCESS" | "WITHDRAWAL_FAILED" | "SYSTEM" = "SYSTEM";
 
   if (args.status === "PENDING") {
     userTitle = "Withdrawal Request Submitted";
@@ -254,7 +248,7 @@ export async function createBetSettlementNotification(args: {
 
   if (args.status === "WON") {
     notificationType = "BET_WON";
-    title = "🎉 Bet Won!";
+    title = "Bet Won";
     message = `Congratulations! Your bet ${args.betCode} on ${args.eventName} has won! You've been credited KES ${Math.round(args.potentialPayout).toLocaleString()}.`;
   } else if (args.status === "LOST") {
     notificationType = "BET_LOST";
@@ -322,7 +316,7 @@ export async function createEventEndedAdminNotification(args: {
     args.eventType === "custom" && args.pendingBetsCount > 0
       ? " Go to Custom Events to configure results and settle markets."
       : args.eventType === "sport" && args.pendingBetsCount > 0
-        ? " Go to Bets Management to settle pending bets."
+        ? " Automated settlement needs review."
         : "";
 
   const message = `${args.eventName} has ended. Total bets: ${args.totalBetsCount}, total staked: KES ${Math.round(args.totalStaked).toLocaleString()}.${settlementNote}${actionNote}`;
@@ -362,7 +356,6 @@ export async function createMatchEndedUserNotifications(args: {
   eventName: string;
 }) {
   try {
-    // Get distinct user IDs who placed bets on this event
     const bettors = await prisma.customBet.findMany({
       where: { eventId: args.eventId },
       select: { userId: true },
@@ -372,8 +365,8 @@ export async function createMatchEndedUserNotifications(args: {
     if (bettors.length === 0) return;
 
     const createdAtIso = new Date().toISOString();
-    const title = "🏁 Match Ended";
-    const message = `${args.eventName} has ended. Results will be processed shortly — check back soon for your bet outcomes!`;
+    const title = "Match Ended";
+    const message = `${args.eventName} has ended. Results will be processed shortly; check back soon for your bet outcomes.`;
 
     await prisma.notification.createMany({
       data: bettors.map((bettor) => ({
@@ -419,8 +412,8 @@ export async function createSportMatchEndedUserNotifications(args: {
     if (bettors.length === 0) return;
 
     const createdAtIso = new Date().toISOString();
-    const title = "🏁 Match Ended";
-    const message = `${args.eventName} has ended. Results will be processed shortly — check back soon for your bet outcomes!`;
+    const title = "Match Ended";
+    const message = `${args.eventName} has ended. Results will be processed shortly; check back soon for your bet outcomes.`;
 
     await prisma.notification.createMany({
       data: bettors.map((bettor) => ({
@@ -446,6 +439,50 @@ export async function createSportMatchEndedUserNotifications(args: {
     console.log(`[Notifications] Notified ${bettors.length} users about sport match ended: ${args.eventName}`);
   } catch (error) {
     console.error("[Notifications] Failed to notify users about sport match ending:", error);
+  }
+}
+
+export async function createBetPlacedNotification(args: {
+  userId: string;
+  transactionId: string;
+  betCode: string;
+  eventName: string;
+  stake: number;
+  odds: number;
+  potentialPayout: number;
+  balance: number;
+}) {
+  const createdAtIso = new Date().toISOString();
+  const title = "Bet Placed";
+  const message = `Your bet ${args.betCode} on ${args.eventName} has been placed for KES ${Math.round(args.stake).toLocaleString()} at odds ${args.odds.toFixed(2)}. Potential payout: KES ${Math.round(args.potentialPayout).toLocaleString()}.`;
+
+  try {
+    const created = await prisma.notification.create({
+      data: {
+        userId: args.userId,
+        audience: "USER",
+        type: "SYSTEM",
+        title,
+        message,
+        transactionId: args.transactionId,
+        amount: Math.round(args.stake),
+        balance: args.balance,
+      },
+    });
+
+    emitNotificationUpdate(args.userId, {
+      notificationId: created.id,
+      audience: "USER",
+      type: "SYSTEM",
+      title,
+      message,
+      transactionId: args.transactionId,
+      amount: Math.round(args.stake),
+      balance: args.balance,
+      createdAt: createdAtIso,
+    });
+  } catch (error) {
+    console.error("[Notifications] Failed to create bet placed notification:", error);
   }
 }
 
@@ -497,11 +534,9 @@ export async function listNotifications(
     }
 
     const take = Math.min(Number(req.query.take ?? 20), 50) || 20;
-    const unreadOnly =
-      req.query.unreadOnly === "true" || req.query.unreadOnly === "1";
+    const unreadOnly = req.query.unreadOnly === "true" || req.query.unreadOnly === "1";
 
-    const audience: "ADMIN" | "USER" =
-      req.user.role === "ADMIN" ? "ADMIN" : "USER";
+    const audience: "ADMIN" | "USER" = req.user.role === "ADMIN" ? "ADMIN" : "USER";
 
     const where: {
       userId: string;
@@ -547,8 +582,7 @@ export async function markAllNotificationsRead(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const audience: "ADMIN" | "USER" =
-      req.user.role === "ADMIN" ? "ADMIN" : "USER";
+    const audience: "ADMIN" | "USER" = req.user.role === "ADMIN" ? "ADMIN" : "USER";
 
     await prisma.notification.updateMany({
       where: {
@@ -585,8 +619,7 @@ export async function markNotificationRead(
       return res.status(400).json({ message: "Invalid notification id." });
     }
 
-    const audience: "ADMIN" | "USER" =
-      req.user.role === "ADMIN" ? "ADMIN" : "USER";
+    const audience: "ADMIN" | "USER" = req.user.role === "ADMIN" ? "ADMIN" : "USER";
 
     const result = await prisma.notification.updateMany({
       where: {
