@@ -24,6 +24,7 @@ import {
 import { useMyBetsCount } from "@/features/user/components/hooks/useMyBets";
 import { formatMoney } from "@/features/user/payments/data";
 import { useWalletSummary } from "@/features/user/payments/wallet";
+import { useLiveMatches } from "@/features/user/components/hooks/useLiveMatches";
 
 // ✅ NEW: Import your logo (standard Vite + shadcn alias)
 import Logo from "@/assets/logo.png";
@@ -32,13 +33,6 @@ type NavbarProps = {
   onToggleSidebar: () => void;
 };
 
-const tickerItems = [
-  { label: "Arsenal vs Liverpool", odds: "1.85", up: true },
-  { label: "PSG vs Bayern", odds: "2.10", up: false },
-  { label: "Inter vs Milan", odds: "1.92", up: true },
-  { label: "Madrid vs Sevilla", odds: "1.73", up: true },
-  { label: "Chelsea vs Villa", odds: "2.40", up: false },
-];
 
 const quickLinks = [
   { label: "Home", to: "/user", icon: <House size={14} /> },
@@ -132,7 +126,34 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const notifyRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
 
-  const tickerLoop = useMemo(() => [...tickerItems, ...tickerItems], []);
+  const { matches } = useLiveMatches({ highlights: false, market: "1x2", q: "" });
+
+  const tickerItems = useMemo(() => {
+    if (!matches || matches.length === 0) return [];
+
+    return matches.slice(0, 10).map((match) => {
+      // Find a representative market (1x2 or Winner)
+      const h2h = match.markets.find(
+        (m) => m.type === "1x2" || m.type === "winner",
+      );
+      // Usually the first selection is Home win
+      const selection = h2h?.selections[0];
+
+      return {
+        label: `${match.home_team.name} vs ${match.away_team.name}`,
+        odds: selection?.odds?.toFixed(2) ?? "1.00",
+        up: (selection?.odds ?? 0) >= (selection?.previous_odds ?? 0),
+      };
+    });
+  }, [matches]);
+
+  const tickerLoop = useMemo(() => {
+    if (tickerItems.length === 0) return [];
+    // Ensure we have enough items for the animation loop
+    return tickerItems.length < 5
+      ? [...tickerItems, ...tickerItems, ...tickerItems]
+      : [...tickerItems, ...tickerItems];
+  }, [tickerItems]);
 
   const [showSubNav, setShowSubNav] = useState(() => {
     if (typeof window !== "undefined") {
@@ -239,15 +260,23 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         <span className="bc-live-pill">LIVE</span>
         <div className="bc-ticker-viewport">
           <div className="bc-ticker-track">
-            {tickerLoop.map((item, index) => (
-              <div key={`${item.label}-${index}`} className="bc-ticker-item">
-                <span>{item.label}</span>
-                <span className={item.up ? "is-up" : "is-down"}>
-                  {item.up ? "▲" : "▼"} {item.odds}
+            {tickerLoop.length > 0 ? (
+              tickerLoop.map((item, index) => (
+                <div key={`${item.label}-${index}`} className="bc-ticker-item">
+                  <span>{item.label}</span>
+                  <span className={item.up ? "is-up" : "is-down"}>
+                    {item.up ? "▲" : "▼"} {item.odds}
+                  </span>
+                  <span className="bc-ticker-sep" aria-hidden="true" />
+                </div>
+              ))
+            ) : (
+              <div className="bc-ticker-item">
+                <span className="text-[10px] opacity-60 uppercase tracking-widest font-bold">
+                  Stay tuned for live action • Real-time odds updates • Best betting experience
                 </span>
-                <span className="bc-ticker-sep" aria-hidden="true" />
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
