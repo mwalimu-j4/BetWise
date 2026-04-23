@@ -107,7 +107,11 @@ export default function SportCategoriesManager() {
     [categories],
   );
   const totalEvents = useMemo(
-    () => categories.reduce((sum, c) => sum + (c.liveEventCount ?? c.eventCount), 0),
+    () =>
+      categories.reduce(
+        (sum, c) => sum + (c.liveEventCount ?? c.eventCount ?? 0),
+        0,
+      ),
     [categories],
   );
   const sportsWithNoEvents = useMemo(
@@ -206,7 +210,7 @@ export default function SportCategoriesManager() {
             window.clearInterval(pollInterval);
             setConfiguring(false);
             toast.success(
-              `${data.totalSports} sports configured | ${data.totalConfigured.toLocaleString()} events loaded`,
+              `${data.totalSports} sports configured | ${(data.totalConfigured ?? 0).toLocaleString()} events loaded`,
             );
             setSelectedKeys(new Set());
             void loadCategories({ background: true });
@@ -287,12 +291,12 @@ export default function SportCategoriesManager() {
         <AdminStatCard label="Active" value={String(totalActive)} tone="live" />
         <AdminStatCard
           label="Total Events"
-          value={totalEvents.toLocaleString()}
+          value={(totalEvents ?? 0).toLocaleString()}
           tone="accent"
         />
         <AdminStatCard
           label="Total Events"
-          value={totalEvents.toLocaleString()}
+          value={(totalEvents ?? 0).toLocaleString()}
           tone="accent"
         />
         <AdminStatCard
@@ -373,7 +377,7 @@ export default function SportCategoriesManager() {
               </span>
               <span className="tabular-nums text-admin-text-muted/80">
                 {syncStatus.completedSports}/{syncStatus.totalSports} sports ·{" "}
-                {syncStatus.totalConfigured.toLocaleString()} events
+                {(syncStatus.totalConfigured ?? 0).toLocaleString()} events
               </span>
             </div>
             <div className="h-2.5 overflow-hidden rounded-full border border-white/5 bg-white/5">
@@ -448,7 +452,7 @@ export default function SportCategoriesManager() {
                   <div className="ml-auto flex items-start gap-2">
                     <div className="text-right">
                       <p className="font-mono text-xs font-bold text-admin-text-primary">
-                        {eventCount.toLocaleString()}
+                        {(eventCount ?? 0).toLocaleString()}
                       </p>
                       <p className="text-[9px] uppercase tracking-tighter text-admin-text-muted">
                         Events
@@ -491,7 +495,7 @@ export default function SportCategoriesManager() {
                     <Zap size={10} className="text-admin-accent" />
                     <span>
                       <span className={cn("font-bold", health.color)}>
-                        {eventCount.toLocaleString()}
+                        {(eventCount ?? 0).toLocaleString()}
                       </span>{" "}
                       events
                     </span>
