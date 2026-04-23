@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { X, Shield, Info, Check } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Info, Shield, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface CookieConsentModalProps {
   isOpen: boolean;
