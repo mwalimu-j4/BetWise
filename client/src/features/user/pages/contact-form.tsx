@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
@@ -17,21 +17,26 @@ interface FormErrors {
   message?: string;
 }
 
-const validateForm = (formData: ContactFormData): FormErrors => {
+const validateForm = (
+  formData: ContactFormData,
+  isLoggedIn: boolean,
+): FormErrors => {
   const errors: FormErrors = {};
 
-  if (!formData.fullName.trim() || formData.fullName.trim().length < 2) {
-    errors.fullName = "Full name must be at least 2 characters";
-  }
-  if (formData.fullName.length > 100) {
-    errors.fullName = "Full name must not exceed 100 characters";
-  }
+  if (!isLoggedIn) {
+    if (!formData.fullName.trim() || formData.fullName.trim().length < 2) {
+      errors.fullName = "Full name must be at least 2 characters";
+    }
+    if (formData.fullName.length > 100) {
+      errors.fullName = "Full name must not exceed 100 characters";
+    }
 
-  if (!formData.phone.trim() || formData.phone.trim().length < 7) {
-    errors.phone = "Phone number must be at least 7 characters";
-  }
-  if (formData.phone.length > 20) {
-    errors.phone = "Phone number must not exceed 20 characters";
+    if (!formData.phone.trim() || formData.phone.trim().length < 7) {
+      errors.phone = "Phone number must be at least 7 characters";
+    }
+    if (formData.phone.length > 20) {
+      errors.phone = "Phone number must not exceed 20 characters";
+    }
   }
 
   if (!formData.subject.trim() || formData.subject.trim().length < 3) {
@@ -73,6 +78,17 @@ export default function ContactForm({
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
+  // Sync form data with user info when it changes (e.g. login/logout)
+  useEffect(() => {
+    if (isLoggedIn) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: userFullName || prev.fullName,
+        phone: userPhone || prev.phone,
+      }));
+    }
+  }, [isLoggedIn, userFullName, userPhone]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -93,9 +109,12 @@ export default function ContactForm({
     e.preventDefault();
     setErrors({});
 
-    const validationErrors = validateForm(formData);
+    const validationErrors = validateForm(formData, isLoggedIn);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      // If there are errors but they are not visible (because fields are hidden),
+      // we should still show a generic error toast to inform the user.
+      toast.error("Please fix the errors in the form.");
       return;
     }
 
