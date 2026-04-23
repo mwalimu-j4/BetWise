@@ -21,6 +21,7 @@ export interface ApiEvent {
     spreads: { home: number | null; away: number | null } | null;
     totals: { over: number | null; under: number | null } | null;
   };
+  marketCount: number;
   _count: { bets: number };
 }
 

@@ -127,7 +127,7 @@ function formatCurrency(value: number) {
 
 function toBetSelection(
   match: LiveMatch,
-  market: LiveMarket,
+  market: LiveMarket | undefined,
   side: string,
   odds: number,
 ): BetSelection {
@@ -135,10 +135,11 @@ function toBetSelection(
     eventId: match.id,
     eventName: `${match.home_team.name} vs ${match.away_team.name}`,
     leagueName: `${match.league.country} • ${match.league.name}`,
-    marketType: market.type,
+    marketType: market?.type ?? "h2h",
     side,
     odds,
     commenceTime: match.kickoff_at,
+    isLive: true,
   };
 }
 
