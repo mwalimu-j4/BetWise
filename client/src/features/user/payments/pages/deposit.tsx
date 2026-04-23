@@ -356,21 +356,132 @@ export default function DepositPage() {
   };
 
   const onRetry = () => {
-    if (processingMethod === "mpesa" && pendingMpesaTransactionId) {
-      setShowPaymentResult(false);
-      setPaymentStatus(null);
-      setIsProcessing(true);
-      void mpesaStatusQuery.refetch();
+    if (processingMethod === "mpesa") {
+      // If we have a pending transaction and it's NOT failed, try re-verifying
+      if (pendingMpesaTransactionId && paymentStatus !== "failed") {
+        setShowPaymentResult(false);
+        setPaymentStatus(null);
+        setIsProcessing(true);
+        void mpesaStatusQuery.refetch();
+        return;
+      }
+
+      // Otherwise (it failed or ID was cleared), trigger a NEW deposit
+      const amountValue = Number(amounts.mpesa) || 0;
+      if (amountValue > 0) {
+        void handleMpesaDeposit(amountValue);
+      }
       return;
     }
 
-    if (processingMethod === "paystack" && paymentReference) {
-      setShowPaymentResult(false);
-      setPaymentStatus(null);
-      setPaystackReference(paymentReference);
-      setShouldVerifyPaystack(true);
-      setIsProcessing(true);
-      toast.loading("Checking payment status...");
+    if (processingMethod === "paystack") {
+      // If we have a reference and it's NOT failed, try re-verifying
+      if (paymentReference && paymentStatus !== "failed") {
+        setShowPaymentResult(false);
+        setPaymentStatus(null);
+        setPaystackReference(paymentReference);
+        setShouldVerifyPaystack(true);
+        setIsProcessing(true);
+        toast.loading("Checking payment status...");
+        return;
+      }
+
+      // Otherwise (it failed), trigger a NEW deposit
+      const amountValue = Number(amounts.paystack) || 0;
+      if (amountValue > 0) {
+        void handlePaystackDeposit(amountValue);
+      }
+    }
+  };
+
+  const handleMpesaDeposit = async (amount: number) => {
+    if (!isMpesaEnabled) {
+      toast.error("M-Pesa deposits are currently disabled.");
+      return;
+    }
+
+    if (!hasValidMpesaPhone) {
+      toast.error(
+        "Your account phone number is not valid for M-Pesa. Update your profile first.",
+      );
+      return;
+    }
+
+    setProcessingMethod("mpesa");
+    setIsProcessing(true);
+    setShowPaymentResult(false);
+    setPaymentStatus(null);
+
+    try {
+      const response = await mpesaInitializeMutation.mutateAsync({
+        phone: normalizedPhone,
+        amount: amount,
+        accountReference: "BETWISE",
+        description: "BetWise wallet deposit",
+      });
+
+      localStorage.setItem(mpesaPendingStorageKey, response.transactionId);
+      setPendingMpesaTransactionId(response.transactionId);
+      setPaymentReference(response.transactionId);
+      toast.success(
+        response.customerMessage ?? "STK push sent to your phone.",
+        {
+          description: `Approve KES ${formatMoney(amount)} on your phone.`,
+        },
+      );
+    } catch (error: any) {
+      setIsProcessing(false);
+      const message =
+        error?.response?.data?.message ??
+        error?.response?.data?.error ??
+        error?.message ??
+        "Unable to start M-Pesa deposit.";
+      toast.error(message);
+    }
+  };
+
+  const handlePaystackDeposit = async (amount: number) => {
+    if (!isPaystackEnabled) {
+      toast.error("Paystack deposits are currently disabled.");
+      return;
+    }
+
+    if (!user?.email) {
+      toast.error("User email not found.");
+      return;
+    }
+
+    setProcessingMethod("paystack");
+    setIsProcessing(true);
+    setShowPaymentResult(false);
+    setPaymentStatus(null);
+
+    try {
+      const response = await paystackInitializeMutation.mutateAsync({
+        email: user.email,
+        amount: amount,
+        metadata: { userId: user.id, source: "deposit-page" },
+      });
+
+      localStorage.setItem(paystackPendingStorageKey, response.reference);
+      setPaystackReference(response.reference);
+      setPaymentReference(response.reference);
+
+      toast.loading("Redirecting to secure checkout...", {
+        description: `Amount: KES ${formatMoney(amount)}`,
+      });
+
+      setTimeout(() => {
+        window.location.assign(response.authorization_url);
+      }, 500);
+    } catch (error: any) {
+      setIsProcessing(false);
+      const message =
+        error?.response?.data?.error ??
+        error?.response?.data?.message ??
+        error?.message ??
+        "Unable to start payment";
+      toast.error(message);
     }
   };
 
@@ -402,91 +513,10 @@ export default function DepositPage() {
       return;
     }
 
-    setProcessingMethod(method);
-
     if (method === "mpesa") {
-      if (!isMpesaEnabled) {
-        toast.error("M-Pesa deposits are currently disabled.");
-        return;
-      }
-
-      if (!hasValidMpesaPhone) {
-        toast.error(
-          "Your account phone number is not valid for M-Pesa. Update your profile first.",
-        );
-        return;
-      }
-
-      setIsProcessing(true);
-
-      try {
-        const response = await mpesaInitializeMutation.mutateAsync({
-          phone: normalizedPhone,
-          amount: amountValue,
-          accountReference: "BETWISE",
-          description: "BetWise wallet deposit",
-        });
-
-        localStorage.setItem(mpesaPendingStorageKey, response.transactionId);
-        setPendingMpesaTransactionId(response.transactionId);
-        setPaymentReference(response.transactionId);
-        toast.success(
-          response.customerMessage ?? "STK push sent to your phone.",
-          {
-            description: `Approve KES ${formatMoney(amountValue)} on your phone.`,
-          },
-        );
-      } catch (error: any) {
-        setIsProcessing(false);
-        const message =
-          error?.response?.data?.message ??
-          error?.response?.data?.error ??
-          error?.message ??
-          "Unable to start M-Pesa deposit.";
-        toast.error(message);
-      }
-
-      return;
-    }
-
-    if (!isPaystackEnabled) {
-      toast.error("Paystack deposits are currently disabled.");
-      return;
-    }
-
-    if (!user?.email) {
-      toast.error("User email not found.");
-      return;
-    }
-
-    setIsProcessing(true);
-
-    try {
-      const response = await paystackInitializeMutation.mutateAsync({
-        email: user.email,
-        amount: amountValue,
-        metadata: { userId: user.id, source: "deposit-page" },
-      });
-
-      localStorage.setItem(paystackPendingStorageKey, response.reference);
-      setPaystackReference(response.reference);
-      setPaymentReference(response.reference);
-
-      toast.loading("Redirecting to secure checkout...", {
-        description: `Amount: KES ${formatMoney(amountValue)}`,
-      });
-
-      setTimeout(() => {
-        window.location.assign(response.authorization_url);
-      }, 500);
-    } catch (error: any) {
-      setIsProcessing(false);
-      const message =
-        error?.response?.data?.error ??
-        error?.response?.data?.message ??
-        error?.message ??
-        "Unable to start payment";
-      toast.error(message);
+      await handleMpesaDeposit(amountValue);
+    } else {
+      await handlePaystackDeposit(amountValue);
     }
   }
 
