@@ -134,7 +134,7 @@ export default function Bets() {
     return [
       {
         label: "Total Open",
-        value: totalOpen.toLocaleString(),
+        value: (totalOpen ?? 0).toLocaleString(),
         tone: "gold" as const,
       },
       // {
@@ -142,15 +142,15 @@ export default function Bets() {
       //   value: settledToday.toLocaleString(),
       //   tone: "accent" as const,
       // },
-      { label: "Voided", value: voided.toLocaleString(), tone: "red" as const },
+      { label: "Voided", value: (voided ?? 0).toLocaleString(), tone: "red" as const },
       {
         label: "Flagged",
-        value: flagged.toLocaleString(),
+        value: (flagged ?? 0).toLocaleString(),
         tone: "red" as const,
       },
       {
         label: "Liability",
-        value: `KES ${Math.round(liability).toLocaleString()}`,
+        value: `KES ${Math.round(liability ?? 0).toLocaleString()}`,
         tone: "purple" as const,
       },
     ];
@@ -394,12 +394,12 @@ export default function Bets() {
                         <td
                           className={`${adminTableCellClassName} font-medium text-admin-text-primary whitespace-nowrap`}
                         >
-                          KES {Math.round(bet.stake).toLocaleString()}
+                          KES {Math.round(bet.stake ?? 0).toLocaleString()}
                         </td>
                         <td
                           className={`${adminTableCellClassName} font-semibold text-admin-accent whitespace-nowrap`}
                         >
-                          KES {Math.round(bet.potentialPayout).toLocaleString()}
+                          KES {Math.round(bet.potentialPayout ?? 0).toLocaleString()}
                         </td>
                         <td className={adminTableCellClassName}>
                           <StatusBadge
@@ -657,7 +657,7 @@ export default function Bets() {
                   Stake & Odds
                 </p>
                 <p className="text-sm font-semibold text-admin-text-primary">
-                  KES {Math.round(selectedBet.stake).toLocaleString()}{" "}
+                  KES {Math.round(selectedBet.stake ?? 0).toLocaleString()}{" "}
                   <span className="text-admin-text-muted font-normal">@</span>{" "}
                   <span className="text-admin-gold">
                     {selectedBet.displayOdds}
@@ -669,7 +669,7 @@ export default function Bets() {
                   Potential Win
                 </p>
                 <p className="text-sm font-bold text-admin-accent">
-                  KES {Math.round(selectedBet.potentialPayout).toLocaleString()}
+                  KES {Math.round(selectedBet.potentialPayout ?? 0).toLocaleString()}
                 </p>
               </div>
 
