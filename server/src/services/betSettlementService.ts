@@ -29,6 +29,40 @@ function compareWithPush(candidate: number, opponent: number): MarketOutcome {
 }
 
 export class BetSettlementService {
+  static async reconcilePendingBetsForClosedEvents(args?: { userId?: string }) {
+    const pendingBets = await prisma.bet.findMany({
+      where: {
+        status: "PENDING",
+        ...(args?.userId ? { userId: args.userId } : {}),
+        event: {
+          status: { in: ["FINISHED", "CANCELLED"] },
+        },
+      },
+      select: {
+        eventId: true,
+        event: {
+          select: {
+            status: true,
+            homeScore: true,
+            awayScore: true,
+          },
+        },
+      },
+      distinct: ["eventId"],
+    });
+
+    for (const bet of pendingBets) {
+      if (bet.event.status === "CANCELLED") {
+        await this.refundBetsForEvent(bet.eventId, "Reconciled after event cancellation");
+        continue;
+      }
+
+      if (bet.event.homeScore !== null && bet.event.awayScore !== null) {
+        await this.settleBetsForEvent(bet.eventId, bet.event.homeScore, bet.event.awayScore);
+      }
+    }
+  }
+
   static async settleBetsForEvent(eventId: string, homeScore: number, awayScore: number) {
     console.log(
       `[Settlement] Starting settlement for event ${eventId} (Scores: ${homeScore} - ${awayScore})`,

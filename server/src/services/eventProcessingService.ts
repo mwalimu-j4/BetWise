@@ -163,11 +163,14 @@ export async function processAndSaveEvents(apiEvents: OddsApiEvent[], categoryKe
       await prisma.$transaction(async (tx) => {
         const existing = await tx.sportEvent.findUnique({
           where: { eventId: event.id },
-          select: { houseMargin: true, autoConfigured: true },
+          select: { houseMargin: true, autoConfigured: true, status: true, archivedAt: true },
         });
 
         const houseMargin = existing?.houseMargin ?? 0;
-        const status = statusForCommenceTime(commenceTime, now);
+        const status =
+          existing?.status === "FINISHED" || existing?.status === "CANCELLED"
+            ? existing.status
+            : statusForCommenceTime(commenceTime, now);
         const isActive = bestBookmaker.markets.some(
           (market) => (market.outcomes ?? []).length > 0,
         );
@@ -192,7 +195,10 @@ export async function processAndSaveEvents(apiEvents: OddsApiEvent[], categoryKe
             autoConfigured: true,
             isFeatured: featured,
             marketsEnabled,
-            archivedAt: null,
+            archivedAt:
+              existing?.status === "FINISHED" || existing?.status === "CANCELLED"
+                ? existing.archivedAt
+                : null,
           },
           create: {
             eventId: event.id,
@@ -326,9 +332,12 @@ export async function updateLiveOdds(events: OddsApiEvent[]) {
       await prisma.$transaction(async (tx) => {
         const existing = await tx.sportEvent.findUnique({
           where: { eventId: event.id },
-          select: { houseMargin: true },
+          select: { houseMargin: true, status: true },
         });
         if (!existing) return;
+        if (existing.status === "FINISHED" || existing.status === "CANCELLED") {
+          return;
+        }
 
         await tx.sportEvent.update({
           where: { eventId: event.id },

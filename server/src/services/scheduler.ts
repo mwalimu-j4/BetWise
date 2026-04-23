@@ -31,6 +31,7 @@ import {
 import { cleanupOldAlerts, createAlert } from "./adminAlertService";
 import { fetchAndSaveFixtures } from "./fixturesService";
 import { emitCustomEventFinished, emitCustomEventLive } from "../lib/socket";
+import { BetSettlementService } from "./betSettlementService";
 import {
   createEventEndedAdminNotification,
   createMatchEndedUserNotifications,
@@ -222,6 +223,8 @@ export async function jobEventCleanup(): Promise<JobResult> {
         enforceSevenDayWindow(),
         cleanupOldAlerts(),
       ]);
+
+      await BetSettlementService.reconcilePendingBetsForClosedEvents();
 
       await refreshCategorySummaries();
 

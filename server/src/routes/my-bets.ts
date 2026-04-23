@@ -5,6 +5,7 @@ import { emitBetUpdate, emitWalletUpdate } from "../lib/socket";
 import { prisma } from "../lib/prisma";
 import { getOrCreateWallet } from "../lib/wallet";
 import { authenticate } from "../middleware/authenticate";
+import { BetSettlementService } from "../services/betSettlementService";
 import {
   cancelBetRateLimiter,
   myBetDetailRateLimiter,
@@ -155,6 +156,8 @@ myBetsRouter.get("/my-bets", myBetsListRateLimiter, async (req, res, next) => {
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
+
+    await BetSettlementService.reconcilePendingBetsForClosedEvents({ userId });
 
     const parsedQuery = listQuerySchema.safeParse(req.query);
     if (!parsedQuery.success) {
@@ -404,6 +407,8 @@ myBetsRouter.get(
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
+
+      await BetSettlementService.reconcilePendingBetsForClosedEvents({ userId });
 
       const parsedBetId = betIdSchema.safeParse(req.params.betId);
       if (!parsedBetId.success) {
