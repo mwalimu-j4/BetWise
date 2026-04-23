@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import BetSlip from "../components/BetSlip";
 import { CustomEventCard } from "../components/CustomEventCard";
 import HighlightsSection from "../components/HighlightsSection";
-import LiveTicker from "../components/LiveTicker";
 import useBetSlip, { type BetSelection } from "../components/hooks/useBetSlip";
 import useEvents from "../components/hooks/useEvents";
 import { useCustomEvents } from "../components/hooks/useCustomEvents";

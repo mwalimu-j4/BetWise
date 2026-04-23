@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Clock, TrendingUp } from "lucide-react";
-import { isAxiosError } from "axios";
-import { api } from "@/api/axiosConfig";
 import EventMarketsModal from "./EventMarketsModal";
 import type { BetSelection } from "./hooks/useBetSlip";
 import type { ApiEvent } from "./hooks/useEvents";
@@ -13,10 +11,6 @@ type EventCardProps = {
   highlightLabel?: string;
 };
 
-type DisplayedOddCountItem = {
-  marketType: string;
-  bookmakerName: string;
-};
 
 function formatKickoffCompact(value: string) {
   return new Intl.DateTimeFormat(undefined, {

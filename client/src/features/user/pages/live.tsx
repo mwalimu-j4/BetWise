@@ -290,7 +290,6 @@ const MatchRow = memo(function MatchRow({
   match,
   selectedOdds,
   onSelect,
-  expanded,
   onToggleExpand,
   market,
   highlighted,
@@ -298,7 +297,6 @@ const MatchRow = memo(function MatchRow({
   match: LiveMatch;
   selectedOdds: Set<string>;
   onSelect: (selection: BetSelection) => void;
-  expanded: boolean;
   onToggleExpand: () => void;
   market: LiveMarketKey;
   highlighted?: boolean;
@@ -308,7 +306,6 @@ const MatchRow = memo(function MatchRow({
   const columns = getColumnLabels(market);
   const totalCorners = match.stats.corners_home + match.stats.corners_away;
   const totalYellows = match.stats.yellows_home + match.stats.yellows_away;
-  const totalReds = match.stats.reds_home + match.stats.reds_away;
 
   return (
     <article
@@ -1277,7 +1274,6 @@ export default function LivePage() {
                                   match={row.match}
                                   selectedOdds={selectedOdds}
                                   onSelect={onSelect}
-                                  expanded={expandedMatchId === row.match.id}
                                   onToggleExpand={() => {
                                     setExpandedMatchId((current) =>
                                       current === row.match.id
@@ -1320,7 +1316,6 @@ export default function LivePage() {
                                     match={match}
                                     selectedOdds={selectedOdds}
                                     onSelect={onSelect}
-                                    expanded={expandedMatchId === match.id}
                                     onToggleExpand={() => {
                                       setExpandedMatchId((current) =>
                                         current === match.id ? null : match.id,

@@ -80,6 +80,7 @@ export default function MobileBottomNav() {
 
         <Link
           to="/user/live"
+          search={{}}
           className={`mobile-bottom-nav__link relative flex flex-col items-center gap-0.5 py-0.5 text-[9px] font-medium transition ${
             isLiveActive ? "text-[#f5c518]" : "text-[#8a9bb0]"
           }`}

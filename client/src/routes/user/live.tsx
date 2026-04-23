@@ -4,7 +4,12 @@ import { userRoute } from "./route";
 export const userLiveRoute = createRoute({
   getParentRoute: () => userRoute,
   path: "/live",
-  validateSearch: (search: Record<string, unknown>) => {
+  validateSearch: (search: Record<string, unknown>): {
+    market?: string;
+    highlights?: boolean;
+    q?: string;
+    highlight?: string;
+  } => {
     return {
       market: (search.market as string) || undefined,
       highlights: search.highlights === "1" || search.highlights === true || undefined,
