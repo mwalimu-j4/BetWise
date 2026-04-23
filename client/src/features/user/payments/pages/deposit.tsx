@@ -35,7 +35,7 @@ import {
 
 
 const paystackPendingStorageKey = "betwise-paystack-pending-reference";
-const paystackLogoUrl = "/images/paystack.png";
+const paystackLogoUrl = "/images/paystack.svg";
 const mpesaPendingStorageKey = "betwise-mpesa-pending-transaction";
 const mpesaLogoUrl =
   "https://upload.wikimedia.org/wikipedia/commons/1/15/M-PESA_LOGO-01.svg";
