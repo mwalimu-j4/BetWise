@@ -898,62 +898,6 @@ export default function LivePage() {
     };
   }, [filters]);
 
-  // Handle match highlighting and scrolling from ticker
-  useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const highlightId = query.get("highlight");
-    if (!highlightId || matches.length === 0) {
-      return;
-    }
-
-    setHighlightedMatchId(highlightId);
-
-    const tryScroll = () => {
-      // 1. Ensure league is expanded
-      const targetMatch = matches.find((m) => m.id === highlightId);
-      if (targetMatch) {
-        const leagueKey = `${targetMatch.league.country} • ${targetMatch.league.name}`;
-        if (collapsedLeagues[leagueKey]) {
-          setCollapsedLeagues((prev) => ({ ...prev, [leagueKey]: false }));
-          // Re-run after state update
-          return;
-        }
-      }
-
-      // 2. Find row index in flatRows
-      const rowIndex = flatRows.findIndex(
-        (r) => r.kind === "match" && r.match.id === highlightId,
-      );
-      if (rowIndex !== -1) {
-        if (shouldVirtualize && virtualContainerRef.current) {
-          const offset = rowOffsets.offsets[rowIndex] ?? 0;
-          virtualContainerRef.current.scrollTo({
-            top: offset - 80,
-            behavior: "smooth",
-          });
-        } else {
-          const el = document.getElementById(`live-match-${highlightId}`);
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        }
-      }
-    };
-
-    const timer = setTimeout(tryScroll, 300);
-    const clearTimer = setTimeout(() => setHighlightedMatchId(null), 4000);
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(clearTimer);
-    };
-  }, [
-    window.location.search,
-    matches.length,
-    flatRows.length,
-    shouldVirtualize,
-    collapsedLeagues,
-  ]);
 
   const filterCount =
     Number(filters.highlights) + Number(Boolean(filters.q.trim()));
@@ -1032,6 +976,64 @@ export default function LivePage() {
     },
     [betSlip],
   );
+
+  // Handle match highlighting and scrolling from ticker
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const highlightId = query.get("highlight");
+    if (!highlightId || matches.length === 0) {
+      return;
+    }
+
+    setHighlightedMatchId(highlightId);
+
+    const tryScroll = () => {
+      // 1. Ensure league is expanded
+      const targetMatch = matches.find((m) => m.id === highlightId);
+      if (targetMatch) {
+        const leagueKey = `${targetMatch.league.country} • ${targetMatch.league.name}`;
+        if (collapsedLeagues[leagueKey]) {
+          setCollapsedLeagues((prev) => ({ ...prev, [leagueKey]: false }));
+          // Re-run after state update
+          return;
+        }
+      }
+
+      // 2. Find row index in flatRows
+      const rowIndex = flatRows.findIndex(
+        (r) => r.kind === "match" && r.match.id === highlightId,
+      );
+      if (rowIndex !== -1) {
+        if (shouldVirtualize && virtualContainerRef.current) {
+          const offset = rowOffsets.offsets[rowIndex] ?? 0;
+          virtualContainerRef.current.scrollTo({
+            top: offset - 80,
+            behavior: "smooth",
+          });
+        } else {
+          const el = document.getElementById(`live-match-${highlightId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      }
+    };
+
+    const timer = setTimeout(tryScroll, 300);
+    const clearTimer = setTimeout(() => setHighlightedMatchId(null), 4000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(clearTimer);
+    };
+  }, [
+    window.location.search,
+    matches.length,
+    flatRows.length,
+    shouldVirtualize,
+    collapsedLeagues,
+    rowOffsets.offsets,
+  ]);
 
   const listHeight =
     typeof window === "undefined"
