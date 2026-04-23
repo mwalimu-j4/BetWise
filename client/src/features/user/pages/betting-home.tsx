@@ -379,7 +379,7 @@ export default function BettingHome() {
                       }}
                       className={`relative flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-[0.08em] transition-all duration-300 ${
                         isActive
-                          ? "border border-[#f5c518] bg-[#f5c518]/5 text-[#f5c518]"
+                          ? "border border-[#f5c518] text-[#f5c518]"
                           : "border border-transparent text-[#647fa0] hover:bg-white/[0.03] hover:text-[#a8c0dc]"
                       }`}
                     >
