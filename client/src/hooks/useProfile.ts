@@ -18,6 +18,8 @@ export type ProfileData = {
   status: "ACTIVE" | "SUSPENDED";
   balance: number;
   bonus: number;
+  totalDeposits: number;
+  totalWithdrawals: number;
   preferences: ProfilePreferences;
   live: boolean;
   createdAt: string;

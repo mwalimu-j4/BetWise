@@ -167,34 +167,55 @@ export async function getProfile(req: Request, res: Response) {
 
   const userId = req.user.id;
 
-  const [user, wallet, bonusAggregate] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        phone: true,
-        accountStatus: true,
-        role: true,
-        adminTotpEnabled: true,
-        createdAt: true,
-      },
-    }),
-    prisma.wallet.findUnique({
-      where: { userId },
-      select: {
-        balance: true,
-      },
-    }),
-    prisma.walletTransaction.aggregate({
-      where: {
-        userId,
-        type: "BONUS",
-        status: "COMPLETED",
-      },
-      _sum: {
-        amount: true,
-      },
-    }),
-  ]);
+  const [user, wallet, bonusAggregate, depositAggregate, withdrawalAggregate] =
+    await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          phone: true,
+          accountStatus: true,
+          role: true,
+          adminTotpEnabled: true,
+          createdAt: true,
+        },
+      }),
+      prisma.wallet.findUnique({
+        where: { userId },
+        select: {
+          balance: true,
+        },
+      }),
+      prisma.walletTransaction.aggregate({
+        where: {
+          userId,
+          type: "BONUS",
+          status: "COMPLETED",
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+      prisma.walletTransaction.aggregate({
+        where: {
+          userId,
+          type: "DEPOSIT",
+          status: "COMPLETED",
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+      prisma.walletTransaction.aggregate({
+        where: {
+          userId,
+          type: "WITHDRAWAL",
+          status: "COMPLETED",
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+    ]);
 
   if (!user) {
     return res.status(404).json({ message: "Profile not found" });
@@ -210,6 +231,8 @@ export async function getProfile(req: Request, res: Response) {
       status: user.accountStatus,
       balance: wallet?.balance ?? 0,
       bonus: bonusAggregate._sum.amount ?? 0,
+      totalDeposits: depositAggregate._sum.amount ?? 0,
+      totalWithdrawals: withdrawalAggregate._sum.amount ?? 0,
       preferences,
       live: true,
       createdAt: user.createdAt.toISOString(),

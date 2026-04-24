@@ -1,25 +1,25 @@
-import { useState, useMemo } from "react";
-import {
-  Wallet,
-  Zap,
-  Edit2,
-  LogOut,
-  ArrowUpRight,
-  ArrowDownRight,
-  ChevronRight,
-  User,
-  Award,
-  TrendingUp,
-  History,
-} from "lucide-react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import EditPhoneModal from "@/components/profile/EditPhoneModal";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
-import { useProfile, useProfileTransactions } from "@/hooks/useProfile";
 import { useAuth } from "@/context/AuthContext";
 import { formatMoney } from "@/features/user/payments/data";
+import { useProfile } from "@/hooks/useProfile";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Award,
+  ChevronRight,
+  Edit2,
+  History,
+  LogOut,
+  TrendingUp,
+  User,
+  Wallet,
+  Zap,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export default function UserProfilePage() {
   const navigate = useNavigate();
@@ -32,29 +32,12 @@ export default function UserProfilePage() {
     refetch: refetchProfile,
   } = useProfile();
 
-  const { data: transactionsData, isLoading: transactionsLoading } =
-    useProfileTransactions(true, 100, 1);
-
   const { totalDeposits, totalWithdrawals } = useMemo(() => {
-    if (!transactionsData?.transactions) {
-      return { totalDeposits: 0, totalWithdrawals: 0 };
-    }
-
-    let deposits = 0;
-    let withdrawals = 0;
-
-    transactionsData.transactions.forEach((tx) => {
-      if (tx.status === "completed") {
-        if (tx.type === "deposit") {
-          deposits += tx.amount;
-        } else if (tx.type === "withdrawal") {
-          withdrawals += tx.amount;
-        }
-      }
-    });
-
-    return { totalDeposits: deposits, totalWithdrawals: withdrawals };
-  }, [transactionsData]);
+    return {
+      totalDeposits: profile?.totalDeposits ?? 0,
+      totalWithdrawals: profile?.totalWithdrawals ?? 0,
+    };
+  }, [profile]);
 
   const handleSignOut = async () => {
     try {
@@ -95,64 +78,68 @@ export default function UserProfilePage() {
           ) : profile ? (
             <div className="space-y-6">
               {/* Profile Card */}
-              <div className="overflow-hidden rounded-2xl border border-[#2a3a4a] bg-linear-to-br from-[#111827] to-[#0f172a] shadow-xl">
-                <div className="relative px-6 py-8">
-                  <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
-                    {/* Avatar */}
-                    <div className="relative">
-                      <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-linear-to-br from-[#f5c518] to-[#d4a800] shadow-lg">
-                        <span className="text-3xl font-bold text-black">
-                          {profile.avatarLetter || "U"}
-                        </span>
-                      </div>
-                      <div className="absolute -bottom-1 -right-1 rounded-full bg-green-500 p-1.5 ring-2 ring-[#0f172a]">
-                        <div className="h-2 w-2 rounded-full bg-white" />
-                      </div>
-                    </div>
-
-                    {/* User Info */}
-                    <div className="flex-1 text-center md:text-left">
-                      <h2 className="text-2xl font-bold text-white">
-                        {profile.phoneMasked || "User"}
-                      </h2>
-                      <div className="mt-3 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-                        <div className="flex items-center gap-1.5 rounded-full bg-[#1a2332] px-3 py-1">
-                          <User size={12} className="text-[#f5c518]" />
-                          <span className="text-xs text-gray-300 capitalize">
-                            {profile.status?.toLowerCase()}
+              <div className="overflow-hidden rounded-2xl border border-[#2a3a4a] bg-[#111827] shadow-xl relative">
+                {/* Decorative background element */}
+                <div className="absolute top-0 right-0 h-32 w-32 bg-[#f5c518]/5 blur-3xl rounded-full -mr-16 -mt-16" />
+                
+                <div className="relative px-5 py-5">
+                  <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                    {/* Left: User Profile Identity */}
+                    <div className="flex items-center gap-4">
+                      <div className="relative shrink-0">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-[#f5c518] to-[#d4a800] shadow-lg ring-1 ring-white/10">
+                          <span className="text-2xl font-bold text-black">
+                            {profile.avatarLetter || "U"}
                           </span>
                         </div>
+                        <div className="absolute -bottom-1 -right-1 rounded-full bg-green-500 p-1 ring-2 ring-[#111827]">
+                          <div className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3">
+                          <h2 className="text-xl font-bold text-white tracking-tight">
+                            {profile.phoneMasked || "User"}
+                          </h2>
+                          <div className="flex items-center gap-1 rounded-full bg-green-500/10 border border-green-500/20 px-2 py-0.5">
+                            <div className="h-1 w-1 rounded-full bg-green-500" />
+                            <span className="text-[10px] font-semibold text-green-400 uppercase tracking-wider">
+                              {profile.status?.toLowerCase() || "active"}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setEditPhoneOpen(true)}
+                          className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-[#f5c518] transition-colors w-fit"
+                        >
+                          <Edit2 size={12} />
+                          Update number
+                        </button>
                       </div>
                     </div>
 
-                    {/* Edit Button */}
-                    <button
-                      onClick={() => setEditPhoneOpen(true)}
-                      className="flex items-center gap-2 rounded-lg border border-[#f5c518]/30 bg-[#f5c518]/10 px-4 py-2 text-sm font-medium text-[#f5c518] transition hover:bg-[#f5c518]/20"
-                    >
-                      <Edit2 size={14} />
-                      Edit Phone
-                    </button>
-                  </div>
-                </div>
+                    {/* Right: Balance and Actions */}
+                    <div className="flex items-center justify-between gap-4 border-t border-white/5 pt-4 md:border-0 md:pt-0">
+                      <div className="flex flex-col md:items-end">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">
+                          Available Balance
+                        </p>
+                        <p className="text-2xl font-black text-[#22c55e] leading-none">
+                          {formatMoney(profile.balance)}
+                        </p>
+                      </div>
+                      
+                      <div className="h-10 w-[1px] bg-white/10 hidden md:block mx-2" />
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 border-t border-[#2a3a4a] bg-[#0a0f1a]/50">
-                  <div className="border-r border-[#2a3a4a] p-5 text-center">
-                    <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
-                      Balance
-                    </p>
-                    <p className="mt-2 text-2xl font-bold text-[#22c55e]">
-                      {formatMoney(profile.balance)}
-                    </p>
-                  </div>
-                  <div className="p-5 text-center">
-                    <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
-                      Bonus
-                    </p>
-                    <p className="mt-2 text-2xl font-bold text-[#f5c518]">
-                      {formatMoney(profile.bonus)}
-                    </p>
+                      <Link
+                        to="/user/payments/deposit"
+                        className="flex items-center gap-2 rounded-xl bg-[#f5c518] px-5 py-2.5 text-sm font-bold text-black transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#f5c518]/10"
+                      >
+                        <ArrowUpRight size={16} />
+                        Deposit
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -345,7 +332,7 @@ export default function UserProfilePage() {
                     <div>
                       <p className="text-xs text-gray-400">Total Deposits</p>
                       <p className="text-sm font-semibold text-white">
-                        {transactionsLoading
+                        {profileLoading
                           ? "Loading..."
                           : formatMoney(totalDeposits)}
                       </p>
@@ -361,7 +348,7 @@ export default function UserProfilePage() {
                     <div>
                       <p className="text-xs text-gray-400">Total Withdrawals</p>
                       <p className="text-sm font-semibold text-white">
-                        {transactionsLoading
+                        {profileLoading
                           ? "Loading..."
                           : formatMoney(totalWithdrawals)}
                       </p>
