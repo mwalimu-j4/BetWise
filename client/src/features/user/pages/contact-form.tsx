@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Send } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/api/axiosConfig";
 
@@ -17,7 +17,10 @@ interface FormErrors {
   message?: string;
 }
 
-const validateForm = (formData: ContactFormData): FormErrors => {
+const validateForm = (
+  formData: ContactFormData,
+  isLoggedIn: boolean,
+): FormErrors => {
   const errors: FormErrors = {};
 
   if (!formData.fullName.trim() || formData.fullName.trim().length < 2) {
@@ -27,11 +30,13 @@ const validateForm = (formData: ContactFormData): FormErrors => {
     errors.fullName = "Full name must not exceed 100 characters";
   }
 
-  if (!formData.phone.trim() || formData.phone.trim().length < 7) {
-    errors.phone = "Phone number must be at least 7 characters";
-  }
-  if (formData.phone.length > 20) {
-    errors.phone = "Phone number must not exceed 20 characters";
+  if (!isLoggedIn) {
+    if (!formData.phone.trim() || formData.phone.trim().length < 7) {
+      errors.phone = "Phone number must be at least 7 characters";
+    }
+    if (formData.phone.length > 20) {
+      errors.phone = "Phone number must not exceed 20 characters";
+    }
   }
 
   if (!formData.subject.trim() || formData.subject.trim().length < 3) {
@@ -73,6 +78,17 @@ export default function ContactForm({
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
+  // Sync form data with user info when it changes (e.g. login/logout)
+  useEffect(() => {
+    if (isLoggedIn) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: userFullName || prev.fullName,
+        phone: userPhone || prev.phone,
+      }));
+    }
+  }, [isLoggedIn, userFullName, userPhone]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -93,9 +109,12 @@ export default function ContactForm({
     e.preventDefault();
     setErrors({});
 
-    const validationErrors = validateForm(formData);
+    const validationErrors = validateForm(formData, isLoggedIn);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      // If there are errors but they are not visible (because fields are hidden),
+      // we should still show a generic error toast to inform the user.
+      toast.error("Please fix the errors in the form.");
       return;
     }
 
@@ -125,25 +144,22 @@ export default function ContactForm({
   };
 
   return (
-    <div className="rounded-2xl border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-8">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">
+    <div className="rounded-2xl border border-[#294157] bg-[linear-gradient(135deg,#111d2e_0%,#0f1a2a_100%)] p-6">
+      <div className="mb-5">
+        <h2 className="text-xl font-bold text-white mb-1.5">
           Send us a Message
         </h2>
-        <p className="text-[#8a9bb0] text-sm">
-          Have a question or concern? We'd love to hear from you. Fill out the
-          form below and we'll get back to you as soon as possible.
-        </p>
+
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Full Name Input */}
         <div>
           <label
             htmlFor="fullName"
-            className="block text-sm font-semibold text-white mb-2"
+            className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
           >
-            Full Name {!isLoggedIn && <span className="text-red-400">*</span>}
+            Full Name <span className="text-red-400">*</span>
           </label>
           <input
             type="text"
@@ -154,7 +170,7 @@ export default function ContactForm({
             placeholder="Enter your full name"
             maxLength={100}
             readOnly={isLoggedIn && !!userFullName}
-            className={`w-full px-4 py-3 rounded-lg border bg-[#0b1120] text-white outline-none transition ${
+            className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition ${
               errors.fullName
                 ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
                 : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
@@ -164,49 +180,43 @@ export default function ContactForm({
           {errors.fullName && (
             <p className="mt-1 text-xs text-red-400">{errors.fullName}</p>
           )}
-          <p className="mt-1 text-xs text-[#5a6b7d]">
-            {formData.fullName.length}/100 characters
-          </p>
         </div>
 
-        {/* Phone Input */}
-        <div>
-          <label
-            htmlFor="phone"
-            className="block text-sm font-semibold text-white mb-2"
-          >
-            Phone Number{" "}
-            {!isLoggedIn && <span className="text-red-400">*</span>}
-          </label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="e.g., +254700000000 or 0700000000"
-            maxLength={20}
-            readOnly={isLoggedIn && !!userPhone}
-            className={`w-full px-4 py-3 rounded-lg border bg-[#0b1120] text-white outline-none transition ${
-              errors.phone
-                ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
-                : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
-            } placeholder:text-[#5a6b7d] disabled:opacity-60 disabled:cursor-not-allowed`}
-            disabled={isSubmitting || (isLoggedIn && !!userPhone)}
-          />
-          {errors.phone && (
-            <p className="mt-1 text-xs text-red-400">{errors.phone}</p>
-          )}
-          <p className="mt-1 text-xs text-[#5a6b7d]">
-            {formData.phone.length}/20 characters
-          </p>
-        </div>
+        {/* Phone Input - Guests only */}
+        {!isLoggedIn && (
+          <div>
+            <label
+              htmlFor="phone"
+              className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
+            >
+              Phone Number <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="e.g., +254700000000 or 0700000000"
+              maxLength={20}
+              className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition ${
+                errors.phone
+                  ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
+                  : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
+              } placeholder:text-[#5a6b7d]`}
+              disabled={isSubmitting}
+            />
+            {errors.phone && (
+              <p className="mt-1 text-xs text-red-400">{errors.phone}</p>
+            )}
+          </div>
+        )}
 
         {/* Subject Input */}
         <div>
           <label
             htmlFor="subject"
-            className="block text-sm font-semibold text-white mb-2"
+            className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
           >
             Subject <span className="text-red-400">*</span>
           </label>
@@ -218,7 +228,7 @@ export default function ContactForm({
             onChange={handleChange}
             placeholder="What is this about?"
             maxLength={100}
-            className={`w-full px-4 py-3 rounded-lg border bg-[#0b1120] text-white outline-none transition ${
+            className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition ${
               errors.subject
                 ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
                 : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
@@ -237,7 +247,7 @@ export default function ContactForm({
         <div>
           <label
             htmlFor="message"
-            className="block text-sm font-semibold text-white mb-2"
+            className="block text-xs font-semibold text-[#8a9bb0] uppercase mb-1.5"
           >
             Message <span className="text-red-400">*</span>
           </label>
@@ -248,8 +258,8 @@ export default function ContactForm({
             onChange={handleChange}
             placeholder="Tell us what's on your mind..."
             maxLength={2000}
-            rows={5}
-            className={`w-full px-4 py-3 rounded-lg border bg-[#0b1120] text-white outline-none transition resize-none ${
+            rows={4}
+            className={`w-full px-4 py-2.5 rounded-lg border bg-[#0b1120] text-sm text-white outline-none transition resize-none ${
               errors.message
                 ? "border-red-500/50 focus:border-red-500 focus:shadow-[0_0_0_2px_rgba(255,59,48,0.1)]"
                 : "border-[#294157] focus:border-[#f5c518] focus:shadow-[0_0_0_2px_rgba(245,197,24,0.1)]"
@@ -259,7 +269,7 @@ export default function ContactForm({
           {errors.message && (
             <p className="mt-1 text-xs text-red-400">{errors.message}</p>
           )}
-          <p className="mt-1 text-xs text-[#5a6b7d]">
+          <p className="mt-1 text-[10px] text-right text-[#5a6b7d]">
             {formData.message.length}/2000 characters
           </p>
         </div>
@@ -268,10 +278,19 @@ export default function ContactForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#f5c518] px-6 py-3 text-sm font-bold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#f5c518] px-6 py-3 text-sm font-bold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 relative overflow-hidden"
         >
-          <Send className="h-4 w-4" />
-          {isSubmitting ? "Sending..." : "Send Message"}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Sending Message...</span>
+            </>
+          ) : (
+            <>
+              <Send className="h-4 w-4" />
+              <span>Send Message</span>
+            </>
+          )}
         </button>
       </form>
     </div>

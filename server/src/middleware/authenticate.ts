@@ -89,4 +89,42 @@ export async function authenticate(
   }
 }
 
+export async function optionalAuthenticate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader?.startsWith("Bearer ")) {
+    return next();
+  }
+
+  const token = authHeader.slice(7);
+
+  try {
+    const payload = verifyAccessToken(token);
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: {
+        id: true,
+        role: true,
+        accountStatus: true,
+      },
+    });
+
+    if (user && user.accountStatus !== "SUSPENDED") {
+      req.user = {
+        id: user.id,
+        role: user.role,
+      };
+    }
+  } catch (error) {
+    console.log(error)
+    // Silently ignore auth errors for optional authentication
+  }
+
+  return next();
+}
+
 export const requireAuth = authenticate;
