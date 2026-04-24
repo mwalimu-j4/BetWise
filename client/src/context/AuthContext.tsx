@@ -427,7 +427,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     } else {
       console.log("[Auth] No stored session found");
-      openAuthModal("login");
     }
 
     // Then verify/refresh the session (async)

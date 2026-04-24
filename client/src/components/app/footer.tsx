@@ -3,6 +3,7 @@ import { Mail, ArrowRight, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
+import CookieConsentModal from "@/components/CookieConsentModal";
 
 // Assuming logo.png is in your assets folder
 import logo from "@/assets/logo.png";
@@ -12,6 +13,7 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isCookieModalOpen, setIsCookieModalOpen] = useState(false);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,23 +256,31 @@ export default function Footer() {
         <div className="mt-3 flex flex-col gap-2 text-[10px] text-[#4a6a8f] sm:mt-4 sm:gap-3 sm:text-xs md:mt-6 md:flex-row md:items-center md:justify-between">
           <p>© {year} BetRixPro. All rights reserved.</p>
           <div className="flex flex-wrap gap-x-2 gap-y-1 text-[10px] sm:text-xs">
-            <a href="#" className="transition hover:text-[#ffd500]">
+            <Link to="/user/terms" className="transition hover:text-[#ffd500]">
               Terms
-            </a>
+            </Link>
             <span className="text-[#1e3350]">·</span>
-            <a href="#" className="transition hover:text-[#ffd500]">
+            <Link to="/user/privacy" className="transition hover:text-[#ffd500]">
               Privacy
-            </a>
+            </Link>
             <span className="text-[#1e3350]">·</span>
-            <a href="#" className="transition hover:text-[#ffd500]">
+            <button 
+              onClick={() => setIsCookieModalOpen(true)}
+              className="transition hover:text-[#ffd500] bg-transparent border-none p-0 cursor-pointer"
+            >
               Cookies
-            </a>
+            </button>
           </div>
           <p className="text-[9px] font-medium text-[#3d5478] sm:text-xs md:block">
             Play Responsibly · 18+
           </p>
         </div>
       </div>
+
+      <CookieConsentModal 
+        isOpen={isCookieModalOpen} 
+        onClose={() => setIsCookieModalOpen(false)} 
+      />
     </footer>
   );
 }

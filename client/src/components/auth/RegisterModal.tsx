@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
 import {
   Eye,
@@ -58,6 +58,7 @@ export default function RegisterModal() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -77,8 +78,16 @@ export default function RegisterModal() {
       phoneValid &&
       passwordValid &&
       confirmPassword.length > 0 &&
+      passwordsMatch &&
+      agreedToTerms,
+    [
+      emailValid,
+      phoneValid,
+      passwordValid,
+      confirmPassword,
       passwordsMatch,
-    [emailValid, phoneValid, passwordValid, confirmPassword, passwordsMatch],
+      agreedToTerms,
+    ],
   );
 
   const clearFieldError = useCallback((field: string) => {
@@ -94,6 +103,7 @@ export default function RegisterModal() {
     setPhone("");
     setPassword("");
     setConfirmPassword("");
+    setAgreedToTerms(false);
     setErrors({});
     setShowPassword(false);
     setShowConfirmPassword(false);
@@ -401,6 +411,41 @@ export default function RegisterModal() {
                       ))}
                     </div>
                   )}
+                </div>
+
+                {/* Terms and Privacy Agreement */}
+                <div className="flex items-start gap-3 py-2">
+                  <div className="flex h-5 items-center">
+                    <input
+                      id="terms-agreement"
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      className="h-4 w-4 rounded border-[#3d6ba3]/40 bg-[#1a3a6b]/50 text-[#f5c518] focus:ring-[#f5c518]/30 cursor-pointer"
+                      required
+                    />
+                  </div>
+                  <label
+                    htmlFor="terms-agreement"
+                    className="text-xs leading-relaxed text-[#a8c4e0] cursor-pointer"
+                  >
+                    I agree to the{" "}
+                    <Link
+                      to="/user/terms"
+                      target="_blank"
+                      className="font-semibold text-[#f5c518] hover:underline"
+                    >
+                      Terms and Conditions
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      to="/user/privacy"
+                      target="_blank"
+                      className="font-semibold text-[#f5c518] hover:underline"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </label>
                 </div>
 
                 {/* Submit Button */}
