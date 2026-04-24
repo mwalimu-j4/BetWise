@@ -7,11 +7,10 @@ import {
   Flame,
   House,
   Menu,
-  Search,
   Star,
   TrendingUp,
   Trophy,
-  Wallet,
+  User,
   Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -253,7 +252,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
       </div>
 
-      {/* ✅ MOBILE + DESKTOP LAYOUT (following your latest request) */}
+      {/* ✅ MOBILE + DESKTOP LAYOUT () */}
       <div className="bc-main-row flex items-center justify-between">
         <button
           type="button"
@@ -264,7 +263,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           <Menu size={22} />
         </button>
 
-        {/* ✅ Logo + Mobile-only Search Icon */}
+        {/* ✅ Logo */}
         <div className="flex items-center gap-3">
           <Link to="/user" className="bc-logo" aria-label="BetixPro home">
             <img
@@ -278,15 +277,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                        hover:drop-shadow-[0_0_22px_#fefce8]"
             />
           </Link>
-
-          {/* ✅ New mobile search icon (visible only on mobile) */}
-          <button
-            type="button"
-            className="md:hidden p-2 text-[#a8c4e0] hover:text-white transition-colors"
-            aria-label="Search"
-          >
-            <Search size={22} />
-          </button>
         </div>
 
         {/* ✅ Full search bar kept ONLY on desktop (hidden on mobile) */}
@@ -319,9 +309,6 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
               aria-label="Wallet Balance"
               onClick={() => navigate({ to: "/user/payments" })}
             >
-              <div className="bc-balance-icon-wrap">
-                <Wallet size={16} />
-              </div>
               <div className="bc-balance-content">
                 <span className="bc-balance-label">Wallet</span>
                 <span className="bc-balance-value">
@@ -428,8 +415,9 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                   className={`bc-account-trigger ${accountOpen ? "is-open" : ""}`}
                   onClick={() => setAccountOpen((prev) => !prev)}
                 >
-                  <span>Account</span>
-                  <ChevronDown size={14} className="bc-account-chevron" />
+                  <User size={18} className="bc-account-icon" />
+                  <span className="bc-account-text hidden md:inline">Account</span>
+                  <ChevronDown size={14} className="bc-account-chevron hidden md:inline" />
                 </button>
                 <AccountDropdown
                   open={accountOpen}
@@ -458,7 +446,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
         </div>
       </div>
 
-      <div className={`bc-leagues ${!showSubNav ? "is-hidden" : ""}`}>
+      <div className={`bc-leagues   ${!showSubNav ? "is-hidden" : ""}`}>
         <div className="bc-leagues-scroll">
           {quickLinks.map((link) => {
             const isActive = location.pathname === link.to;

@@ -28,8 +28,10 @@ import {
   Volleyball,
   Wallet,
   Zap,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import Logo from "@/assets/logo.png";
 import { toast } from "sonner";
 import { api } from "@/lib/axios";
 
@@ -460,6 +462,19 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   return (
     <>
       <aside className={`bc-sidebar ${isOpen ? "is-open" : ""}`}>
+        <div className="bc-side-header">
+          <Link to="/user" className="bc-side-logo" onClick={onClose}>
+            <img src={Logo} alt="BetixPro" />
+          </Link>
+          <button
+            type="button"
+            className="bc-side-close"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
+            <X size={24} />
+          </button>
+        </div>
         <div className="bc-side-scroll">
           {/* MAIN NAVIGATION */}
           <div className="bc-side-section">
