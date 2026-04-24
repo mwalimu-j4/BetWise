@@ -141,6 +141,15 @@ type AdminSettingsRecord = Prisma.AdminSettingsGetPayload<{
   select: typeof adminSettingsSelect;
 }>;
 
+function isAdminSettingsSchemaMismatch(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2022"
+  );
+}
+
 function toDbSettingsData(config: AdminSettingsConfig, updatedBy: string) {
   return {
     platformName: config.generalSystemConfig.platformName,
@@ -2412,47 +2421,68 @@ export async function getAdminSettings(req: Request, res: Response) {
     return res.status(403).json({ message: "Admin access required." });
   }
 
-  const settings = await prisma.adminSettings.upsert({
-    where: { key: "global" },
-    update: {},
-    create: {
-      key: "global",
-      ...toDbSettingsData(defaultAdminSettings, req.user.id),
-    },
-    select: adminSettingsSelect,
-  });
-
-  const parsedConfig = adminSettingsSchema.safeParse(toConfig(settings));
-
-  if (!parsedConfig.success) {
-    const repaired = await prisma.adminSettings.update({
+  try {
+    const settings = await prisma.adminSettings.upsert({
       where: { key: "global" },
-      data: {
+      update: {},
+      create: {
+        key: "global",
         ...toDbSettingsData(defaultAdminSettings, req.user.id),
       },
       select: adminSettingsSelect,
     });
 
+    const parsedConfig = adminSettingsSchema.safeParse(toConfig(settings));
+
+    if (!parsedConfig.success) {
+      const repaired = await prisma.adminSettings.update({
+        where: { key: "global" },
+        data: {
+          ...toDbSettingsData(defaultAdminSettings, req.user.id),
+        },
+        select: adminSettingsSelect,
+      });
+
+      return res.status(200).json({
+        config: toConfig(repaired),
+        metadata: {
+          key: repaired.key,
+          updatedBy: repaired.updatedBy,
+          createdAt: repaired.createdAt.toISOString(),
+          updatedAt: repaired.updatedAt.toISOString(),
+        },
+      });
+    }
+
     return res.status(200).json({
-      config: toConfig(repaired),
+      config: parsedConfig.data,
       metadata: {
-        key: repaired.key,
-        updatedBy: repaired.updatedBy,
-        createdAt: repaired.createdAt.toISOString(),
-        updatedAt: repaired.updatedAt.toISOString(),
+        key: settings.key,
+        updatedBy: settings.updatedBy,
+        createdAt: settings.createdAt.toISOString(),
+        updatedAt: settings.updatedAt.toISOString(),
+      },
+    });
+  } catch (error) {
+    if (!isAdminSettingsSchemaMismatch(error)) {
+      throw error;
+    }
+
+    console.warn(
+      "[AdminSettings] Falling back to defaults because the production database is missing newer admin_settings columns.",
+      error,
+    );
+
+    return res.status(200).json({
+      config: defaultAdminSettings,
+      metadata: {
+        key: "global",
+        updatedBy: null,
+        createdAt: new Date(0).toISOString(),
+        updatedAt: new Date(0).toISOString(),
       },
     });
   }
-
-  return res.status(200).json({
-    config: parsedConfig.data,
-    metadata: {
-      key: settings.key,
-      updatedBy: settings.updatedBy,
-      createdAt: settings.createdAt.toISOString(),
-      updatedAt: settings.updatedAt.toISOString(),
-    },
-  });
 }
 
 export async function updateAdminSettings(req: Request, res: Response) {
@@ -2477,26 +2507,37 @@ export async function updateAdminSettings(req: Request, res: Response) {
     });
   }
 
-  const updated = await prisma.adminSettings.upsert({
-    where: { key: "global" },
-    update: toDbSettingsData(parsedBody.data.config, req.user.id),
-    create: {
-      key: "global",
-      ...toDbSettingsData(parsedBody.data.config, req.user.id),
-    },
-    select: adminSettingsSelect,
-  });
+  try {
+    const updated = await prisma.adminSettings.upsert({
+      where: { key: "global" },
+      update: toDbSettingsData(parsedBody.data.config, req.user.id),
+      create: {
+        key: "global",
+        ...toDbSettingsData(parsedBody.data.config, req.user.id),
+      },
+      select: adminSettingsSelect,
+    });
 
-  return res.status(200).json({
-    message: "Admin settings updated successfully.",
-    config: toConfig(updated),
-    metadata: {
-      key: updated.key,
-      updatedBy: updated.updatedBy,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    },
-  });
+    return res.status(200).json({
+      message: "Admin settings updated successfully.",
+      config: toConfig(updated),
+      metadata: {
+        key: updated.key,
+        updatedBy: updated.updatedBy,
+        createdAt: updated.createdAt.toISOString(),
+        updatedAt: updated.updatedAt.toISOString(),
+      },
+    });
+  } catch (error) {
+    if (!isAdminSettingsSchemaMismatch(error)) {
+      throw error;
+    }
+
+    return res.status(503).json({
+      message:
+        "Admin settings cannot be saved until the latest database migration for admin_settings is applied.",
+    });
+  }
 }
 
 // Risk Management Functions

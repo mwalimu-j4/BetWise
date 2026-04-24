@@ -368,6 +368,10 @@ userEventsRouter.get("/user/events/:eventId", async (req, res, next) => {
 const SPORT_CATEGORIES_CACHE_TTL_MS = 60_000;
 let sportCategoriesCache: { data: unknown; expiresAt: number } | null = null;
 
+export function invalidateUserEventCaches() {
+  sportCategoriesCache = null;
+}
+
 userEventsRouter.get("/user/sport-categories", async (_req, res, next) => {
   try {
     if (

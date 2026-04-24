@@ -18,8 +18,9 @@ type OddsStatsResponse = {
 };
 
 const ACTIVE_ODDS_STATUSES = ["UPCOMING", "LIVE"] as const;
-const HARD_PAGE_LIMIT = 20;
-const HARD_DROPDOWN_LIMIT = 50;
+const DEFAULT_PAGE_LIMIT = 50;
+const MAX_PAGE_LIMIT = 100;
+const HARD_DROPDOWN_LIMIT = 200;
 
 const ODDS_STATS_CACHE_TTL_MS = 30_000;
 let oddsStatsCache: { data: OddsStatsResponse; expiresAt: number } | null =
@@ -310,13 +311,17 @@ oddsAdminRouter.get("/admin/odds/events", async (req, res, next) => {
     }
 
     const { page, filter, search, eventId } = parsedQuery.data;
+    const pageLimit = Math.min(
+      Math.max(parsedQuery.data.limit ?? DEFAULT_PAGE_LIMIT, 1),
+      MAX_PAGE_LIMIT,
+    );
     const where = buildOddsListWhere({ filter, search, eventId });
 
     const [data, total] = await Promise.all([
       prisma.sportEvent.findMany({
         where,
-        take: HARD_PAGE_LIMIT,
-        skip: (page - 1) * HARD_PAGE_LIMIT,
+        take: pageLimit,
+        skip: (page - 1) * pageLimit,
         orderBy: { commenceTime: "asc" },
         select: {
           id: true,
@@ -342,13 +347,13 @@ oddsAdminRouter.get("/admin/odds/events", async (req, res, next) => {
       prisma.sportEvent.count({ where }),
     ]);
 
-    const totalPages = Math.max(1, Math.ceil(total / HARD_PAGE_LIMIT));
+    const totalPages = Math.max(1, Math.ceil(total / pageLimit));
 
     return res.status(200).json({
       data,
       pagination: {
         page,
-        limit: HARD_PAGE_LIMIT,
+        limit: pageLimit,
         total,
         totalPages,
         hasNext: page < totalPages,
@@ -637,7 +642,7 @@ oddsAdminRouter.post("/admin/odds/bookmark-bulk", async (req, res, next) => {
       return jsonError(
         res,
         400,
-        "Invalid bulk bookmark payload. Maximum 50 eventIds.",
+        "Invalid bulk bookmark payload. Maximum 500 eventIds.",
         "INVALID_BULK_BOOKMARK_PAYLOAD",
       );
     }

@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 type OddsFilter = "configured" | "configured-with-odds" | "all-with-odds";
+const ODDS_PAGE_LIMIT = 50;
+const BULK_BOOKMARK_LIMIT = 500;
 
 interface OddsStats {
   totalConfigured: number;
@@ -204,7 +206,7 @@ export default function Odds() {
   const [listError, setListError] = useState("");
   const [pagination, setPagination] = useState<OddsListResponse["pagination"]>({
     page: 1,
-    limit: 20,
+    limit: ODDS_PAGE_LIMIT,
     total: 0,
     totalPages: 1,
     hasNext: false,
@@ -311,7 +313,7 @@ export default function Odds() {
         params: {
           filter: activeFilter,
           page: currentPage,
-          limit: 20,
+          limit: ODDS_PAGE_LIMIT,
           search: debouncedSearch || undefined,
           eventId: selectedEventId || undefined,
         },
@@ -411,14 +413,6 @@ export default function Odds() {
   useEffect(() => {
     void loadConfiguredEvents();
   }, [debouncedConfiguredDropdownSearch]);
-
-  useEffect(() => {
-    setSelectedEventIds((current) =>
-      current.filter((eventId) =>
-        events.some((event) => event.eventId === eventId),
-      ),
-    );
-  }, [events]);
 
   const allOnPageSelected =
     events.length > 0 &&
@@ -523,8 +517,8 @@ export default function Odds() {
       return;
     }
 
-    if (selectedEventIds.length > 50) {
-      toast.error("Maximum 50 events can be bookmarked at once.");
+    if (selectedEventIds.length > BULK_BOOKMARK_LIMIT) {
+      toast.error(`Maximum ${BULK_BOOKMARK_LIMIT} events can be bookmarked at once.`);
       return;
     }
 
@@ -799,15 +793,10 @@ export default function Odds() {
                       )}
                     >
                       <input
-                        checked={
-                          selectedEventIds.length === events.length &&
-                          events.length > 0
-                        }
+                        checked={allOnPageSelected}
                         className="size-3.5 rounded border-admin-border bg-admin-surface accent-admin-accent"
                         onChange={(e) => {
-                          if (e.target.checked)
-                            setSelectedEventIds(events.map((ev) => ev.eventId));
-                          else setSelectedEventIds([]);
+                          toggleSelectAllOnPage(e.target.checked);
                         }}
                         type="checkbox"
                       />

@@ -4,6 +4,8 @@ import { z } from "zod";
 import { prisma } from "../../lib/prisma";
 import { authenticate } from "../../middleware/authenticate";
 import { requireAdmin } from "../../middleware/requireAdmin";
+import { refreshCategorySummaries } from "../../services/eventProcessingService";
+import { invalidateUserEventCaches } from "../user/events";
 import { chunkArray } from "../../utils/arrayUtils";
 
 const eventsAdminRouter = Router();
@@ -58,6 +60,12 @@ let eventsLeaguesCache: {
 function invalidateEventsCache() {
   eventsStatsCache = null;
   eventsLeaguesCache = null;
+}
+
+async function refreshEventDerivedCaches() {
+  invalidateEventsCache();
+  invalidateUserEventCaches();
+  await refreshCategorySummaries();
 }
 
 
@@ -654,7 +662,7 @@ eventsAdminRouter.patch("/admin/events/:eventId", async (req, res, next) => {
       },
     });
 
-    invalidateEventsCache();
+    await refreshEventDerivedCaches();
 
     return res.status(200).json(updatedEvent);
   } catch (error) {
@@ -696,7 +704,7 @@ eventsAdminRouter.patch(
         },
       });
 
-      invalidateEventsCache();
+      await refreshEventDerivedCaches();
       console.log(
         `[AdminEvents] Toggled event ${eventId} to ${updatedEvent.isActive}`,
       );
@@ -732,6 +740,7 @@ eventsAdminRouter.patch(
           const event = await tx.sportEvent.update({
             where: { eventId },
             data: {
+              isActive: true,
               houseMargin: parsedBody.data.houseMargin,
               marketsEnabled: parsedBody.data.marketsEnabled,
             },
@@ -786,7 +795,7 @@ eventsAdminRouter.patch(
         },
       );
 
-      invalidateEventsCache();
+      await refreshEventDerivedCaches();
       console.log(`[AdminEvents] Updated config for event ${eventId}`);
 
       return res.status(200).json(updatedEvent);
@@ -810,7 +819,7 @@ eventsAdminRouter.patch("/admin/events/bulk-toggle", async (req, res, next) => {
       data: { isActive: parsedBody.data.isActive },
     });
 
-    invalidateEventsCache();
+    await refreshEventDerivedCaches();
     console.log(
       `[AdminEvents] Bulk toggle ${parsedBody.data.isActive} for ${result.count} events`,
     );
@@ -844,7 +853,10 @@ eventsAdminRouter.patch("/admin/events/bulk-config", async (req, res, next) => {
         const [updatedEvents, updatedOdds] = await prisma.$transaction([
           prisma.sportEvent.updateMany({
             where: { eventId: { in: batchEventIds } },
-            data: { houseMargin: parsedBody.data.houseMargin },
+            data: {
+              isActive: true,
+              houseMargin: parsedBody.data.houseMargin,
+            },
           }),
           prisma.$executeRaw(Prisma.sql`
             UPDATE displayed_odds
@@ -865,7 +877,7 @@ eventsAdminRouter.patch("/admin/events/bulk-config", async (req, res, next) => {
       }
     }
 
-    invalidateEventsCache();
+    await refreshEventDerivedCaches();
     console.log(
       `[AdminEvents] Bulk config ${parsedBody.data.houseMargin}% events=${updatedEventsCount} oddsUpdated=${updatedOddsCount} failedBatches=${failedBatchCount}`,
     );
@@ -984,7 +996,7 @@ eventsAdminRouter.patch("/admin/events/bulk-margin", async (req, res, next) => {
       updated += result[0].count;
     }
 
-    invalidateEventsCache();
+    await refreshEventDerivedCaches();
 
     const targetLabel =
       filter === "league"
